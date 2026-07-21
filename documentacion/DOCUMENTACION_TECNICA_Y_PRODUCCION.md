@@ -6,7 +6,7 @@
 
 ## 1. 📌 Resumen Ejecutivo del Proyecto
 
-El sistema desarrollado para el **Asador Casa Julian de Tolosa / Madrid** es una plataforma conversacional inteligente de nivel industrial integrada con la **API Cloud de WhatsApp Business de Meta**, **PostgreSQL** y un motor multicanal de notificaciones (Email + SMS + WhatsApp).
+El sistema desarrollado para el **Asador Casa Julian de Tolosa / Madrid** es una plataforma conversacional inteligente de nivel industrial integrada con la **API Cloud de WhatsApp Business de Meta**, **PostgreSQL (Neon.tech)** y un motor multicanal de notificaciones (Email + SMS + WhatsApp).
 
 Permite automatizar el 100% de la atención a clientes para reservas, consultas de disponibilidad, gestión de listas de espera y resolución de preguntas frecuentes las **24 horas al día, los 7 días de la semana, sin intervención humana**.
 
@@ -23,7 +23,7 @@ El sistema está desplegado en la nube bajo una arquitectura desacoplada, escala
                                        │
                                        ▼
                   ┌──────────────────────────────────────────┐
-                  │   Meta WhatsApp Cloud API (v19.0)        │
+                  │   Meta WhatsApp Cloud API (v20.0)        │
                   └────────────────────┬─────────────────────┘
                                        │ (Webhook HTTPS)
                                        ▼
@@ -34,18 +34,18 @@ El sistema está desplegado en la nube bajo una arquitectura desacoplada, escala
             │                          │                         │
             ▼                          ▼                         ▼
 ┌────────────────────────┐ ┌──────────────────────┐ ┌────────────────────────┐
-│ PostgreSQL (Neon.tech) │ │ Motor i18n (8 Langs) │ │ Notificaciones (Nodemailer│
-│ Clientes / Reservas /  │ │ ES, EU, EN, FR, ZH,  │ │ Email HTML + SMS)      │
-│ Lista de Espera        │ │ JA, RU, AR           │ │                        │
+│ PostgreSQL (Neon.tech) │ │ Motor i18n (10 Langs)│ │ Notificaciones (Nodemailer│
+│ Clientes / Reservas /  │ │ ES, EU, EN, FR, DE,  │ │ Email HTML + SMS)      │
+│ Lista de Espera        │ │ NL, BE, ZH, JA, RU   │ │                        │
 └────────────────────────┘ └──────────────────────┘ └────────────────────────┘
 ```
 
 ### Componentes Clave:
 
-1. **Servidor Backend (`server.js`):** Express.js escuchando peticiones Webhook GET (verificación Meta) y POST (mensajes entrantes).
-2. **Motor de Lógica (`botLogic.js`):** Máquina de estados conversacional que gestiona los 4 flujos principales y mantiene el contexto por usuario.
-3. **Capa de Datos (`database.js` + `schema.sql`):** Conector a PostgreSQL en la nube con tablas relacionales de clientes, reservas e índices de disponibilidad.
-4. **Motor Internacional (`i18n.js`):** Diccionario multilingüe de 8 idiomas traducidos profesionalmente.
+1. **Servidor Backend (`server.js`):** Express.js escuchando peticiones Webhook GET (verificación Meta) y POST (mensajes entrantes `processMessage`).
+2. **Motor de Lógica (`botLogic.js`):** Máquina de estados conversacional que gestiona los 5 flujos principales y mantiene el contexto por usuario.
+3. **Capa de Datos (`database.js` + `schema.sql`):** Conector a PostgreSQL en la nube con tablas relacionales de clientes, reservas e índices de disponibilidad real por turno.
+4. **Motor Internacional (`i18n.js`):** Diccionario multilingüe de 10 idiomas traducidos profesionalmente.
 5. **Módulo de Notificaciones (`notifications.js`):** Envíos automáticos por Email en HTML responsivo y SMS.
 6. **Módulo API de Meta (`whatsappApi.js`):** Cliente HTTP para mensajes de texto, listas desplegables interactivas (hasta 10 filas) y botones de respuesta rápida (hasta 3 botones).
 
@@ -53,184 +53,72 @@ El sistema está desplegado en la nube bajo una arquitectura desacoplada, escala
 
 ## 3. 🌐 Funcionalidades y Flujos de Conversación
 
-### 3.1. Selección Inicial de Idioma (8 Idiomas)
+### 3.1. Selección Inicial de Idioma (10 Idiomas)
 
-Al iniciar la conversación, el bot presenta un menú desplegable interactivo con 8 idiomas:
+El bot presenta un menú desplegable interactivo profesional con 10 idiomas:
 
-- 🇪🇸 **Castellano** (Español)
-- 🟢 **Euskera** (Euskara)
-- 🇬🇧 **English** (Inglés)
-- 🇫🇷 **Français** (Francés)
+- 🇪🇸 **Español**
+- 🇪🇺 **Euskara** (EUS Euskara)
+- 🇬🇧 **English**
+- 🇫🇷 **Français**
+- 🇩🇪 **Deutsch** (Alemán)
+- 🇳🇱 **Nederlands** (Holandés)
+- 🇧🇪 **Belgisch (NL/FR)** (Belga)
 - 🇨🇳 **中文** (Chino)
 - 🇯🇵 **日本語** (Japonés)
 - 🇷🇺 **Русский** (Ruso)
-- 🇸🇦 **العربية** (Árabe)
 
-### 3.2. Flujo 1: QUIERO RESERVAR
+### 3.2. Horarios y Turnos Oficiales de Casa Julian
+
+De acuerdo con las especificaciones de capacidad y los turnos reales:
+* **Comidas (Martes a Domingo):**
+  * **1º Turno:** `12:30`, `13:00`, `13:30`, `14:00` *(Capacidad compartida: 40 comensales)*
+  * **2º Turno:** `15:15` *(Capacidad: 20 comensales)*
+* **Cenas (Viernes y Sábado):**
+  * **Turno Cenas:** `20:00`, `20:30`, `21:00`, `21:30` *(Capacidad compartida: 60 comensales)*
+* **Lunes:** 🛑 **CERRADO** por descanso semanal.
+
+### 3.3. Flujo 1: QUIERO RESERVAR
 
 1. Solicitud de **Fecha** (validación en formato DD/MM/AAAA).
-2. Solicitud de **Hora** (Turnos: 13:30, 14:00, 14:30, 15:00, 20:30, 21:00, 21:30, 22:00).
+2. **Comprobación Previa de Disponibilidad por Turno:** El sistema evalúa en tiempo real los turnos del día y muestra **únicamente los turnos con plazas libres disponibles** mediante una Lista Interactiva desplegable (`Elegir Turno`).
 3. Solicitud de **Comensales**.
-4. **Comprobación de Disponibilidad en tiempo real:**
-   - **Si HAY disponibilidad:** Solicita Nombre, Teléfono, DNI y Email. Guarda la reserva en PostgreSQL, despacha Email HTML y SMS de confirmación.
-   - **Si NO hay disponibilidad (Aforo completo de 20 personas/turno):** Muestra aviso y ofrece unirse a la **Lista de Espera**.
+4. Registro de datos (Nombre, Teléfono, DNI, Email, Idioma preferido).
+5. Confirmación inmediata por WhatsApp, Email HTML y SMS.
 
-### 3.3. Flujo 2: LISTA DE ESPERA
-
-1. Permite inscribirse en caso de turno lleno.
-2. Muestra posición exacta en la cola (ej. _Puesto #1, 0 personas delante_).
-3. **Aviso Automático por Cancelación:** Si algún cliente cancela una reserva activa, el sistema localiza al primer cliente en espera para esa fecha/hora y le envía una **notificación prioritaria inmediata por WhatsApp, Email y SMS** ofreciéndole la reserva de la mesa liberada.
-
-### 3.4. Flujo 3: TENGO RESERVA
+### 3.4. Flujo 2: TENGO RESERVA
 
 1. Consulta por DNI, Teléfono o Email.
-2. **Soporte Multi-Reserva con Paginación Interactiva:**
-   - **Si el cliente tiene 1 única reserva:** Muestra directamente el menú de la reserva.
-   - **Si el cliente tiene MÚLTIPLES reservas (ej. 43 reservas para Miren Gorrotxategi):** El bot aplica un sistema de paginación interactiva (`▶️ Ver más (Pág. 2/6)`, `◀️ Pág. Anterior`), permitiendo recorrer en lotes de 8 filas el 100% de sus reservas sin sobrepasar la restricción técnica de Meta Cloud API de 10 renglones por mensaje.
-3. Menú interactivo desplegable sobre la reserva localizada:
-   - `1. VER RESERVA`: Muestra los detalles completos.
-   - `2. MODIFICAR RESERVA`: Permite cambiar fecha, hora o comensales re-verificando el aforo.
-   - `3. CANCELAR RESERVA`: Cancela la reserva, libera el aforo y dispara la notificación a la Lista de Espera.
-   - `4. MENÚ PRINCIPAL`: Salir y volver al menú inicial de opciones.
+2. **Soporte Multi-Reserva con Paginación Interactiva:** Si un cliente tiene múltiples reservas activas, el bot utiliza una lista interactiva paginada (`▶️ Ver más`, `◀️ Anterior`).
+3. Menú interactivo de opciones sobre la reserva localizada:
+   - `1. VER RESERVA`
+   - `2. MODIFICAR RESERVA`
+   - `3. CANCELAR RESERVA`
+   - `4. MENÚ PRINCIPAL`
 
-### 3.5. Flujo 4: PREGUNTAS FRECUENTES
+### 3.5. Flujo 3: LISTA DE ESPERA
 
-Menú interactivo con sub-secciones informativas:
+1. Inserción automática en cola en caso de aforo completo.
+2. Consulta de posición exacta.
+3. **Liberación y Notificación Automática:** Ante cualquier cancelación, el sistema notifica inmediatamente al primer cliente en lista de espera por WhatsApp, Email y SMS.
 
-- 📜 Carta y Menús (Enlace directo a https://casajulian.eus/)
-- 📍 Ubicación (Tolosa y Madrid)
-- 🕒 Horarios de Apertura
-- 👥 Reservas para Grupos (>8 personas)
-- 🐶 Política de Mascotas
-- 🚗 Información de Parking
-- 🌾 Alergias y Dietas (Gluten free)
+### 3.6. Flujo 4: PREGUNTAS FRECUENTES
 
-### 3.6. Flujo 5: VER DISPONIBILIDAD (Turnos Reales Casa Julian)
+Menú interactivo con información sobre Carta, Ubicación (Tolosa y Madrid), Horarios, Grupos, Aparcamiento y Alergias/Gluten.
 
-Permite al cliente consultar al instante los próximos turnos libres con plazas disponibles sin tener que teclear la fecha manualmente:
-- **Estructura de Salas:** 21 mesas totales (9 en Sala Interior y 12 en Sala Exterior).
-- **Regla de Horarios por Día:**
-  - **Lunes:** Cerrado por descanso semanal.
-  - **Martes a Domingo (Comidas):** 1º Turno 12:30 (Aforo máx 40 pax) y 2º Turno 15:15 (Aforo máx 20 pax).
-  - **Viernes y Sábados (Cenas):** Turno único 19:30 (Aforo máx 60 pax).
-- **Reserva en 1 Clic:** El bot lista los turnos libres de los próximos 14 días con sus plazas disponibles. Al seleccionar uno, salta directamente a solicitar el número de comensales.
+### 3.7. Flujo 5: VER DISPONIBILIDAD
+
+Muestra los próximos turnos disponibles en el Asador Casa Julian escaneando hasta 120 días en adelante.
 
 ---
 
-## 4. 🗄️ Esquema de Base de Datos PostgreSQL
+## 4. 🔄 Procedimiento para Paso a Producción (Número Oficial Casa Julian)
 
-```sql
--- TABLA DE CLIENTES
-CREATE TABLE clientes (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    telefono VARCHAR(20) UNIQUE NOT NULL,
-    dni VARCHAR(20) UNIQUE NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    idioma VARCHAR(10) DEFAULT 'es',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+Tras la demo, para migrar del número de pruebas de Meta al **número oficial de Casa Julian**:
 
--- TABLA DE RESERVAS
-CREATE TABLE reservas (
-    id VARCHAR(30) PRIMARY KEY,
-    cliente_dni VARCHAR(20) REFERENCES clientes(dni) ON DELETE CASCADE,
-    nombre VARCHAR(100) NOT NULL,
-    telefono VARCHAR(20) NOT NULL,
-    dni VARCHAR(20) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    fecha VARCHAR(20) NOT NULL,
-    hora VARCHAR(10) NOT NULL,
-    comensales INT NOT NULL,
-    estado VARCHAR(20) DEFAULT 'CONFIRMADA',
-    idioma VARCHAR(10) DEFAULT 'es',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- TABLA DE LISTA DE ESPERA
-CREATE TABLE lista_espera (
-    id VARCHAR(30) PRIMARY KEY,
-    cliente_dni VARCHAR(20) REFERENCES clientes(dni) ON DELETE CASCADE,
-    nombre VARCHAR(100) NOT NULL,
-    telefono VARCHAR(20) NOT NULL,
-    dni VARCHAR(20) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    fecha VARCHAR(20) NOT NULL,
-    hora VARCHAR(10) NOT NULL,
-    comensales INT NOT NULL,
-    idioma VARCHAR(10) DEFAULT 'es',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- TABLA DE LISTA DE ESPERA
-CREATE TABLE lista_espera (
-    id VARCHAR(30) PRIMARY KEY,
-    cliente_dni VARCHAR(20) REFERENCES clientes(dni) ON DELETE CASCADE,
-    nombre VARCHAR(100) NOT NULL,
-    telefono VARCHAR(20) NOT NULL,
-    dni VARCHAR(20) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    fecha VARCHAR(20) NOT NULL,
-    hora VARCHAR(10) NOT NULL,
-    comensales INT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-```
-
----
-
-## 5. 🚀 Paso a Producción Definitiva (Post-Demostración)
-
-Una vez completada y aprobada la demostración con los responsables de Casa Julian, el procedimiento para pasar al entorno oficial del restaurante consta de **3 sencillos pasos**:
-
-### Paso 1: Configurar el Número Oficial de WhatsApp de Casa Julian
-
-1. En **Meta Business Manager** (https://business.facebook.com/), ir a **Cuentas de WhatsApp** -> **Números de teléfono**.
-2. Añadir el número telefónico oficial del restaurante (ej. `+34 943 67 14 17` o el móvil asignado al restaurante).
-3. Verificar el número mediante código SMS o llamada telefónica de Meta.
-4. Obtener el nuevo `PHONE_NUMBER_ID` de producción asignado por Meta.
-
-### Paso 2: Crear el Token Permanente de Usuario del Sistema
-
-1. En Meta Business Manager -> **Usuarios del sistema**.
-2. Crear un usuario del sistema (ej. `BotCasaJulian`) con rol _Administrador_.
-3. Asignar activos: Añadir la App _Casa Julian Bot_ y la cuenta de WhatsApp de producción.
-4. Generar Token con caducidad **Nunca** y los permisos:
-   - `whatsapp_business_messaging`
-   - `whatsapp_business_management`
-5. Copiar el token generado.
-
-### Paso 3: Actualizar las Variables de Entorno en Render.com
-
-En el panel de **Render.com** -> Servicio `casa-julian-whatsapp-bot` -> **Environment**:
-
-1. Actualizar `PHONE_NUMBER_ID` con el ID oficial.
-2. Actualizar `WHATSAPP_TOKEN` con el Token Permanente de por vida.
-3. Guardar cambios (`Save Changes`).
-
-### Paso 4: Sincronización de Base de Datos Real del Restaurante
-
-Si el restaurante utiliza un sistema de gestión de reservas existente (CoverManager, ResDiary, ElTenedor/TheFork o sistema propio):
-
-1. **Vía API / Webhook:** El módulo `database.js` puede configurarse para realizar peticiones directamente contra la API del software de reservas del restaurante.
-2. **Vía Importación SQL:** Se pueden importar las reservas existentes ejecutando un script de migración SQL a la base de datos PostgreSQL de Neon.
-
----
-
-## 📄 Archivos del Proyecto
-
-| Archivo                                                                                             | Descripción                                          |
-| :-------------------------------------------------------------------------------------------------- | :--------------------------------------------------- |
-| [`server.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/server.js)               | Servidor Express y Webhook endpoints                 |
-| [`botLogic.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/botLogic.js)           | Máquina de estados y flujos conversacionales         |
-| [`database.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/database.js)           | Conector relacional PostgreSQL / db.json             |
-| [`i18n.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/i18n.js)                   | Motor de traducciones en 8 idiomas                   |
-| [`notifications.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/notifications.js) | Despachador de Emails HTML y SMS                     |
-| [`whatsappApi.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/whatsappApi.js)     | Cliente Graph API de Meta para mensajes interactivos |
-| [`schema.sql`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/schema.sql)             | Esquema de tablas e índices SQL                      |
-| [`render.yaml`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/render.yaml)           | Blueprint de despliegue 24/7 para Render.com         |
-| [`.env`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/.env)                         | Variables de entorno y credenciales seguras          |
-
----
-
-_Documentación generada para Asador Casa Julian._
+1. **Alta en Meta Business Manager:** Registrar el número oficial en la consola de Meta Developers.
+2. **Generación de Permanent Token:** Crear un System User con permisos `whatsapp_business_messaging` y token sin expiración.
+3. **Actualización de Variables en Render:**
+   - Cambiar `WHATSAPP_TOKEN` en Render.com por el token permanente.
+   - Cambiar `PHONE_NUMBER_ID` por el ID del número oficial de Casa Julian.
+4. **Suscripción de Webhook:** Activar los eventos `messages` en la cuenta oficial de WhatsApp Business.
