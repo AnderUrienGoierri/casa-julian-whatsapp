@@ -1,6 +1,6 @@
 /**
  * Diccionario multilingüe para Asador Casa Julian
- * Idiomas soportados: Castellano, Euskera, Inglés, Francés, Chino, Japonés, Ruso, Árabe.
+ * NOTA: Meta WhatsApp Cloud API exige que 'title' de filas y secciones tengan MÁXIMO 24 caracteres.
  */
 
 const translations = {
@@ -37,7 +37,7 @@ const translations = {
         welcomeBody: "Zertan lagundu zaitakegu gaur? Mesedez, hautatu aukera bat beheko menua irekiz 👇",
         buttonText: "Aukerak Ikusi",
         sectionTitle: "Zerbitzuen Kudeaketa",
-        opt1Title: "1. ERRESERBA EGIN NAHI DUT",
+        opt1Title: "1. ERRESERBA EGIN",
         opt1Desc: "Mahaia erreserbatu data, ordua eta pertsonak adieraziz.",
         opt2Title: "2. ITXARON ZERRENDA",
         opt2Desc: "Zure tokia kontsultatu edo itxaron zerrenda bertan behera utzi.",
@@ -71,7 +71,7 @@ const translations = {
         opt2Desc: "Check your waitlist status or remove your request.",
         opt3Title: "3. EXISTING RESERVATION",
         opt3Desc: "View, modify or cancel your current reservation.",
-        opt4Title: "4. FREQUENTLY ASKED QUESTIONS",
+        opt4Title: "4. FREQ QUESTIONS",
         opt4Desc: "Menu, opening hours, location, pets, parking...",
         stepDate: "📅 *Step 1/3: Reservation Date*\n\nPlease specify your preferred date (e.g. 25/10/2026):",
         stepTime: "⏰ *Step 2/3: Time Slot*\n\nPlease specify your preferred time (e.g. 14:30):",

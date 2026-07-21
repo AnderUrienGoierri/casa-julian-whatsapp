@@ -80,7 +80,7 @@ async function sendMainMenu(from) {
                 { id: "opt_lista_espera", title: getTranslation(lang, 'opt2Title'), description: getTranslation(lang, 'opt2Desc') },
                 { id: "opt_tengo_reserva", title: getTranslation(lang, 'opt3Title'), description: getTranslation(lang, 'opt3Desc') },
                 { id: "opt_preguntas_frecuentes", title: getTranslation(lang, 'opt4Title'), description: getTranslation(lang, 'opt4Desc') },
-                { id: "opt_cambiar_idioma", title: "🌐 Cambiar Idioma / Change Language", description: "Seleccionar otro idioma." }
+                { id: "opt_cambiar_idioma", title: "🌐 Cambiar Idioma", description: "Seleccionar otro idioma / Change language." }
             ]
         }
     ];
