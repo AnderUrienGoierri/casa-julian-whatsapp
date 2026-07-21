@@ -114,6 +114,18 @@ async function handleListResponse(from, listId) {
         return;
     }
 
+    // 3. Navegación por páginas de reservas (cuando el cliente tiene muchas reservas)
+    if (listId.startsWith('page_res_')) {
+        const targetPage = parseInt(listId.replace('page_res_', ''), 10);
+        const currentState = userStates.get(from) || {};
+        if (currentState.userReservations) {
+            await sendPaginatedReservationsList(from, currentState.userReservations, targetPage);
+        } else {
+            await sendMainMenu(from);
+        }
+        return;
+    }
+
     const lang = userLanguages.get(from) || 'es';
 
     switch (listId) {
@@ -210,6 +222,61 @@ async function sendReservationManagementMenu(from, reservation) {
                 { id: "btn_cancelar_reserva", title: "3. CANCELAR RESERVA", description: "Cancelar esta reserva y liberar la mesa." },
                 { id: "btn_volver_menu", title: "4. MENÚ PRINCIPAL", description: "Volver al menú de inicio." }
             ]
+        }
+    ];
+
+    await sendInteractiveList(from, bodyText, buttonText, sections);
+}
+
+/**
+ * Envia la lista paginada de reservas (máximo 8 por página para cumplir los 10 renglones max de Meta API).
+ */
+async function sendPaginatedReservationsList(from, reservas, page = 1) {
+    const currentState = userStates.get(from) || {};
+    currentState.userReservations = reservas;
+    currentState.currentResPage = page;
+    userStates.set(from, currentState);
+
+    const PAGE_SIZE = 8; // Mantiene el número total de filas <= 10
+    const totalReservas = reservas.length;
+    const totalPages = Math.ceil(totalReservas / PAGE_SIZE);
+
+    const startIndex = (page - 1) * PAGE_SIZE;
+    const pageItems = reservas.slice(startIndex, startIndex + PAGE_SIZE);
+
+    const rows = pageItems.map(r => {
+        const shortTitle = `${r.fecha} (${r.hora})`.slice(0, 24);
+        return {
+            id: `sel_res_${r.id}`,
+            title: shortTitle,
+            description: `${r.comensales} personas • Cod: ${r.id}`
+        };
+    });
+
+    // Botón "Ver más" si hay más páginas
+    if (page < totalPages) {
+        rows.push({
+            id: `page_res_${page + 1}`,
+            title: `▶️ Ver más (Pág. ${page + 1}/${totalPages})`,
+            description: `Ver siguientes reservas de la lista.`
+        });
+    }
+
+    // Botón "Página anterior" si no es la primera
+    if (page > 1) {
+        rows.push({
+            id: `page_res_${page - 1}`,
+            title: `◀️ Pág. Anterior (${page - 1}/${totalPages})`,
+            description: `Volver a la página anterior.`
+        });
+    }
+
+    const bodyText = `📋 *Hemos localizado ${totalReservas} reservas activas a tu nombre.* (Pág. ${page} de ${totalPages})\n\nPor favor, selecciona abajo cuál de tus reservas deseas gestionar:`;
+    const buttonText = "Seleccionar Reserva";
+    const sections = [
+        {
+            title: `Reservas (${page}/${totalPages})`.slice(0, 24),
+            rows: rows
         }
     ];
 
@@ -466,26 +533,8 @@ async function handleTextMessage(from, text) {
             } else if (reservasEncontradas.length === 1) {
                 await sendReservationManagementMenu(from, reservasEncontradas[0]);
             } else {
-                // Múltiples reservas encontradas para el mismo cliente
-                const rows = reservasEncontradas.slice(0, 10).map(r => {
-                    const shortTitle = `${r.fecha} (${r.hora})`.slice(0, 24);
-                    return {
-                        id: `sel_res_${r.id}`,
-                        title: shortTitle,
-                        description: `${r.comensales} personas • Código: ${r.id}`
-                    };
-                });
-
-                const bodyText = `📋 *Hemos localizado ${reservasEncontradas.length} reservas activas a tu nombre.*\n\nPor favor, selecciona abajo cuál de tus reservas deseas consultar, modificar o cancelar:`;
-                const buttonText = "Seleccionar Reserva";
-                const sections = [
-                    {
-                        title: "Tus Reservas",
-                        rows: rows
-                    }
-                ];
-
-                await sendInteractiveList(from, bodyText, buttonText, sections);
+                // Múltiples reservas encontradas para el mismo cliente (Usar paginación)
+                await sendPaginatedReservationsList(from, reservasEncontradas, 1);
             }
             break;
 
