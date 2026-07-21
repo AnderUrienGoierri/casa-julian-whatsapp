@@ -33,6 +33,7 @@ async function sendEmailConfirmation(reserva) {
                 <p><strong>Hora:</strong> ${reserva.hora} hs</p>
                 <p><strong>Comensales:</strong> ${reserva.comensales} personas</p>
                 <p><strong>DNI/NIE:</strong> ${reserva.dni}</p>
+                <p><strong>Idioma Cliente:</strong> ${(reserva.idioma || 'es').toUpperCase()}</p>
             </div>
             
             <p style="color: #555; font-size: 14px;">Si necesitas modificar o cancelar tu reserva, puedes hacerlo a través de nuestro canal automatizado de WhatsApp.</p>

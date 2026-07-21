@@ -80,6 +80,7 @@ async function sendMainMenu(from) {
                 { id: "opt_lista_espera", title: getTranslation(lang, 'opt2Title'), description: getTranslation(lang, 'opt2Desc') },
                 { id: "opt_tengo_reserva", title: getTranslation(lang, 'opt3Title'), description: getTranslation(lang, 'opt3Desc') },
                 { id: "opt_preguntas_frecuentes", title: getTranslation(lang, 'opt4Title'), description: getTranslation(lang, 'opt4Desc') },
+                { id: "opt_ver_disponibilidad", title: getTranslation(lang, 'opt5Title'), description: getTranslation(lang, 'opt5Desc') },
                 { id: "opt_cambiar_idioma", title: "🌐 Cambiar Idioma", description: "Seleccionar otro idioma / Change language." }
             ]
         }
@@ -114,7 +115,7 @@ async function handleListResponse(from, listId) {
         return;
     }
 
-    // 3. Navegación por páginas de reservas (cuando el cliente tiene muchas reservas)
+    // 3. Navegación por páginas de reservas
     if (listId.startsWith('page_res_')) {
         const targetPage = parseInt(listId.replace('page_res_', ''), 10);
         const currentState = userStates.get(from) || {};
@@ -123,6 +124,22 @@ async function handleListResponse(from, listId) {
         } else {
             await sendMainMenu(from);
         }
+        return;
+    }
+
+    // 4. Selección directa de turno disponible (desde la opción 5 VER DISPONIBILIDAD)
+    if (listId.startsWith('slot_res_')) {
+        const parts = listId.replace('slot_res_', '').split('_');
+        const fecha = parts[0];
+        const hora = parts[1];
+        
+        const currentState = {
+            step: 'reserva_esperando_comensales_directo',
+            data: { fecha, hora }
+        };
+        userStates.set(from, currentState);
+
+        await sendMessage(from, `👥 *Reserva para el ${fecha} a las ${hora}*\n\n¿Cuántos comensales vais a ser en total? (Ejemplo: 4):`);
         return;
     }
 
@@ -150,6 +167,10 @@ async function handleListResponse(from, listId) {
 
         case 'opt_preguntas_frecuentes':
             await sendFaqMenu(from, lang);
+            break;
+
+        case 'opt_ver_disponibilidad':
+            await sendUpcomingSlotsMenu(from, lang);
             break;
 
         // FAQS SUB-OPCIONES
@@ -284,6 +305,36 @@ async function sendPaginatedReservationsList(from, reservas, page = 1) {
 }
 
 /**
+ * Muestra los próximos turnos disponibles en el Asador Casa Julian.
+ */
+async function sendUpcomingSlotsMenu(from, lang) {
+    const slots = db.getUpcomingAvailableSlots(8);
+
+    if (!slots || slots.length === 0) {
+        await sendMessage(from, "😔 *Sin disponibilidad próxima.*\n\nActualmente no disponemos de plazas libres en los próximos días. Te sugerimos unirte a nuestra Lista de Espera.");
+        await sendMainMenu(from);
+        return;
+    }
+
+    const rows = slots.map(s => ({
+        id: `slot_res_${s.fecha}_${s.hora}`,
+        title: `${s.fecha} (${s.hora})`.slice(0, 24),
+        description: `${s.plazasLibres} plazas libres (Máx ${s.maxCapacidad}p)`
+    }));
+
+    const bodyText = "📅 *Próximos Turnos Libres en Asador Casa Julian*\n\nSelecciona el turno que prefieras para realizar tu reserva:";
+    const buttonText = "Ver Turnos";
+    const sections = [
+        {
+            title: "Turnos Disponibles",
+            rows: rows
+        }
+    ];
+
+    await sendInteractiveList(from, bodyText, buttonText, sections);
+}
+
+/**
  * Procesa las respuestas a los Botones Interactivos.
  */
 async function handleButtonResponse(from, buttonId) {
@@ -410,13 +461,43 @@ async function handleTextMessage(from, text) {
             const { fecha, hora, comensales } = currentState.data;
             const check = db.checkAvailability(fecha, hora, comensales);
 
-            if (check.disponible) {
+            if (check.cerrado) {
+                await sendMessage(from, "🛑 *Restaurante Cerrado*\n\nLos lunes el restaurante está cerrado por descanso semanal. Por favor, selecciona otro día para tu reserva.");
+                await sendMainMenu(from);
+            } else if (check.turnoInvalido) {
+                await sendMessage(from, `⚠️ *Turno no disponible*\n\n${check.razon}\nPor favor, vuelve a intentarlo seleccionando un turno correcto.`);
+                await sendMainMenu(from);
+            } else if (check.disponible) {
                 currentState.step = 'reserva_datos_nombre';
                 userStates.set(from, currentState);
                 await sendMessage(from, getTranslation(lang, 'available'));
             } else {
                 await sendMessage(from, getTranslation(lang, 'notAvailable'));
                 
+                const buttons = [
+                    { id: 'btn_unirse_espera', title: getTranslation(lang, 'btnWaitlist') },
+                    { id: 'btn_volver_menu', title: getTranslation(lang, 'btnMenu') }
+                ];
+                await sendInteractiveButtons(from, getTranslation(lang, 'askWaitlist'), buttons);
+            }
+            break;
+
+        case 'reserva_esperando_comensales_directo':
+            const numComensales = parseInt(text, 10);
+            if (isNaN(numComensales) || numComensales <= 0) {
+                await sendMessage(from, "⚠️ Por favor, introduce un número válido de comensales (Ejemplo: 4):");
+                return;
+            }
+
+            currentState.data.comensales = numComensales;
+            const checkDirect = db.checkAvailability(currentState.data.fecha, currentState.data.hora, numComensales);
+
+            if (checkDirect.disponible) {
+                currentState.step = 'reserva_datos_nombre';
+                userStates.set(from, currentState);
+                await sendMessage(from, getTranslation(lang, 'available'));
+            } else {
+                await sendMessage(from, `😔 *Capacidad insuficiente para ${numComensales} personas en ese turno.*\n\nCapacidad disponible restante: ${checkDirect.capacidadRestante} plazas.`);
                 const buttons = [
                     { id: 'btn_unirse_espera', title: getTranslation(lang, 'btnWaitlist') },
                     { id: 'btn_volver_menu', title: getTranslation(lang, 'btnMenu') }
@@ -448,6 +529,7 @@ async function handleTextMessage(from, text) {
 
         case 'reserva_datos_email':
             currentState.data.email = text;
+            currentState.data.idioma = lang;
             
             const nuevaReserva = db.createReservation(currentState.data);
             userStates.delete(from);
@@ -463,6 +545,7 @@ async function handleTextMessage(from, text) {
 - *Comensales:* ${nuevaReserva.comensales}
 - *DNI:* ${nuevaReserva.dni}
 - *Email:* ${nuevaReserva.email}
+- *Idioma Mesa:* ${nuevaReserva.idioma.toUpperCase()}
 
 📩 *Confirmación por Email y SMS enviada.* ¡Te esperamos! 🔥`);
             await sendMainMenu(from);
@@ -491,6 +574,7 @@ async function handleTextMessage(from, text) {
 
         case 'espera_datos_email':
             currentState.data.email = text;
+            currentState.data.idioma = lang;
             
             const registroEspera = db.addToWaitlist(currentState.data);
             const pos = db.getWaitlistPosition(registroEspera.dni);
