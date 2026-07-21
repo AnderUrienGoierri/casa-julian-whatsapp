@@ -73,14 +73,37 @@ async function sendMainMenu(from) {
 }
 
 /**
- * Muestra la lista interactiva profesional para seleccionar entre los 8 idiomas.
+ * Muestra la lista interactiva paginada para seleccionar entre los 13 idiomas.
  */
-async function sendLanguageMenu(from) {
-    const bodyText = "🌍 *Por favor, selecciona tu idioma / Select your language / Choisis ta langue / Sprache wählen:*\n\nDisponemos de atención multilingüe automatizada en 10 idiomas:";
+async function sendLanguageMenu(from, page = 1) {
+    if (page === 2) {
+        const bodyText = "🌍 *Selecciona tu idioma / Select your language (Pág. 2/2):*";
+        const buttonText = "Seleccionar Idioma";
+        const sections = [
+            {
+                title: "Idiomas (Pág. 2/2)",
+                rows: [
+                    { id: "lang_it", title: "🇮🇹 Italiano", description: "Assistenza clienti in Italiano." },
+                    { id: "lang_pl", title: "🇵🇱 Polski", description: "Obsługa klienta w języku polskim." },
+                    { id: "lang_ro", title: "🇷🇴 Română", description: "Asistență clienți în limba română." },
+                    { id: "lang_be", title: "🇧🇪 Belgisch (NL/FR)", description: "Belgische ondersteuning / Support Belge." },
+                    { id: "lang_zh", title: "🇨🇳 中文", description: "中文全方位客户服务。" },
+                    { id: "lang_ja", title: "🇯🇵 日本語", description: "日本語によるカスタマーサポート。" },
+                    { id: "lang_ru", title: "🇷🇺 Русский", description: "Полная поддержка на русском языке." },
+                    { id: "lang_ar", title: "🇸🇦 العربية", description: "دعم كامل باللغة العربية." },
+                    { id: "page_lang_1", title: "◀️ Idiomas (Pág. 1/2)", description: "Volver a la página 1 de idiomas." }
+                ]
+            }
+        ];
+        await sendInteractiveList(from, bodyText, buttonText, sections);
+        return;
+    }
+
+    const bodyText = "🌍 *Por favor, selecciona tu idioma / Select your language (Pág. 1/2):*\n\nDisponemos de atención multilingüe automatizada en 13 idiomas:";
     const buttonText = "Seleccionar Idioma";
     const sections = [
         {
-            title: "Idiomas Disponibles",
+            title: "Idiomas (Pág. 1/2)",
             rows: [
                 { id: "lang_es", title: "🇪🇸 Español", description: "Atención completa en Español." },
                 { id: "lang_eu", title: "🇪🇺 Euskara", description: "Arreta osoa Euskaraz." },
@@ -88,10 +111,7 @@ async function sendLanguageMenu(from) {
                 { id: "lang_fr", title: "🇫🇷 Français", description: "Service client complet en Français." },
                 { id: "lang_de", title: "🇩🇪 Deutsch", description: "Kundenservice auf Deutsch." },
                 { id: "lang_nl", title: "🇳🇱 Nederlands", description: "Klantenservice in het Nederlands." },
-                { id: "lang_be", title: "🇧🇪 Belgisch (NL/FR)", description: "Belgische ondersteuning / Support Belge." },
-                { id: "lang_zh", title: "🇨🇳 中文", description: "中文全方位客户服务。" },
-                { id: "lang_ja", title: "🇯🇵 日本語", description: "日本語によるカスタマーサポート。" },
-                { id: "lang_ru", title: "🇷🇺 Русский", description: "Полная поддержка на русском языке." }
+                { id: "page_lang_2", title: "▶️ Más idiomas (Pág. 2/2)", description: "Ver Italiano, Polaco, Rumano, Belga, Chino, Jap, Ruso, Árabe." }
             ]
         }
     ];
@@ -103,7 +123,14 @@ async function sendLanguageMenu(from) {
  * Procesa las respuestas a las Listas Interactivas.
  */
 async function handleListResponse(from, listId) {
-    // 0. Selección de idioma desde la lista de 8 idiomas
+    // Paginación de la lista de idiomas
+    if (listId.startsWith('page_lang_')) {
+        const page = parseInt(listId.replace('page_lang_', ''), 10);
+        await sendLanguageMenu(from, page);
+        return;
+    }
+
+    // 0. Selección de idioma desde la lista paginada de idiomas
     if (listId.startsWith('lang_')) {
         const langCode = listId.replace('lang_', '');
         userLanguages.set(from, langCode);
