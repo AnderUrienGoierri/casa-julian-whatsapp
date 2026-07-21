@@ -7,6 +7,11 @@ const app = express();
 // Middleware para parsear el JSON que envía Meta
 app.use(express.json());
 
+// Endpoint de salud raíz para Render.com
+app.get('/', (req, res) => {
+    res.send('🔥 Asador Casa Julian - Servidor de WhatsApp Bot 24/7 Activo');
+});
+
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
 
