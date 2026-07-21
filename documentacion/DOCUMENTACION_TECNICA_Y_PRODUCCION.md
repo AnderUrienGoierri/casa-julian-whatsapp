@@ -80,10 +80,11 @@ Al iniciar la conversación, el bot presenta un menú desplegable interactivo co
 2. **Soporte Multi-Reserva:**
    - **Si el cliente tiene 1 única reserva:** El bot muestra directamente los detalles y botones de acción.
    - **Si el cliente tiene MÚLTIPLES reservas (varias fechas/horas):** El bot despliega un menú interactivo con todas sus reservas para que elija exactamente qué fecha/reserva desea consultar, modificar o cancelar.
-3. Botones interactivos de acción sobre la reserva seleccionada:
-   - `[VER RESERVA]`: Muestra los detalles completos.
-   - `[MODIFICAR RESERVA]`: Permite cambiar fecha, hora o comensales re-verificando el aforo.
-   - `[CANCELAR RESERVA]`: Cancela la reserva, libera el aforo y dispara la notificación a la Lista de Espera.
+3. Menú interactivo desplegable sobre la reserva localizada:
+   - `1. VER RESERVA`: Muestra los detalles completos.
+   - `2. MODIFICAR RESERVA`: Permite cambiar fecha, hora o comensales re-verificando el aforo.
+   - `3. CANCELAR RESERVA`: Cancela la reserva, libera el aforo y dispara la notificación a la Lista de Espera.
+   - `4. MENÚ PRINCIPAL`: Salir y volver al menú inicial de opciones.
 
 ### 3.5. Flujo 4: PREGUNTAS FRECUENTES
 Menú interactivo con sub-secciones informativas:
