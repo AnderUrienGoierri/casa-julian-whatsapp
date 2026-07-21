@@ -77,7 +77,10 @@ Al iniciar la conversación, el bot presenta un menú desplegable interactivo co
 
 ### 3.4. Flujo 3: TENGO RESERVA
 1. Consulta por DNI, Teléfono o Email.
-2. Presenta 3 botones interactivos:
+2. **Soporte Multi-Reserva:**
+   - **Si el cliente tiene 1 única reserva:** El bot muestra directamente los detalles y botones de acción.
+   - **Si el cliente tiene MÚLTIPLES reservas (varias fechas/horas):** El bot despliega un menú interactivo con todas sus reservas para que elija exactamente qué fecha/reserva desea consultar, modificar o cancelar.
+3. Botones interactivos de acción sobre la reserva seleccionada:
    - `[VER RESERVA]`: Muestra los detalles completos.
    - `[MODIFICAR RESERVA]`: Permite cambiar fecha, hora o comensales re-verificando el aforo.
    - `[CANCELAR RESERVA]`: Cancela la reserva, libera el aforo y dispara la notificación a la Lista de Espera.
