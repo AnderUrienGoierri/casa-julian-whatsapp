@@ -412,15 +412,15 @@ async function checkAndNotifyWaitlist(fecha, hora) {
  * Maneja el flujo secuencial por mensajes de texto.
  */
 async function handleTextMessage(from, text) {
-    const lang = userLanguages.get(from) || 'es';
-    const currentState = userStates.get(from);
-
-    if (!userLanguages.has(from)) {
-        await sendLanguageMenu(from);
-        return;
+    let lang = userLanguages.get(from);
+    if (!lang) {
+        lang = 'es';
+        userLanguages.set(from, 'es');
     }
 
-    if (!currentState) {
+    const currentState = userStates.get(from);
+
+    if (!currentState || currentState.step === 'main_menu') {
         await sendMainMenu(from);
         return;
     }
