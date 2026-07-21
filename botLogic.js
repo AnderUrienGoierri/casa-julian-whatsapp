@@ -715,6 +715,36 @@ async function sendFaqMenu(from, lang) {
     await sendInteractiveList(from, bodyText, buttonText, sections);
 }
 
+/**
+ * Procesa el objeto 'message' raw recibido desde el webhook POST de Meta.
+ */
+async function processMessage(message) {
+    if (!message || !message.from) return;
+
+    const from = message.from;
+    const type = message.type || 'text';
+
+    let body = '';
+    let interactiveData = null;
+
+    if (type === 'text') {
+        body = message.text ? message.text.body : '';
+    } else if (type === 'interactive') {
+        const interactive = message.interactive;
+        if (interactive && interactive.type === 'list_reply') {
+            body = interactive.list_reply ? interactive.list_reply.title : '';
+            interactiveData = { type: 'list', id: interactive.list_reply ? interactive.list_reply.id : '' };
+        } else if (interactive && interactive.type === 'button_reply') {
+            body = interactive.button_reply ? interactive.button_reply.title : '';
+            interactiveData = { type: 'button', id: interactive.button_reply ? interactive.button_reply.id : '' };
+        }
+    }
+
+    await handleUserMessage(from, body, type, interactiveData);
+}
+
 module.exports = {
-    handleUserMessage
+    handleUserMessage,
+    processMessage
 };
+
