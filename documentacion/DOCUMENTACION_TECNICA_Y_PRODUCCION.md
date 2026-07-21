@@ -1,4 +1,5 @@
 # 📖 DOCUMENTACIÓN TÉCNICA, ARQUITECTURA Y GUÍA DE PRODUCCIÓN
+
 ## Sistema de Gestión Automatizada de Reservas por WhatsApp - Asador Casa Julian
 
 ---
@@ -40,6 +41,7 @@ El sistema está desplegado en la nube bajo una arquitectura desacoplada, escala
 ```
 
 ### Componentes Clave:
+
 1. **Servidor Backend (`server.js`):** Express.js escuchando peticiones Webhook GET (verificación Meta) y POST (mensajes entrantes).
 2. **Motor de Lógica (`botLogic.js`):** Máquina de estados conversacional que gestiona los 4 flujos principales y mantiene el contexto por usuario.
 3. **Capa de Datos (`database.js` + `schema.sql`):** Conector a PostgreSQL en la nube con tablas relacionales de clientes, reservas e índices de disponibilidad.
@@ -52,7 +54,9 @@ El sistema está desplegado en la nube bajo una arquitectura desacoplada, escala
 ## 3. 🌐 Funcionalidades y Flujos de Conversación
 
 ### 3.1. Selección Inicial de Idioma (8 Idiomas)
+
 Al iniciar la conversación, el bot presenta un menú desplegable interactivo con 8 idiomas:
+
 - 🇪🇸 **Castellano** (Español)
 - 🟢 **Euskera** (Euskara)
 - 🇬🇧 **English** (Inglés)
@@ -63,6 +67,7 @@ Al iniciar la conversación, el bot presenta un menú desplegable interactivo co
 - 🇸🇦 **العربية** (Árabe)
 
 ### 3.2. Flujo 1: QUIERO RESERVAR
+
 1. Solicitud de **Fecha** (validación en formato DD/MM/AAAA).
 2. Solicitud de **Hora** (Turnos: 13:30, 14:00, 14:30, 15:00, 20:30, 21:00, 21:30, 22:00).
 3. Solicitud de **Comensales**.
@@ -71,11 +76,13 @@ Al iniciar la conversación, el bot presenta un menú desplegable interactivo co
    - **Si NO hay disponibilidad (Aforo completo de 20 personas/turno):** Muestra aviso y ofrece unirse a la **Lista de Espera**.
 
 ### 3.3. Flujo 2: LISTA DE ESPERA
+
 1. Permite inscribirse en caso de turno lleno.
-2. Muestra posición exacta en la cola (ej. *Puesto #1, 0 personas delante*).
+2. Muestra posición exacta en la cola (ej. _Puesto #1, 0 personas delante_).
 3. **Aviso Automático por Cancelación:** Si algún cliente cancela una reserva activa, el sistema localiza al primer cliente en espera para esa fecha/hora y le envía una **notificación prioritaria inmediata por WhatsApp, Email y SMS** ofreciéndole la reserva de la mesa liberada.
 
 ### 3.4. Flujo 3: TENGO RESERVA
+
 1. Consulta por DNI, Teléfono o Email.
 2. **Soporte Multi-Reserva con Paginación Interactiva:**
    - **Si el cliente tiene 1 única reserva:** Muestra directamente el menú de la reserva.
@@ -87,7 +94,9 @@ Al iniciar la conversación, el bot presenta un menú desplegable interactivo co
    - `4. MENÚ PRINCIPAL`: Salir y volver al menú inicial de opciones.
 
 ### 3.5. Flujo 4: PREGUNTAS FRECUENTES
+
 Menú interactivo con sub-secciones informativas:
+
 - 📜 Carta y Menús (Enlace directo a https://casajulian.eus/)
 - 📍 Ubicación (Tolosa y Madrid)
 - 🕒 Horarios de Apertura
@@ -95,6 +104,16 @@ Menú interactivo con sub-secciones informativas:
 - 🐶 Política de Mascotas
 - 🚗 Información de Parking
 - 🌾 Alergias y Dietas (Gluten free)
+
+### 3.6. Flujo 5: VER DISPONIBILIDAD (Turnos Reales Casa Julian)
+
+Permite al cliente consultar al instante los próximos turnos libres con plazas disponibles sin tener que teclear la fecha manualmente:
+- **Estructura de Salas:** 21 mesas totales (9 en Sala Interior y 12 en Sala Exterior).
+- **Regla de Horarios por Día:**
+  - **Lunes:** Cerrado por descanso semanal.
+  - **Martes a Domingo (Comidas):** 1º Turno 12:30 (Aforo máx 40 pax) y 2º Turno 15:15 (Aforo máx 20 pax).
+  - **Viernes y Sábados (Cenas):** Turno único 19:30 (Aforo máx 60 pax).
+- **Reserva en 1 Clic:** El bot lista los turnos libres de los próximos 14 días con sus plazas disponibles. Al seleccionar uno, salta directamente a solicitar el número de comensales.
 
 ---
 
@@ -124,6 +143,22 @@ CREATE TABLE reservas (
     hora VARCHAR(10) NOT NULL,
     comensales INT NOT NULL,
     estado VARCHAR(20) DEFAULT 'CONFIRMADA',
+    idioma VARCHAR(10) DEFAULT 'es',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TABLA DE LISTA DE ESPERA
+CREATE TABLE lista_espera (
+    id VARCHAR(30) PRIMARY KEY,
+    cliente_dni VARCHAR(20) REFERENCES clientes(dni) ON DELETE CASCADE,
+    nombre VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20) NOT NULL,
+    dni VARCHAR(20) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    fecha VARCHAR(20) NOT NULL,
+    hora VARCHAR(10) NOT NULL,
+    comensales INT NOT NULL,
+    idioma VARCHAR(10) DEFAULT 'es',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -149,28 +184,34 @@ CREATE TABLE lista_espera (
 Una vez completada y aprobada la demostración con los responsables de Casa Julian, el procedimiento para pasar al entorno oficial del restaurante consta de **3 sencillos pasos**:
 
 ### Paso 1: Configurar el Número Oficial de WhatsApp de Casa Julian
+
 1. En **Meta Business Manager** (https://business.facebook.com/), ir a **Cuentas de WhatsApp** -> **Números de teléfono**.
 2. Añadir el número telefónico oficial del restaurante (ej. `+34 943 67 14 17` o el móvil asignado al restaurante).
 3. Verificar el número mediante código SMS o llamada telefónica de Meta.
 4. Obtener el nuevo `PHONE_NUMBER_ID` de producción asignado por Meta.
 
 ### Paso 2: Crear el Token Permanente de Usuario del Sistema
+
 1. En Meta Business Manager -> **Usuarios del sistema**.
-2. Crear un usuario del sistema (ej. `BotCasaJulian`) con rol *Administrador*.
-3. Asignar activos: Añadir la App *Casa Julian Bot* y la cuenta de WhatsApp de producción.
+2. Crear un usuario del sistema (ej. `BotCasaJulian`) con rol _Administrador_.
+3. Asignar activos: Añadir la App _Casa Julian Bot_ y la cuenta de WhatsApp de producción.
 4. Generar Token con caducidad **Nunca** y los permisos:
    - `whatsapp_business_messaging`
    - `whatsapp_business_management`
 5. Copiar el token generado.
 
 ### Paso 3: Actualizar las Variables de Entorno en Render.com
+
 En el panel de **Render.com** -> Servicio `casa-julian-whatsapp-bot` -> **Environment**:
+
 1. Actualizar `PHONE_NUMBER_ID` con el ID oficial.
 2. Actualizar `WHATSAPP_TOKEN` con el Token Permanente de por vida.
 3. Guardar cambios (`Save Changes`).
 
 ### Paso 4: Sincronización de Base de Datos Real del Restaurante
+
 Si el restaurante utiliza un sistema de gestión de reservas existente (CoverManager, ResDiary, ElTenedor/TheFork o sistema propio):
+
 1. **Vía API / Webhook:** El módulo `database.js` puede configurarse para realizar peticiones directamente contra la API del software de reservas del restaurante.
 2. **Vía Importación SQL:** Se pueden importar las reservas existentes ejecutando un script de migración SQL a la base de datos PostgreSQL de Neon.
 
@@ -178,18 +219,18 @@ Si el restaurante utiliza un sistema de gestión de reservas existente (CoverMan
 
 ## 📄 Archivos del Proyecto
 
-| Archivo | Descripción |
-| :--- | :--- |
-| [`server.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/server.js) | Servidor Express y Webhook endpoints |
-| [`botLogic.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/botLogic.js) | Máquina de estados y flujos conversacionales |
-| [`database.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/database.js) | Conector relacional PostgreSQL / db.json |
-| [`i18n.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/i18n.js) | Motor de traducciones en 8 idiomas |
-| [`notifications.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/notifications.js) | Despachador de Emails HTML y SMS |
-| [`whatsappApi.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/whatsappApi.js) | Cliente Graph API de Meta para mensajes interactivos |
-| [`schema.sql`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/schema.sql) | Esquema de tablas e índices SQL |
-| [`render.yaml`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/render.yaml) | Blueprint de despliegue 24/7 para Render.com |
-| [`.env`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/.env) | Variables de entorno y credenciales seguras |
+| Archivo                                                                                             | Descripción                                          |
+| :-------------------------------------------------------------------------------------------------- | :--------------------------------------------------- |
+| [`server.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/server.js)               | Servidor Express y Webhook endpoints                 |
+| [`botLogic.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/botLogic.js)           | Máquina de estados y flujos conversacionales         |
+| [`database.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/database.js)           | Conector relacional PostgreSQL / db.json             |
+| [`i18n.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/i18n.js)                   | Motor de traducciones en 8 idiomas                   |
+| [`notifications.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/notifications.js) | Despachador de Emails HTML y SMS                     |
+| [`whatsappApi.js`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/whatsappApi.js)     | Cliente Graph API de Meta para mensajes interactivos |
+| [`schema.sql`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/schema.sql)             | Esquema de tablas e índices SQL                      |
+| [`render.yaml`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/render.yaml)           | Blueprint de despliegue 24/7 para Render.com         |
+| [`.env`](file:///c:/Dev/05_Projects/Professional/casa-julian-whatsapp/.env)                         | Variables de entorno y credenciales seguras          |
 
 ---
 
-*Documentación generada para Asador Casa Julian.*
+_Documentación generada para Asador Casa Julian._
