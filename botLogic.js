@@ -83,7 +83,7 @@ async function sendLanguageMenu(from) {
             title: "Idiomas Disponibles",
             rows: [
                 { id: "lang_es", title: "🇪🇸 Español", description: "Atención completa en Español." },
-                { id: "lang_eu", title: "🚩 Euskara", description: "Arreta osoa Euskaraz." },
+                { id: "lang_eu", title: "EUS Euskara", description: "Arreta osoa Euskaraz." },
                 { id: "lang_en", title: "🇬🇧 English", description: "Full customer support in English." },
                 { id: "lang_fr", title: "🇫🇷 Français", description: "Service client complet en Français." },
                 { id: "lang_zh", title: "🇨🇳 中文", description: "中文全方位客户服务。" },
