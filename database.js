@@ -100,10 +100,28 @@ function getReservation(criterio) {
     const search = criterio.toUpperCase().trim();
     
     return db.reservas.find(r => 
+        (r.id && r.id.toUpperCase() === search) ||
         (r.dni && r.dni.toUpperCase() === search) || 
         (r.telefono && r.telefono.includes(search)) ||
         (r.email && r.email.toUpperCase() === search)
     );
+}
+
+function getAllReservations(criterio) {
+    const db = loadDb();
+    const search = criterio.toUpperCase().trim();
+    
+    return db.reservas.filter(r => 
+        (r.id && r.id.toUpperCase() === search) ||
+        (r.dni && r.dni.toUpperCase() === search) || 
+        (r.telefono && r.telefono.includes(search)) ||
+        (r.email && r.email.toUpperCase() === search)
+    );
+}
+
+function getReservationById(id) {
+    const db = loadDb();
+    return db.reservas.find(r => r.id === id);
 }
 
 function updateReservation(id, newData) {
@@ -227,6 +245,8 @@ module.exports = {
     checkAvailability,
     createReservation,
     getReservation,
+    getAllReservations,
+    getReservationById,
     updateReservation,
     cancelReservation,
     addToWaitlist,

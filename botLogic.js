@@ -101,6 +101,29 @@ async function handleListResponse(from, listId) {
         return;
     }
 
+    // 2. Selección de Reserva específica (cuando el cliente tiene más de una reserva)
+    if (listId.startsWith('sel_res_')) {
+        const resId = listId.replace('sel_res_', '');
+        const r = db.getReservationById(resId);
+        if (!r) {
+            await sendMessage(from, "❌ No se pudo encontrar la reserva seleccionada.");
+            await sendMainMenu(from);
+            return;
+        }
+        const currentState = userStates.get(from) || {};
+        currentState.tempReserva = r;
+        userStates.set(from, currentState);
+
+        const infoText = `🔎 *Reserva Seleccionada:* ${r.id}\n\nA nombre de: *${r.nombre}*\nFecha: ${r.fecha} a las ${r.hora} (${r.comensales} personas).\n\n¿Qué te gustaría hacer con esta reserva?`;
+        const buttons = [
+            { id: 'btn_ver_reserva', title: "VER RESERVA" },
+            { id: 'btn_modificar_reserva', title: "MODIFICAR" },
+            { id: 'btn_cancelar_reserva', title: "CANCELAR" }
+        ];
+        await sendInteractiveButtons(from, infoText, buttons);
+        return;
+    }
+
     const lang = userLanguages.get(from) || 'es';
 
     switch (listId) {
@@ -410,16 +433,17 @@ async function handleTextMessage(from, text) {
             break;
 
         case 'reserva_existente_esperando_id':
-            const reservaEncontrada = db.getReservation(text);
+            const reservasEncontradas = db.getAllReservations(text);
 
-            if (!reservaEncontrada) {
+            if (!reservasEncontradas || reservasEncontradas.length === 0) {
                 await sendMessage(from, `❌ No existe ninguna reserva activa a nombre, DNI, teléfono o email: *${text}*.`);
                 await sendMainMenu(from);
-            } else {
-                currentState.tempReserva = reservaEncontrada;
+            } else if (reservasEncontradas.length === 1) {
+                const r = reservasEncontradas[0];
+                currentState.tempReserva = r;
                 userStates.set(from, currentState);
 
-                const infoText = `🔎 *Reserva Localizada:* ${reservaEncontrada.id}\n\nA nombre de: *${reservaEncontrada.nombre}*\nFecha: ${reservaEncontrada.fecha} a las ${reservaEncontrada.hora} (${reservaEncontrada.comensales} personas).\n\n¿Qué te gustaría hacer con tu reserva?`;
+                const infoText = `🔎 *Reserva Localizada:* ${r.id}\n\nA nombre de: *${r.nombre}*\nFecha: ${r.fecha} a las ${r.hora} (${r.comensales} personas).\n\n¿Qué te gustaría hacer con tu reserva?`;
 
                 const buttons = [
                     { id: 'btn_ver_reserva', title: "VER RESERVA" },
@@ -427,6 +451,27 @@ async function handleTextMessage(from, text) {
                     { id: 'btn_cancelar_reserva', title: "CANCELAR" }
                 ];
                 await sendInteractiveButtons(from, infoText, buttons);
+            } else {
+                // Múltiples reservas encontradas para el mismo cliente
+                const rows = reservasEncontradas.slice(0, 10).map(r => {
+                    const shortTitle = `${r.fecha} (${r.hora})`.slice(0, 24);
+                    return {
+                        id: `sel_res_${r.id}`,
+                        title: shortTitle,
+                        description: `${r.comensales} personas • Código: ${r.id}`
+                    };
+                });
+
+                const bodyText = `📋 *Hemos localizado ${reservasEncontradas.length} reservas activas a tu nombre.*\n\nPor favor, selecciona abajo cuál de tus reservas deseas consultar, modificar o cancelar:`;
+                const buttonText = "Seleccionar Reserva";
+                const sections = [
+                    {
+                        title: "Tus Reservas",
+                        rows: rows
+                    }
+                ];
+
+                await sendInteractiveList(from, bodyText, buttonText, sections);
             }
             break;
 
