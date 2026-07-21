@@ -11,7 +11,7 @@ services:
       - key: WEBHOOK_VERIFY_TOKEN
         value: casajulian123
       - key: WHATSAPP_TOKEN
-        value: EAAPS3Ie3sf4BSHJts8exJJ0ZBvcOLKSEmuu7C8mXsbT1TDTsebRzpM2JZB3w6vCCEusnkl0hV7YrQBsf70dKQTBrjTjZCkUpYeg2q2923hCvo0Ipdm3E8eTZAQpmOAZAO4r6qilZA3QWrLcZA7FTNzucjlf7k7SKuRPIPbwPpjJJvcZBIUwwANZAoLD6iEwt6MAvsZAGpADwN0ATZAiqpfhqBm3WhEEykKdtX56u88UBrPVDWTULfWFtfOYvMggZAZAH4K8d55lbjG5FeeUwNYRTICMEZA
+        value: EAAPS3Ie3sf4BSLp05hbL3dPrpu9ZAEif6bT9H2AOqnyCJMxgadw6Y8eu3ebbahSY4M2PoWyLHrWoopZCdKDIqtdFUISYzy7vzSnynPfRJbuo6qoZAvsCh6bVbVaMK0eltku8v1dZBShzTrI6sO9hDZCpzlKoNuUhmTzuwYIi0gXdhfxjfd85Fu82Nmtac3QZDZD
       - key: PHONE_NUMBER_ID
         value: 1232422906619224
       - key: DATABASE_URL
