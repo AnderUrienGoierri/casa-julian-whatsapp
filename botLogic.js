@@ -87,6 +87,7 @@ async function sendLanguageMenu(from, page = 1) {
                     { id: "lang_pl", title: "🇵🇱 Polski", description: "Obsługa klienta w języku polskim." },
                     { id: "lang_ro", title: "🇷🇴 Română", description: "Asistență clienți în limba română." },
                     { id: "lang_be", title: "🇧🇪 Belgisch (NL/FR)", description: "Belgische ondersteuning / Support Belge." },
+                    { id: "lang_ko", title: "🇰🇷 한국어", description: "한국어 고객 지원 서비스." },
                     { id: "lang_zh", title: "🇨🇳 中文", description: "中文全方位客户服务。" },
                     { id: "lang_ja", title: "🇯🇵 日本語", description: "日本語によるカスタマーサポート。" },
                     { id: "lang_ru", title: "🇷🇺 Русский", description: "Полная поддержка на русском языке." },
@@ -99,7 +100,7 @@ async function sendLanguageMenu(from, page = 1) {
         return;
     }
 
-    const bodyText = "🌍 *Por favor, selecciona tu idioma / Select your language (Pág. 1/2):*\n\nDisponemos de atención multilingüe automatizada en 13 idiomas:";
+    const bodyText = "🌍 *Por favor, selecciona tu idioma / Select your language (Pág. 1/2):*\n\nDisponemos de atención multilingüe automatizada en 14 idiomas:";
     const buttonText = "Seleccionar Idioma";
     const sections = [
         {
