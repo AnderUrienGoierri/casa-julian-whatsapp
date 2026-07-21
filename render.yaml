@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: casa-julian-whatsapp-bot
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: WEBHOOK_VERIFY_TOKEN
+        value: casajulian123
+      - key: WHATSAPP_TOKEN
+        value: EAAPS3Ie3sf4BSFEL0YCPnsvpZBo9su3n1qJkbu1K34pzXXSsdWz3VjwO8baDJEnPyGtOAVtLCAhwPnskVXeQrRx6RkymZBd1XneHjdPhLzRD7zwirzX8wFWKzri9Bf31ewLWgnOotNUZBZBpaGouZBZCN8oRHHfZCwvA3xFNVWyKfDoqeVDOrt8Kw6NyiI4pvkJgcl2042OIdWxsIgL8llpTjAXg09WK4B1cwKzsUVbEkE4ZApVRRt3eRM6FXecxEQQ0Ws1uTzXD6mEobrUkeRKP
+      - key: PHONE_NUMBER_ID
+        value: 1232422906619224
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_DypfG4x1AEPH@ep-noisy-leaf-zayquj7g.c-2.eu-west-2.aws.neon.tech/neondb?sslmode=require
