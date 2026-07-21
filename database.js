@@ -135,8 +135,8 @@ function getUpcomingAvailableSlots(maxSlots = 8) {
     const slots = [];
     const today = new Date();
 
-    // Escanear los próximos 14 días
-    for (let i = 1; i <= 14 && slots.length < maxSlots; i++) {
+    // Escanear hasta 120 días vista para localizar los primeros turnos con plazas libres
+    for (let i = 1; i <= 120 && slots.length < maxSlots; i++) {
         const targetDate = new Date(today);
         targetDate.setDate(today.getDate() + i);
 
