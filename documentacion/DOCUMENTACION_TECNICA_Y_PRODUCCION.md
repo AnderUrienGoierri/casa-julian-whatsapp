@@ -34,9 +34,10 @@ El sistema está desplegado en la nube bajo una arquitectura desacoplada, escala
             │                          │                         │
             ▼                          ▼                         ▼
 ┌────────────────────────┐ ┌──────────────────────┐ ┌────────────────────────┐
-│ PostgreSQL (Neon.tech) │ │ Motor i18n (10 Langs)│ │ Notificaciones (Nodemailer│
-│ Clientes / Reservas /  │ │ ES, EU, EN, FR, DE,  │ │ Email HTML + SMS)      │
-│ Lista de Espera        │ │ NL, BE, ZH, JA, RU   │ │                        │
+│ PostgreSQL (Neon.tech) │ │ Motor i18n (14 Langs)│ │ Notificaciones (Nodemailer│
+│ Clientes / Reservas /  │ │ ES, EU, EN, FR, IT,  │ │ Email HTML + SMS)      │
+│ Lista de Espera        │ │ DE, NL, PL, RO, BE,  │ │                        │
+│                        │ │ KO, ZH, JA, RU, AR   │ │                        │
 └────────────────────────┘ └──────────────────────┘ └────────────────────────┘
 ```
 
@@ -45,7 +46,7 @@ El sistema está desplegado en la nube bajo una arquitectura desacoplada, escala
 1. **Servidor Backend (`server.js`):** Express.js escuchando peticiones Webhook GET (verificación Meta) y POST (mensajes entrantes `processMessage`).
 2. **Motor de Lógica (`botLogic.js`):** Máquina de estados conversacional que gestiona los 5 flujos principales y mantiene el contexto por usuario.
 3. **Capa de Datos (`database.js` + `schema.sql`):** Conector a PostgreSQL en la nube con tablas relacionales de clientes, reservas e índices de disponibilidad real por turno.
-4. **Motor Internacional (`i18n.js`):** Diccionario multilingüe de 10 idiomas traducidos profesionalmente.
+4. **Motor Internacional (`i18n.js`):** Diccionario multilingüe de 14 idiomas traducidos profesionalmente.
 5. **Módulo de Notificaciones (`notifications.js`):** Envíos automáticos por Email en HTML responsivo y SMS.
 6. **Módulo API de Meta (`whatsappApi.js`):** Cliente HTTP para mensajes de texto, listas desplegables interactivas (hasta 10 filas) y botones de respuesta rápida (hasta 3 botones).
 
@@ -53,20 +54,28 @@ El sistema está desplegado en la nube bajo una arquitectura desacoplada, escala
 
 ## 3. 🌐 Funcionalidades y Flujos de Conversación
 
-### 3.1. Selección Inicial de Idioma (10 Idiomas)
+### 3.1. Selección Inicial de Idioma (14 Idiomas Paginados)
 
-El bot presenta un menú desplegable interactivo profesional con 10 idiomas:
+El bot presenta un menú desplegable interactivo profesional en 2 páginas con 14 idiomas:
 
+**Página 1 (`Idiomas 1/2`):**
 - 🇪🇸 **Español**
-- 🇪🇺 **Euskara** (EUS Euskara)
+- 🇪🇺 **Euskara** (`EUS Euskara`)
 - 🇬🇧 **English**
 - 🇫🇷 **Français**
 - 🇩🇪 **Deutsch** (Alemán)
 - 🇳🇱 **Nederlands** (Holandés)
+
+**Página 2 (`Idiomas 2/2`):**
+- 🇮🇹 **Italiano**
+- 🇵🇱 **Polski** (Polaco)
+- 🇷🇴 **Română** (Rumano)
 - 🇧🇪 **Belgisch (NL/FR)** (Belga)
+- 🇰🇷 **한국어** (Coreano)
 - 🇨🇳 **中文** (Chino)
 - 🇯🇵 **日本語** (Japonés)
 - 🇷🇺 **Русский** (Ruso)
+- 🇸🇦 **العربية** (Árabe)
 
 ### 3.2. Horarios y Turnos Oficiales de Casa Julian
 
