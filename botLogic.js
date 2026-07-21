@@ -73,23 +73,45 @@ async function sendMainMenu(from) {
 }
 
 /**
- * Muestra la lista interactiva para seleccionar idioma.
+ * Muestra la lista interactiva profesional para seleccionar entre los 8 idiomas.
  */
 async function sendLanguageMenu(from) {
-    const bodyText = "🌍 *Por favor, selecciona tu idioma / Please select your language / Choisis ta langue:*";
-    const buttons = [
-        { id: 'lang_es', title: "🇪🇸 Español" },
-        { id: 'lang_eu', title: "🚩 Euskara" },
-        { id: 'lang_en', title: "🇬🇧 English" }
+    const bodyText = "🌍 *Por favor, selecciona tu idioma / Select your language / Choisis ta langue / 请选择语言:*\n\nDisponemos de atención multilingüe automatizada en 8 idiomas:";
+    const buttonText = "Seleccionar Idioma";
+    const sections = [
+        {
+            title: "Idiomas Disponibles",
+            rows: [
+                { id: "lang_es", title: "🇪🇸 Español", description: "Atención completa en Español." },
+                { id: "lang_eu", title: "🚩 Euskara", description: "Arreta osoa Euskaraz." },
+                { id: "lang_en", title: "🇬🇧 English", description: "Full customer support in English." },
+                { id: "lang_fr", title: "🇫🇷 Français", description: "Service client complet en Français." },
+                { id: "lang_zh", title: "🇨🇳 中文", description: "中文全方位客户服务。" },
+                { id: "lang_ja", title: "🇯🇵 日本語", description: "日本語によるカスタマーサポート。" },
+                { id: "lang_ru", title: "🇷🇺 Русский", description: "Полная поддержка на русском языке." },
+                { id: "lang_ar", title: "🇸🇦 العربية", description: "دعم كامل باللغة العربية." }
+            ]
+        }
     ];
 
-    await sendInteractiveButtons(from, bodyText, buttons);
+    await sendInteractiveList(from, bodyText, buttonText, sections);
 }
 
 /**
  * Procesa las respuestas a las Listas Interactivas.
  */
 async function handleListResponse(from, listId) {
+    // 0. Selección de idioma desde la lista de 8 idiomas
+    if (listId.startsWith('lang_')) {
+        const langCode = listId.replace('lang_', '');
+        userLanguages.set(from, langCode);
+        userStates.set(from, { step: 'main_menu', data: {} });
+        
+        const currentLangName = getTranslation(langCode, 'langName') || 'Español';
+        await sendMessage(from, `🌐 *Idioma cambiado a / Language changed to:* ${currentLangName}`);
+        await sendMainMenu(from);
+        return;
+    }
     // 1. Paginación de múltiples reservas encontradas
     if (listId.startsWith('page_res_')) {
         const page = parseInt(listId.replace('page_res_', ''), 10);
