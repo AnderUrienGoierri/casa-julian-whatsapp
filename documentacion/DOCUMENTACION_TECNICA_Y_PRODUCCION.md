@@ -77,9 +77,9 @@ Al iniciar la conversación, el bot presenta un menú desplegable interactivo co
 
 ### 3.4. Flujo 3: TENGO RESERVA
 1. Consulta por DNI, Teléfono o Email.
-2. **Soporte Multi-Reserva:**
-   - **Si el cliente tiene 1 única reserva:** El bot muestra directamente los detalles y botones de acción.
-   - **Si el cliente tiene MÚLTIPLES reservas (varias fechas/horas):** El bot despliega un menú interactivo con todas sus reservas para que elija exactamente qué fecha/reserva desea consultar, modificar o cancelar.
+2. **Soporte Multi-Reserva con Paginación Interactiva:**
+   - **Si el cliente tiene 1 única reserva:** Muestra directamente el menú de la reserva.
+   - **Si el cliente tiene MÚLTIPLES reservas (ej. 43 reservas para Miren Gorrotxategi):** El bot aplica un sistema de paginación interactiva (`▶️ Ver más (Pág. 2/6)`, `◀️ Pág. Anterior`), permitiendo recorrer en lotes de 8 filas el 100% de sus reservas sin sobrepasar la restricción técnica de Meta Cloud API de 10 renglones por mensaje.
 3. Menú interactivo desplegable sobre la reserva localizada:
    - `1. VER RESERVA`: Muestra los detalles completos.
    - `2. MODIFICAR RESERVA`: Permite cambiar fecha, hora o comensales re-verificando el aforo.
