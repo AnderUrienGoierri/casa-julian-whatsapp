@@ -76,7 +76,7 @@ async function sendMainMenu(from) {
  * Muestra la lista interactiva profesional para seleccionar entre los 8 idiomas.
  */
 async function sendLanguageMenu(from) {
-    const bodyText = "🌍 *Por favor, selecciona tu idioma / Select your language / Choisis ta langue / 请选择语言:*\n\nDisponemos de atención multilingüe automatizada en 8 idiomas:";
+    const bodyText = "🌍 *Por favor, selecciona tu idioma / Select your language / Choisis ta langue / Sprache wählen:*\n\nDisponemos de atención multilingüe automatizada en 10 idiomas:";
     const buttonText = "Seleccionar Idioma";
     const sections = [
         {
@@ -86,10 +86,12 @@ async function sendLanguageMenu(from) {
                 { id: "lang_eu", title: "🇪🇺 Euskara", description: "Arreta osoa Euskaraz." },
                 { id: "lang_en", title: "🇬🇧 English", description: "Full customer support in English." },
                 { id: "lang_fr", title: "🇫🇷 Français", description: "Service client complet en Français." },
+                { id: "lang_de", title: "🇩🇪 Deutsch", description: "Kundenservice auf Deutsch." },
+                { id: "lang_nl", title: "🇳🇱 Nederlands", description: "Klantenservice in het Nederlands." },
+                { id: "lang_be", title: "🇧🇪 Belgisch (NL/FR)", description: "Belgische ondersteuning / Support Belge." },
                 { id: "lang_zh", title: "🇨🇳 中文", description: "中文全方位客户服务。" },
                 { id: "lang_ja", title: "🇯🇵 日本語", description: "日本語によるカスタマーサポート。" },
-                { id: "lang_ru", title: "🇷🇺 Русский", description: "Полная поддержка на русском языке." },
-                { id: "lang_ar", title: "🇸🇦 العربية", description: "دعم كامل باللغة العربية." }
+                { id: "lang_ru", title: "🇷🇺 Русский", description: "Полная поддержка на русском языке." }
             ]
         }
     ];
