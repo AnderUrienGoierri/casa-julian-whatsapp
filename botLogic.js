@@ -1,133 +1,131 @@
-const { sendMessage, sendInteractiveButtons, sendInteractiveList } = require('./whatsappApi');
+const { 
+    sendInteractiveButtons, 
+    sendInteractiveList, 
+    sendMessage 
+} = require('./whatsappApi');
 const db = require('./database');
 const notifications = require('./notifications');
 const { getTranslation } = require('./i18n');
 
-// Mapas en memoria por número de teléfono
+// Mapas en memoria para rastrear estado e idioma de los usuarios por teléfono
 const userStates = new Map();
-const userLanguages = new Map(); // Guarda el idioma de cada usuario (es, eu, en, fr, zh, ja, ru, ar)
+const userLanguages = new Map();
 
 /**
- * Punto de entrada principal para procesar mensajes entrantes de WhatsApp.
+ * Maneja el flujo de mensajes recibidos de WhatsApp.
  */
-async function processMessage(message) {
-    const from = message.from; // Número de teléfono del usuario
+async function handleUserMessage(from, body, type = 'text', interactiveData = null) {
+    console.log(`\n📩 MENSAJE RECIBIDO de ${from} [Tipo: ${type}]: "${body}"`);
 
-    // 1. Respuestas a botones interactivos
-    if (message.type === 'interactive' && message.interactive.type === 'button_reply') {
-        const buttonId = message.interactive.button_reply.id;
-        await handleButtonResponse(from, buttonId);
-        return;
-    }
-
-    // 2. Respuestas a listas interactivas
-    if (message.type === 'interactive' && message.interactive.type === 'list_reply') {
-        const listId = message.interactive.list_reply.id;
-        await handleListResponse(from, listId);
-        return;
-    }
-
-    // 3. Mensajes de texto libre
-    if (message.type === 'text') {
-        const text = message.text.body.trim();
-        await handleTextMessage(from, text);
-        return;
-    }
-}
-
-/**
- * Muestra el menú inicial de Selección de Idioma (8 Idiomas).
- */
-async function sendLanguageMenu(from) {
-    userStates.delete(from);
-
-    const bodyText = "🌍 *Bienvenido / Ongi Etorri / Welcome to Asador Casa Julian*\n\nPor favor, selecciona tu idioma preferido para continuar:\nMesedez, aukeratu zure hizkuntza:\nPlease select your preferred language:";
-    const buttonText = "🌐 Idioma / Language";
-
-    const sections = [
-        {
-            title: "Selecciona tu Idioma",
-            rows: [
-                { id: "lang_es", title: "Castellano 🇪🇸", description: "Español - Spanish" },
-                { id: "lang_eu", title: "Euskera 🟢", description: "Euskara - Basque" },
-                { id: "lang_en", title: "English 🇬🇧", description: "English" },
-                { id: "lang_fr", title: "Français 🇫🇷", description: "Français - French" },
-                { id: "lang_zh", title: "中文 🇨🇳", description: "Chinese" },
-                { id: "lang_ja", title: "日本語 🇯🇵", description: "Japanese" },
-                { id: "lang_ru", title: "Русский 🇷🇺", description: "Russian" },
-                { id: "lang_ar", title: "العربية 🇸🇦", description: "Arabic" }
-            ]
-        }
-    ];
-
-    await sendInteractiveList(from, bodyText, buttonText, sections);
-}
-
-/**
- * Muestra el Menú Principal traducido al idioma seleccionado por el cliente.
- */
-async function sendMainMenu(from) {
-    const lang = userLanguages.get(from) || 'es';
-
-    const bodyText = getTranslation(lang, 'welcomeTitle') + "\n\n" + getTranslation(lang, 'welcomeBody');
-    const buttonText = getTranslation(lang, 'buttonText');
-
-    const sections = [
-        {
-            title: getTranslation(lang, 'sectionTitle'),
-            rows: [
-                { id: "opt_quiero_reservar", title: getTranslation(lang, 'opt1Title'), description: getTranslation(lang, 'opt1Desc') },
-                { id: "opt_lista_espera", title: getTranslation(lang, 'opt2Title'), description: getTranslation(lang, 'opt2Desc') },
-                { id: "opt_tengo_reserva", title: getTranslation(lang, 'opt3Title'), description: getTranslation(lang, 'opt3Desc') },
-                { id: "opt_preguntas_frecuentes", title: getTranslation(lang, 'opt4Title'), description: getTranslation(lang, 'opt4Desc') },
-                { id: "opt_ver_disponibilidad", title: getTranslation(lang, 'opt5Title'), description: getTranslation(lang, 'opt5Desc') },
-                { id: "opt_cambiar_idioma", title: "🌐 Cambiar Idioma", description: "Seleccionar otro idioma / Change language." }
-            ]
-        }
-    ];
-
-    await sendInteractiveList(from, bodyText, buttonText, sections);
-}
-
-/**
- * Procesa las selecciones de Listas Interactivas (Idiomas, Menú Principal y FAQs).
- */
-async function handleListResponse(from, listId) {
-    // 1. Selección de Idioma
-    if (listId.startsWith('lang_')) {
-        const selectedLang = listId.replace('lang_', '');
-        userLanguages.set(from, selectedLang);
-        console.log(`🌐 Idioma cambiado para ${from} ➔ ${selectedLang}`);
-        await sendMainMenu(from);
-        return;
-    }
-
-    // 2. Selección de Reserva específica (cuando el cliente tiene más de una reserva)
-    if (listId.startsWith('sel_res_')) {
-        const resId = listId.replace('sel_res_', '');
-        const r = db.getReservationById(resId);
-        if (!r) {
-            await sendMessage(from, "❌ No se pudo encontrar la reserva seleccionada.");
+    // Interceptar botón de cambio de idioma global
+    if (interactiveData && interactiveData.type === 'button') {
+        const buttonId = interactiveData.id;
+        if (buttonId.startsWith('lang_')) {
+            const langCode = buttonId.replace('lang_', '');
+            userLanguages.set(from, langCode);
+            userStates.set(from, { step: 'main_menu', data: {} });
+            
+            const currentLangName = getTranslation(langCode, 'langName') || 'Español';
+            await sendMessage(from, `🌐 *Idioma cambiado a:* ${currentLangName}`);
             await sendMainMenu(from);
             return;
         }
-        await sendReservationManagementMenu(from, r);
+    }
+
+    if (type === 'interactive') {
+        if (interactiveData.type === 'list') {
+            await handleListResponse(from, interactiveData.id);
+        } else if (interactiveData.type === 'button') {
+            await handleButtonResponse(from, interactiveData.id);
+        }
         return;
     }
 
-    // 3. Navegación por páginas de reservas
+    await handleTextMessage(from, body);
+}
+
+/**
+ * Muestra el menú principal en el idioma del usuario (List Interactive Message).
+ */
+async function sendMainMenu(from) {
+    const lang = userLanguages.get(from) || 'es';
+    
+    userStates.set(from, { step: 'main_menu', data: {} });
+
+    const bodyText = getTranslation(lang, 'welcomeMessage');
+    const buttonText = getTranslation(lang, 'menuButtonText');
+    
+    const sections = [
+        {
+            title: getTranslation(lang, 'menuTitle'),
+            rows: [
+                { id: "opt_quiero_reservar", title: getTranslation(lang, 'opt1Title'), description: getTranslation(lang, 'opt1Desc') },
+                { id: "opt_tengo_reserva", title: getTranslation(lang, 'opt2Title'), description: getTranslation(lang, 'opt2Desc') },
+                { id: "opt_lista_espera", title: getTranslation(lang, 'opt3Title'), description: getTranslation(lang, 'opt3Desc') },
+                { id: "opt_preguntas_frecuentes", title: getTranslation(lang, 'opt4Title'), description: getTranslation(lang, 'opt4Desc') },
+                { id: "opt_ver_disponibilidad", title: getTranslation(lang, 'opt5Title'), description: getTranslation(lang, 'opt5Desc') },
+                { id: "opt_cambiar_idioma", title: getTranslation(lang, 'optLangTitle'), description: getTranslation(lang, 'optLangDesc') }
+            ]
+        }
+    ];
+
+    await sendInteractiveList(from, bodyText, buttonText, sections);
+}
+
+/**
+ * Muestra la lista interactiva para seleccionar idioma.
+ */
+async function sendLanguageMenu(from) {
+    const bodyText = "🌍 *Por favor, selecciona tu idioma / Please select your language / Choisis ta langue:*";
+    const buttons = [
+        { id: 'lang_es', title: "🇪🇸 Español" },
+        { id: 'lang_eu', title: "🚩 Euskara" },
+        { id: 'lang_en', title: "🇬🇧 English" }
+    ];
+
+    await sendInteractiveButtons(from, bodyText, buttons);
+}
+
+/**
+ * Procesa las respuestas a las Listas Interactivas.
+ */
+async function handleListResponse(from, listId) {
+    // 1. Paginación de múltiples reservas encontradas
     if (listId.startsWith('page_res_')) {
-        const targetPage = parseInt(listId.replace('page_res_', ''), 10);
+        const page = parseInt(listId.replace('page_res_', ''), 10);
         const currentState = userStates.get(from) || {};
         if (currentState.userReservations) {
-            await sendPaginatedReservationsList(from, currentState.userReservations, targetPage);
+            await sendPaginatedReservationsList(from, currentState.userReservations, page);
+        }
+        return;
+    }
+
+    // 2. Selección de reserva específica de una lista paginada
+    if (listId.startsWith('sel_res_')) {
+        const resId = listId.replace('sel_res_', '');
+        const reservation = db.getReservationById(resId);
+        if (reservation) {
+            await sendReservationManagementMenu(from, reservation);
         } else {
+            await sendMessage(from, "⚠️ No hemos podido cargar los detalles de esa reserva. Por favor, inténtalo de nuevo.");
             await sendMainMenu(from);
         }
         return;
     }
 
-    // 4. Selección directa de turno disponible (desde la opción 5 VER DISPONIBILIDAD)
+    // 3. Selección directa de turno disponible en proceso de reserva (Turnos según las imágenes oficiales)
+    if (listId.startsWith('sel_hora_')) {
+        const hora = listId.replace('sel_hora_', '');
+        const currentState = userStates.get(from) || { data: {} };
+        currentState.data.hora = hora;
+        currentState.step = 'reserva_esperando_comensales';
+        userStates.set(from, currentState);
+
+        await sendMessage(from, `👥 *Reserva para el ${currentState.data.fecha} a las ${hora}*\n\n¿Cuántos comensales vais a ser en total? (Ejemplo: 4):`);
+        return;
+    }
+
+    // 4. Selección directa de turno libre desde "5. VER DISPONIBILIDAD"
     if (listId.startsWith('slot_res_')) {
         const parts = listId.replace('slot_res_', '').split('_');
         const fecha = parts[0];
@@ -185,18 +183,13 @@ async function handleListResponse(from, listId) {
             break;
 
         case 'faq_horarios':
-            await sendMessage(from, "🕒 *Horarios de Apertura*\n\n• *Comidas:* Martes a Domingo de 13:30 a 16:00 h.\n• *Cenas:* Jueves a Sábado de 20:30 a 23:00 h.\n• *Lunes:* Cerrado por descanso semanal.");
+            await sendMessage(from, "🕒 *Horarios de Apertura*\n\n• *Comidas (Martes a Domingo):* 12:30, 13:00, 13:30, 14:00 y 15:15.\n• *Cenas (Viernes y Sábado):* 20:00, 20:30, 21:00 y 21:30.\n• *Lunes:* Cerrado por descanso semanal.");
             await sendBackToMenuButton(from, lang);
             break;
 
         case 'faq_grupos':
             await sendMessage(from, "👥 *Reservas para Grupos*\n\nPara reservas de más de 8 personas, coordinamos menús especiales de degustación. Escribe tu consulta aquí y un responsable te contactará.");
             await sendBackToMenuButton(from, lang);
-            break;
-
-        case 'faq_mascotas':
-            await sendMessage(from, "🐶 *Política de Mascotas*\n\nAdmitimos mascotas bien educadas en las zonas habilitadas del comedor de la entrada. Por favor indícalo al reservar.");
-            await sendBackToMenuButton(from);
             break;
 
         case 'faq_parking':
@@ -223,8 +216,7 @@ async function handleListResponse(from, listId) {
 }
 
 /**
- * Muestra el menú de gestión de una reserva localizada con las 4 opciones solicitadas:
- * 1. Ver reserva, 2. Modificar reserva, 3. Cancelar reserva, 4. Menú principal.
+ * Muestra el menú de gestión de una reserva localizada con las 4 opciones solicitadas.
  */
 async function sendReservationManagementMenu(from, reservation) {
     const currentState = userStates.get(from) || {};
@@ -250,7 +242,7 @@ async function sendReservationManagementMenu(from, reservation) {
 }
 
 /**
- * Envia la lista paginada de reservas (máximo 8 por página para cumplir los 10 renglones max de Meta API).
+ * Envia la lista paginada de reservas.
  */
 async function sendPaginatedReservationsList(from, reservas, page = 1) {
     const currentState = userStates.get(from) || {};
@@ -258,7 +250,7 @@ async function sendPaginatedReservationsList(from, reservas, page = 1) {
     currentState.currentResPage = page;
     userStates.set(from, currentState);
 
-    const PAGE_SIZE = 8; // Mantiene el número total de filas <= 10
+    const PAGE_SIZE = 8;
     const totalReservas = reservas.length;
     const totalPages = Math.ceil(totalReservas / PAGE_SIZE);
 
@@ -274,7 +266,6 @@ async function sendPaginatedReservationsList(from, reservas, page = 1) {
         };
     });
 
-    // Botón "Ver más" si hay más páginas
     if (page < totalPages) {
         rows.push({
             id: `page_res_${page + 1}`,
@@ -283,7 +274,6 @@ async function sendPaginatedReservationsList(from, reservas, page = 1) {
         });
     }
 
-    // Botón "Página anterior" si no es la primera
     if (page > 1) {
         rows.push({
             id: `page_res_${page - 1}`,
@@ -319,7 +309,7 @@ async function sendUpcomingSlotsMenu(from, lang) {
     const rows = slots.map(s => ({
         id: `slot_res_${s.fecha}_${s.hora}`,
         title: `${s.fecha} (${s.hora})`.slice(0, 24),
-        description: `${s.plazasLibres} plazas libres (Máx ${s.maxCapacidad}p)`
+        description: `${s.plazasLibres} plazas libres disponibles`
     }));
 
     const bodyText = "📅 *Próximos Turnos Libres en Asador Casa Julian*\n\nSelecciona el turno que prefieras para realizar tu reserva:";
@@ -369,7 +359,7 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_ver_reserva':
             if (currentState.tempReserva) {
                 const r = currentState.tempReserva;
-                await sendMessage(from, `ℹ️ *Reserva (${r.id}):*\n\n👤 *Nombre:* ${r.nombre}\n📅 *Fecha:* ${r.fecha}\n⏰ *Hora:* ${r.hora}\n👥 *Comensales:* ${r.comensales}\n🪪 *DNI:* ${r.dni}\n📧 *Email:* ${r.email}\n📌 *Estado:* ${r.estado}`);
+                await sendMessage(from, `ℹ️ *Reserva (${r.id}):*\n\n👤 *Nombre:* ${r.nombre}\n📅 *Fecha:* ${r.fecha}\n⏰ *Hora:* ${r.hora}\n👥 *Comensales:* ${r.comensales}\n🪪 *DNI:* ${r.dni}\n📧 *Email:* ${r.email}\n🌐 *Idioma:* ${r.idioma || 'es'}\n📌 *Estado:* ${r.estado}`);
             }
             await sendBackToMenuButton(from, lang);
             break;
@@ -425,7 +415,6 @@ async function handleTextMessage(from, text) {
     const lang = userLanguages.get(from) || 'es';
     const currentState = userStates.get(from);
 
-    // Si no ha seleccionado idioma o no hay estado, mostrar selección de idioma inicial
     if (!userLanguages.has(from)) {
         await sendLanguageMenu(from);
         return;
@@ -442,14 +431,56 @@ async function handleTextMessage(from, text) {
                 await sendMessage(from, "⚠️ Por favor, introduce una fecha válida en formato *DD/MM/AAAA* (Ejemplo: 25/10/2026):");
                 return;
             }
-            currentState.data.fecha = text;
-            currentState.step = 'reserva_esperando_hora';
+
+            const formattedFecha = text.trim();
+            const dateCheck = db.getAvailableTimeSlotsForDate(formattedFecha);
+
+            if (dateCheck.cerrado) {
+                await sendMessage(from, "🛑 *Restaurante Cerrado*\n\nLos lunes el restaurante está cerrado por descanso semanal. Por favor, introduce otra fecha (Ejemplo: 03/11/2026):");
+                return;
+            }
+
+            if (!dateCheck.valido) {
+                await sendMessage(from, "⚠️ Por favor, introduce una fecha válida en formato *DD/MM/AAAA* (Ejemplo: 25/10/2026):");
+                return;
+            }
+
+            if (!dateCheck.availableSlots || dateCheck.availableSlots.length === 0) {
+                await sendMessage(from, `😔 *Aforo Completo para el ${formattedFecha}*\n\nLo sentimos, todas las mesas están reservadas para este día en Asador Casa Julian.`);
+                
+                const buttons = [
+                    { id: 'btn_unirse_espera', title: getTranslation(lang, 'btnWaitlist') },
+                    { id: 'btn_volver_menu', title: getTranslation(lang, 'btnMenu') }
+                ];
+                await sendInteractiveButtons(from, getTranslation(lang, 'askWaitlist'), buttons);
+                return;
+            }
+
+            currentState.data.fecha = formattedFecha;
+            currentState.step = 'reserva_esperando_hora_lista';
             userStates.set(from, currentState);
-            await sendMessage(from, getTranslation(lang, 'stepTime'));
+
+            const rows = dateCheck.availableSlots.map(s => ({
+                id: `sel_hora_${s.hora}`,
+                title: `⏰ Turno ${s.hora}`,
+                description: `${s.capacidadRestante} plazas libres disponibles`
+            }));
+
+            const bodyText = `📅 *Fecha Seleccionada:* ${formattedFecha}\n\nLos siguientes turnos disponen de plazas libres para tu reserva en Asador Casa Julian. Por favor, selecciona la hora que prefieras:`;
+            const buttonText = "Elegir Turno";
+            const sections = [
+                {
+                    title: "Turnos Disponibles",
+                    rows: rows
+                }
+            ];
+
+            await sendInteractiveList(from, bodyText, buttonText, sections);
             break;
 
-        case 'reserva_esperando_hora':
-            currentState.data.hora = text;
+        case 'reserva_esperando_hora_lista':
+            // Fallback en caso de escribir la hora manualmente
+            currentState.data.hora = text.trim();
             currentState.step = 'reserva_esperando_comensales';
             userStates.set(from, currentState);
             await sendMessage(from, getTranslation(lang, 'stepGuests'));
@@ -530,28 +561,86 @@ async function handleTextMessage(from, text) {
         case 'reserva_datos_email':
             currentState.data.email = text;
             currentState.data.idioma = lang;
-            
+
             const nuevaReserva = db.createReservation(currentState.data);
-            userStates.delete(from);
+
+            const msgConfirm = `🎉 *¡RESERVA CONFIRMADA EN CASA JULIAN!*\n\n📌 *Código de Reserva:* ${nuevaReserva.id}\n👤 *Nombre:* ${nuevaReserva.nombre}\n📅 *Fecha:* ${nuevaReserva.fecha}\n⏰ *Hora:* ${nuevaReserva.hora}\n👥 *Comensales:* ${nuevaReserva.comensales} personas\n🪪 *DNI:* ${nuevaReserva.dni}\n📧 *Email:* ${nuevaReserva.email}\n🌐 *Idioma:* ${lang}\n\nTe hemos enviado un correo electrónico de confirmación. ¡Te esperamos!`;
+            await sendMessage(from, msgConfirm);
 
             await notifications.sendEmailConfirmation(nuevaReserva);
             await notifications.sendSMSConfirmation(nuevaReserva);
 
-            await sendMessage(from, `${getTranslation(lang, 'confirmed')}\n\n📋 *Resumen:*
-- *${getTranslation(lang, 'code')}:* ${nuevaReserva.id}
-- *Nombre:* ${nuevaReserva.nombre}
-- *Fecha:* ${nuevaReserva.fecha}
-- *Hora:* ${nuevaReserva.hora}
-- *Comensales:* ${nuevaReserva.comensales}
-- *DNI:* ${nuevaReserva.dni}
-- *Email:* ${nuevaReserva.email}
-- *Idioma Mesa:* ${nuevaReserva.idioma.toUpperCase()}
+            userStates.delete(from);
+            await sendBackToMenuButton(from, lang);
+            break;
 
-📩 *Confirmación por Email y SMS enviada.* ¡Te esperamos! 🔥`);
-            await sendMainMenu(from);
+        case 'reserva_existente_esperando_id':
+            const reservasCliente = db.getAllReservations(text);
+
+            if (reservasCliente && reservasCliente.length > 0) {
+                if (reservasCliente.length === 1) {
+                    await sendReservationManagementMenu(from, reservasCliente[0]);
+                } else {
+                    await sendPaginatedReservationsList(from, reservasCliente, 1);
+                }
+            } else {
+                await sendMessage(from, "❌ No hemos encontrado ninguna reserva activa asociada a esos datos. Por favor, verifica el DNI, teléfono o código.");
+                await sendBackToMenuButton(from, lang);
+            }
+            break;
+
+        case 'modificar_reserva_fecha':
+            if (currentState.tempReserva) {
+                const nuevaFecha = text.trim();
+                const dateCheckMod = db.getAvailableTimeSlotsForDate(nuevaFecha);
+
+                if (dateCheckMod.cerrado) {
+                    await sendMessage(from, "🛑 *Restaurante Cerrado*\n\nLos lunes el restaurante está cerrado por descanso semanal. Por favor, introduce otra fecha:");
+                    return;
+                }
+
+                if (!dateCheckMod.valido || !dateCheckMod.availableSlots || dateCheckMod.availableSlots.length === 0) {
+                    await sendMessage(from, `😔 *Sin disponibilidad para el ${nuevaFecha}*\n\nPor favor, introduce otra fecha disponible.`);
+                    return;
+                }
+
+                currentState.tempNuevaFecha = nuevaFecha;
+                currentState.step = 'modificar_reserva_hora_lista';
+                userStates.set(from, currentState);
+
+                const rowsMod = dateCheckMod.availableSlots.map(s => ({
+                    id: `mod_hora_${s.hora}`,
+                    title: `⏰ Turno ${s.hora}`,
+                    description: `${s.capacidadRestante} plazas libres disponibles`
+                }));
+
+                const bodyTextMod = `📅 *Nueva Fecha:* ${nuevaFecha}\n\nSelecciona la hora deseada para modificar tu reserva:`;
+                await sendInteractiveList(from, bodyTextMod, "Elegir Hora", [{ title: "Turnos Disponibles", rows: rowsMod }]);
+            }
+            break;
+
+        case 'espera_esperando_id':
+            const posicion = db.getWaitlistPosition(text);
+            if (posicion.encontrado) {
+                const e = posicion.registro;
+                const msgPos = `📋 *Tu Estado en Lista de Espera*\n\n👤 *Nombre:* ${e.nombre}\n📅 *Fecha Deseada:* ${e.fecha} a las ${e.hora}\n👥 *Comensales:* ${e.comensales}\n🏆 *Posición Actual:* Nº ${posicion.posicion}\n👥 *Personas delante:* ${posicion.personasDelante}`;
+                
+                currentState.tempWaitlistId = e.id;
+                userStates.set(from, currentState);
+
+                const buttons = [
+                    { id: 'btn_seguir_esperando', title: "Seguir esperando" },
+                    { id: 'btn_eliminar_espera', title: "Cancelar espera" }
+                ];
+                await sendInteractiveButtons(from, msgPos, buttons);
+            } else {
+                await sendMessage(from, "❌ No hemos localizado ninguna solicitud en lista de espera asociada a esos datos.");
+                await sendBackToMenuButton(from, lang);
+            }
             break;
 
         case 'espera_datos_nombre':
+            currentState.data = currentState.data || {};
             currentState.data.nombre = text;
             currentState.step = 'espera_datos_telefono';
             userStates.set(from, currentState);
@@ -574,74 +663,51 @@ async function handleTextMessage(from, text) {
 
         case 'espera_datos_email':
             currentState.data.email = text;
+            currentState.data.fecha = currentState.data.fecha || '25/10/2026';
+            currentState.data.hora = currentState.data.hora || '13:30';
+            currentState.data.comensales = currentState.data.comensales || 2;
             currentState.data.idioma = lang;
-            
-            const registroEspera = db.addToWaitlist(currentState.data);
-            const pos = db.getWaitlistPosition(registroEspera.dni);
+
+            const waitlistReg = db.addToWaitlist(currentState.data);
+
+            const msgEsperaConf = `📋 *¡REGISTRADO EN LISTA DE ESPERA!*\n\n📌 *Código:* ${waitlistReg.id}\n👤 *Nombre:* ${waitlistReg.nombre}\n📅 *Fecha Deseada:* ${waitlistReg.fecha} a las ${waitlistReg.hora}\n👥 *Comensales:* ${waitlistReg.comensales} personas\n🌐 *Idioma:* ${lang}\n\nTe notificaremos por WhatsApp y Email automáticamente en cuanto se libere una mesa.`;
+            await sendMessage(from, msgEsperaConf);
+
             userStates.delete(from);
-
-            await notifications.sendEmailConfirmation({ ...registroEspera, estado: "LISTA DE ESPERA (Puesto #" + pos.posicion + ")" });
-            await notifications.sendSMSConfirmation(registroEspera);
-
-            await sendMessage(from, `📥 *¡Inscripción Guardada en Lista de Espera!*\n\nTe hemos inscrito en la lista de espera para el *${registroEspera.fecha}* a las *${registroEspera.hora}* (${registroEspera.comensales} personas).\n\n📍 Tu posición actual en la cola es la *#${pos.posicion}*. Te contactaremos de inmediato por WhatsApp, SMS y Email en cuanto se libere una mesa.`);
-            await sendMainMenu(from);
-            break;
-
-        case 'espera_esperando_id':
-            const consultaEspera = db.getWaitlistPosition(text);
-            
-            if (!consultaEspera.encontrado) {
-                await sendMessage(from, `❌ No consta ninguna inscripción activa en la lista de espera para la búsqueda: *${text}*.`);
-                await sendMainMenu(from);
-            } else {
-                const reg = consultaEspera.registro;
-                currentState.tempWaitlistId = reg.id;
-                userStates.set(from, currentState);
-
-                const infoText = `📋 *Tu Inscripción en Lista de Espera:*\n\n👤 *Nombre:* ${reg.nombre}\n📅 *Fecha solicitada:* ${reg.fecha} (${reg.hora})\n👥 *Comensales:* ${reg.comensales}\n\n📍 *Posición actual:* #${consultaEspera.posicion} (Hay ${consultaEspera.personasDelante} personas delante de ti).`;
-                
-                const buttons = [
-                    { id: 'btn_seguir_esperando', title: "Seguir esperando" },
-                    { id: 'btn_eliminar_espera', title: "Eliminarme de lista" }
-                ];
-                await sendInteractiveButtons(from, infoText, buttons);
-            }
-            break;
-
-        case 'reserva_existente_esperando_id':
-            const reservasEncontradas = db.getAllReservations(text);
-
-            if (!reservasEncontradas || reservasEncontradas.length === 0) {
-                await sendMessage(from, `❌ No existe ninguna reserva activa a nombre, DNI, teléfono o email: *${text}*.`);
-                await sendMainMenu(from);
-            } else if (reservasEncontradas.length === 1) {
-                await sendReservationManagementMenu(from, reservasEncontradas[0]);
-            } else {
-                // Múltiples reservas encontradas para el mismo cliente (Usar paginación)
-                await sendPaginatedReservationsList(from, reservasEncontradas, 1);
-            }
+            await sendBackToMenuButton(from, lang);
             break;
 
         default:
-            await sendLanguageMenu(from);
+            await sendMainMenu(from);
     }
 }
 
-async function sendFaqMenu(from, lang) {
-    const bodyText = "❓ *Preguntas Frecuentes - Casa Julian*\n\nSelecciona el tema sobre el que deseas información:";
-    const buttonText = "Ver Preguntas";
+/**
+ * Envía un botón rápido para regresar al Menú Principal.
+ */
+async function sendBackToMenuButton(from, lang = 'es') {
+    const buttons = [
+        { id: 'btn_volver_menu', title: getTranslation(lang, 'btnMenu') }
+    ];
+    await sendInteractiveButtons(from, "👇 *¿Deseas realizar otra consulta?*", buttons);
+}
 
+/**
+ * Menú de Preguntas Frecuentes.
+ */
+async function sendFaqMenu(from, lang) {
+    const bodyText = getTranslation(lang, 'faqTitle');
+    const buttonText = getTranslation(lang, 'menuButtonText');
     const sections = [
         {
-            title: "Información General",
+            title: "Preguntas Frecuentes",
             rows: [
-                { id: "faq_carta", title: "📜 Carta y Menús", description: "Ver platos, chuletones y carta de vinos." },
-                { id: "faq_ubicacion", title: "📍 Ubicación", description: "Direcciones de Tolosa y Madrid." },
-                { id: "faq_horarios", title: "🕒 Horarios", description: "Días de apertura, turnos de comida y cena." },
-                { id: "faq_grupos", title: "👥 Reservas Grupos", description: "Reservas de más de 8 personas." },
-                { id: "faq_mascotas", title: "🐶 Mascotas", description: "Política sobre mascotas." },
-                { id: "faq_parking", title: "🚗 Parking", description: "Opciones de aparcamiento cercano." },
-                { id: "faq_alergias", title: "🌾 Alergias y Dietas", description: "Opciones celíacos y alérgenos." }
+                { id: "faq_carta", title: getTranslation(lang, 'faq1Title'), description: getTranslation(lang, 'faq1Desc') },
+                { id: "faq_ubicacion", title: getTranslation(lang, 'faq2Title'), description: getTranslation(lang, 'faq2Desc') },
+                { id: "faq_horarios", title: getTranslation(lang, 'faq3Title'), description: getTranslation(lang, 'faq3Desc') },
+                { id: "faq_grupos", title: getTranslation(lang, 'faq4Title'), description: getTranslation(lang, 'faq4Desc') },
+                { id: "faq_parking", title: getTranslation(lang, 'faq5Title'), description: getTranslation(lang, 'faq5Desc') },
+                { id: "faq_alergias", title: getTranslation(lang, 'faq6Title'), description: getTranslation(lang, 'faq6Desc') }
             ]
         }
     ];
@@ -649,15 +715,6 @@ async function sendFaqMenu(from, lang) {
     await sendInteractiveList(from, bodyText, buttonText, sections);
 }
 
-async function sendBackToMenuButton(from, lang) {
-    const buttons = [
-        { id: 'btn_volver_menu', title: getTranslation(lang, 'btnMenu') }
-    ];
-    await sendInteractiveButtons(from, "¿Quieres realizar otra consulta?", buttons);
-}
-
 module.exports = {
-    processMessage,
-    sendLanguageMenu,
-    sendMainMenu
+    handleUserMessage
 };

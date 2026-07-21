@@ -57,20 +57,43 @@ function saveDb(data) {
 // -------------------------------------------------------------
 
 const SHIFT_CAPACITIES = {
+    // 1er Turno Comida (comparten 40p entre 12:30, 13:00, 13:30, 14:00)
     "12:30": 40,
+    "13:00": 40,
+    "13:30": 40,
+    "14:00": 40,
+
+    // 2º Turno Comida (20p)
     "15:15": 20,
-    "19:30": 60
+
+    // Turno Cenas Viernes/Sábado (comparten 60p entre 20:00, 20:30, 21:00, 21:30)
+    "20:00": 60,
+    "20:30": 60,
+    "21:00": 60,
+    "21:30": 60
 };
 
-// 0: Domingo, 1: Lunes (CERRADO), 2: Martes, 3: Miércoles, 4: Jueves, 5: Viernes, 6: Sábado
+const SEATING_GROUPS = {
+    "12:30": ["12:30", "13:00", "13:30", "14:00"],
+    "13:00": ["12:30", "13:00", "13:30", "14:00"],
+    "13:30": ["12:30", "13:00", "13:30", "14:00"],
+    "14:00": ["12:30", "13:00", "13:30", "14:00"],
+    "15:15": ["15:15"],
+    "20:00": ["20:00", "20:30", "21:00", "21:30"],
+    "20:30": ["20:00", "20:30", "21:00", "21:30"],
+    "21:00": ["20:00", "20:30", "21:00", "21:30"],
+    "21:30": ["20:00", "20:30", "21:00", "21:30"]
+};
+
+// 0: Dom, 1: Lun (CERRADO), 2: Mar, 3: Mié, 4: Jue, 5: Vie, 6: Sáb
 const SCHEDULE_BY_DAY = {
-    0: ["12:30", "15:15"],          // Domingo: Comida 12:30 (40p) y 15:15 (20p)
-    1: [],                          // Lunes: CERRADO
-    2: ["12:30", "15:15"],          // Martes: Comida 12:30 (40p) y 15:15 (20p)
-    3: ["12:30", "15:15"],          // Miércoles: Comida 12:30 (40p) y 15:15 (20p)
-    4: ["12:30", "15:15"],          // Jueves: Comida 12:30 (40p) y 15:15 (20p)
-    5: ["12:30", "15:15", "19:30"], // Viernes: Comida 12:30 (40p), 15:15 (20p) y Cena 19:30 (60p)
-    6: ["12:30", "15:15", "19:30"]  // Sábado: Comida 12:30 (40p), 15:15 (20p) y Cena 19:30 (60p)
+    0: ["12:30", "13:00", "13:30", "14:00", "15:15"],                                           // Domingo
+    1: [],                                                                                    // Lunes CERRADO
+    2: ["12:30", "13:00", "13:30", "14:00", "15:15"],                                           // Martes
+    3: ["12:30", "13:00", "13:30", "14:00", "15:15"],                                           // Miércoles
+    4: ["12:30", "13:00", "13:30", "14:00", "15:15"],                                           // Jueves
+    5: ["12:30", "13:00", "13:30", "14:00", "15:15", "20:00", "20:30", "21:00", "21:30"],      // Viernes
+    6: ["12:30", "13:00", "13:30", "14:00", "15:15", "20:00", "20:30", "21:00", "21:30"]       // Sábado
 };
 
 function parseSpanishDate(dateStr) {
@@ -115,10 +138,11 @@ function checkAvailability(fecha, hora, comensales) {
         }
     }
 
+    const groupSlots = SEATING_GROUPS[hora] || [hora];
     const maxCapacidad = SHIFT_CAPACITIES[hora] || 20;
 
     const ocupacionActual = db.reservas
-        .filter(r => r.fecha === fecha && r.hora === hora && r.estado === 'CONFIRMADA')
+        .filter(r => r.fecha === fecha && groupSlots.includes(r.hora) && r.estado === 'CONFIRMADA')
         .reduce((total, r) => total + parseInt(r.comensales, 10), 0);
 
     const capacidadDisponible = maxCapacidad - ocupacionActual;
@@ -127,6 +151,37 @@ function checkAvailability(fecha, hora, comensales) {
         disponible: capacidadDisponible >= comensalesSolicitados,
         capacidadRestante: Math.max(0, capacidadDisponible),
         maxCapacidad
+    };
+}
+
+function getAvailableTimeSlotsForDate(fechaStr, comensales = 1) {
+    const dateObj = parseSpanishDate(fechaStr);
+    if (!dateObj) return { valido: false, error: "Formato de fecha no válido." };
+
+    const dayOfWeek = dateObj.getDay();
+    if (dayOfWeek === 1) {
+        return { cerrado: true, razon: "Los lunes el restaurante está cerrado por descanso semanal." };
+    }
+
+    const validSlots = SCHEDULE_BY_DAY[dayOfWeek] || [];
+    const availableSlots = [];
+
+    for (const slot of validSlots) {
+        const check = checkAvailability(fechaStr, slot, comensales);
+        if (check.disponible && check.capacidadRestante > 0) {
+            availableSlots.push({
+                hora: slot,
+                capacidadRestante: check.capacidadRestante,
+                maxCapacidad: check.maxCapacidad
+            });
+        }
+    }
+
+    return {
+        valido: true,
+        cerrado: false,
+        validSlots,
+        availableSlots
     };
 }
 
@@ -150,18 +205,13 @@ function getUpcomingAvailableSlots(maxSlots = 8) {
         const fechaFormatted = `${dayStr}/${monthStr}/${yearStr}`;
 
         for (const hora of turnos) {
-            const maxCap = SHIFT_CAPACITIES[hora] || 20;
-            const ocupacion = db.reservas
-                .filter(r => r.fecha === fechaFormatted && r.hora === hora && r.estado === 'CONFIRMADA')
-                .reduce((t, r) => t + parseInt(r.comensales, 10), 0);
-            const disponibles = maxCap - ocupacion;
-
-            if (disponibles > 0) {
+            const check = checkAvailability(fechaFormatted, hora, 1);
+            if (check.disponible && check.capacidadRestante > 0) {
                 slots.push({
                     fecha: fechaFormatted,
                     hora: hora,
-                    plazasLibres: disponibles,
-                    maxCapacidad: maxCap
+                    plazasLibres: check.capacidadRestante,
+                    maxCapacidad: check.maxCapacidad
                 });
 
                 if (slots.length >= maxSlots) break;
@@ -360,6 +410,7 @@ function removeFromWaitlist(id) {
 
 module.exports = {
     checkAvailability,
+    getAvailableTimeSlotsForDate,
     getUpcomingAvailableSlots,
     createReservation,
     getReservation,

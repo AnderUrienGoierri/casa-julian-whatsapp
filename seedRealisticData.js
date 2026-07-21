@@ -44,24 +44,15 @@ function generateDni(index) {
     return `${num}${letter}`;
 }
 
-const SHIFT_CAPACITIES = {
-    "12:30": 40,
-    "15:15": 20,
-    "19:30": 60
-};
-
-const SCHEDULE_BY_DAY = {
-    0: ["12:30", "15:15"],          // Domingo
-    1: [],                          // Lunes CERRADO
-    2: ["12:30", "15:15"],          // Martes
-    3: ["12:30", "15:15"],          // Miércoles
-    4: ["12:30", "15:15"],          // Jueves
-    5: ["12:30", "15:15", "19:30"], // Viernes
-    6: ["12:30", "15:15", "19:30"]  // Sábado
-};
+// Configuración exacta de Grupos de Seating
+const SEATING_GROUPS_SPEC = [
+    { name: "Comida 1º Turno", slots: ["12:30", "13:00", "13:30", "14:00"], maxCap: 40, days: [0, 2, 3, 4, 5, 6] },
+    { name: "Comida 2º Turno", slots: ["15:15"], maxCap: 20, days: [0, 2, 3, 4, 5, 6] },
+    { name: "Cena Turno Único", slots: ["20:00", "20:30", "21:00", "21:30"], maxCap: 60, days: [5, 6] }
+];
 
 async function seedDatabase() {
-    console.log("🌱 Generando base de datos realista para Casa Julian (Aforo completo hasta Noviembre 2026)...");
+    console.log("🌱 Generando base de datos profesional para Casa Julian con Turnos de Imagen...");
 
     const clientesMap = new Map();
     const reservas = [];
@@ -79,24 +70,23 @@ async function seedDatabase() {
     while (curr <= endDate) {
         const dayOfWeek = curr.getDay();
 
-        if (dayOfWeek !== 1) { // No es lunes
+        if (dayOfWeek !== 1) { // No es lunes (Lunes CERRADO)
             const dayStr = String(curr.getDate()).padStart(2, '0');
             const monthStr = String(curr.getMonth() + 1).padStart(2, '0');
             const yearStr = curr.getFullYear();
             const fechaFormatted = `${dayStr}/${monthStr}/${yearStr}`;
 
-            const turnos = SCHEDULE_BY_DAY[dayOfWeek];
+            for (const group of SEATING_GROUPS_SPEC) {
+                if (!group.days.includes(dayOfWeek)) continue;
 
-            for (const hora of turnos) {
-                const maxCap = SHIFT_CAPACITIES[hora];
-                let targetCap = maxCap;
+                let targetCap = group.maxCap;
 
                 // Dejar libres a partir de Noviembre 2026
                 if (curr > fullUntilDate) {
-                    if (curr.getDate() === 1) targetCap = Math.floor(maxCap * 0.75); // 75% lleno
-                    else if (curr.getDate() === 3) targetCap = Math.floor(maxCap * 0.50); // 50% lleno
-                    else if (curr.getDate() === 4) targetCap = Math.floor(maxCap * 0.25); // 25% lleno
-                    else if (curr.getDate() >= 5) targetCap = Math.floor(maxCap * 0.10); // 10% lleno
+                    if (curr.getDate() === 1) targetCap = Math.floor(group.maxCap * 0.75); // 75% lleno
+                    else if (curr.getDate() === 3) targetCap = Math.floor(group.maxCap * 0.50); // 50% lleno
+                    else if (curr.getDate() === 4) targetCap = Math.floor(group.maxCap * 0.25); // 25% lleno
+                    else if (curr.getDate() >= 5) targetCap = Math.floor(group.maxCap * 0.10); // 10% lleno
                 }
 
                 let currentDiners = 0;
@@ -111,6 +101,7 @@ async function seedDatabase() {
                     clientIndex++;
                     resIndex++;
 
+                    const hora = getRandomElem(group.slots); // Distribuir entre las horas del grupo
                     const fname = getRandomElem(FIRST_NAMES);
                     const lname1 = getRandomElem(LAST_NAMES);
                     const lname2 = getRandomElem(LAST_NAMES);
@@ -142,6 +133,7 @@ async function seedDatabase() {
                 // Lista de espera para días llenos
                 if (curr <= fullUntilDate && Math.random() > 0.4) {
                     clientIndex++;
+                    const hora = getRandomElem(group.slots);
                     const fname = getRandomElem(FIRST_NAMES);
                     const lname = getRandomElem(LAST_NAMES);
                     const nombre = `${fname} ${lname}`;
@@ -186,7 +178,7 @@ async function seedDatabase() {
     // 2. Si PostgreSQL está activo, hacer inserciones masivas en bloques
     if (pool) {
         try {
-            console.log("⚡ Sincronizando de forma ULTRA-RÁPIDA con PostgreSQL Neon...");
+            console.log("⚡ Sincronizando con PostgreSQL Neon...");
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS clientes (
                     id SERIAL PRIMARY KEY,
@@ -273,7 +265,7 @@ async function seedDatabase() {
                 await pool.query(`INSERT INTO lista_espera(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, idioma) VALUES ${values.join(', ')} ON CONFLICT(id) DO NOTHING`, params);
             }
 
-            console.log("🚀 Sincronización en lote con PostgreSQL completada con ÉXITO en SEGUNDOS.");
+            console.log("🚀 Sincronización masiva con PostgreSQL completada con ÉXITO en SEGUNDOS.");
         } catch (err) {
             console.error("Error al sincronizar con PostgreSQL:", err.message);
         } finally {
