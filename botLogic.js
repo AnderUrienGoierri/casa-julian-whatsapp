@@ -110,17 +110,7 @@ async function handleListResponse(from, listId) {
             await sendMainMenu(from);
             return;
         }
-        const currentState = userStates.get(from) || {};
-        currentState.tempReserva = r;
-        userStates.set(from, currentState);
-
-        const infoText = `🔎 *Reserva Seleccionada:* ${r.id}\n\nA nombre de: *${r.nombre}*\nFecha: ${r.fecha} a las ${r.hora} (${r.comensales} personas).\n\n¿Qué te gustaría hacer con esta reserva?`;
-        const buttons = [
-            { id: 'btn_ver_reserva', title: "VER RESERVA" },
-            { id: 'btn_modificar_reserva', title: "MODIFICAR" },
-            { id: 'btn_cancelar_reserva', title: "CANCELAR" }
-        ];
-        await sendInteractiveButtons(from, infoText, buttons);
+        await sendReservationManagementMenu(from, r);
         return;
     }
 
@@ -186,9 +176,44 @@ async function handleListResponse(from, listId) {
             await sendBackToMenuButton(from, lang);
             break;
 
+        // OPCIONES DE GESTIÓN DE RESERVA (DESDE LISTA INTERACTIVA)
+        case 'btn_ver_reserva':
+        case 'btn_modificar_reserva':
+        case 'btn_cancelar_reserva':
+        case 'btn_volver_menu':
+            await handleButtonResponse(from, listId);
+            break;
+
         default:
             await sendMainMenu(from);
     }
+}
+
+/**
+ * Muestra el menú de gestión de una reserva localizada con las 4 opciones solicitadas:
+ * 1. Ver reserva, 2. Modificar reserva, 3. Cancelar reserva, 4. Menú principal.
+ */
+async function sendReservationManagementMenu(from, reservation) {
+    const currentState = userStates.get(from) || {};
+    currentState.tempReserva = reservation;
+    userStates.set(from, currentState);
+
+    const bodyText = `🔎 *Reserva Localizada:* ${reservation.id}\n\nA nombre de: *${reservation.nombre}*\nFecha: ${reservation.fecha} a las ${reservation.hora} (${reservation.comensales} personas).\n\n¿Qué te gustaría hacer con tu reserva? Por favor, despliega las opciones de abajo 👇`;
+    const buttonText = "Ver Opciones";
+
+    const sections = [
+        {
+            title: "Gestión de Reserva",
+            rows: [
+                { id: "btn_ver_reserva", title: "1. VER RESERVA", description: "Consultar detalles completos de la reserva." },
+                { id: "btn_modificar_reserva", title: "2. MODIFICAR RESERVA", description: "Cambiar fecha, hora o comensales." },
+                { id: "btn_cancelar_reserva", title: "3. CANCELAR RESERVA", description: "Cancelar esta reserva y liberar la mesa." },
+                { id: "btn_volver_menu", title: "4. MENÚ PRINCIPAL", description: "Volver al menú de inicio." }
+            ]
+        }
+    ];
+
+    await sendInteractiveList(from, bodyText, buttonText, sections);
 }
 
 /**
@@ -439,18 +464,7 @@ async function handleTextMessage(from, text) {
                 await sendMessage(from, `❌ No existe ninguna reserva activa a nombre, DNI, teléfono o email: *${text}*.`);
                 await sendMainMenu(from);
             } else if (reservasEncontradas.length === 1) {
-                const r = reservasEncontradas[0];
-                currentState.tempReserva = r;
-                userStates.set(from, currentState);
-
-                const infoText = `🔎 *Reserva Localizada:* ${r.id}\n\nA nombre de: *${r.nombre}*\nFecha: ${r.fecha} a las ${r.hora} (${r.comensales} personas).\n\n¿Qué te gustaría hacer con tu reserva?`;
-
-                const buttons = [
-                    { id: 'btn_ver_reserva', title: "VER RESERVA" },
-                    { id: 'btn_modificar_reserva', title: "MODIFICAR" },
-                    { id: 'btn_cancelar_reserva', title: "CANCELAR" }
-                ];
-                await sendInteractiveButtons(from, infoText, buttons);
+                await sendReservationManagementMenu(from, reservasEncontradas[0]);
             } else {
                 // Múltiples reservas encontradas para el mismo cliente
                 const rows = reservasEncontradas.slice(0, 10).map(r => {
