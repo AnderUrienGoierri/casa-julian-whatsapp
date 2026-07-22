@@ -19,7 +19,28 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
-    `).catch(err => console.error("Error al asegurar columnas de idioma en PostgreSQL:", err.message));
+    `).then(() => {
+        // Sincronizar reservas desde PostgreSQL al arrancar
+        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma FROM reservas WHERE estado = 'CONFIRMADA'");
+    }).then(res => {
+        if (res && res.rows && res.rows.length > 0) {
+            const currentDb = loadDb();
+            currentDb.reservas = res.rows.map(r => ({
+                id: r.id,
+                nombre: r.nombre,
+                telefono: r.telefono,
+                dni: r.dni,
+                email: r.email,
+                fecha: r.fecha,
+                hora: r.hora,
+                comensales: parseInt(r.comensales, 10),
+                estado: r.estado,
+                idioma: r.idioma || 'es'
+            }));
+            saveDb(currentDb);
+            console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon.`);
+        }
+    }).catch(err => console.error("Error en inicialización/sincronización de PostgreSQL:", err.message));
 } else {
     console.log("🗄️ Modo Base de Datos: Almacenamiento Local (db.json).");
 }
