@@ -1,0 +1,7 @@
+Requerimientos de los responsables de Casa Julian:
+
+- casa julian utiliza la aplicacion TheFork para gestionar las mesas y las reservas del restaurante.
+
+- utilizan aplicacion "Revo" para la gestión los consumos por mesa (par va hacer ticket/faktura). les interesaria relacionar los consumos de "Revo" (por ejemplo que botella de vino han pedido, que han pedido para comer...) con el cliente de reserva de TheFork, así pueden saber en un futuro mas informacion sobre ese cliente para cuando vuelva a reservar.
+
+- quieren que el chatbot todavia no toque las reservas, solo envie peticiones de lo que quiere el cliente (quiero reservar, quiero modificar reserva, quiero cancelar reserva...) y que una vez verificado por los responsables (en su aplicacion de gestion de mesas TheFork) se efectuará la reserva.
