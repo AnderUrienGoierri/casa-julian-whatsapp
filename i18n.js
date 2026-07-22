@@ -46,7 +46,14 @@ const translations = {
         askDni: "🪪 Introduce tu *DNI/NIE*:",
         askEmail: "📧 Introduce tu *Email*:",
         confirmed: "✅ *¡RESERVA CONFIRMADA!*",
-        langName: "Español"
+        langName: "Español",
+        closedMonday: "🛑 *Restaurante Cerrado*\n\nLos lunes el restaurante está cerrado por descanso semanal. Por favor, introduce otra fecha (Ejemplo: 03/11/2026):",
+        invalidDate: "⚠️ Por favor, introduce una fecha válida en formato *DD/MM/AAAA* (Ejemplo: 25/10/2026):",
+        fullCapacity: "😔 *Aforo Completo para esta fecha*\n\nLo sentimos, todas las mesas están reservadas para este día en Asador Casa Julian.",
+        selectTurnBody: "📅 *Fecha Seleccionada:* {fecha}\n\nLos siguientes turnos disponen de plazas libres para tu reserva en Asador Casa Julian. Por favor, selecciona la hora que prefieras:",
+        returningToMenu: "🏠 *Volviendo al Menú Principal...*",
+        lookupPrompt: "📋 *Gestión de Reserva Existente*\n\nPor favor, introduce el *DNI, Teléfono o Email* asociado a tu reserva:",
+        waitlistPrompt: "🔎 *Consulta de Lista de Espera*\n\nPor favor, introduce tu *DNI, Teléfono o Email* para localizar tu posición:"
     },
     eu: {
         welcomeMessage: "🥩🔥 *Ongi etorri Tolosako Casa Julian Erretegira!* 🥩🔥\n\n1951az geroztik parrillan egindako txuleteletan adituak gara 🥩🍖.\n\nZertan lagundu zaitakegu gaur? Mesedez, hautatu aukera bat beheko menua irekiz 👇",
@@ -90,7 +97,14 @@ const translations = {
         askDni: "🪪 Sartu zure *NAN/NIE*:",
         askEmail: "📧 Sartu zure *Posta Elektronikoa*:",
         confirmed: "✅ *ERRESERBA BERRETSI DA!*",
-        langName: "Euskara"
+        langName: "Euskara",
+        closedMonday: "🛑 *Jatetxea Itxita*\n\nAstelehenetan jatetxea itxita dago asteko atsedenagatik. Mesedez, sartu beste data bat (Adibidez: 03/11/2026):",
+        invalidDate: "⚠️ Mesedez, sartu baliozko data bat *DD/MM/AAAA* formatuan (Adibidez: 25/10/2026):",
+        fullCapacity: "😔 *Leku Guztiak Beteta data honetarako*\n\nBatzuek erreserbatuta daukate eguna Casa Julian Erretegian.",
+        selectTurnBody: "📅 *Hautatutako Data:* {fecha}\n\nHurrengo txandek leku libreak dauzkate zure erreserbarako Casa Julian Erretegian. Mesedez, hautatu nahi duzun ordua:",
+        returningToMenu: "🏠 *Hasierako Menura itzultzen...*",
+        lookupPrompt: "📋 *Daukazun Erreserbaren Kudeaketa*\n\nMesedez, sartu zure erreserbarekin lotutako *NAN, Telefonoa edo Posta Elektronikoa*:",
+        waitlistPrompt: "🔎 *Itxaron Zerrendaren Kontsulta*\n\nMesedez, sartu zure *NAN, Telefonoa edo Posta Elektronikoa* zure tokia ikusteko:"
     },
     en: {
         welcomeMessage: "🥩🔥 *Welcome to Asador Casa Julian de Tolosa!* 🥩🔥\n\nSpecialists in artisanal grilled steaks since 1951 🥩🍖.\n\nHow can we assist you today? Please select an option from the menu below 👇",
@@ -134,7 +148,14 @@ const translations = {
         askDni: "🪪 Enter your *ID / Passport Number*:",
         askEmail: "📧 Enter your *Email Address*:",
         confirmed: "✅ *RESERVATION CONFIRMED!*",
-        langName: "English"
+        langName: "English",
+        closedMonday: "🛑 *Restaurant Closed*\n\nOn Mondays the restaurant is closed for weekly rest. Please enter another date (Example: 03/11/2026):",
+        invalidDate: "⚠️ Please enter a valid date in *DD/MM/YYYY* format (Example: 25/10/2026):",
+        fullCapacity: "😔 *Fully Booked for this date*\n\nWe are sorry, all tables are booked for this day at Asador Casa Julian.",
+        selectTurnBody: "📅 *Selected Date:* {fecha}\n\nThe following time slots have seats available for your booking at Asador Casa Julian. Please select your preferred time:",
+        returningToMenu: "🏠 *Returning to Main Menu...*",
+        lookupPrompt: "📋 *Manage Existing Reservation*\n\nPlease enter the *ID/Passport, Phone Number or Email* associated with your booking:",
+        waitlistPrompt: "🔎 *Waitlist Status Check*\n\nPlease enter your *ID/Passport, Phone Number or Email* to check your position:"
     },
     fr: {
         welcomeMessage: "🥩🔥 *Bienvenue au Restaurant Casa Julian de Tolosa!* 🥩🔥\n\nSpécialistes des côtelettes grillées depuis 1951 🥩🍖.\n\nComment pouvons-nous vous aider? Choisissez una opción ci-dessous 👇",
@@ -178,7 +199,14 @@ const translations = {
         askDni: "🪪 Entrez votre *Numéro d'identité / Passeport*:",
         askEmail: "📧 Entrez votre *Adresse email*:",
         confirmed: "✅ *RÉSERVATION CONFIRMÉE!*",
-        langName: "Français"
+        langName: "Français",
+        closedMonday: "🛑 *Restaurant Fermé*\n\nLe lundi, le restaurant est fermé pour repos hebdomadaire. Veuillez entrer une autre date (Exemple: 03/11/2026):",
+        invalidDate: "⚠️ Veuillez entrer une date valide au format *JJ/MM/AAAA* (Exemple: 25/10/2026):",
+        fullCapacity: "😔 *Complet pour cette date*\n\nDésolé, toutes les tables sont réservées ce jour-là.",
+        selectTurnBody: "📅 *Date sélectionnée:* {fecha}\n\nLes créneaux suivants ont des places disponibles. Veuillez choisir l'heure souhaitée:",
+        returningToMenu: "🏠 *Retour au Menu Principal...*",
+        lookupPrompt: "📋 *Gestion de Réservation Existante*\n\nVeuillez entrer la *Carte d'identité, Téléphone ou Email* associé:",
+        waitlistPrompt: "🔎 *Statut sur la Liste d'Attente*\n\nVeuillez entrer votre *Carte d'identité, Téléphone ou Email*:"
     },
     it: {
         welcomeMessage: "🥩🔥 *Benvenuti al Ristorante Casa Julian de Tolosa!* 🥩🔥\n\nSpecialisti in fiorentine e braciole alla griglia dal 1951 🥩🍖.\n\nCome possiamo aiutarti oggi? Seleziona un'opzione dal menu sottostante 👇",
@@ -222,7 +250,14 @@ const translations = {
         askDni: "🪪 Inserisci il tuo *Documento*:",
         askEmail: "📧 Inserisci la tua *Email*:",
         confirmed: "✅ *PRENOTAZIONE CONFERMATA!*",
-        langName: "Italiano"
+        langName: "Italiano",
+        closedMonday: "🛑 *Ristorante Chiuso*\n\nIl lunedì il ristorante è chiuso per riposo settimanale. Inserisci un'altra data (Es. 03/11/2026):",
+        invalidDate: "⚠️ Inserisci una data valida nel formato *GG/MM/AAAA* (Es: 25/10/2026):",
+        fullCapacity: "😔 *Tutto Esaurito per questa data*\n\nCi dispiace, tutti i tavoli sono prenotati per questo giorno.",
+        selectTurnBody: "📅 *Data Selezionata:* {fecha}\n\nI seguenti turni hanno posti disponibili. Seleziona l'orario desiderato:",
+        returningToMenu: "🏠 *Torna al Menu Principale...*",
+        lookupPrompt: "📋 *Gestione Prenotazione Esistente*\n\nInserisci il *Documento, Telefono o Email* associato:",
+        waitlistPrompt: "🔎 *Stato Lista d'Attesa*\n\nInserisci il *Documento, Telefono o Email*:"
     },
     de: {
         welcomeMessage: "🥩🔥 *Willkommen im Restaurant Casa Julian de Tolosa!* 🥩🔥\n\nSpezialisten für gegrilltes Kotelett seit 1951 🥩🍖.\n\nWie können wir Ihnen heute helfen? Bitte wählen Sie unten eine Option 👇",
@@ -266,7 +301,14 @@ const translations = {
         askDni: "🪪 Geben Sie Ihre *Ausweisnummer* ein:",
         askEmail: "📧 Geben Sie Ihre *E-Mail-Adresse* ein:",
         confirmed: "✅ *RESERVIERUNG BESTÄTIGT!*",
-        langName: "Deutsch"
+        langName: "Deutsch",
+        closedMonday: "🛑 *Restaurant Geschlossen*\n\nMontags ist das Restaurant wegen Ruhetag geschlossen. Bitte geben Sie ein anderes Datum ein (z. B. 03/11/2026):",
+        invalidDate: "⚠️ Bitte geben Sie ein gültiges Datum im Format *TT/MM/JJJJ* ein (z. B. 25/10/2026):",
+        fullCapacity: "😔 *Ausgebucht für dieses Datum*\n\nEs tut uns leid, alle Tische sind an diesem Tag ausgebucht.",
+        selectTurnBody: "📅 *Gewähltes Datum:* {fecha}\n\nDie folgenden Schichten haben freie Plätze. Bitte wählen Sie die gewünschte Uhrzeit:",
+        returningToMenu: "🏠 *Zurück zum Hauptmenü...*",
+        lookupPrompt: "📋 *Bestehende Reservierung verwalten*\n\nBitte geben Sie *Ausweis, Telefonnummer oder E-Mail* ein:",
+        waitlistPrompt: "🔎 *Wartelisten-Status*\n\nBitte geben Sie Ihre Daten ein:"
     },
     nl: {
         welcomeMessage: "🥩🔥 *Welkom bij Restaurant Casa Julian de Tolosa!* 🥩🔥\n\nGespecialiseerd in ambachtelijk gegrilde steaks sinds 1951 🥩🍖.\n\nHoe kunnen we u vandaag helpen? Selecteer hieronder een optie 👇",
@@ -310,7 +352,14 @@ const translations = {
         askDni: "🪪 Voer uw *Paspoortnummer* in:",
         askEmail: "📧 Voer uw *E-mailadres* in:",
         confirmed: "✅ *RESERVERING BEVESTIGD!*",
-        langName: "Nederlands"
+        langName: "Nederlands",
+        closedMonday: "🛑 *Restaurant Gesloten*\n\nOp maandag is het restaurant gesloten. Voer een andere datum in (bijv. 03/11/2026):",
+        invalidDate: "⚠️ Voer een geldige datum in met de indeling *DD/MM/JJJJ* (bijv. 25/10/2026):",
+        fullCapacity: "😔 *Volgeboekt voor deze datum*\n\nHet spijt ons, alle tafels zijn gereserveerd op deze dag.",
+        selectTurnBody: "📅 *Geselecteerde Datum:* {fecha}\n\nDe volgende shifts hebben nog plaatsen vrij. Kies uw gewenste tijdstip:",
+        returningToMenu: "🏠 *Terug naar Hoofdmenu...*",
+        lookupPrompt: "📋 *Bestaande Reservering Beheren*\n\nVoer het *ID-nummer, Telefoonnummer of E-mailadres* in:",
+        waitlistPrompt: "🔎 *Wachtlijst Positie Bekijken*\n\nVoer uw gegevens in:"
     },
     pl: {
         welcomeMessage: "🥩🔥 *Witamy w Restauracji Casa Julian de Tolosa!* 🥩🔥\n\nSpecjaliści od steków z grilla od 1951 roku 🥩🍖.\n\nW czym możemy pomóc? Wybierz opcję z menu poniżej 👇",
@@ -354,7 +403,14 @@ const translations = {
         askDni: "🪪 Podaj swój *Numer Dowodu / Paszportu*:",
         askEmail: "📧 Podaj swój *Adres Email*:",
         confirmed: "✅ *REZERWACJA POTWIERDZONA!*",
-        langName: "Polski"
+        langName: "Polski",
+        closedMonday: "🛑 *Restauracja Zamknięta*\n\nW poniedziałki restauracja jest zamknięta. Podaj inną datę (np. 03/11/2026):",
+        invalidDate: "⚠️ Podaj prawidłową datę w formacie *DD/MM/RRRR* (np. 25/10/2026):",
+        fullCapacity: "😔 *Brak wolnych miejsc na tę datę*\n\nPrzepraszamy, wszystkie stoliki są zarezerwowane.",
+        selectTurnBody: "📅 *Wybrana Data:* {fecha}\n\nNastępujące godziny mają wolne miejsca. Wybierz dogodną godzinę:",
+        returningToMenu: "🏠 *Powrót do Menu Głównego...*",
+        lookupPrompt: "📋 *Zarządzanie Rezerwacją*\n\nPodaj *Numer Dowodu, Telefon lub Email*:",
+        waitlistPrompt: "🔎 *Status na Liście Oczekujących*\n\nPodaj swoje dane:"
     },
     ro: {
         welcomeMessage: "🥩🔥 *Bine ați venit la Restaurantul Casa Julian de Tolosa!* 🥩🔥\n\nSpecialiști în fripturi la grătar din 1951 🥩🍖.\n\nCu ce vă putem ajuta astăzi? Selectați o opțiune de mai jos 👇",
@@ -398,7 +454,14 @@ const translations = {
         askDni: "🪪 Introduceți *Codul de Identitate / Pașaport*:",
         askEmail: "📧 Introduceți *Adresa de Email*:",
         confirmed: "✅ *REZERVARE CONFIRMATĂ!*",
-        langName: "Română"
+        langName: "Română",
+        closedMonday: "🛑 *Restaurant Închis*\n\nLunea restaurantul este închis. Vă rugăm să introduceți o altă dată (ex: 03/11/2026):",
+        invalidDate: "⚠️ Introduceți o dată validă în formatul *ZZ/LL/AAAA* (ex: 25/10/2026):",
+        fullCapacity: "😔 *Complet pentru această dată*\n\nNe pare rău, toate mesele sunt rezervate pentru această zi.",
+        selectTurnBody: "📅 *Data Selectată:* {fecha}\n\nUrmătoarele intervale au locuri libere. Selectați ora dorită:",
+        returningToMenu: "🏠 *Înapoi la Meniul Principal...*",
+        lookupPrompt: "📋 *Gestionare Rezervare Existentă*\n\nIntroduceți *Codul de Identitate, Telefonul sau Email-ul*:",
+        waitlistPrompt: "🔎 *Verificare Listă de Așteptare*\n\nIntroduceți datele dvs.:"
     },
     be: {
         welcomeMessage: "🥩🔥 *Welkom bij Casa Julian de Tolosa (België/Belgique)!* 🥩🔥\n\nGespecialiseerd in gegrilde steaks sinds 1951 🥩🍖.\n\nHoe kunnen we u helpen? 👇",
@@ -441,8 +504,15 @@ const translations = {
         askPhone: "📞 Voer uw *Telefoonnummer* in:",
         askDni: "🪪 Voer uw *Paspoortnummer* in:",
         askEmail: "📧 Voer uw *E-mailadres* in:",
-        confirmed: "✅ *RESERVARE CONFIRMATĂ!*",
-        langName: "Belgisch (NL/FR)"
+        confirmed: "✅ *RESERVERING BEVESTIGD!*",
+        langName: "Belgisch (NL/FR)",
+        closedMonday: "🛑 *Restaurant Gesloten / Fermé*\n\nOp maandag gesloten / Fermé le lundi. Voer een andere datum in (bijv. 03/11/2026):",
+        invalidDate: "⚠️ Voer een geldige datum in (bijv. 25/10/2026):",
+        fullCapacity: "😔 *Volgeboekt voor deze datum / Complet*",
+        selectTurnBody: "📅 *Geselecteerde Datum:* {fecha}\n\nKies uw gewenste tijdstip:",
+        returningToMenu: "🏠 *Terug naar Hoofdmenu...*",
+        lookupPrompt: "📋 *Bestaande Reservering Beheren*\n\nVoer uw gegevens in:",
+        waitlistPrompt: "🔎 *Wachtlijst Bekijken*\n\nVoer uw gegevens in:"
     },
     ko: {
         welcomeMessage: "🥩🔥 *Casa Julian de Tolosa 레스토랑에 오신 것을 환영합니다!* 🥩🔥\n\n1951년부터 이어온 전통 숯불 구이 스테이크 전문점입니다 🥩🍖.\n\n오늘 어떤 도움이 필요하신가요? 아래 메뉴를 선택해 주세요 👇",
@@ -486,7 +556,14 @@ const translations = {
         askDni: "🪪 *신분증/여권 번호*를 입력해 주세요:",
         askEmail: "📧 *이메일 주소*를 입력해 주세요:",
         confirmed: "✅ *예약이 확정되었습니다!*",
-        langName: "한국어"
+        langName: "한국어",
+        closedMonday: "🛑 *휴무일 안내*\n\n월요일은 정기 휴무일입니다. 다른 날짜를 입력해 주세요 (예: 03/11/2026):",
+        invalidDate: "⚠️ *날짜 형식이 올바르지 않습니다* (예: 25/10/2026):",
+        fullCapacity: "😔 *해당 날짜는 만석입니다*\n\n선택하신 날짜의 모든 테이블 예약이 완료되었습니다.",
+        selectTurnBody: "📅 *선택하신 날짜:* {fecha}\n\n이용 가능한 시간대입니다. 원하시는 시간을 선택해 주세요:",
+        returningToMenu: "🏠 *메인 메뉴로 돌아가는 중...*",
+        lookupPrompt: "📋 *기존 예약 관리*\n\n예약 시 등록하신 *신분증 번호, 연락처 또는 이메일*을 입력해 주세요:",
+        waitlistPrompt: "🔎 *대기 순번 확인*\n\n등록하신 *신분증 번호, 연락처 또는 이메일*을 입력해 주세요:"
     },
     zh: {
         welcomeMessage: "🥩🔥 *欢迎光临 Casa Julian de Tolosa 餐厅！* 🥩🔥\n\n自1951年起专注于传统碳烤牛排 🥩🍖。\n\n今天有什么可以帮助您的？请选择下方选项 👇",
@@ -530,14 +607,21 @@ const translations = {
         askDni: "🪪 请输入您的 *证件号码*：",
         askEmail: "📧 请输入您的 *电子邮箱*：",
         confirmed: "✅ *预订已确认！*",
-        langName: "中文"
+        langName: "中文",
+        closedMonday: "🛑 *餐厅休息*\n\n周一为每周例休。请输入其他日期（例：03/11/2026）：",
+        invalidDate: "⚠️ 请输入有效的日期，格式为 *日/月/年*（例：25/10/2026）：",
+        fullCapacity: "😔 *该日期客满*\n\n非常抱歉，该日期的所有桌位已订满。",
+        selectTurnBody: "📅 *已选日期：* {fecha}\n\n以下时段尚有空位，请选择您倾向的时间：",
+        returningToMenu: "🏠 *正在返回主菜单...*",
+        lookupPrompt: "📋 *管理现有预订*\n\n请输入预订关联的 *证件号、手机号或电子邮箱*：",
+        waitlistPrompt: "🔎 *查询等候名单*\n\n请输入您的 *证件号、手机号或电子邮箱*："
     },
     ja: {
         welcomeMessage: "🥩🔥 *Casa Julian de Tolosa へようこそ！* 🥩🔥\n\n1951年創業の伝統的な炭火焼きステーキ専門店です 🥩🍖。\n\nどのようなご用件でしょうか？選択してください 👇",
         menuButtonText: "オプションを見る",
         menuTitle: "サービス管理",
         opt1Title: "1. 席を予約する",
-        opt1Desc: "日付、時間、人数を指定してテーブルを予約。",
+        opt1Desc: "日付、時間、人数を指定してテーブル bullet を予約。",
         opt2Title: "2. 予約の確認",
         opt2Desc: "既存の予約の確認、変更、キャンセル。",
         opt3Title: "3. キャンセル待ち",
@@ -574,7 +658,14 @@ const translations = {
         askDni: "🪪 身分証明書番号を入力してください:",
         askEmail: "📧 メールアドレスを入力してください:",
         confirmed: "✅ *予約が完了しました！*",
-        langName: "日本語"
+        langName: "日本語",
+        closedMonday: "🛑 *定休日のお知らせ*\n\n月曜日は定休日です。別の日付を入力してください (例: 03/11/2026):",
+        invalidDate: "⚠️ 正しい日付形式で入力してください (例: 25/10/2026):",
+        fullCapacity: "😔 *指定日は満席です*\n\n申し訳ございません。この日はすべてのテーブルが予約済みです。",
+        selectTurnBody: "📅 *選択した日付:* {fecha}\n\n以下の時間帯に空席がございます。時間を選択してください:",
+        returningToMenu: "🏠 *メインメニューに戻っています...*",
+        lookupPrompt: "📋 *既存の予約の管理*\n\n予約に関連付けられた *身分証明書番号、電話番号、またはメールアドレス* を入力してください:",
+        waitlistPrompt: "🔎 *キャンセル待ちの確認*\n\nご登録の *身分証明書番号、電話番号、またはメールアドレス* を入力してください:"
     },
     ru: {
         welcomeMessage: "🥩🔥 *Добро пожаловать в Casa Julian de Tolosa!* 🥩🔥\n\nСпециалисты по стейкам на гриле с 1951 года 🥩🍖.\n\nЧем мы можем помочь? Выберите вариант из меню ниже 👇",
@@ -618,7 +709,14 @@ const translations = {
         askDni: "🪪 Введите номер *Паспорта / DNI*:",
         askEmail: "📧 Введите ваш *Email*:",
         confirmed: "✅ *БРОНИРОВАНИЕ ПОДТВЕРЖДЕНО!*",
-        langName: "Русский"
+        langName: "Русский",
+        closedMonday: "🛑 *Ресторан Закрыт*\n\nПо понедельникам ресторан закрыт. Пожалуйста, введите другую дату (Пример: 03/11/2026):",
+        invalidDate: "⚠️ Пожалуйста, введите корректную дату в формате *ДД/ММ/ГГГГ* (Пример: 25/10/2026):",
+        fullCapacity: "😔 *Мест нет на эту дату*\n\nСожалеем, все столики на этот день забронированы.",
+        selectTurnBody: "📅 *Выбранная дата:* {fecha}\n\nСледующие смены имеют свободные места. Пожалуйста, выберите время:",
+        returningToMenu: "🏠 *Возврат в Главное Меню...*",
+        lookupPrompt: "📋 *Управление существующей бронью*\n\nВведите *Номер Паспорта, Телефон или Email*:",
+        waitlistPrompt: "🔎 *Проверка статуса в списке ожидания*\n\nВведите ваши данные:"
     },
     ar: {
         welcomeMessage: "🥩🔥 *مرحباً بكم في مطعم كازا خوليان تولوسا!* 🥩🔥\n\nمتخصصون في الشواء منذ عام 1951 🥩🍖.\n\nكيف يمكننا مساعدتك اليوم؟ اختر من القائمة أدناه 👇",
@@ -662,7 +760,14 @@ const translations = {
         askDni: "🪪 أدخل *رقم الهوية*:",
         askEmail: "📧 أدخل *البريد الإلكتروني*:",
         confirmed: "✅ *تم تأكيد الحجز بنجاح!*",
-        langName: "العربية"
+        langName: "العربية",
+        closedMonday: "🛑 *المطعم مغلق*\n\nالمطعم مغلق يوم الاثنين. يرجى إدخال تاريخ آخر (مثال: 03/11/2026):",
+        invalidDate: "⚠️ يرجى إدخال تاريخ صالحة بالشكل *DD/MM/YYYY* (مثال: 25/10/2026):",
+        fullCapacity: "😔 *مكتمل العدد لهذا التاريخ*\n\nنأسف، جميع الطاولات محجوزة لهذا اليوم.",
+        selectTurnBody: "📅 *التاريخ المحدد:* {fecha}\n\nالمواعيد التالية بها أماكن متاحة. يرجى اختيار الوقت المفضّل:",
+        returningToMenu: "🏠 *العودة إلى القائمة الرئيسية...*",
+        lookupPrompt: "📋 *إدارة الحجز الحالي*\n\nيرجى إدخال *رقم الهوية أو الهاتف أو البريد الإلكتروني*:",
+        waitlistPrompt: "🔎 *التحقق من قائمة الانتظار*\n\nيرجى إدخال بياناتك:"
     }
 };
 

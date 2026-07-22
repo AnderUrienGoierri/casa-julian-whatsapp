@@ -214,12 +214,12 @@ async function handleListResponse(from, listId) {
 
         case 'opt_lista_espera':
             userStates.set(from, { step: 'espera_esperando_id', data: {} });
-            await sendMessage(from, "🔎 *Consulta de Lista de Espera*\n\nPor favor, introduce tu *DNI, Teléfono o Email* para localizar tu posición:");
+            await sendMessage(from, getTranslation(lang, 'waitlistPrompt'));
             break;
 
         case 'opt_tengo_reserva':
             userStates.set(from, { step: 'reserva_existente_esperando_id', data: {} });
-            await sendMessage(from, "📋 *Gestión de Reserva Existente*\n\nPor favor, introduce el *DNI, Teléfono o Email* asociado a tu reserva:");
+            await sendMessage(from, getTranslation(lang, 'lookupPrompt'));
             break;
 
         case 'opt_preguntas_frecuentes':
@@ -495,7 +495,7 @@ async function handleTextMessage(from, text) {
     const cleanText = text.trim().toLowerCase();
     if (['menu', 'menú', 'inicio', 'volver', '0', 'cancelar', 'salir', 'main menu', 'home', 'back'].includes(cleanText)) {
         userStates.delete(from);
-        await sendMessage(from, "🏠 *Volviendo al Menú Principal...*");
+        await sendMessage(from, getTranslation(lang, 'returningToMenu'));
         await sendMainMenu(from);
         return;
     }
@@ -510,7 +510,7 @@ async function handleTextMessage(from, text) {
     switch (currentState.step) {
         case 'reserva_esperando_fecha':
             if (text.length < 5 || (!text.includes('/') && !text.includes('-'))) {
-                await sendMessage(from, "⚠️ Por favor, introduce una fecha válida en formato *DD/MM/AAAA* (Ejemplo: 25/10/2026):");
+                await sendMessage(from, getTranslation(lang, 'invalidDate'));
                 return;
             }
 
@@ -518,17 +518,17 @@ async function handleTextMessage(from, text) {
             const dateCheck = db.getAvailableTimeSlotsForDate(formattedFecha);
 
             if (dateCheck.cerrado) {
-                await sendMessage(from, "🛑 *Restaurante Cerrado*\n\nLos lunes el restaurante está cerrado por descanso semanal. Por favor, introduce otra fecha (Ejemplo: 03/11/2026):");
+                await sendMessage(from, getTranslation(lang, 'closedMonday'));
                 return;
             }
 
             if (!dateCheck.valido) {
-                await sendMessage(from, "⚠️ Por favor, introduce una fecha válida en formato *DD/MM/AAAA* (Ejemplo: 25/10/2026):");
+                await sendMessage(from, getTranslation(lang, 'invalidDate'));
                 return;
             }
 
             if (!dateCheck.availableSlots || dateCheck.availableSlots.length === 0) {
-                await sendMessage(from, `😔 *Aforo Completo para el ${formattedFecha}*\n\nLo sentimos, todas las mesas están reservadas para este día en Asador Casa Julian.`);
+                await sendMessage(from, getTranslation(lang, 'fullCapacity'));
                 
                 const buttons = [
                     { id: 'btn_unirse_espera', title: getTranslation(lang, 'btnWaitlist') },
@@ -544,21 +544,21 @@ async function handleTextMessage(from, text) {
 
             const rows = dateCheck.availableSlots.map(s => ({
                 id: `sel_hora_${s.hora}`,
-                title: `⏰ Turno ${s.hora}`,
-                description: `${s.capacidadRestante} plazas libres disponibles`
+                title: `⏰ ${s.hora}`,
+                description: `${s.capacidadRestante} ${getTranslation(lang, 'opt5Desc') || 'plazas'}`.slice(0, 72)
             }));
 
             rows.push({
                 id: "btn_volver_menu",
-                title: "🏠 Menú Principal",
-                description: "Volver al menú inicial."
+                title: getTranslation(lang, 'btnMenu'),
+                description: getTranslation(lang, 'btnMenu')
             });
 
-            const bodyText = `📅 *Fecha Seleccionada:* ${formattedFecha}\n\nLos siguientes turnos disponen de plazas libres para tu reserva en Asador Casa Julian. Por favor, selecciona la hora que prefieras:`;
-            const buttonText = "Elegir Turno";
+            const bodyText = getTranslation(lang, 'selectTurnBody').replace('{fecha}', formattedFecha);
+            const buttonText = getTranslation(lang, 'menuButtonText');
             const sections = [
                 {
-                    title: "Turnos Disponibles",
+                    title: getTranslation(lang, 'menuTitle'),
                     rows: rows
                 }
             ];
@@ -581,7 +581,7 @@ async function handleTextMessage(from, text) {
             const check = db.checkAvailability(fecha, hora, comensales);
 
             if (check.cerrado) {
-                await sendMessage(from, "🛑 *Restaurante Cerrado*\n\nLos lunes el restaurante está cerrado por descanso semanal. Por favor, selecciona otro día para tu reserva.");
+                await sendMessage(from, getTranslation(lang, 'closedMonday'));
                 await sendMainMenu(from);
             } else if (check.turnoInvalido) {
                 await sendMessage(from, `⚠️ *Turno no disponible*\n\n${check.razon}\nPor favor, vuelve a intentarlo seleccionando un turno correcto.`);
@@ -683,12 +683,12 @@ async function handleTextMessage(from, text) {
                 const dateCheckMod = db.getAvailableTimeSlotsForDate(nuevaFecha);
 
                 if (dateCheckMod.cerrado) {
-                    await sendMessage(from, "🛑 *Restaurante Cerrado*\n\nLos lunes el restaurante está cerrado por descanso semanal. Por favor, introduce otra fecha:");
+                    await sendMessage(from, getTranslation(lang, 'closedMonday'));
                     return;
                 }
 
                 if (!dateCheckMod.valido || !dateCheckMod.availableSlots || dateCheckMod.availableSlots.length === 0) {
-                    await sendMessage(from, `😔 *Sin disponibilidad para el ${nuevaFecha}*\n\nPor favor, introduce otra fecha disponible.`);
+                    await sendMessage(from, getTranslation(lang, 'fullCapacity'));
                     return;
                 }
 
