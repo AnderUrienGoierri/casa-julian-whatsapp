@@ -97,8 +97,8 @@ async function sendLanguageMenu(from, page = 1) {
                     { id: "lang_zh", title: "🇨🇳 中文", description: "中文全方位客户服务。" },
                     { id: "lang_ja", title: "🇯🇵 日本語", description: "日本語によるカスタマーサポート。" },
                     { id: "lang_ru", title: "🇷🇺 Русский", description: "Полная поддержка на русском языке." },
-                    { id: "lang_ar", title: "🇸🇦 العربية", description: "دعم كامل باللغة العربية." },
-                    { id: "page_lang_1", title: "◀️ Idiomas (Pág. 1/2)", description: "Volver a la página 1 de idiomas." }
+                    { id: "page_lang_1", title: "◀️ Idiomas (Pág. 1/2)", description: "Volver a la página 1 de idiomas." },
+                    { id: "btn_volver_menu", title: "🏠 Menú Principal", description: "Volver al menú inicial." }
                 ]
             }
         ];
@@ -118,7 +118,8 @@ async function sendLanguageMenu(from, page = 1) {
                 { id: "lang_fr", title: "🇫🇷 Français", description: "Service client complet en Français." },
                 { id: "lang_de", title: "🇩🇪 Deutsch", description: "Kundenservice auf Deutsch." },
                 { id: "lang_nl", title: "🇳🇱 Nederlands", description: "Klantenservice in het Nederlands." },
-                { id: "page_lang_2", title: "▶️ Más idiomas (Pág. 2/2)", description: "Ver Italiano, Polaco, Rumano, Belga, Chino, Jap, Ruso, Árabe." }
+                { id: "page_lang_2", title: "▶️ Más idiomas (Pág. 2/2)", description: "Ver Italiano, Polaco, Rumano, Belga, Chino, Jap, Ruso, Árabe." },
+                { id: "btn_volver_menu", title: "🏠 Menú Principal", description: "Volver al menú inicial." }
             ]
         }
     ];
@@ -340,6 +341,12 @@ async function sendPaginatedReservationsList(from, reservas, page = 1) {
         });
     }
 
+    rows.push({
+        id: "btn_volver_menu",
+        title: "🏠 Menú Principal",
+        description: "Volver al menú inicial."
+    });
+
     const bodyText = `📋 *Hemos localizado ${totalReservas} reservas activas a tu nombre.* (Pág. ${page} de ${totalPages})\n\nPor favor, selecciona abajo cuál de tus reservas deseas gestionar:`;
     const buttonText = "Seleccionar Reserva";
     const sections = [
@@ -356,7 +363,7 @@ async function sendPaginatedReservationsList(from, reservas, page = 1) {
  * Muestra los próximos turnos disponibles en el Asador Casa Julian.
  */
 async function sendUpcomingSlotsMenu(from, lang) {
-    const slots = db.getUpcomingAvailableSlots(8);
+    const slots = db.getUpcomingAvailableSlots(7);
 
     if (!slots || slots.length === 0) {
         await sendMessage(from, "😔 *Sin disponibilidad próxima.*\n\nActualmente no disponemos de plazas libres en los próximos días. Te sugerimos unirte a nuestra Lista de Espera.");
@@ -369,6 +376,12 @@ async function sendUpcomingSlotsMenu(from, lang) {
         title: `${s.fecha} (${s.hora})`.slice(0, 24),
         description: `${s.plazasLibres} plazas libres disponibles`
     }));
+
+    rows.push({
+        id: "btn_volver_menu",
+        title: "🏠 Menú Principal",
+        description: "Volver al menú inicial."
+    });
 
     const bodyText = "📅 *Próximos Turnos Libres en Asador Casa Julian*\n\nSelecciona el turno que prefieras para realizar tu reserva:";
     const buttonText = "Ver Turnos";
@@ -477,6 +490,16 @@ async function handleTextMessage(from, text) {
     }
 
     const lang = userLanguages.get(from) || 'es';
+    
+    // Interceptador global para regresar al menú principal con texto
+    const cleanText = text.trim().toLowerCase();
+    if (['menu', 'menú', 'inicio', 'volver', '0', 'cancelar', 'salir', 'main menu', 'home', 'back'].includes(cleanText)) {
+        userStates.delete(from);
+        await sendMessage(from, "🏠 *Volviendo al Menú Principal...*");
+        await sendMainMenu(from);
+        return;
+    }
+
     const currentState = userStates.get(from);
 
     if (!currentState || currentState.step === 'main_menu') {
@@ -524,6 +547,12 @@ async function handleTextMessage(from, text) {
                 title: `⏰ Turno ${s.hora}`,
                 description: `${s.capacidadRestante} plazas libres disponibles`
             }));
+
+            rows.push({
+                id: "btn_volver_menu",
+                title: "🏠 Menú Principal",
+                description: "Volver al menú inicial."
+            });
 
             const bodyText = `📅 *Fecha Seleccionada:* ${formattedFecha}\n\nLos siguientes turnos disponen de plazas libres para tu reserva en Asador Casa Julian. Por favor, selecciona la hora que prefieras:`;
             const buttonText = "Elegir Turno";
@@ -766,7 +795,8 @@ async function sendFaqMenu(from, lang) {
                 { id: "faq_horarios", title: getTranslation(lang, 'faq3Title'), description: getTranslation(lang, 'faq3Desc') },
                 { id: "faq_grupos", title: getTranslation(lang, 'faq4Title'), description: getTranslation(lang, 'faq4Desc') },
                 { id: "faq_parking", title: getTranslation(lang, 'faq5Title'), description: getTranslation(lang, 'faq5Desc') },
-                { id: "faq_alergias", title: getTranslation(lang, 'faq6Title'), description: getTranslation(lang, 'faq6Desc') }
+                { id: "faq_alergias", title: getTranslation(lang, 'faq6Title'), description: getTranslation(lang, 'faq6Desc') },
+                { id: "btn_volver_menu", title: "🏠 Menú Principal", description: "Volver al menú inicial." }
             ]
         }
     ];
