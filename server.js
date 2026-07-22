@@ -2,10 +2,14 @@ const express = require('express');
 const { processMessage } = require('./botLogic');
 require('dotenv').config();
 
+const path = require('path');
+
 const app = express();
 
 // Middleware para parsear el JSON que envía Meta
 app.use(express.json());
+// Servir archivos estáticos (imágenes) en /public
+app.use('/public', express.static(path.join(__dirname, 'documentacion')));
 
 // Endpoint de salud raíz para Render.com
 app.get('/', (req, res) => {

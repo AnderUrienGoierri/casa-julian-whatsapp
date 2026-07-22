@@ -5,7 +5,7 @@
 
 const translations = {
     es: {
-        welcomeMessage: "🔥 *¡Bienvenido al Asador Casa Julian de Tolosa!* 🔥\n\nSomos especialistas en la preparación artesanal de chuletones a la parrilla desde 1951.\n\n¿En qué podemos ayudarte hoy? Por favor, selecciona una opción desplegando el menú de abajo 👇",
+        welcomeMessage: "🥩🔥 *¡Bienvenido al Asador Casa Julian de Tolosa!* 🥩🔥\n\nSomos especialistas en la preparación artesanal de chuletones a la parrilla desde 1951 🥩🍖.\n\n¿En qué podemos ayudarte hoy? Por favor, selecciona una opción desplegando el menú de abajo 👇",
         menuButtonText: "Ver Opciones",
         menuTitle: "Gestión de Servicios",
         opt1Title: "1. QUIERO RESERVAR",
@@ -49,7 +49,7 @@ const translations = {
         langName: "Español"
     },
     eu: {
-        welcomeMessage: "🔥 *Ongi etorri Tolosako Casa Julian Erretegira!* 🔥\n\n1951az geroztik parrillan egindako txuleteletan adituak gara.\n\nZertan lagundu zaitakegu gaur? Mesedez, hautatu aukera bat beheko menua irekiz 👇",
+        welcomeMessage: "🥩🔥 *Ongi etorri Tolosako Casa Julian Erretegira!* 🥩🔥\n\n1951az geroztik parrillan egindako txuleteletan adituak gara 🥩🍖.\n\nZertan lagundu zaitakegu gaur? Mesedez, hautatu aukera bat beheko menua irekiz 👇",
         menuButtonText: "Aukerak Ikusi",
         menuTitle: "Zerbitzuen Kudeaketa",
         opt1Title: "1. ERRESERBA EGIN",
@@ -93,7 +93,7 @@ const translations = {
         langName: "Euskara"
     },
     en: {
-        welcomeMessage: "🔥 *Welcome to Asador Casa Julian de Tolosa!* 🔥\n\nSpecialists in grilled steaks since 1951.\n\nHow can we assist you today? Please select an option from the menu below 👇",
+        welcomeMessage: "🥩🔥 *Welcome to Asador Casa Julian de Tolosa!* 🥩🔥\n\nSpecialists in artisanal grilled steaks since 1951 🥩🍖.\n\nHow can we assist you today? Please select an option from the menu below 👇",
         menuButtonText: "View Options",
         menuTitle: "Services Management",
         opt1Title: "1. MAKE RESERVATION",
@@ -137,7 +137,7 @@ const translations = {
         langName: "English"
     },
     fr: {
-        welcomeMessage: "🔥 *Bienvenue au Restaurant Casa Julian de Tolosa!* 🔥\n\nSpécialistes des côtelettes grillées depuis 1951.\n\nComment pouvons-nous vous aider? Choisissez una opción ci-dessous 👇",
+        welcomeMessage: "🥩🔥 *Bienvenue au Restaurant Casa Julian de Tolosa!* 🥩🔥\n\nSpécialistes des côtelettes grillées depuis 1951 🥩🍖.\n\nComment pouvons-nous vous aider? Choisissez una opción ci-dessous 👇",
         menuButtonText: "Voir les Options",
         menuTitle: "Gestion des Services",
         opt1Title: "1. RÉSERVER UNE TABLE",
@@ -181,7 +181,7 @@ const translations = {
         langName: "Français"
     },
     it: {
-        welcomeMessage: "🔥 *Benvenuti al Ristorante Casa Julian de Tolosa!* 🔥\n\nSpecialisti in fiorentine e braciole alla griglia dal 1951.\n\nCome possiamo aiutarti oggi? Seleziona un'opzione dal menu sottostante 👇",
+        welcomeMessage: "🥩🔥 *Benvenuti al Ristorante Casa Julian de Tolosa!* 🥩🔥\n\nSpecialisti in fiorentine e braciole alla griglia dal 1951 🥩🍖.\n\nCome possiamo aiutarti oggi? Seleziona un'opzione dal menu sottostante 👇",
         menuButtonText: "Mostra Opzioni",
         menuTitle: "Gestione Servizi",
         opt1Title: "1. PRENOTA UN TAVOLO",
@@ -225,7 +225,7 @@ const translations = {
         langName: "Italiano"
     },
     de: {
-        welcomeMessage: "🔥 *Willkommen im Restaurant Casa Julian de Tolosa!* 🔥\n\nSpezialisten für gegrilltes Kotelett seit 1951.\n\nWie können wir Ihnen heute helfen? Bitte wählen Sie unten eine Option 👇",
+        welcomeMessage: "🥩🔥 *Willkommen im Restaurant Casa Julian de Tolosa!* 🥩🔥\n\nSpezialisten für gegrilltes Kotelett seit 1951 🥩🍖.\n\nWie können wir Ihnen heute helfen? Bitte wählen Sie unten eine Option 👇",
         menuButtonText: "Optionen anzeigen",
         menuTitle: "Service-Verwaltung",
         opt1Title: "1. TISCH RESERVIEREN",
@@ -269,7 +269,7 @@ const translations = {
         langName: "Deutsch"
     },
     nl: {
-        welcomeMessage: "🔥 *Welkom bij Restaurant Casa Julian de Tolosa!* 🔥\n\nGespecialiseerd in ambachtelijk gegrilde steaks sinds 1951.\n\nHoe kunnen we u vandaag helpen? Selecteer hieronder een optie 👇",
+        welcomeMessage: "🥩🔥 *Welkom bij Restaurant Casa Julian de Tolosa!* 🥩🔥\n\nGespecialiseerd in ambachtelijk gegrilde steaks sinds 1951 🥩🍖.\n\nHoe kunnen we u vandaag helpen? Selecteer hieronder een optie 👇",
         menuButtonText: "Opties bekijken",
         menuTitle: "Servicebeheer",
         opt1Title: "1. TAFEL RESERVEREN",
@@ -313,7 +313,7 @@ const translations = {
         langName: "Nederlands"
     },
     pl: {
-        welcomeMessage: "🔥 *Witamy w Restauracji Casa Julian de Tolosa!* 🔥\n\nSpecjaliści od steków z grilla od 1951 roku.\n\nW czym możemy pomóc? Wybierz opcję z menu poniżej 👇",
+        welcomeMessage: "🥩🔥 *Witamy w Restauracji Casa Julian de Tolosa!* 🥩🔥\n\nSpecjaliści od steków z grilla od 1951 roku 🥩🍖.\n\nW czym możemy pomóc? Wybierz opcję z menu poniżej 👇",
         menuButtonText: "Zobacz Opcje",
         menuTitle: "Zarządzanie Usługami",
         opt1Title: "1. ZAREZERWUJ STOLIK",
@@ -357,7 +357,7 @@ const translations = {
         langName: "Polski"
     },
     ro: {
-        welcomeMessage: "🔥 *Bine ați venit la Restaurantul Casa Julian de Tolosa!* 🔥\n\nSpecialiști în fripturi la grătar din 1951.\n\nCu ce vă putem ajuta astăzi? Selectați o opțiune de mai jos 👇",
+        welcomeMessage: "🥩🔥 *Bine ați venit la Restaurantul Casa Julian de Tolosa!* 🥩🔥\n\nSpecialiști în fripturi la grătar din 1951 🥩🍖.\n\nCu ce vă putem ajuta astăzi? Selectați o opțiune de mai jos 👇",
         menuButtonText: "Afișează Opțiuni",
         menuTitle: "Gestionare Servicii",
         opt1Title: "1. REZERVARE MASĂ",
@@ -401,7 +401,7 @@ const translations = {
         langName: "Română"
     },
     be: {
-        welcomeMessage: "🔥 *Welkom bij Casa Julian de Tolosa (België/Belgique)!* 🔥\n\nGespecialiseerd in gegrilde steaks sinds 1951.\n\nHoe kunnen we u helpen? / Comment pouvons-nous vous aider? 👇",
+        welcomeMessage: "🥩🔥 *Welkom bij Casa Julian de Tolosa (België/Belgique)!* 🥩🔥\n\nGespecialiseerd in gegrilde steaks sinds 1951 🥩🍖.\n\nHoe kunnen we u helpen? 👇",
         menuButtonText: "Opties / Options",
         menuTitle: "Servicebeheer",
         opt1Title: "1. RESERVEREN / RÉSERVER",
@@ -441,11 +441,11 @@ const translations = {
         askPhone: "📞 Voer uw *Telefoonnummer* in:",
         askDni: "🪪 Voer uw *Paspoortnummer* in:",
         askEmail: "📧 Voer uw *E-mailadres* in:",
-        confirmed: "✅ *RESERVERING BEVESTIGD!*",
+        confirmed: "✅ *RESERVARE CONFIRMATĂ!*",
         langName: "Belgisch (NL/FR)"
     },
     ko: {
-        welcomeMessage: "🔥 *Casa Julian de Tolosa 레스토랑에 오신 것을 환영합니다!* 🔥\n\n1951년부터 이어온 전통 숯불 구이 스테이크 전문점입니다.\n\n오늘 어떤 도움이 필요하신가요? 아래 메뉴를 선택해 주세요 👇",
+        welcomeMessage: "🥩🔥 *Casa Julian de Tolosa 레스토랑에 오신 것을 환영합니다!* 🥩🔥\n\n1951년부터 이어온 전통 숯불 구이 스테이크 전문점입니다 🥩🍖.\n\n오늘 어떤 도움이 필요하신가요? 아래 메뉴를 선택해 주세요 👇",
         menuButtonText: "옵션 보기",
         menuTitle: "서비스 관리",
         opt1Title: "1. 테이블 예약",
@@ -489,7 +489,7 @@ const translations = {
         langName: "한국어"
     },
     zh: {
-        welcomeMessage: "🔥 *欢迎光临 Casa Julian de Tolosa 餐厅！* 🔥\n\n自1951年起专注于传统碳烤牛排。\n\n今天有什么可以帮助您的？请选择下方选项 👇",
+        welcomeMessage: "🥩🔥 *欢迎光临 Casa Julian de Tolosa 餐厅！* 🥩🔥\n\n自1951年起专注于传统碳烤牛排 🥩🍖。\n\n今天有什么可以帮助您的？请选择下方选项 👇",
         menuButtonText: "查看选项",
         menuTitle: "服务管理",
         opt1Title: "1. 我要预订",
@@ -533,7 +533,7 @@ const translations = {
         langName: "中文"
     },
     ja: {
-        welcomeMessage: "🔥 *Casa Julian de Tolosa へようこそ！* 🔥\n\n1951年創業の伝統的な炭火焼きステーキ専門店です。\n\nどのようなご用件でしょうか？選択してください 👇",
+        welcomeMessage: "🥩🔥 *Casa Julian de Tolosa へようこそ！* 🥩🔥\n\n1951年創業の伝統的な炭火焼きステーキ専門店です 🥩🍖。\n\nどのようなご用件でしょうか？選択してください 👇",
         menuButtonText: "オプションを見る",
         menuTitle: "サービス管理",
         opt1Title: "1. 席を予約する",
@@ -577,7 +577,7 @@ const translations = {
         langName: "日本語"
     },
     ru: {
-        welcomeMessage: "🔥 *Добро пожаловать в Casa Julian de Tolosa!* 🔥\n\nСпециалисты по стейкам на гриле с 1951 года.\n\nЧем мы можем помочь? Выберите вариант из меню ниже 👇",
+        welcomeMessage: "🥩🔥 *Добро пожаловать в Casa Julian de Tolosa!* 🥩🔥\n\nСпециалисты по стейкам на гриле с 1951 года 🥩🍖.\n\nЧем мы можем помочь? Выберите вариант из меню ниже 👇",
         menuButtonText: "Посмотреть варианты",
         menuTitle: "Управление услугами",
         opt1Title: "1. ЗАБРОНИРОВАТЬ",
@@ -621,7 +621,7 @@ const translations = {
         langName: "Русский"
     },
     ar: {
-        welcomeMessage: "🔥 *مرحباً بكم في مطعم كازا خوليان تولوسا!* 🔥\n\nمتخصصون في الشواء منذ عام 1951.\n\nكيف يمكننا مساعدتك اليوم؟ اختر من القائمة أدناه 👇",
+        welcomeMessage: "🥩🔥 *مرحباً بكم في مطعم كازا خوليان تولوسا!* 🥩🔥\n\nمتخصصون في الشواء منذ عام 1951 🥩🍖.\n\nكيف يمكننا مساعدتك اليوم؟ اختر من القائمة أدناه 👇",
         menuButtonText: "عرض الخيارات",
         menuTitle: "إدارة الخدمات",
         opt1Title: "1. حجز طاولة",

@@ -1,7 +1,8 @@
 const { 
     sendInteractiveButtons, 
     sendInteractiveList, 
-    sendMessage 
+    sendMessage,
+    sendImageMessage 
 } = require('./whatsappApi');
 const db = require('./database');
 const notifications = require('./notifications');
@@ -18,9 +19,9 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
     console.log(`\n📩 MENSAJE RECIBIDO de ${from} [Tipo: ${type}]: "${body}"`);
 
     // Interceptar botón de cambio de idioma global
-    if (interactiveData && interactiveData.type === 'button') {
+    if (interactiveData && (interactiveData.type === 'button' || interactiveData.type === 'list')) {
         const buttonId = interactiveData.id;
-        if (buttonId.startsWith('lang_')) {
+        if (buttonId && buttonId.startsWith('lang_')) {
             const langCode = buttonId.replace('lang_', '');
             userLanguages.set(from, langCode);
             userStates.set(from, { step: 'main_menu', data: {} });
@@ -52,6 +53,11 @@ async function sendMainMenu(from) {
     
     userStates.set(from, { step: 'main_menu', data: {} });
 
+    // 1. Enviar la imagen oficial de Casa Julian con chuleta y parrilla
+    const imageUrl = "https://casa-julian-whatsapp-bot.onrender.com/public/imagen_chat_casa_julian.jpg";
+    await sendImageMessage(from, imageUrl, "🥩🔥 *Asador Casa Julian de Tolosa* 🥩🍖");
+
+    // 2. Enviar el menú interactivo con el saludo de bienvenida
     const bodyText = getTranslation(lang, 'welcomeMessage');
     const buttonText = getTranslation(lang, 'menuButtonText');
     

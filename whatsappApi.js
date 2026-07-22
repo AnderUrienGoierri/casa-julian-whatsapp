@@ -85,7 +85,6 @@ async function sendInteractiveButtons(to, text, buttons) {
 
 /**
  * Envía un mensaje de Lista Interactiva (permite hasta 10 opciones ordenadas en secciones).
- * Ideal para el menú principal con 4 u 8 opciones.
  */
 async function sendInteractiveList(to, bodyText, buttonText, sections) {
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
@@ -121,8 +120,42 @@ async function sendInteractiveList(to, bodyText, buttonText, sections) {
     }
 }
 
+/**
+ * Envía una imagen por WhatsApp a través de un enlace URL público.
+ */
+async function sendImageMessage(to, imageUrl, caption = '') {
+    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
+        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+        return;
+    }
+
+    try {
+        const response = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                messaging_product: 'whatsapp',
+                to: to,
+                type: 'image',
+                image: {
+                    link: imageUrl,
+                    caption: caption
+                }
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error enviando imagen por WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    }
+}
+
 module.exports = {
     sendMessage,
     sendInteractiveButtons,
-    sendInteractiveList
+    sendInteractiveList,
+    sendImageMessage
 };
