@@ -470,12 +470,13 @@ async function checkAndNotifyWaitlist(fecha, hora) {
  * Maneja el flujo secuencial por mensajes de texto.
  */
 async function handleTextMessage(from, text) {
-    let lang = userLanguages.get(from);
-    if (!lang) {
-        lang = 'es';
-        userLanguages.set(from, 'es');
+    // Si es un nuevo chat y el usuario no ha seleccionado idioma aún
+    if (!userLanguages.has(from)) {
+        await sendLanguageMenu(from, 1);
+        return;
     }
 
+    const lang = userLanguages.get(from) || 'es';
     const currentState = userStates.get(from);
 
     if (!currentState || currentState.step === 'main_menu') {
