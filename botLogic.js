@@ -14,6 +14,28 @@ const userStates = new Map();
 const userLanguages = new Map();
 
 /**
+ * Valida que un string sea un email válido.
+ * Requiere: caracteres antes del @, dominio con punto y extensión.
+ */
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email.trim());
+}
+
+/**
+ * Devuelve el mensaje de error de email inválido según el idioma.
+ */
+function getInvalidEmailMsg(lang) {
+    if (lang === 'eu') {
+        return '⚠️ *Email helbide baliogabea.* Mesedez, idatzi email baliogarri bat (adib. *nombre@ejemplo.com*), edo sakatu botoiaren bidez saltatu:';
+    } else if (lang === 'en') {
+        return '⚠️ *Invalid email address.* Please enter a valid email (e.g. *nombre@ejemplo.com*), or skip using the button:';
+    } else {
+        return '⚠️ *Email no válido.* Por favor, introduce un email correcto (ej. *nombre@ejemplo.com*), o pulsa el botón para omitirlo:';
+    }
+}
+
+/**
  * Parsea el payload de mensaje entrante de Meta Webhook y lo envía a handleUserMessage.
  */
 async function processMessage(message) {
@@ -1601,13 +1623,23 @@ async function handleTextMessage(from, text) {
             const cleanEmail = text.trim();
             if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_email'].includes(cleanEmail.toLowerCase())) {
                 currentState.data.waitlist.email = 'N/A';
+                currentState.step = 'espera_step1c_nac';
+                userStates.set(from, currentState);
+                await sendNationalityList(from, lang);
+            } else if (!isValidEmail(cleanEmail)) {
+                // Email inválido: avisar y pedir de nuevo sin avanzar de paso
+                const errMsg = getInvalidEmailMsg(lang);
+                const buttons = [
+                    { id: 'btn_skip_email', title: getTranslation(lang, 'btnOmitirEmail').slice(0, 20) }
+                ];
+                await sendMessage(from, errMsg);
+                await sendInteractiveButtons(from, getTranslation(lang, 'waitlistStep1b2Email'), buttons);
             } else {
                 currentState.data.waitlist.email = cleanEmail.toLowerCase();
+                currentState.step = 'espera_step1c_nac';
+                userStates.set(from, currentState);
+                await sendNationalityList(from, lang);
             }
-            currentState.step = 'espera_step1c_nac';
-            userStates.set(from, currentState);
-
-            await sendNationalityList(from, lang);
             break;
         }
 
@@ -1803,13 +1835,23 @@ async function handleTextMessage(from, text) {
             const cleanEmail = text.trim();
             if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_email'].includes(cleanEmail.toLowerCase())) {
                 currentState.data.menuTrad.email = 'N/A';
+                currentState.step = 'menu_trad_step2c_nac';
+                userStates.set(from, currentState);
+                await sendNationalityList(from, lang);
+            } else if (!isValidEmail(cleanEmail)) {
+                // Email inválido: avisar y pedir de nuevo sin avanzar de paso
+                const errMsg = getInvalidEmailMsg(lang);
+                const buttons = [
+                    { id: 'btn_skip_email', title: getTranslation(lang, 'btnOmitirEmail').slice(0, 20) }
+                ];
+                await sendMessage(from, errMsg);
+                await sendInteractiveButtons(from, getTranslation(lang, 'menuTradStep2b2Email'), buttons);
             } else {
                 currentState.data.menuTrad.email = cleanEmail.toLowerCase();
+                currentState.step = 'menu_trad_step2c_nac';
+                userStates.set(from, currentState);
+                await sendNationalityList(from, lang);
             }
-            currentState.step = 'menu_trad_step2c_nac';
-            userStates.set(from, currentState);
-
-            await sendNationalityList(from, lang);
             break;
         }
 
