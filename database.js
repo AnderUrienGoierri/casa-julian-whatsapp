@@ -318,8 +318,32 @@ function getNextAvailableDate(hora, comensales = 1) {
     return { encontrado: false };
 }
 
+function formatDaysInSpanish(diasStr) {
+    if (!diasStr || typeof diasStr !== 'string') return 'Sin preferencia';
+    const dayMap = {
+        'asteartea': 'Martes', 'martes': 'Martes', 'tuesday': 'Martes',
+        'asteazkena': 'Miércoles', 'miércoles': 'Miércoles', 'miercoles': 'Miércoles', 'wednesday': 'Miércoles',
+        'osteguna': 'Jueves', 'jueves': 'Jueves', 'thursday': 'Jueves',
+        'ostirala': 'Viernes', 'viernes': 'Viernes', 'friday': 'Viernes',
+        'larunbata': 'Sábado', 'sábado': 'Sábado', 'sabado': 'Sábado', 'saturday': 'Sábado',
+        'igandea': 'Domingo', 'domingo': 'Domingo', 'sunday': 'Domingo',
+        'sin preferencia': 'Sin preferencia', 'hobespenik ez': 'Sin preferencia', 'no preference': 'Sin preferencia'
+    };
+
+    const parts = diasStr.split(',').map(s => s.trim());
+    const translated = parts.map(part => {
+        const lower = part.toLowerCase();
+        return dayMap[lower] || part;
+    });
+
+    return translated.join(', ');
+}
+
 function createReservation(data) {
     const db = loadDb();
+    const rawDias = data.dias_preferencia || data.dias || 'Sin preferencia';
+    const diasPref = formatDaysInSpanish(rawDias);
+
     const nuevaReserva = {
         id: 'RES-' + Date.now().toString().slice(-6),
         nombre: data.nombre,
@@ -332,7 +356,7 @@ function createReservation(data) {
         comensales: parseInt(data.comensales, 10) || 2,
         estado: data.estado || 'CONFIRMADA',
         idioma: data.idioma || 'es',
-        dias_preferencia: data.dias_preferencia || data.dias || 'Sin preferencia',
+        dias_preferencia: diasPref,
         tipo_reserva: data.tipo_reserva || 'online',
         fechaCreacion: new Date().toISOString()
     };
