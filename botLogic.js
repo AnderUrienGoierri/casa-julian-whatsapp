@@ -398,7 +398,7 @@ async function handleButtonResponse(from, buttonId) {
             const state = userStates.get(from);
             const wl = state?.data?.waitlist || {};
 
-            db.addToWaitlist({
+            const waitlistRecord = db.addToWaitlist({
                 nombre: wl.nombre || 'No especificado',
                 telefono: from,
                 dni: 'N/A',
@@ -406,15 +406,18 @@ async function handleButtonResponse(from, buttonId) {
                 dias_preferencia: wl.dias || 'Sin preferencia',
                 hora: wl.horario || 'No especificado',
                 comensales: parseInt(wl.comensales, 10) || 1,
+                estado: 'Pendiente confirmar',
                 idioma: lang
             });
 
-            const detalleEspera = `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
+            const detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
+                                  `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
                                   `👥 *Comensales:* ${wl.comensales || '1'}\n` +
                                   `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
                                   `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
                                   `👶 *Niños:* ${wl.ninos || '0'}\n` +
                                   `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
+                                  `📌 *Estado:* Pendiente confirmar\n` +
                                   `🎁 *Menú Tradición:* No\n` +
                                   `📱 *WhatsApp Remitente:* ${from}\n` +
                                   `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
@@ -1059,23 +1062,26 @@ async function handleTextMessage(from, text) {
             currentState.data.waitlist.alergias = text;
             const wl = currentState.data.waitlist;
 
-            db.addToWaitlist({
+            const waitlistRecord = db.addToWaitlist({
                 nombre: wl.nombre || 'No especificado',
                 telefono: from,
                 dni: 'N/A',
                 email: 'N/A',
-                fecha: wl.dias || 'No especificado',
+                dias_preferencia: wl.dias || 'Sin preferencia',
                 hora: wl.horario || 'No especificado',
                 comensales: parseInt(wl.comensales, 10) || 1,
+                estado: 'Pendiente confirmar',
                 idioma: lang
             });
 
-            const detalleEspera = `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
+            const detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
+                                  `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
                                   `👥 *Comensales:* ${wl.comensales || '1'}\n` +
                                   `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
-                                  `📅 *Disponibilidad días:* ${wl.dias || 'No especificado'}\n` +
+                                  `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
                                   `👶 *Niños:* ${wl.ninos || '0'}\n` +
                                   `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
+                                  `📌 *Estado:* Pendiente confirmar\n` +
                                   `🎁 *Menú Tradición:* No\n` +
                                   `📱 *WhatsApp Remitente:* ${from}\n` +
                                   `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
