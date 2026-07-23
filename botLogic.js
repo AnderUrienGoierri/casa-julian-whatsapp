@@ -444,15 +444,33 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'espera_formulario':
+        case 'espera_formulario': {
+            let nombreCliente = null;
+            let telefonoReserva = from;
+            const esTelefono = text.match(/\+?\d{8,15}/);
+            if (esTelefono) {
+                telefonoReserva = esTelefono[0];
+                const restoTexto = text.replace(esTelefono[0], '').trim();
+                if (restoTexto) nombreCliente = restoTexto;
+            } else {
+                nombreCliente = text;
+            }
+
+            const detalleEspera = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
+                                  `📞 *Teléfono Contacto:* ${telefonoReserva}\n` +
+                                  `📱 *WhatsApp Remitente:* ${from}\n` +
+                                  `📄 *Datos Ingresados:* ${text}\n` +
+                                  `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
+
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD LISTA DE ESPERA',
-                detalleMod: text,
-                nombreCliente: null,
-                telefonoReserva: from,
+                detalleMod: detalleEspera,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoReserva,
                 successMsgKey: 'waitlistSuccessMsg'
             });
             break;
+        }
 
         case 'modificacion_datos_actuales':
             // Guardar datos de reserva actual y buscar si existe en BD o en el texto
@@ -540,15 +558,39 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'cancelacion_datos_actuales':
+        case 'cancelacion_datos_actuales': {
+            let nombreCliente = null;
+            let telefonoReserva = from;
+            const reservaEncontrada = db.getReservation(text) || db.getReservation(from);
+            if (reservaEncontrada) {
+                nombreCliente = reservaEncontrada.nombre;
+                telefonoReserva = reservaEncontrada.telefono;
+            } else {
+                const esTelefono = text.match(/\+?\d{8,15}/);
+                if (esTelefono) {
+                    telefonoReserva = esTelefono[0];
+                    const restoTexto = text.replace(esTelefono[0], '').trim();
+                    if (restoTexto) nombreCliente = restoTexto;
+                } else {
+                    nombreCliente = text;
+                }
+            }
+
+            const detalleCancelacion = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
+                                       `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
+                                       `📱 *WhatsApp Remitente:* ${from}\n` +
+                                       `📄 *Datos Ingresados:* ${text}\n` +
+                                       `❌ *Solicitud:* CANCELACIÓN DE RESERVA`;
+
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
-                detalleMod: `Datos Reserva Actual: ${text}`,
-                nombreCliente: null,
-                telefonoReserva: from,
+                detalleMod: detalleCancelacion,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoReserva,
                 successMsgKey: 'cancelSuccessMsg'
             });
             break;
+        }
 
         case 'menu_tradicion_formulario_reserva':
             await requestUserConfirmation(from, lang, {
