@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { sendMessage } = require('./whatsappApi');
 require('dotenv').config();
 
 // Configuración opcional de correo SMTP
@@ -13,33 +14,16 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Envía una alerta interna al personal/maitre de Casa Julián 100% en ESPAÑOL.
+ * Envía una alerta interna al personal/maitre de Casa Julián 100% en ESPAÑOL por WhatsApp y Email.
  */
 async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados) {
-    const alertHeader = `🚨 [ALERTA RECEPCIÓN CASA JULIÁN] - ${tipoAccion.toUpperCase()}`;
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
 
-    const emailHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; padding: 20px; background-color: #ffffff;">
-        <div style="background-color: #8B0000; color: #ffffff; padding: 12px; text-align: center; border-radius: 4px;">
-            <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
-            <p style="margin: 4px 0 0 0; font-size: 14px;">Solicitud de Cliente por WhatsApp (Atención en Español)</p>
-        </div>
-        <div style="padding: 20px 0;">
-            <p style="font-size: 16px; color: #333;"><strong>Tipo de Gestión:</strong> <span style="color: #8B0000;">${tipoAccion}</span></p>
-            <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telefonoCliente}</p>
-            <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
-            
-            <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                <h3 style="margin-top: 0; color: #8B0000;">Datos Recibidos del Cliente:</h3>
-                <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
-            </div>
-        </div>
-        <div style="text-align: center; border-top: 1px solid #eee; padding-top: 10px; color: #888; font-size: 12px;">
-            <p>Sistema Automatizado Casa Julián • Notificación Interna Recepción</p>
-        </div>
-    </div>
-    `;
+    const alertMessage = `🚨 *[ALERTA RECEPCIÓN CASA JULIÁN]* 🚨\n\n` +
+        `📌 *Tipo de Gestión:* ${tipoAccion}\n` +
+        `📞 *Teléfono Cliente:* ${telefonoCliente}\n` +
+        `⏰ *Fecha:* ${timestamp}\n\n` +
+        `📝 *Datos Recibidos:*\n${datosDetallados}`;
 
     console.log(`\n================ [NOTIFICACIÓN INTERNA PARA PERSONAL EN ESPAÑOL] ================`);
     console.log(`📌 TIPO: ${tipoAccion}`);
@@ -48,8 +32,36 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
     console.log(`📝 DATOS RECIBIDOS:\n${datosDetallados}`);
     console.log(`=================================================================================\n`);
 
+    // 1. Enviar alerta WhatsApp en tiempo real al teléfono del restaurante/maitre (34671652717)
+    try {
+        const staffPhone = process.env.STAFF_PHONE || '34671652717';
+        await sendMessage(staffPhone, alertMessage);
+        console.log(`   └─ ✅ Alerta WhatsApp enviada al teléfono del maitre (${staffPhone})`);
+    } catch (error) {
+        console.error('⚠️ Error al enviar alerta WhatsApp al personal:', error.message);
+    }
+
+    // 2. Enviar email opcional si SMTP está configurado
     if (process.env.SMTP_USER && process.env.SMTP_PASS) {
         try {
+            const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; padding: 20px; background-color: #ffffff;">
+                <div style="background-color: #8B0000; color: #ffffff; padding: 12px; text-align: center; border-radius: 4px;">
+                    <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
+                    <p style="margin: 4px 0 0 0; font-size: 14px;">Solicitud de Cliente por WhatsApp (Atención en Español)</p>
+                </div>
+                <div style="padding: 20px 0;">
+                    <p style="font-size: 16px; color: #333;"><strong>Tipo de Gestión:</strong> <span style="color: #8B0000;">${tipoAccion}</span></p>
+                    <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telefonoCliente}</p>
+                    <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
+                    
+                    <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                        <h3 style="margin-top: 0; color: #8B0000;">Datos Recibidos del Cliente:</h3>
+                        <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
+                    </div>
+                </div>
+            </div>
+            `;
             await transporter.sendMail({
                 from: '"Casa Julian WhatsApp Bot" <alertas@casajulian.eus>',
                 to: process.env.STAFF_EMAIL || 'recepcion@casajulian.eus',
