@@ -355,6 +355,36 @@ function formatAllergiesInSpanish(alergiasStr) {
         'sin alergias/ninguna', 'no tenemos', 'ez'
     ];
     if (noValues.includes(clean) || clean === '') return 'NO';
+
+    const allergyTranslations = {
+        'glutena': 'Gluten / Celíacos',
+        'gluten': 'Gluten / Celíacos',
+        'zeliakoa': 'Gluten / Celíacos',
+        'celiaco': 'Gluten / Celíacos',
+        'celíaco': 'Gluten / Celíacos',
+        'laktosa': 'Lactosa',
+        'fruitu lehorrak': 'Frutos secos / Huevo',
+        'mariskoa': 'Marisco / Pescado',
+        'arraina': 'Marisco / Pescado',
+        'diabetikoa': 'Diabetes',
+        'diabetesa': 'Diabetes',
+        'hipertentsioa': 'Hipertensión',
+        'begetarianoa': 'Vegetariano / Vegano',
+        'vegano': 'Vegetariano / Vegano',
+        'vegana': 'Vegetariano / Vegano'
+    };
+
+    if (allergyTranslations[clean]) return allergyTranslations[clean];
+
+    if (alergiasStr.includes(',')) {
+        const parts = alergiasStr.split(',').map(p => p.trim());
+        const translatedParts = parts.map(p => {
+            const low = p.toLowerCase();
+            return allergyTranslations[low] || p;
+        });
+        return translatedParts.join(', ');
+    }
+
     return alergiasStr.trim();
 }
 
