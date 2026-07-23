@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS clientes (
     dni VARCHAR(20) UNIQUE NOT NULL,
     email VARCHAR(100) NOT NULL,
     idioma VARCHAR(10) DEFAULT 'es',
+    nacionalidad VARCHAR(50) DEFAULT 'España',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS reservas (
     idioma VARCHAR(10) DEFAULT 'es',
     dias_preferencia VARCHAR(100) DEFAULT 'Sin preferencia',
     tipo_reserva VARCHAR(50) DEFAULT 'online',
+    nacionalidad VARCHAR(50) DEFAULT 'España',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -40,6 +42,7 @@ CREATE TABLE IF NOT EXISTS lista_espera (
     alergias TEXT DEFAULT 'Ninguna',
     estado VARCHAR(30) DEFAULT 'Pendiente confirmar',
     idioma VARCHAR(10) DEFAULT 'es',
+    nacionalidad VARCHAR(50) DEFAULT 'España',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -400,8 +400,9 @@ async function handleButtonResponse(from, buttonId) {
                 const waitlistRecord = db.addToWaitlist({
                     nombre: wl.nombre || 'No especificado',
                     telefono: from,
-                    dni: 'N/A',
+                    dni: wl.dni || 'N/A',
                     email: 'N/A',
+                    nacionalidad: wl.nacionalidad || 'España',
                     dias_preferencia: wl.dias || 'Sin preferencia',
                     hora: wl.horario || 'No especificado',
                     comensales: parseInt(wl.comensales, 10) || 1,
@@ -413,6 +414,8 @@ async function handleButtonResponse(from, buttonId) {
 
                 const detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
                                       `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
+                                      `🪪 *DNI/Pasaporte:* ${wl.dni || 'N/A'}\n` +
+                                      `🌐 *Nacionalidad:* ${wl.nacionalidad || 'España'}\n` +
                                       `👥 *Comensales:* ${wl.comensales || '1'}\n` +
                                       `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
                                       `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
@@ -435,6 +438,8 @@ async function handleButtonResponse(from, buttonId) {
             } else if (currentState && currentState.step === 'menu_trad_step7_idioma') {
                 const mt = currentState.data.menuTrad || {};
                 const detalleMenuTrad = `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
+                                        `🪪 *DNI/Pasaporte:* ${mt.dni || 'N/A'}\n` +
+                                        `🌐 *Nacionalidad:* ${mt.nacionalidad || 'España'}\n` +
                                         `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
                                         `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
                                         `🕐 *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
@@ -455,6 +460,29 @@ async function handleButtonResponse(from, buttonId) {
                     idioma: selectedLang,
                     successMsgKey: 'menuTradicionSuccessMsg'
                 });
+            }
+            break;
+        }
+
+        case 'btn_skip_dni': {
+            const currentState = userStates.get(from);
+            if (currentState && currentState.step === 'espera_step1b_dni') {
+                await handleTextMessage(from, 'btn_skip_dni');
+            } else if (currentState && currentState.step === 'menu_trad_step2b_dni') {
+                await handleTextMessage(from, 'btn_skip_dni');
+            }
+            break;
+        }
+
+        case 'btn_nac_es':
+        case 'btn_nac_fr':
+        case 'btn_nac_uk':
+        case 'btn_nac_otro': {
+            const currentState = userStates.get(from);
+            if (currentState && currentState.step === 'espera_step1c_nac') {
+                await handleTextMessage(from, buttonId);
+            } else if (currentState && currentState.step === 'menu_trad_step2c_nac') {
+                await handleTextMessage(from, buttonId);
             }
             break;
         }
@@ -601,11 +629,13 @@ async function handleButtonResponse(from, buttonId) {
                         await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
                     }
                     if (pending.tipoAccion && pending.tipoAccion.includes('RESERVA MENÚ TRADICIÓN')) {
+                        const mt = state?.data?.menuTrad || {};
                         db.createReservation({
                             nombre: pending.nombreCliente,
                             telefono: pending.telefonoReserva,
-                            dni: 'N/A',
+                            dni: mt.dni || 'N/A',
                             email: 'N/A',
+                            nacionalidad: mt.nacionalidad || 'España',
                             fecha: '', // Fecha pendiente de asignación por recepción
                             hora: pending.horario || '',
                             comensales: 2,
@@ -1043,6 +1073,47 @@ async function handleTextMessage(from, text) {
         case 'espera_step1_nombre': {
             currentState.data.waitlist = currentState.data.waitlist || {};
             currentState.data.waitlist.nombre = text;
+            currentState.step = 'espera_step1b_dni';
+            userStates.set(from, currentState);
+
+            const promptBody = getTranslation(lang, 'waitlistStep1bDni');
+            const buttons = [
+                { id: 'btn_skip_dni', title: getTranslation(lang, 'btnOmitirDni').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'espera_step1b_dni': {
+            currentState.data.waitlist = currentState.data.waitlist || {};
+            const cleanDni = text.trim();
+            if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_dni'].includes(cleanDni.toLowerCase())) {
+                currentState.data.waitlist.dni = 'N/A';
+            } else {
+                currentState.data.waitlist.dni = cleanDni.toUpperCase();
+            }
+            currentState.step = 'espera_step1c_nac';
+            userStates.set(from, currentState);
+
+            const promptBody = getTranslation(lang, 'waitlistStep1cNac');
+            const buttons = [
+                { id: 'btn_nac_es', title: getTranslation(lang, 'btnNacEs').slice(0, 20) },
+                { id: 'btn_nac_fr', title: getTranslation(lang, 'btnNacFr').slice(0, 20) },
+                { id: 'btn_nac_otro', title: getTranslation(lang, 'btnNacOtro').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'espera_step1c_nac': {
+            currentState.data.waitlist = currentState.data.waitlist || {};
+            let nac = text.trim();
+            if (nac === 'btn_nac_es') nac = 'España';
+            else if (nac === 'btn_nac_fr') nac = 'Francia';
+            else if (nac === 'btn_nac_uk') nac = 'Reino Unido';
+            else if (nac === 'btn_nac_otro' || ['omitir', 'utzi', 'skip', 'otro'].includes(nac.toLowerCase())) nac = 'España';
+
+            currentState.data.waitlist.nacionalidad = nac;
             currentState.step = 'espera_step2_comensales';
             userStates.set(from, currentState);
             await sendMessage(from, getTranslation(lang, 'waitlistStep2Comensales'));
@@ -1187,6 +1258,47 @@ async function handleTextMessage(from, text) {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
             currentState.data.menuTrad.nombre = text;
             currentState.data.menuTrad.comensales = 2;
+            currentState.step = 'menu_trad_step2b_dni';
+            userStates.set(from, currentState);
+
+            const promptBody = getTranslation(lang, 'menuTradStep2bDni');
+            const buttons = [
+                { id: 'btn_skip_dni', title: getTranslation(lang, 'btnOmitirDni').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'menu_trad_step2b_dni': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            const cleanDni = text.trim();
+            if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_dni'].includes(cleanDni.toLowerCase())) {
+                currentState.data.menuTrad.dni = 'N/A';
+            } else {
+                currentState.data.menuTrad.dni = cleanDni.toUpperCase();
+            }
+            currentState.step = 'menu_trad_step2c_nac';
+            userStates.set(from, currentState);
+
+            const promptBody = getTranslation(lang, 'menuTradStep2cNac');
+            const buttons = [
+                { id: 'btn_nac_es', title: getTranslation(lang, 'btnNacEs').slice(0, 20) },
+                { id: 'btn_nac_fr', title: getTranslation(lang, 'btnNacFr').slice(0, 20) },
+                { id: 'btn_nac_otro', title: getTranslation(lang, 'btnNacOtro').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'menu_trad_step2c_nac': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            let nac = text.trim();
+            if (nac === 'btn_nac_es') nac = 'España';
+            else if (nac === 'btn_nac_fr') nac = 'Francia';
+            else if (nac === 'btn_nac_uk') nac = 'Reino Unido';
+            else if (nac === 'btn_nac_otro' || ['omitir', 'utzi', 'skip', 'otro'].includes(nac.toLowerCase())) nac = 'España';
+
+            currentState.data.menuTrad.nacionalidad = nac;
             currentState.step = 'menu_trad_step3_tipo';
             userStates.set(from, currentState);
 

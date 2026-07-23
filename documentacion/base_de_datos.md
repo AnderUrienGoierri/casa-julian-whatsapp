@@ -17,7 +17,6 @@ El sistema de gestión de reservas de **Asador Casa Julián** utiliza un modelo 
 ```mermaid
 erDiagram
     CLIENTES ||--o{ RESERVAS : "posee"
-    CLIENTES ||--o{ LISTA_ESPERA : "se inscribe"
     TARJETAS_REGALO ||--o| RESERVAS : "se canjea en"
 
     CLIENTES {
@@ -27,6 +26,7 @@ erDiagram
         string dni UK
         string email
         string idioma
+        string nacionalidad
         timestamp created_at
     }
 
@@ -44,6 +44,7 @@ erDiagram
         string idioma
         string dias_preferencia
         string tipo_reserva
+        string nacionalidad
         timestamp created_at
     }
 
@@ -60,6 +61,7 @@ erDiagram
         string alergias
         string estado
         string idioma
+        string nacionalidad
         timestamp created_at
     }
 
@@ -90,6 +92,7 @@ Almacena el maestro de clientes que interactúan con el bot o realizan reservas.
 | `dni` | `VARCHAR(20)` | ❌ No | — | DNI / NIF / Pasaporte (clave única). |
 | `email` | `VARCHAR(100)` | ❌ No | — | Correo electrónico principal. |
 | `idioma` | `VARCHAR(10)` | 🌐 Sí | `'es'` | Código del idioma preferido del cliente (`es`, `eu`, `en`, etc.). |
+| `nacionalidad` | `VARCHAR(50)` | 🌐 Sí | `'España'` | País de procedencia / nacionalidad del cliente. |
 | `created_at` | `TIMESTAMP WITH TIME ZONE` | ❌ No | `CURRENT_TIMESTAMP` | Fecha y hora de registro. |
 
 ---
@@ -103,27 +106,17 @@ Contiene todas las reservas formalizadas y pendientes de asignación final.
 | `cliente_dni` | `VARCHAR(20)` | 🌐 Sí | `NULL` | Clave foránea que referencia a `clientes(dni)`. |
 | `nombre` | `VARCHAR(100)` | ❌ No | — | Nombre de la reserva. |
 | `telefono` | `VARCHAR(20)` | ❌ No | — | Teléfono del titular. |
-| `dni` | `VARCHAR(20)` | ❌ No | — | DNI del titular. |
+| `dni` | `VARCHAR(20)` | 🌐 Sí | `'N/A'` | DNI o pasaporte (opcional). |
 | `email` | `VARCHAR(100)` | ❌ No | — | Correo electrónico del titular. |
 | `fecha` | `VARCHAR(20)` | 🌐 Sí | `''` | Fecha confirmada (formato `DD/MM/AAAA`). Vacía si está sin confirmar. |
 | `hora` | `VARCHAR(10)` | 🌐 Sí | `''` | Turno horario (ej: `13:30`, `20:30`). |
 | `comensales` | `INT` | ❌ No | `2` | Número de comensales (máximo permitido: 6). |
-| `estado` | `VARCHAR(30)` | ❌ No | `'CONFIRMADA'` | Estado actual de la reserva (ver Enum abajo). |
+| `estado` | `VARCHAR(30)` | ❌ No | `'CONFIRMADA'` | Estado actual de la reserva. |
 | `idioma` | `VARCHAR(10)` | 🌐 Sí | `'es'` | Idioma en el que se formalizó la reserva (`es`, `eu`, `en`). |
-| `dias_preferencia`| `VARCHAR(100)`| 🌐 Sí | `'Sin preferencia'` | Días preferidos indicados en el formulario de la tarjeta o chatbot. |
-| `tipo_reserva` | `VARCHAR(50)` | ❌ No | `'online'` | **Tipo u origen de la reserva** (ver lista detallada abajo). |
+| `dias_preferencia`| `VARCHAR(100)`| 🌐 Sí | `'Sin preferencia'` | Días preferidos indicados en el formulario. |
+| `tipo_reserva` | `VARCHAR(50)` | ❌ No | `'online'` | Origen de la reserva (`online`, `tarjeta_regalo`, `lista_espera`, `telefonica`). |
+| `nacionalidad` | `VARCHAR(50)` | 🌐 Sí | `'España'` | Nacionalidad del titular (`España`, `Francia`, `Reino Unido`, etc.). |
 | `created_at` | `TIMESTAMP WITH TIME ZONE` | ❌ No | `CURRENT_TIMESTAMP` | Fecha y hora de creación del registro. |
-
-#### 🏷️ Valores permitidos para `tipo_reserva`:
-- **`'online'`**: Reservas directas formalizadas a través del motor web oficial (`casajulian.eus`).
-- **`'tarjeta_regalo'`**: Reservas tramitadas con una Tarjeta de Regalo **Menú Tradición**.
-- **`'lista_espera'`**: Reservas convertidas o asignadas que provienen de la Lista de Espera.
-- **`'telefonica'`**: Reservas presenciales o tomadas directamente por teléfono por el personal de recepción.
-
-#### 📌 Valores permitidos para `estado` (Reservas):
-- **`'CONFIRMADA'`**: Reserva activa y confirmada.
-- **`'PENDIENTE CONFIRMACIÓN'`**: Reserva creada desde el chatbot (ej: tarjeta regalo sin fecha fija asignada) pendiente de validación por recepción.
-- **`'CANCELADA'`**: Reserva anulada.
 
 ---
 
@@ -135,7 +128,7 @@ Registra a los clientes inscritos en la lista de espera cuando no hay mesa dispo
 | `id` | `VARCHAR(30)` | ❌ No | — | Identificador único de la solicitud (ej: `ESP-654321`). Clave primaria. |
 | `nombre` | `VARCHAR(100)` | ❌ No | — | Nombre del cliente solicitante. |
 | `telefono` | `VARCHAR(20)` | ❌ No | — | Teléfono WhatsApp del remitente. |
-| `dni` | `VARCHAR(20)` | 🌐 Sí | `'N/A'` | DNI (si se dispone de él). |
+| `dni` | `VARCHAR(20)` | 🌐 Sí | `'N/A'` | DNI o pasaporte (opcional). |
 | `email` | `VARCHAR(100)` | 🌐 Sí | `'N/A'` | Email (si se dispone de él). |
 | `dias_preferencia`| `VARCHAR(100)`| ❌ No | `'Sin preferencia'` | Hasta 3 días preferidos indicados por el cliente o `"Sin preferencia"`. |
 | `hora` | `VARCHAR(10)` | 🌐 Sí | `''` | Turno preferido (ej: `14:00`, `21:00`). |
@@ -144,6 +137,7 @@ Registra a los clientes inscritos en la lista de espera cuando no hay mesa dispo
 | `alergias` | `TEXT` | ❌ No | `'Ninguna'` | Alergias o restricciones alimentarias notificadas por el cliente. |
 | `estado` | `VARCHAR(30)` | ❌ No | `'Pendiente confirmar'`| Estado del registro (`'Pendiente confirmar'` o `'Confirmado'`). |
 | `idioma` | `VARCHAR(10)` | 🌐 Sí | `'es'` | Idioma preferido para ser contactado por recepción (`es`, `eu`, `en`). |
+| `nacionalidad` | `VARCHAR(50)` | 🌐 Sí | `'España'` | Nacionalidad indicada por el cliente. |
 | `created_at` | `TIMESTAMP WITH TIME ZONE` | ❌ No | `CURRENT_TIMESTAMP` | Fecha y hora de inscripción. |
 
 ---
@@ -159,20 +153,12 @@ Registro maestro de tarjetas de regalo del **Menú Tradición**.
 | `comprador_telefono`|`VARCHAR(20)`| 🌐 Sí | `NULL` | Teléfono del comprador. |
 | `fecha_compra` | `VARCHAR(20)` | 🌐 Sí | `NULL` | Fecha de adquisición (formato `DD/MM/AAAA`). |
 | `fecha_caducidad`| `VARCHAR(20)` | 🌐 Sí | `NULL` | Fecha de vencimiento (formato `DD/MM/AAAA`). |
-| `estado` | `VARCHAR(20)` | ❌ No | `'ACTIVA'` | Estado operativo de la tarjeta (ver Enum abajo). |
+| `estado` | `VARCHAR(20)` | ❌ No | `'ACTIVA'` | Estado operativo de la tarjeta (`ACTIVA`, `PENDIENTE RESERVA`, `CANJEADA`, `CADUCADA`). |
 | `created_at` | `TIMESTAMP WITH TIME ZONE` | ❌ No | `CURRENT_TIMESTAMP` | Fecha y hora de alta en el sistema. |
-
-#### 💳 Valores permitidos para `estado` (Tarjetas de Regalo):
-- **`'ACTIVA'`**: Tarjeta válida y disponible para solicitar reserva.
-- **`'PENDIENTE RESERVA'`**: Tarjeta que ha iniciado solicitud de reserva desde el chatbot y aguarda asignación de fecha por recepción.
-- **`'CANJEADA'`**: Tarjeta consumida con reserva confirmada y disfrutada.
-- **`'CADUCADA'`**: Tarjeta cuya fecha de vencimiento ha expirado.
 
 ---
 
 ## ⚡ Índices de Rendimiento en PostgreSQL
-
-Para optimizar las búsquedas en tiempo real durante las interacciones del chatbot y consultas de recepción:
 
 ```sql
 CREATE INDEX IF NOT EXISTS idx_reservas_fecha_hora ON reservas(fecha, hora, estado);
@@ -186,17 +172,24 @@ CREATE INDEX IF NOT EXISTS idx_tarjetas_codigo ON tarjetas_regalo(codigo);
 
 ## 🔄 Mecanismo de Auto-Migración
 
-Al arrancar el servidor Node.js en Render (`botLogic.js` / `database.js`), la aplicación ejecuta un script de inicialización SQL idempotente que verifica y crea las tablas o columnas faltantes automáticamente:
+Al arrancar la aplicación en Render, el servidor Node.js ejecuta automáticamente las migraciones idempotentes:
 
 ```javascript
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
 ALTER TABLE reservas ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
 ALTER TABLE reservas ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(100);
 ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_reserva VARCHAR(50) DEFAULT 'online';
+ALTER TABLE reservas ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
 ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
 ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'Pendiente confirmar';
 ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS ninos VARCHAR(50) DEFAULT '0';
 ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'Ninguna';
+ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
+DO $$ 
+BEGIN 
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='lista_espera' AND column_name='cliente_dni') THEN
+        ALTER TABLE lista_espera DROP COLUMN cliente_dni;
+    END IF;
+END $$;
 ```
-
-Esto garantiza que ante cualquier despliegue o actualización de código, la base de datos se mantenga perfectamente sincronizada sin requerir intervenciones manuales de administración de base de datos.
