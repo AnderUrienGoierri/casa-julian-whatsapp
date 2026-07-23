@@ -403,10 +403,24 @@ async function handleTextMessage(from, text) {
             await sendInteractiveButtons(from, modBody, modButtons);
             break;
 
-        case 'mod_val_comensales':
+        case 'mod_val_comensales': {
+            const numDiners = parseInt(text.trim(), 10);
+            if (isNaN(numDiners) || numDiners <= 0 || numDiners > 6) {
+                await sendMessage(from, getTranslation(lang, 'maxComensalesErrorMsg'));
+                return;
+            }
+
+            const detalleMod = `Reserva Actual: ${currentState.data.reservaActual || 'No especificada'}\nModificación (COMENSALES): ${numDiners} personas`;
+            
+            await sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod);
+            await sendMessage(from, getTranslation(lang, 'modSuccessMsg'));
+            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+            userStates.delete(from);
+            break;
+        }
+
         case 'mod_val_dia':
-        case 'mod_val_hora':
-            // Registrar solicitud de modificación
+        case 'mod_val_hora': {
             const tipoModLabel = currentState.step.replace('mod_val_', '').toUpperCase();
             const detalleMod = `Reserva Actual: ${currentState.data.reservaActual || 'No especificada'}\nModificación (${tipoModLabel}): ${text}`;
             
@@ -415,6 +429,7 @@ async function handleTextMessage(from, text) {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
             break;
+        }
 
         case 'cancelacion_datos_actuales':
             // Registrar solicitud de cancelación
