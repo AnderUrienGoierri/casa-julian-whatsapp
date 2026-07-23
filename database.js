@@ -243,6 +243,46 @@ function getUpcomingAvailableSlots(maxSlots = 8) {
     return slots;
 }
 
+/**
+ * Busca la primera fecha futura con disponibilidad para una hora y nº de comensales concretos.
+ * @param {string} hora - Turno horario (ej: "13:00", "20:30")
+ * @param {number} comensales - Número de comensales solicitados
+ * @returns {{ encontrado: boolean, fecha?: string, diaSemana?: string }} 
+ */
+function getNextAvailableDate(hora, comensales = 1) {
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const today = new Date();
+    const numComensales = parseInt(comensales, 10) || 1;
+
+    for (let i = 1; i <= 120; i++) {
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() + i);
+
+        const dayOfWeek = targetDate.getDay();
+        if (dayOfWeek === 1) continue; // Lunes cerrado
+
+        const turnosValidos = SCHEDULE_BY_DAY[dayOfWeek] || [];
+        if (!turnosValidos.includes(hora)) continue; // Hora no válida para este día
+
+        const dayStr = String(targetDate.getDate()).padStart(2, '0');
+        const monthStr = String(targetDate.getMonth() + 1).padStart(2, '0');
+        const yearStr = targetDate.getFullYear();
+        const fechaFormatted = `${dayStr}/${monthStr}/${yearStr}`;
+
+        const check = checkAvailability(fechaFormatted, hora, numComensales);
+        if (check.disponible && check.capacidadRestante >= numComensales) {
+            return {
+                encontrado: true,
+                fecha: fechaFormatted,
+                diaSemana: diasSemana[dayOfWeek],
+                plazasLibres: check.capacidadRestante
+            };
+        }
+    }
+
+    return { encontrado: false };
+}
+
 function createReservation(data) {
     const db = loadDb();
     const nuevaReserva = {
@@ -435,6 +475,7 @@ module.exports = {
     checkAvailability,
     getAvailableTimeSlotsForDate,
     getUpcomingAvailableSlots,
+    getNextAvailableDate,
     createReservation,
     getReservation,
     getAllReservations,

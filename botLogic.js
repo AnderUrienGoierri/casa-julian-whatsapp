@@ -259,6 +259,47 @@ async function handleButtonResponse(from, buttonId) {
             await sendMessage(from, getTranslation(lang, 'waitlistStep1Nombre'));
             break;
 
+        case 'waitlist_menu_si': {
+            userStates.set(from, { step: 'menu_tradicion_formulario_reserva', data: {} });
+            await sendMessage(from, getTranslation(lang, 'menuTradicionFormPrompt'));
+            break;
+        }
+
+        case 'waitlist_menu_no': {
+            const state = userStates.get(from);
+            const wl = state?.data?.waitlist || {};
+
+            db.addToWaitlist({
+                nombre: wl.nombre || 'No especificado',
+                telefono: from,
+                dni: 'N/A',
+                email: 'N/A',
+                fecha: wl.dias || 'No especificado',
+                hora: wl.horario || 'No especificado',
+                comensales: parseInt(wl.comensales, 10) || 1,
+                idioma: lang
+            });
+
+            const detalleEspera = `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
+                                  `👥 *Comensales:* ${wl.comensales || '1'}\n` +
+                                  `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
+                                  `📅 *Disponibilidad días:* ${wl.dias || 'No especificado'}\n` +
+                                  `👶 *Niños:* ${wl.ninos || '0'}\n` +
+                                  `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
+                                  `🎁 *Menú Tradición:* No\n` +
+                                  `📱 *WhatsApp Remitente:* ${from}\n` +
+                                  `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
+
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD LISTA DE ESPERA',
+                detalleMod: detalleEspera,
+                nombreCliente: wl.nombre || 'Cliente WhatsApp',
+                telefonoReserva: from,
+                successMsgKey: 'waitlistSuccessMsg'
+            });
+            break;
+        }
+
         case 'menu_tradicion_reservar':
             userStates.set(from, { step: 'menu_tradicion_formulario_reserva', data: {} });
             await sendMessage(from, getTranslation(lang, 'menuTradicionFormPrompt'));
@@ -462,10 +503,43 @@ async function handleTextMessage(from, text) {
         }
 
         case 'espera_step3_horario': {
-            currentState.data.waitlist.horario = text;
+            const timeClean = text.trim().replace('.', ':');
+            const validTimes = ['12:30', '13:00', '13:30', '14:00', '15:15', '20:00', '20:30', '21:00', '21:30'];
+            
+            if (!validTimes.includes(timeClean)) {
+                await sendMessage(from, getTranslation(lang, 'waitlistStep3HorarioInvalid'));
+                break;
+            }
+
+            currentState.data.waitlist.horario = timeClean;
             currentState.step = 'espera_step4_dias';
             userStates.set(from, currentState);
-            await sendMessage(from, getTranslation(lang, 'waitlistStep4Dias'));
+
+            // Consultar base de datos para obtener la siguiente fecha libre para esta hora y comensales
+            const comensales = currentState.data.waitlist.comensales || '1';
+            const avail = db.getNextAvailableDate(timeClean, comensales);
+
+            let nextAvailMsg = '';
+            if (avail && avail.encontrado) {
+                if (lang === 'eu') {
+                    nextAvailMsg = `📅 *Hurrengo data librea (${comensales} pertsona, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
+                } else if (lang === 'en') {
+                    nextAvailMsg = `📅 *Next available date (${comensales} guests, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
+                } else {
+                    nextAvailMsg = `📅 *Próxima fecha libre (${comensales} comensales, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
+                }
+            } else {
+                if (lang === 'eu') {
+                    nextAvailMsg = `📅 *Erabilgarritasuna (${timeClean}):* Zure eskaeraren erabilgarritasuna eskuz kontsultatuko dugu.`;
+                } else if (lang === 'en') {
+                    nextAvailMsg = `📅 *Availability (${timeClean}):* We will check availability for your request manually.`;
+                } else {
+                    nextAvailMsg = `📅 *Disponibilidad (${timeClean}):* Comprobaremos la disponibilidad para tu solicitud manualmente.`;
+                }
+            }
+
+            const promptText = getTranslation(lang, 'waitlistStep4Dias').replace('{nextAvailable}', nextAvailMsg);
+            await sendMessage(from, promptText);
             break;
         }
 
@@ -489,31 +563,24 @@ async function handleTextMessage(from, text) {
             currentState.data.waitlist.alergias = text;
             currentState.step = 'espera_step7_menu_tradicion';
             userStates.set(from, currentState);
-            await sendMessage(from, getTranslation(lang, 'waitlistStep7MenuTradicion'));
+
+            const promptBody = getTranslation(lang, 'waitlistStep7MenuTradicion');
+            const buttons = [
+                { id: 'waitlist_menu_si', title: getTranslation(lang, 'waitlistMenuTradicionBtnSi').slice(0, 20) },
+                { id: 'waitlist_menu_no', title: getTranslation(lang, 'waitlistMenuTradicionBtnNo').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
             break;
         }
 
         case 'espera_step7_menu_tradicion': {
-            currentState.data.waitlist.menuTradicion = text;
-            const wl = currentState.data.waitlist;
-
-            const detalleEspera = `👤 *Nombre:* ${wl.nombre}\n` +
-                                  `👥 *Comensales:* ${wl.comensales}\n` +
-                                  `🕐 *Preferencia horaria:* ${wl.horario}\n` +
-                                  `📅 *Disponibilidad días:* ${wl.dias}\n` +
-                                  `👶 *Niños:* ${wl.ninos}\n` +
-                                  `⚠️ *Alergias/Restricciones:* ${wl.alergias}\n` +
-                                  `🎁 *Menú Tradición:* ${wl.menuTradicion}\n` +
-                                  `📱 *WhatsApp Remitente:* ${from}\n` +
-                                  `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
-
-            await requestUserConfirmation(from, lang, {
-                tipoAccion: 'SOLICITUD LISTA DE ESPERA',
-                detalleMod: detalleEspera,
-                nombreCliente: wl.nombre,
-                telefonoReserva: from,
-                successMsgKey: 'waitlistSuccessMsg'
-            });
+            // Manejador fallback en texto libre si el cliente escribe "Sí" o "No" manualmente
+            const lowerText = text.trim().toLowerCase();
+            if (['si', 'sí', 'bai', 'yes', 's'].includes(lowerText)) {
+                await handleButtonResponse(from, 'waitlist_menu_si');
+            } else {
+                await handleButtonResponse(from, 'waitlist_menu_no');
+            }
             break;
         }
 
