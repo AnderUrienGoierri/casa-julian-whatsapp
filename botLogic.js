@@ -373,8 +373,11 @@ async function handleTextMessage(from, text) {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
 
-            sendInternalStaffAlertInSpanish('SOLICITUD LISTA DE ESPERA', from, text)
-                .catch(err => console.error("⚠️ Error alerta lista espera:", err.message));
+            try {
+                await sendInternalStaffAlertInSpanish('SOLICITUD LISTA DE ESPERA', from, text);
+            } catch (err) {
+                console.error("⚠️ Error alerta lista espera:", err.message);
+            }
             break;
 
         case 'modificacion_datos_actuales':
@@ -435,9 +438,12 @@ async function handleTextMessage(from, text) {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
 
-            // 2. Disparar alerta a recepción en segundo plano pasando Nombre y Teléfono
-            sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod, nombreCliente, telefonoReserva)
-                .catch(err => console.error("⚠️ Error alerta modificación:", err.message));
+            // 2. Enviar alerta a recepción por WhatsApp y Email con AWAIT garantizado
+            try {
+                await sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod, nombreCliente, telefonoReserva);
+            } catch (err) {
+                console.error("⚠️ Error alerta modificación:", err.message);
+            }
             break;
         }
 
@@ -458,8 +464,11 @@ async function handleTextMessage(from, text) {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
 
-            sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod, nombreCliente, telefonoReserva)
-                .catch(err => console.error("⚠️ Error alerta modificación:", err.message));
+            try {
+                await sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod, nombreCliente, telefonoReserva);
+            } catch (err) {
+                console.error("⚠️ Error alerta modificación:", err.message);
+            }
             break;
         }
 
@@ -469,8 +478,11 @@ async function handleTextMessage(from, text) {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
 
-            sendInternalStaffAlertInSpanish('SOLICITUD CANCELACIÓN DE RESERVA', from, `Datos Reserva Actual: ${text}`)
-                .catch(err => console.error("⚠️ Error alerta cancelación:", err.message));
+            try {
+                await sendInternalStaffAlertInSpanish('SOLICITUD CANCELACIÓN DE RESERVA', from, `Datos Reserva Actual: ${text}`);
+            } catch (err) {
+                console.error("⚠️ Error alerta cancelación:", err.message);
+            }
             break;
 
         case 'menu_tradicion_formulario_reserva':
@@ -479,8 +491,11 @@ async function handleTextMessage(from, text) {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
 
-            sendInternalStaffAlertInSpanish('RESERVA MENÚ TRADICIÓN (TARJETA REGALO)', from, text)
-                .catch(err => console.error("⚠️ Error alerta menú tradición:", err.message));
+            try {
+                await sendInternalStaffAlertInSpanish('RESERVA MENÚ TRADICIÓN (TARJETA REGALO)', from, text);
+            } catch (err) {
+                console.error("⚠️ Error alerta menú tradición:", err.message);
+            }
             break;
 
         case 'menu_tradicion_formulario_caducidad':
@@ -489,8 +504,11 @@ async function handleTextMessage(from, text) {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
 
-            sendInternalStaffAlertInSpanish('CONSULTA CADUCIDAD MENÚ TRADICIÓN', from, text)
-                .catch(err => console.error("⚠️ Error alerta caducidad:", err.message));
+            try {
+                await sendInternalStaffAlertInSpanish('CONSULTA CADUCIDAD MENÚ TRADICIÓN', from, text);
+            } catch (err) {
+                console.error("⚠️ Error alerta caducidad:", err.message);
+            }
             break;
 
         default:
