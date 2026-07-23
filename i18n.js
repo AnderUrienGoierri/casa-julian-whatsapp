@@ -84,11 +84,19 @@ const baseEs = {
     faq11Desc: "Servicio de ayuda pedir taxi.",
     faq11Msg: "En el caso de necesitar un taxi para volver, te podemos ayudar. Para ello, necesitaremos que nos lo hagas saber.",
     thanksClosingMsg: "¡Gracias por contactar con nosotros! Esperamos haber resuelto tu consulta. Si necesitas cualquier otra cosa, estaremos encantados de ayudarte. ¡Te esperamos en Casa Julián!",
+    confirmPrompt: "❓ *¿Deseas enviar y confirmar esta solicitud al restaurante?*",
+    confirmYesBtn: "Sí, enviar",
+    confirmNoBtn: "No, cancelar",
+    confirmCancelledMsg: "Solicitud cancelada. No se ha enviado ninguna petición.",
     langName: "Español"
 };
 
 const baseEu = {
     ...baseEs,
+    confirmPrompt: "❓ *Eskaera hau jatetxera bidaltzea berretsi nahi duzu?*",
+    confirmYesBtn: "Bai, bidali",
+    confirmNoBtn: "Ez, ezeztatu",
+    confirmCancelledMsg: "Eskaera bertan behera utzi da. Ez da eskaerarik bidali.",
     welcomeMessage: "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
     menuButtonText: "Aukerak Ikusi",
     selectLocationTitle: "📍 *Jatetxearen Kokapena*",

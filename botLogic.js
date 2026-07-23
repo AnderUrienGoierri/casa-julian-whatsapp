@@ -262,6 +262,43 @@ async function handleButtonResponse(from, buttonId) {
             await sendMessage(from, getTranslation(lang, 'menuTradicionCaducidadPrompt'));
             break;
 
+        case 'confirm_yes': {
+            const state = userStates.get(from);
+            const pending = state?.data?.pendingAlert;
+
+            if (pending) {
+                // 1. Responder inmediatamente al cliente con los mensajes de éxito y agradecimiento del diagrama
+                await sendMessage(from, getTranslation(lang, pending.successMsgKey || 'modSuccessMsg'));
+                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                userStates.delete(from);
+
+                // 2. Enviar la alerta a recepción por WhatsApp y Email con AWAIT garantizado
+                try {
+                    await sendInternalStaffAlertInSpanish(
+                        pending.tipoAccion,
+                        from,
+                        pending.detalleMod,
+                        pending.nombreCliente,
+                        pending.telefonoReserva
+                    );
+                } catch (err) {
+                    console.error("⚠️ Error alerta recepción:", err.message);
+                }
+            } else {
+                userStates.delete(from);
+                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+            }
+            break;
+        }
+
+        case 'confirm_no': {
+            userStates.delete(from);
+            await sendMessage(from, getTranslation(lang, 'confirmCancelledMsg'));
+            await sendMessage(from, getTranslation(lang, 'returningToMenu'));
+            await sendLanguageMenu(from, 1);
+            break;
+        }
+
         case 'mod_comensales': {
             const state = userStates.get(from);
             userStates.set(from, { step: 'mod_val_comensales', data: state?.data || {} });
@@ -341,6 +378,24 @@ async function handleFaqSelection(from, faqId, lang) {
 }
 
 /**
+ * Solicita confirmación interactiva al cliente antes de enviar la alerta a recepción.
+ */
+async function requestUserConfirmation(from, lang, pendingAlertData) {
+    const state = userStates.get(from) || { lang: lang };
+    state.step = 'confirmacion_solicitud';
+    state.data = state.data || {};
+    state.data.pendingAlert = pendingAlertData;
+    userStates.set(from, state);
+
+    const promptBody = getTranslation(lang, 'confirmPrompt');
+    const buttons = [
+        { id: 'confirm_yes', title: getTranslation(lang, 'confirmYesBtn').slice(0, 20) },
+        { id: 'confirm_no', title: getTranslation(lang, 'confirmNoBtn').slice(0, 20) }
+    ];
+    await sendInteractiveButtons(from, promptBody, buttons);
+}
+
+/**
  * Maneja las respuestas de texto según el paso actual de la conversación.
  */
 async function handleTextMessage(from, text) {
@@ -367,17 +422,24 @@ async function handleTextMessage(from, text) {
             await sendLocationMenu(from);
             break;
 
-        case 'espera_formulario':
-            // Registrar solicitud de Lista de Espera
-            await sendMessage(from, getTranslation(lang, 'waitlistSuccessMsg'));
-            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
-
-            try {
-                await sendInternalStaffAlertInSpanish('SOLICITUD LISTA DE ESPERA', from, text);
-            } catch (err) {
-                console.error("⚠️ Error alerta lista espera:", err.message);
+        case 'confirmacion_solicitud': {
+            const lower = text.trim().toLowerCase();
+            if (['si', 'sí', 'bai', 'yes', 's', 'confirmar', 'enviar'].includes(lower)) {
+                await handleButtonResponse(from, 'confirm_yes', lang);
+            } else {
+                await handleButtonResponse(from, 'confirm_no', lang);
             }
+            break;
+        }
+
+        case 'espera_formulario':
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD LISTA DE ESPERA',
+                detalleMod: text,
+                nombreCliente: null,
+                telefonoReserva: from,
+                successMsgKey: 'waitlistSuccessMsg'
+            });
             break;
 
         case 'modificacion_datos_actuales':
@@ -433,17 +495,13 @@ async function handleTextMessage(from, text) {
                                `📄 *Datos Ingresados:* ${reservaActual}\n` +
                                `✏️ *Modificación (COMENSALES):* ${numDiners} personas`;
             
-            // 1. Responder inmediatamente al cliente con los mensajes de éxito y agradecimiento del diagrama
-            await sendMessage(from, getTranslation(lang, 'modSuccessMsg'));
-            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
-
-            // 2. Enviar alerta a recepción por WhatsApp y Email con AWAIT garantizado
-            try {
-                await sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod, nombreCliente, telefonoReserva);
-            } catch (err) {
-                console.error("⚠️ Error alerta modificación:", err.message);
-            }
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                detalleMod: detalleMod,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoReserva,
+                successMsgKey: 'modSuccessMsg'
+            });
             break;
         }
 
@@ -460,55 +518,44 @@ async function handleTextMessage(from, text) {
                                `📄 *Datos Ingresados:* ${reservaActual}\n` +
                                `✏️ *Modificación (${tipoModLabel}):* ${text}`;
             
-            await sendMessage(from, getTranslation(lang, 'modSuccessMsg'));
-            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
-
-            try {
-                await sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod, nombreCliente, telefonoReserva);
-            } catch (err) {
-                console.error("⚠️ Error alerta modificación:", err.message);
-            }
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                detalleMod: detalleMod,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoReserva,
+                successMsgKey: 'modSuccessMsg'
+            });
             break;
         }
 
         case 'cancelacion_datos_actuales':
-            // Registrar solicitud de cancelación
-            await sendMessage(from, getTranslation(lang, 'cancelSuccessMsg'));
-            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
-
-            try {
-                await sendInternalStaffAlertInSpanish('SOLICITUD CANCELACIÓN DE RESERVA', from, `Datos Reserva Actual: ${text}`);
-            } catch (err) {
-                console.error("⚠️ Error alerta cancelación:", err.message);
-            }
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
+                detalleMod: `Datos Reserva Actual: ${text}`,
+                nombreCliente: null,
+                telefonoReserva: from,
+                successMsgKey: 'cancelSuccessMsg'
+            });
             break;
 
         case 'menu_tradicion_formulario_reserva':
-            // Registrar reserva con Menú Tradición
-            await sendMessage(from, getTranslation(lang, 'menuTradicionSuccessMsg'));
-            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
-
-            try {
-                await sendInternalStaffAlertInSpanish('RESERVA MENÚ TRADICIÓN (TARJETA REGALO)', from, text);
-            } catch (err) {
-                console.error("⚠️ Error alerta menú tradición:", err.message);
-            }
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
+                detalleMod: text,
+                nombreCliente: null,
+                telefonoReserva: from,
+                successMsgKey: 'menuTradicionSuccessMsg'
+            });
             break;
 
         case 'menu_tradicion_formulario_caducidad':
-            // Registrar consulta de caducidad
-            await sendMessage(from, getTranslation(lang, 'menuTradicionCaducidadMsg'));
-            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
-
-            try {
-                await sendInternalStaffAlertInSpanish('CONSULTA CADUCIDAD MENÚ TRADICIÓN', from, text);
-            } catch (err) {
-                console.error("⚠️ Error alerta caducidad:", err.message);
-            }
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'CONSULTA CADUCIDAD MENÚ TRADICIÓN',
+                detalleMod: text,
+                nombreCliente: null,
+                telefonoReserva: from,
+                successMsgKey: 'menuTradicionCaducidadMsg'
+            });
             break;
 
         default:
