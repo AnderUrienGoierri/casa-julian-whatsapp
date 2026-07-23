@@ -262,10 +262,22 @@ async function handleButtonResponse(from, buttonId) {
             await sendMessage(from, getTranslation(lang, 'menuTradicionCaducidadPrompt'));
             break;
 
-        case 'mod_comensales':
-            userStates.set(from, { step: 'mod_val_comensales', data: userStates.get(from)?.data || {} });
-            await sendMessage(from, getTranslation(lang, 'modComensalesPrompt'));
+        case 'mod_comensales': {
+            const state = userStates.get(from);
+            userStates.set(from, { step: 'mod_val_comensales', data: state?.data || {} });
+            
+            const comensales = state?.data?.comensalesActuales;
+            const reservaActual = state?.data?.reservaActual || '';
+
+            let promptMsg = '';
+            if (comensales) {
+                promptMsg = getTranslation(lang, 'modComensalesPrompt').replace('{comensales}', comensales);
+            } else {
+                promptMsg = getTranslation(lang, 'modComensalesPromptUnknown').replace('{reserva}', reservaActual);
+            }
+            await sendMessage(from, promptMsg);
             break;
+        }
 
         case 'mod_dia':
             userStates.set(from, { step: 'mod_val_dia', data: userStates.get(from)?.data || {} });
@@ -364,8 +376,21 @@ async function handleTextMessage(from, text) {
             break;
 
         case 'modificacion_datos_actuales':
-            // Guardar datos de reserva actual y preguntar qué desea modificar
+            // Guardar datos de reserva actual y buscar si existe en BD o en el texto
             currentState.data.reservaActual = text;
+            
+            // Intentar encontrar reserva previa en la BD por texto o por número del usuario
+            const reservaEncontrada = db.getReservation(text) || db.getReservation(from);
+            if (reservaEncontrada && reservaEncontrada.comensales) {
+                currentState.data.comensalesActuales = reservaEncontrada.comensales;
+            } else {
+                // Si el texto incluye un número de comensales (ej: "4 personas" o "reserva para 4")
+                const matchNum = text.match(/\b([1-9]|1[0-2])\b/);
+                if (matchNum) {
+                    currentState.data.comensalesActuales = matchNum[1];
+                }
+            }
+
             currentState.step = 'modificacion_tipo';
             userStates.set(from, currentState);
 
