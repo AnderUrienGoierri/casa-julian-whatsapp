@@ -4,6 +4,7 @@ require('dotenv').config();
 
 /**
  * Genera dinámicamente el transporte SMTP consultando las variables de entorno activas.
+ * Utiliza service: 'gmail' si se detecta cuenta de Gmail para máxima fiabilidad en Render.
  */
 function getTransporter() {
     const smtpUser = process.env.SMTP_USER;
@@ -13,8 +14,21 @@ function getTransporter() {
         return null;
     }
 
-    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || smtpUser.includes('gmail');
-    const host = process.env.SMTP_HOST || (isGmail ? 'smtp.gmail.com' : 'smtp.office365.com');
+    const cleanUser = smtpUser.trim();
+    const cleanPass = smtpPass.trim();
+    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || cleanUser.includes('gmail');
+    
+    if (isGmail) {
+        return nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: cleanUser,
+                pass: cleanPass
+            }
+        });
+    }
+
+    const host = process.env.SMTP_HOST || 'smtp.office365.com';
     const port = parseInt(process.env.SMTP_PORT || '587', 10);
     const secure = process.env.SMTP_SECURE === 'true';
 
@@ -23,8 +37,8 @@ function getTransporter() {
         port: port,
         secure: secure,
         auth: {
-            user: smtpUser.trim(),
-            pass: smtpPass.trim()
+            user: cleanUser,
+            pass: cleanPass
         },
         tls: {
             rejectUnauthorized: false
