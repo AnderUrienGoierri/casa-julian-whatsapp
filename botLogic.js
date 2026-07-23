@@ -871,15 +871,68 @@ async function handleTextMessage(from, text) {
             });
             break;
 
-        case 'menu_tradicion_formulario_caducidad':
-            await requestUserConfirmation(from, lang, {
-                tipoAccion: 'CONSULTA CADUCIDAD MENÚ TRADICIÓN',
-                detalleMod: text,
-                nombreCliente: null,
-                telefonoReserva: from,
-                successMsgKey: 'menuTradicionCaducidadMsg'
-            });
+        case 'menu_tradicion_formulario_caducidad': {
+            const card = await db.getGiftCard(text);
+
+            if (card) {
+                let msg = '';
+                if (lang === 'eu') {
+                    msg = `🎁 *OPARI-TXARTELAREN EGIAZTAPENA*\n\n` +
+                          `✅ *Kodea:* ${card.codigo}\n` +
+                          `👤 *Jabea / Emptlea:* ${card.comprador_nombre || 'Zehaztu gabea'}\n` +
+                          `📅 *Iraungitze data:* ${card.fecha_caducidad}\n` +
+                          `📌 *Egoera:* ${card.estado || 'AKTIBOA'}\n\n` +
+                          `💡 *Mahaia erreserbatu nahi duzu?*\n` +
+                          `Sartu menuan -> *"4. Tradizio Menua"* -> *"Erreserbatu"*.`;
+                } else if (lang === 'en') {
+                    msg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
+                          `✅ *Code:* ${card.codigo}\n` +
+                          `👤 *Holder / Buyer:* ${card.comprador_nombre || 'Not specified'}\n` +
+                          `📅 *Expiration Date:* ${card.fecha_caducidad}\n` +
+                          `📌 *Status:* ${card.estado || 'ACTIVE'}\n\n` +
+                          `💡 *Would you like to book your table?*\n` +
+                          `Go to main menu -> *"4. Tradition Menu"* -> *"Book Table"*.`;
+                } else {
+                    msg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
+                          `✅ *Código:* ${card.codigo}\n` +
+                          `👤 *Titular / Comprador:* ${card.comprador_nombre || 'No especificado'}\n` +
+                          `📅 *Fecha de Caducidad:* ${card.fecha_caducidad}\n` +
+                          `📌 *Estado:* ${card.estado || 'ACTIVA'}\n\n` +
+                          `💡 *¿Deseas reservar tu mesa con esta tarjeta?*\n` +
+                          `Entra en el menú principal -> *"4. Menú Tradición"* -> *"Reservar"*.`;
+                }
+
+                await sendMessage(from, msg);
+                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                await sendLocationMenu(from);
+            } else {
+                let notFoundMsg = '';
+                if (lang === 'eu') {
+                    notFoundMsg = `⚠️ *Opari-txartela ez da sisteman aurkitu.* Ez dugu *"${text}"* kodearekin opari-txartel aktiborik aurkitu.\n\nGure taldeak zure kontsulta eskuz aztertuko du eta ahalik eta azkienez erantzungo dizu.`;
+                } else if (lang === 'en') {
+                    notFoundMsg = `⚠️ *Gift card not found in system.* We could not locate an active card with code *"${text}"*.\n\nOur team will review your inquiry manually and reply as soon as possible.`;
+                } else {
+                    notFoundMsg = `⚠️ *Tarjeta regalo no encontrada en el sistema.* No hemos localizado ninguna tarjeta activa con el código *"${text}"*.\n\nNuestro equipo revisará su consulta manualmente y le responderá a la menor brevedad posible.`;
+                }
+
+                await sendMessage(from, notFoundMsg);
+                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                await sendLocationMenu(from);
+
+                try {
+                    await sendInternalStaffAlertInSpanish(
+                        'CONSULTA CADUCIDAD TARJETA REGALO (NO ENCONTRADA)',
+                        from,
+                        `📄 *Código/Texto ingresado:* ${text}`,
+                        null,
+                        from
+                    );
+                } catch (err) {
+                    console.error("Error enviando alerta recepción:", err.message);
+                }
+            }
             break;
+        }
 
         default:
             await sendLanguageMenu(from, 1);

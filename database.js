@@ -14,11 +14,20 @@ if (process.env.DATABASE_URL) {
     });
     console.log("🗄️ Modo Base de Datos: PostgreSQL Conectado.");
 
-    // Auto-migración para asegurar que las columnas de idioma existan
+    // Auto-migración para asegurar que las columnas de idioma y tabla tarjetas_regalo existan
     pool.query(`
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
+        CREATE TABLE IF NOT EXISTS tarjetas_regalo (
+            id VARCHAR(50) PRIMARY KEY,
+            codigo VARCHAR(50) UNIQUE NOT NULL,
+            comprador_nombre VARCHAR(100),
+            comprador_telefono VARCHAR(20),
+            fecha_compra VARCHAR(20),
+            fecha_caducidad VARCHAR(20),
+            estado VARCHAR(20) DEFAULT 'ACTIVA'
+        );
     `).then(() => {
         // Sincronizar reservas desde PostgreSQL al arrancar
         return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma FROM reservas WHERE estado = 'CONFIRMADA'");
@@ -48,7 +57,12 @@ if (process.env.DATABASE_URL) {
 const defaultData = {
     capacidadMaximaPorTurno: 20,
     reservas: [],
-    listaEspera: []
+    listaEspera: [],
+    tarjetasRegalo: [
+        { id: 'TR-001', codigo: 'MT-2026-001', comprador_nombre: 'Juan Pérez', comprador_telefono: '+34600112233', fecha_compra: '01/01/2026', fecha_caducidad: '31/12/2026', estado: 'ACTIVA' },
+        { id: 'TR-002', codigo: 'MT-2026-002', comprador_nombre: 'María López', comprador_telefono: '+34611223344', fecha_compra: '15/02/2026', fecha_caducidad: '15/10/2026', estado: 'ACTIVA' },
+        { id: 'TR-003', codigo: '12345', comprador_nombre: 'Cliente Prueba', comprador_telefono: '+34622334455', fecha_compra: '01/03/2026', fecha_caducidad: '30/11/2026', estado: 'ACTIVA' }
+    ]
 };
 
 function loadDb() {
@@ -471,6 +485,70 @@ function removeFromWaitlist(id) {
     return null;
 }
 
+// -------------------------------------------------------------
+// OPERACIONES DE TARJETAS REGALO
+// -------------------------------------------------------------
+
+async function getGiftCard(criterio) {
+    if (!criterio || typeof criterio !== 'string') return null;
+    const search = criterio.trim().toUpperCase();
+
+    // 1. Consultar PostgreSQL Neon si la conexión está lista
+    if (pool) {
+        try {
+            const res = await pool.query(
+                `SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado 
+                 FROM tarjetas_regalo 
+                 WHERE UPPER(codigo) = $1 OR UPPER(id) = $1 OR $1 LIKE '%' || UPPER(codigo) || '%' LIMIT 1`,
+                [search]
+            );
+            if (res && res.rows && res.rows.length > 0) {
+                return res.rows[0];
+            }
+        } catch (err) {
+            console.error("Error consultando tarjetas_regalo en PostgreSQL:", err.message);
+        }
+    }
+
+    // 2. Fallback a almacenamiento local db.json
+    const db = loadDb();
+    const tarjetas = db.tarjetasRegalo || [];
+    const card = tarjetas.find(t => 
+        (t.codigo && t.codigo.toUpperCase() === search) ||
+        (t.id && t.id.toUpperCase() === search) ||
+        (t.codigo && search.includes(t.codigo.toUpperCase()))
+    );
+
+    return card || null;
+}
+
+function createGiftCard(data) {
+    const db = loadDb();
+    const nuevaTarjeta = {
+        id: 'TR-' + Date.now().toString().slice(-6),
+        codigo: data.codigo.trim().toUpperCase(),
+        comprador_nombre: data.comprador_nombre || 'Desconocido',
+        comprador_telefono: data.comprador_telefono || '',
+        fecha_compra: data.fecha_compra || new Date().toLocaleDateString('es-ES'),
+        fecha_caducidad: data.fecha_caducidad,
+        estado: data.estado || 'ACTIVA'
+    };
+
+    if (!db.tarjetasRegalo) db.tarjetasRegalo = [];
+    db.tarjetasRegalo.push(nuevaTarjeta);
+    saveDb(db);
+
+    if (pool) {
+        pool.query(
+            `INSERT INTO tarjetas_regalo(id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado)
+             VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT(codigo) DO NOTHING`,
+            [nuevaTarjeta.id, nuevaTarjeta.codigo, nuevaTarjeta.comprador_nombre, nuevaTarjeta.comprador_telefono, nuevaTarjeta.fecha_compra, nuevaTarjeta.fecha_caducidad, nuevaTarjeta.estado]
+        ).catch(err => console.error("Error PostgreSQL INSERT tarjetas_regalo:", err.message));
+    }
+
+    return nuevaTarjeta;
+}
+
 module.exports = {
     checkAvailability,
     getAvailableTimeSlotsForDate,
@@ -486,6 +564,8 @@ module.exports = {
     getWaitlistPosition,
     getFirstWaitlistForSlot,
     removeFromWaitlist,
+    getGiftCard,
+    createGiftCard,
     SHIFT_CAPACITIES,
     SCHEDULE_BY_DAY
 };
