@@ -47,10 +47,6 @@ app.get('/webhook', (req, res) => {
  * que los clientes envíen a nuestro bot.
  */
 app.post('/webhook', async (req, res) => {
-    // IMPORTANTE: Responder con 200 OK inmediatamente.
-    // Meta requiere una respuesta rápida, si tardas procesando, reenviará el mensaje.
-    res.sendStatus(200);
-
     try {
         const body = req.body;
         
@@ -66,14 +62,16 @@ app.post('/webhook', async (req, res) => {
                         
                         const message = change.value.messages[0];
                         
-                        // Enviamos el mensaje a nuestra lógica (botLogic.js)
+                        // Enviamos el mensaje a nuestra lógica (botLogic.js) y esperamos la finalización completa
                         await processMessage(message);
                     }
                 }
             }
         }
+        res.sendStatus(200);
     } catch (error) {
         console.error("Error al procesar el webhook entrante:", error);
+        res.sendStatus(200);
     }
 });
 
