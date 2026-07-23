@@ -81,23 +81,29 @@ function getCategoryHeader(tipoAccion) {
 
 /**
  * Envía una alerta interna al personal/maitre de Casa Julián 100% en ESPAÑOL por WhatsApp y Email.
+ * Incluye SIEMPRE el Nombre y Apellidos y el Teléfono del Cliente.
  */
-async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados) {
+async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados, nombreCliente = null, telefonoReserva = null) {
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
     const categoryInfo = getCategoryHeader(tipoAccion);
     const targetEmail = process.env.STAFF_EMAIL || 'anurte@gmail.com';
 
+    const nombreDisplay = nombreCliente ? nombreCliente : 'Ver detalles abajo';
+    const telDisplay = telefonoReserva ? telefonoReserva : telefonoCliente;
+
     const alertMessage = `${categoryInfo.banner}\n\n` +
         `🏷️ *Categoría:* ${categoryInfo.colorTag}\n` +
-        `📞 *Teléfono Cliente:* ${telefonoCliente}\n` +
-        `⏰ *Fecha:* ${timestamp}\n\n` +
+        `👤 *Nombre Cliente:* ${nombreDisplay}\n` +
+        `📞 *Teléfono Cliente:* ${telDisplay}\n` +
+        `⏰ *Fecha Registro:* ${timestamp}\n\n` +
         `📝 *Datos Recibidos:*\n${datosDetallados}`;
 
     console.log(`\n================ [NOTIFICACIÓN INTERNA PARA PERSONAL EN ESPAÑOL] ================`);
     console.log(categoryInfo.banner);
     console.log(`🏷️ CATEGORÍA: ${categoryInfo.colorTag}`);
+    console.log(`👤 NOMBRE CLIENTE: ${nombreDisplay}`);
+    console.log(`📞 TELÉFONO CLIENTE: ${telDisplay}`);
     console.log(`📧 EMAIL DESTINO: ${targetEmail}`);
-    console.log(`📞 TELÉFONO CLIENTE: ${telefonoCliente}`);
     console.log(`⏰ FECHA: ${timestamp}`);
     console.log(`📝 DATOS RECIBIDOS:\n${datosDetallados}`);
     console.log(`=================================================================================\n`);
@@ -124,7 +130,8 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
                 </div>
                 <div style="padding: 20px 0;">
                     <p style="font-size: 16px; color: #333;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
-                    <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telefonoCliente}</p>
+                    <p style="font-size: 15px; color: #333;"><strong>Nombre del Cliente:</strong> ${nombreDisplay}</p>
+                    <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telDisplay}</p>
                     <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
                     
                     <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
@@ -140,7 +147,7 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
             const info = await activeTransporter.sendMail({
                 from: `"Casa Julian Bot" <${process.env.SMTP_USER}>`,
                 to: targetEmail,
-                subject: `${categoryInfo.subjectTag} - Solicitud de Cliente ${telefonoCliente}`,
+                subject: `${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`,
                 html: emailHtml
             });
             console.log(`   └─ ✅ Email de alerta entregado con éxito a ${targetEmail} (ID: ${info.messageId})`);
@@ -149,7 +156,6 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         }
     } else {
         console.log(`ℹ️ [SIMULACIÓN EMAIL] Notificación configurada para enviarse a: ${targetEmail}`);
-        console.log(`   (Para recibir el correo real en tu bandeja de entrada de ${targetEmail}, introduce tus credenciales SMTP en Render / .env)`);
     }
 }
 

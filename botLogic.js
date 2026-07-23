@@ -383,13 +383,20 @@ async function handleTextMessage(from, text) {
             
             // Intentar encontrar reserva previa en la BD por texto o por número del usuario
             const reservaEncontrada = db.getReservation(text) || db.getReservation(from);
-            if (reservaEncontrada && reservaEncontrada.comensales) {
+            if (reservaEncontrada) {
                 currentState.data.comensalesActuales = reservaEncontrada.comensales;
+                currentState.data.nombreCliente = reservaEncontrada.nombre;
+                currentState.data.telefonoReserva = reservaEncontrada.telefono;
             } else {
-                // Si el texto incluye un número de comensales (ej: "4 personas" o "reserva para 4")
-                const matchNum = text.match(/\b([1-9]|1[0-2])\b/);
-                if (matchNum) {
-                    currentState.data.comensalesActuales = matchNum[1];
+                const esTelefono = text.match(/\+?\d{8,15}/);
+                if (esTelefono) {
+                    currentState.data.telefonoReserva = esTelefono[0];
+                    const restoTexto = text.replace(esTelefono[0], '').trim();
+                    if (restoTexto) {
+                        currentState.data.nombreCliente = restoTexto;
+                    }
+                } else {
+                    currentState.data.nombreCliente = text;
                 }
             }
 
@@ -413,15 +420,23 @@ async function handleTextMessage(from, text) {
                 return;
             }
 
-            const detalleMod = `Reserva Actual: ${currentState.data.reservaActual || 'No especificada'}\nModificación (COMENSALES): ${numDiners} personas`;
+            const nombreCliente = currentState.data.nombreCliente || null;
+            const telefonoReserva = currentState.data.telefonoReserva || from;
+            const reservaActual = currentState.data.reservaActual || 'No especificada';
+
+            const detalleMod = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
+                               `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
+                               `📱 *WhatsApp Remitente:* ${from}\n` +
+                               `📄 *Datos Ingresados:* ${reservaActual}\n` +
+                               `✏️ *Modificación (COMENSALES):* ${numDiners} personas`;
             
             // 1. Responder inmediatamente al cliente con los mensajes de éxito y agradecimiento del diagrama
             await sendMessage(from, getTranslation(lang, 'modSuccessMsg'));
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
 
-            // 2. Disparar alerta a recepción en segundo plano
-            sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod)
+            // 2. Disparar alerta a recepción en segundo plano pasando Nombre y Teléfono
+            sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod, nombreCliente, telefonoReserva)
                 .catch(err => console.error("⚠️ Error alerta modificación:", err.message));
             break;
         }
@@ -429,13 +444,21 @@ async function handleTextMessage(from, text) {
         case 'mod_val_dia':
         case 'mod_val_hora': {
             const tipoModLabel = currentState.step.replace('mod_val_', '').toUpperCase();
-            const detalleMod = `Reserva Actual: ${currentState.data.reservaActual || 'No especificada'}\nModificación (${tipoModLabel}): ${text}`;
+            const nombreCliente = currentState.data.nombreCliente || null;
+            const telefonoReserva = currentState.data.telefonoReserva || from;
+            const reservaActual = currentState.data.reservaActual || 'No especificada';
+
+            const detalleMod = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
+                               `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
+                               `📱 *WhatsApp Remitente:* ${from}\n` +
+                               `📄 *Datos Ingresados:* ${reservaActual}\n` +
+                               `✏️ *Modificación (${tipoModLabel}):* ${text}`;
             
             await sendMessage(from, getTranslation(lang, 'modSuccessMsg'));
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
 
-            sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod)
+            sendInternalStaffAlertInSpanish('SOLICITUD MODIFICACIÓN DE RESERVA', from, detalleMod, nombreCliente, telefonoReserva)
                 .catch(err => console.error("⚠️ Error alerta modificación:", err.message));
             break;
         }
