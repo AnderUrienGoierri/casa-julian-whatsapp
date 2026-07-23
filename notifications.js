@@ -1,6 +1,11 @@
 const nodemailer = require('nodemailer');
 const { sendMessage } = require('./whatsappApi');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
+
+const headerImagePath = path.join(__dirname, 'documentacion', 'imagen_chat_casa_julian.jpg');
+const hasHeaderImage = fs.existsSync(headerImagePath);
 
 /**
  * Genera dinámicamente el transporte SMTP consultando las variables de entorno activas.
@@ -93,7 +98,7 @@ function getCategoryHeader(tipoAccion) {
 
 /**
  * Envía una alerta interna al personal/maitre de Casa Julián 100% en ESPAÑOL por WhatsApp y Email.
- * Incluye SIEMPRE el Nombre y Apellidos y el Teléfono del Cliente.
+ * Incluye la imagen del restaurante como cabecera del correo electrónico.
  */
 async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados, nombreCliente = null, telefonoReserva = null) {
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
@@ -129,19 +134,24 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         console.error('⚠️ Error al enviar alerta WhatsApp al personal:', error.message);
     }
 
-    // 2. Enviar email si el servidor SMTP está configurado (construcción dinámica del transporter)
+    // 2. Enviar email si el servidor SMTP está configurado (con imagen de cabecera adjunta CID)
     const activeTransporter = getTransporter();
 
     if (activeTransporter) {
         try {
+            const headerImageHtml = hasHeaderImage 
+                ? `<div style="width: 100%; text-align: center; background-color: #111; max-height: 240px; overflow: hidden;"><img src="cid:casa_julian_header" alt="Asador Casa Julián" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" /></div>`
+                : '';
+
             const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; padding: 20px; background-color: #ffffff;">
-                <div style="background-color: #8B0000; color: #ffffff; padding: 14px; text-align: center; border-radius: 4px;">
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                ${headerImageHtml}
+                <div style="background-color: #8B0000; color: #ffffff; padding: 14px; text-align: center;">
                     <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
                     <p style="margin: 6px 0 0 0; font-size: 15px; font-weight: bold;">${categoryInfo.colorTag}</p>
                 </div>
-                <div style="padding: 20px 0;">
-                    <p style="font-size: 16px; color: #333;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
+                <div style="padding: 20px;">
+                    <p style="font-size: 16px; color: #333; margin-top: 0;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
                     <p style="font-size: 15px; color: #333;"><strong>Nombre del Cliente:</strong> ${nombreDisplay}</p>
                     <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telDisplay}</p>
                     <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
@@ -151,17 +161,25 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
                         <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
                     </div>
                 </div>
-                <div style="border-top: 1px solid #eee; padding-top: 10px; text-align: center; font-size: 12px; color: #888;">
-                    <p>Notificación Automática del Sistema de Reservas - Asador Casa Julián</p>
+                <div style="border-top: 1px solid #eee; padding: 12px; text-align: center; font-size: 12px; color: #888; background-color: #fafafa;">
+                    <p style="margin: 0;">Notificación Automática del Sistema de Reservas - Asador Casa Julián</p>
                 </div>
             </div>
             `;
-            const info = await activeTransporter.sendMail({
+
+            const mailOptions = {
                 from: `"Casa Julian Bot" <${process.env.SMTP_USER || 'anurte@gmail.com'}>`,
                 to: targetEmail,
                 subject: `${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`,
-                html: emailHtml
-            });
+                html: emailHtml,
+                attachments: hasHeaderImage ? [{
+                    filename: 'imagen_chat_casa_julian.jpg',
+                    path: headerImagePath,
+                    cid: 'casa_julian_header'
+                }] : []
+            };
+
+            const info = await activeTransporter.sendMail(mailOptions);
             console.log(`   └─ ✅ Email de alerta entregado con éxito a ${targetEmail} (ID: ${info.messageId})`);
         } catch (error) {
             console.error('⚠️ Error al enviar email interno al personal:', error.message);
@@ -175,13 +193,18 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
  * Envía un correo electrónico de confirmación de reserva al cliente.
  */
 async function sendEmailConfirmation(reserva) {
+    const headerImageHtml = hasHeaderImage 
+        ? `<div style="width: 100%; text-align: center; background-color: #111; max-height: 240px; overflow: hidden;"><img src="cid:casa_julian_header" alt="Asador Casa Julián" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" /></div>`
+        : '';
+
     const htmlTemplate = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; background-color: #fcfbf9;">
-        <div style="text-align: center; border-bottom: 2px solid #8B0000; padding-bottom: 15px;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background-color: #fcfbf9;">
+        ${headerImageHtml}
+        <div style="text-align: center; border-bottom: 2px solid #8B0000; padding: 15px; background-color: #ffffff;">
             <h1 style="color: #8B0000; margin: 0;">Asador Casa Julian de Tolosa</h1>
             <p style="color: #666; font-size: 14px; margin-top: 5px;">Confirmación Oficial de Reserva</p>
         </div>
-        <div style="padding: 20px 0;">
+        <div style="padding: 20px;">
             <p style="font-size: 16px;">Hola <strong>${reserva.nombre}</strong>,</p>
             <p>¡Muchas gracias por elegirnos! Tu solicitud de reserva ha sido <strong>CONFIRMADA</strong> correctamente.</p>
             
@@ -197,9 +220,9 @@ async function sendEmailConfirmation(reserva) {
             
             <p style="color: #555; font-size: 14px;">Si necesitas modificar o cancelar tu reserva, puedes hacerlo a través de nuestro canal automatizado de WhatsApp.</p>
         </div>
-        <div style="text-align: center; border-top: 1px solid #e0e0e0; padding-top: 15px; color: #888; font-size: 12px;">
-            <p>Casa Julian • Calle Sta. Clara 6, Tolosa / Calle Ibiza 42, Madrid</p>
-            <p><a href="https://casajulian.eus/" style="color: #8B0000; text-decoration: none;">https://casajulian.eus/</a></p>
+        <div style="text-align: center; border-top: 1px solid #e0e0e0; padding: 15px; color: #888; font-size: 12px; background-color: #fafafa;">
+            <p style="margin: 0 0 5px 0;">Casa Julian • Calle Sta. Clara 6, Tolosa / Calle Ibiza 42, Madrid</p>
+            <p style="margin: 0;"><a href="https://casajulian.eus/" style="color: #8B0000; text-decoration: none;">https://casajulian.eus/</a></p>
         </div>
     </div>
     `;
@@ -213,7 +236,12 @@ async function sendEmailConfirmation(reserva) {
                 from: `"Casa Julian Reservas" <${process.env.SMTP_USER || 'anurte@gmail.com'}>`,
                 to: reserva.email,
                 subject: `✅ Reserva Confirmada (${reserva.id}) - Asador Casa Julian`,
-                html: htmlTemplate
+                html: htmlTemplate,
+                attachments: hasHeaderImage ? [{
+                    filename: 'imagen_chat_casa_julian.jpg',
+                    path: headerImagePath,
+                    cid: 'casa_julian_header'
+                }] : []
             });
             console.log(`   └─ Status: Email entregado a ${reserva.email}`);
         } catch (error) {

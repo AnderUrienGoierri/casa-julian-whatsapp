@@ -103,6 +103,13 @@ async function sendLanguageMenu(from, page = 1) {
         ];
         await sendInteractiveList(from, bodyText, buttonText, sections);
     } else {
+        const welcomeImageUrl = process.env.WELCOME_IMAGE_URL || 'https://raw.githubusercontent.com/AnderUrienGoierri/casa-julian-whatsapp/main/documentacion/imagen_chat_casa_julian.jpg';
+        try {
+            await sendImageMessage(from, welcomeImageUrl, 'Asador Casa Julián de Tolosa');
+        } catch (e) {
+            console.error("⚠️ Error enviando imagen de bienvenida por WhatsApp:", e.message);
+        }
+
         const bodyText = "🥩🔥 *¡Bienvenido/a a Casa Julián!* 🥩🔥\n\nSerá un placer ayudarte. ¿En qué idioma deseas continuar? / Select your language:";
         const buttonText = "Seleccionar Idioma";
         const sections = [
