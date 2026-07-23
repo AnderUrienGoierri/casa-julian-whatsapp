@@ -415,8 +415,11 @@ function createReservation(data) {
     const diasPref = formatDaysInSpanish(rawDias);
     const nacCode = formatNationalityCode(data.nacionalidad);
 
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0,10).replace(/-/g,'');
+    const seq = now.getTime().toString().slice(-6);
     const nuevaReserva = {
-        id: 'RES-' + Date.now().toString().slice(-6),
+        id: `RES-${dateStr}-${seq}`,
         nombre: data.nombre,
         telefono: data.telefono,
         dni: (data.dni || 'N/A').toUpperCase().trim(),
@@ -429,7 +432,7 @@ function createReservation(data) {
         idioma: data.idioma || 'es',
         dias_preferencia: diasPref,
         tipo_reserva: data.tipo_reserva || 'online',
-        fechaCreacion: new Date().toISOString()
+        fechaCreacion: now.toISOString()
     };
 
     db.reservas.push(nuevaReserva);
@@ -442,14 +445,30 @@ function createReservation(data) {
              VALUES($1, $2, $3, $4, $5, $6)
              ON CONFLICT(dni) DO UPDATE SET nombre=$1, telefono=$2, email=$4, idioma=$5, nacionalidad=$6`,
             [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
-        ).catch(err => console.error("Error PostgreSQL INSERT cliente:", err.message));
+        ).catch(err => console.error("❌ Error PostgreSQL INSERT cliente:", err.message));
 
-        // 2. Guardar reserva con idioma, dias_preferencia, tipo_reserva y nacionalidad
+        // 2. Guardar reserva
         pool.query(
             `INSERT INTO reservas(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad)
-             VALUES($1, $4, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) ON CONFLICT(id) DO NOTHING`,
-            [nuevaReserva.id, nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.comensales, nuevaReserva.estado, nuevaReserva.idioma, nuevaReserva.dias_preferencia, nuevaReserva.tipo_reserva, nuevaReserva.nacionalidad]
-        ).catch(err => console.error("Error PostgreSQL INSERT reserva:", err.message));
+             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT(id) DO NOTHING`,
+            [
+                nuevaReserva.id,
+                nuevaReserva.dni,
+                nuevaReserva.nombre,
+                nuevaReserva.telefono,
+                nuevaReserva.dni,
+                nuevaReserva.email,
+                nuevaReserva.fecha,
+                nuevaReserva.hora,
+                nuevaReserva.comensales,
+                nuevaReserva.estado,
+                nuevaReserva.idioma,
+                nuevaReserva.dias_preferencia,
+                nuevaReserva.tipo_reserva,
+                nuevaReserva.nacionalidad
+            ]
+        ).then(() => console.log(`✅ Reserva guardada en PostgreSQL: ${nuevaReserva.id}`))
+         .catch(err => console.error("❌ Error PostgreSQL INSERT reserva:", err.message, JSON.stringify(nuevaReserva)));
     }
 
     return nuevaReserva;
