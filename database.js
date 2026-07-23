@@ -320,6 +320,31 @@ function getNextAvailableDate(hora, comensales = 1) {
     return { encontrado: false };
 }
 
+function formatNationalityCode(nacStr) {
+    if (!nacStr || typeof nacStr !== 'string') return 'ES';
+    const s = nacStr.toLowerCase().trim();
+    if (s.includes('esp') || s.includes('spain') || s === 'es') return 'ES';
+    if (s.includes('fran') || s === 'fr') return 'FR';
+    if (s.includes('reino') || s.includes('uk') || s.includes('gb') || s.includes('erresuma') || s.includes('united kingdom')) return 'UK';
+    if (s.includes('ee.uu') || s.includes('aeb') || s.includes('usa') || s.includes('us') || s.includes('estados unidos')) return 'US';
+    if (s.includes('alem') || s.includes('germany') || s === 'de') return 'DE';
+    if (s.includes('ital') || s === 'it') return 'IT';
+    if (s.includes('port') || s === 'pt') return 'PT';
+    if (s.includes('mex') || s === 'mx') return 'MX';
+    if (s.includes('jap') || s === 'jp') return 'JP';
+    if (s.includes('paises') || s.includes('neder') || s.includes('nether') || s === 'nl') return 'NL';
+    if (s.includes('canad') || s === 'ca') return 'CA';
+    if (s.includes('gali') || s === 'gl') return 'GL';
+    if (s.includes('rusi') || s === 'ru') return 'RU';
+    if (s.includes('chin') || s === 'zh' || s === 'cn') return 'CN';
+    if (s.includes('argent') || s === 'ar') return 'AR';
+    
+    const cleanNoEmoji = nacStr.replace(/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1F9FF}]/gu, '').trim().toUpperCase();
+    if (cleanNoEmoji.length === 2) return cleanNoEmoji;
+
+    return 'OTRO';
+}
+
 function formatDaysInSpanish(diasStr) {
     if (!diasStr || typeof diasStr !== 'string') return 'Sin preferencia';
     const dayMap = {
@@ -345,6 +370,7 @@ function createReservation(data) {
     const db = loadDb();
     const rawDias = data.dias_preferencia || data.dias || 'Sin preferencia';
     const diasPref = formatDaysInSpanish(rawDias);
+    const nacCode = formatNationalityCode(data.nacionalidad);
 
     const nuevaReserva = {
         id: 'RES-' + Date.now().toString().slice(-6),
@@ -352,7 +378,7 @@ function createReservation(data) {
         telefono: data.telefono,
         dni: (data.dni || 'N/A').toUpperCase().trim(),
         email: (data.email || 'N/A').toLowerCase().trim(),
-        nacionalidad: data.nacionalidad || 'España',
+        nacionalidad: nacCode,
         fecha: data.fecha || '',
         hora: data.hora || '',
         comensales: parseInt(data.comensales, 10) || 2,
@@ -481,13 +507,15 @@ async function addToWaitlist(data) {
     const comensalesNum = parseInt(data.comensales, 10);
     const validComensales = isNaN(comensalesNum) ? 1 : comensalesNum;
 
+    const nacCode = formatNationalityCode(data.nacionalidad);
+
     const nuevoRegistro = {
         id: 'ESP-' + Date.now().toString().slice(-6),
         nombre: data.nombre || 'No especificado',
         telefono: data.telefono || '',
         dni: (data.dni || 'N/A').toUpperCase().trim(),
         email: (data.email || 'N/A').toLowerCase().trim(),
-        nacionalidad: data.nacionalidad || 'España',
+        nacionalidad: nacCode,
         dias_preferencia: diasPref,
         hora: data.hora || 'No especificado',
         comensales: validComensales,
