@@ -167,7 +167,8 @@ async function sendMainMenu(from) {
                 { id: "opt_modificacion", title: getTranslation(lang, 'opt2Title').slice(0, 24), description: getTranslation(lang, 'opt2Desc').slice(0, 72) },
                 { id: "opt_cancelacion", title: getTranslation(lang, 'opt3Title').slice(0, 24), description: getTranslation(lang, 'opt3Desc').slice(0, 72) },
                 { id: "opt_tengo_menu_tradicion", title: getTranslation(lang, 'opt4Title').slice(0, 24), description: getTranslation(lang, 'opt4Desc').slice(0, 72) },
-                { id: "opt_otras_cuestiones", title: getTranslation(lang, 'opt5Title').slice(0, 24), description: getTranslation(lang, 'opt5Desc').slice(0, 72) },
+                { id: "opt_regalar_menu_tradicion", title: getTranslation(lang, 'opt5Title').slice(0, 24), description: getTranslation(lang, 'opt5Desc').slice(0, 72) },
+                { id: "opt_otras_cuestiones", title: getTranslation(lang, 'opt6Title').slice(0, 24), description: getTranslation(lang, 'opt6Desc').slice(0, 72) },
                 { id: "opt_cambiar_idioma", title: getTranslation(lang, 'optLangTitle').slice(0, 24), description: getTranslation(lang, 'optLangDesc').slice(0, 72) }
             ]
         }
@@ -177,24 +178,40 @@ async function sendMainMenu(from) {
 }
 
 /**
+ * Envía la imagen del Menú Tradición y el enlace directo para comprar la tarjeta regalo en la web oficial.
+ */
+async function handleRegalarMenuTradicion(from, lang) {
+    const serverBaseUrl = process.env.RENDER_EXTERNAL_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
+    const imageUrl = `${serverBaseUrl}/public/menu_tradicion.png`;
+    const caption = getTranslation(lang, 'regalarMenuCaption');
+
+    try {
+        await sendImageMessage(from, imageUrl, caption);
+    } catch (e) {
+        console.error("⚠️ Error enviando imagen de Menú Tradición por WhatsApp:", e.message);
+    }
+
+    const messageText = getTranslation(lang, 'regalarMenuMsg');
+    await sendMessage(from, messageText);
+    await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+    await sendLocationMenu(from);
+}
+
+/**
  * Responde a selecciones de listas interactivas.
  */
 async function handleListResponse(from, listId) {
     const lang = userLanguages.get(from) || 'es';
 
     switch (listId) {
-        case 'opt_cambiar_idioma':
-            await sendLanguageMenu(from, 1);
-            break;
-
         case 'opt_quiero_reservar':
-            userStates.set(from, { step: 'reserva_opciones', data: {} });
-            const reservaBody = getTranslation(lang, 'reservaIntro');
-            const reservaButtons = [
+            userStates.set(from, { step: 'reserva_tipo', data: {} });
+            await sendMessage(from, getTranslation(lang, 'reservaIntro'));
+            const resButtons = [
                 { id: 'btn_solicitar_reserva', title: getTranslation(lang, 'btnSolicitarReserva').slice(0, 20) },
                 { id: 'btn_add_lista_espera', title: getTranslation(lang, 'btnAddListaEspera').slice(0, 20) }
             ];
-            await sendInteractiveButtons(from, reservaBody, reservaButtons);
+            await sendInteractiveButtons(from, getTranslation(lang, 'reservaIntro'), resButtons);
             break;
 
         case 'opt_modificacion':
@@ -207,14 +224,20 @@ async function handleListResponse(from, listId) {
             await sendMessage(from, getTranslation(lang, 'modCancelDataPrompt'));
             break;
 
-        case 'opt_tengo_menu_tradicion':
+        case 'opt_tengo_menu_tradicion': {
             userStates.set(from, { step: 'menu_tradicion_opciones', data: {} });
             const menuTradBody = getTranslation(lang, 'menuTradicionTitle');
             const menuTradButtons = [
+                { id: 'menu_tradicion_regalar', title: getTranslation(lang, 'menuTradicionOptRegalar').slice(0, 20) },
                 { id: 'menu_tradicion_reservar', title: getTranslation(lang, 'menuTradicionOptReservar').slice(0, 20) },
                 { id: 'menu_tradicion_caducidad', title: getTranslation(lang, 'menuTradicionOptCaducidad').slice(0, 20) }
             ];
             await sendInteractiveButtons(from, menuTradBody, menuTradButtons);
+            break;
+        }
+
+        case 'opt_regalar_menu_tradicion':
+            await handleRegalarMenuTradicion(from, lang);
             break;
 
         case 'opt_otras_cuestiones':
@@ -274,6 +297,10 @@ async function handleButtonResponse(from, buttonId) {
             await sendInteractiveButtons(from, promptBody, buttons);
             break;
         }
+
+        case 'menu_tradicion_regalar':
+            await handleRegalarMenuTradicion(from, lang);
+            break;
 
         case 'waitlist_init_si':
         case 'waitlist_menu_si':
