@@ -9,19 +9,24 @@ const hasHeaderImage = fs.existsSync(headerImagePath);
 
 /**
  * Genera dinámicamente el transporte SMTP consultando las variables de entorno activas.
- * Incluye valores por defecto garantizados para el entorno de pruebas de Casa Julián.
+ * Detecta automáticamente si el usuario es de Gmail y corrige cualquier conflicto de servidor (ej: smtp.office365.com con cuenta @gmail.com).
  */
 function getTransporter() {
-    const smtpUser = (process.env.SMTP_USER || 'anurte@gmail.com').trim();
-    const smtpPass = (process.env.SMTP_PASS || 'gnymaconrsfygnek').trim();
+    let smtpUser = (process.env.SMTP_USER || 'anurte@gmail.com').trim();
+    let smtpPass = (process.env.SMTP_PASS || 'gnymaconrsfygnek').trim();
 
-    if (!smtpUser || !smtpPass) {
+    if (!smtpUser) {
         return null;
     }
 
-    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || smtpUser.includes('gmail');
-    
-    if (isGmail) {
+    const isGmailUser = smtpUser.toLowerCase().endsWith('@gmail.com');
+
+    if (isGmailUser) {
+        // Si en el panel de Render quedó la contraseña antigua de Outlook (Errotagain...), utilizar la App Password válida de Google
+        if (!smtpPass || smtpPass.includes('Errotagain')) {
+            smtpPass = 'gnymaconrsfygnek';
+        }
+
         return nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -103,6 +108,7 @@ function getCategoryHeader(tipoAccion) {
 async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados, nombreCliente = null, telefonoReserva = null) {
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
     const categoryInfo = getCategoryHeader(tipoAccion);
+    
     let targetEmail = process.env.STAFF_EMAIL || 'anurte@gmail.com';
     if (targetEmail.includes('outlook')) {
         targetEmail = 'anurte@gmail.com';
