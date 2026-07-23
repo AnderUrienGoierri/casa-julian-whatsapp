@@ -84,6 +84,7 @@ const baseEs = {
     faq11Desc: "Servicio de ayuda pedir taxi.",
     faq11Msg: "En el caso de necesitar un taxi para volver, te podemos ayudar. Para ello, necesitaremos que nos lo hagas saber.",
     thanksClosingMsg: "¡Gracias por contactar con nosotros! Esperamos haber resuelto tu consulta. Si necesitas cualquier otra cosa, estaremos encantados de ayudarte. ¡Te esperamos en Casa Julián!",
+    requestSummaryHeader: "📋 *RESUMEN DE TU SOLICITUD ENVIADA:*",
     confirmPrompt: "❓ *¿Deseas enviar y confirmar esta solicitud al restaurante?*",
     confirmYesBtn: "Sí, enviar",
     confirmNoBtn: "No, cancelar",
@@ -93,6 +94,7 @@ const baseEs = {
 
 const baseEu = {
     ...baseEs,
+    requestSummaryHeader: "📋 *ZURE ESKAERAREN LABURPENA:*",
     confirmPrompt: "❓ *Eskaera hau jatetxera bidaltzea berretsi nahi duzu?*",
     confirmYesBtn: "Bai, bidali",
     confirmNoBtn: "Ez, ezeztatu",

@@ -274,12 +274,17 @@ async function handleButtonResponse(from, buttonId) {
             const pending = state?.data?.pendingAlert;
 
             if (pending) {
-                // 1. Responder inmediatamente al cliente con los mensajes de éxito y agradecimiento del diagrama
+                // 1. Enviar primero al cliente un mensaje con el resumen detallado de su solicitud
+                const summaryHeader = getTranslation(lang, 'requestSummaryHeader');
+                const clientSummaryMsg = `${summaryHeader}\n\n${pending.detalleMod}`;
+                await sendMessage(from, clientSummaryMsg);
+
+                // 2. Responder al cliente con los mensajes de revisión y agradecimiento del diagrama
                 await sendMessage(from, getTranslation(lang, pending.successMsgKey || 'modSuccessMsg'));
                 await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
                 userStates.delete(from);
 
-                // 2. Enviar la alerta a recepción por WhatsApp y Email con AWAIT garantizado
+                // 3. Enviar la alerta a recepción por WhatsApp y Email con AWAIT garantizado
                 try {
                     await sendInternalStaffAlertInSpanish(
                         pending.tipoAccion,
