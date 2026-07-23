@@ -8,7 +8,7 @@ require('dotenv').config();
 const headerImagePath = path.join(__dirname, 'documentacion', 'casa_julian_erretegia.jpg');
 const hasHeaderImage = fs.existsSync(headerImagePath);
 const headerImageUrl = 'https://raw.githubusercontent.com/AnderUrienGoierri/casa-julian-whatsapp/main/documentacion/casa_julian_erretegia.jpg';
-const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_KcTVWSCV_8msyq8AE3MaxkPcn1rnuChEW';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_cTP3Abo8_DxT439uxnRHriY6G9UXifbuQ';
 
 /**
  * Envía un correo electrónico mediante la API REST HTTPS de Resend (Puerto 443).
