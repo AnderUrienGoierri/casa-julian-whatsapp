@@ -442,11 +442,25 @@ async function handleButtonResponse(from, buttonId) {
 
             if (currentState && currentState.step === 'espera_step7_idioma') {
                 const wl = currentState.data.waitlist || {};
-                wl.idioma = selectedLang;
+                const waitlistRecord = db.addToWaitlist({
+                    nombre: wl.nombre || 'No especificado',
+                    telefono: from,
+                    dni: wl.dni || 'N/A',
+                    email: 'N/A',
+                    nacionalidad: wl.nacionalidad || 'España',
+                    dias_preferencia: wl.dias || 'Sin preferencia',
+                    hora: wl.horario || 'No especificado',
+                    comensales: parseInt(wl.comensales, 10) || 1,
+                    ninos: wl.ninos || '0',
+                    alergias: wl.alergias || 'Ninguna',
+                    estado: 'Pendiente confirmar',
+                    idioma: selectedLang
+                });
 
                 let detalleEspera = '';
                 if (selectedLang === 'eu') {
-                    detalleEspera = `👤 *Izen-abizenak:* ${wl.nombre || 'Ez zehaztua'}\n` +
+                    detalleEspera = `🆔 *Eskaera ID:* ${waitlistRecord.id}\n` +
+                                          `👤 *Izen-abizenak:* ${wl.nombre || 'Ez zehaztua'}\n` +
                                           `🪪 *NAN/Pasaportea:* ${wl.dni || 'N/A'}\n` +
                                           `🌐 *Nazionalitatea:* ${wl.nacionalidad || 'Espainia'}\n` +
                                           `👥 *Pertsona kopurua:* ${wl.comensales || '1'}\n` +
@@ -460,7 +474,8 @@ async function handleButtonResponse(from, buttonId) {
                                           `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
                                           `📋 *Eskaera:* ITXARON ZERRENDAN INSKRIPZIOA`;
                 } else if (selectedLang === 'en') {
-                    detalleEspera = `👤 *Full Name:* ${wl.nombre || 'Not specified'}\n` +
+                    detalleEspera = `🆔 *Request ID:* ${waitlistRecord.id}\n` +
+                                          `👤 *Full Name:* ${wl.nombre || 'Not specified'}\n` +
                                           `🪪 *ID/Passport:* ${wl.dni || 'N/A'}\n` +
                                           `🌐 *Nationality:* ${wl.nacionalidad || 'Spain'}\n` +
                                           `👥 *Guests:* ${wl.comensales || '1'}\n` +
@@ -474,7 +489,8 @@ async function handleButtonResponse(from, buttonId) {
                                           `📱 *Sender WhatsApp:* ${from}\n` +
                                           `📋 *Request:* WAITLIST REGISTRATION`;
                 } else {
-                    detalleEspera = `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
+                    detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
+                                          `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
                                           `🪪 *DNI/Pasaporte:* ${wl.dni || 'N/A'}\n` +
                                           `🌐 *Nacionalidad:* ${wl.nacionalidad || 'España'}\n` +
                                           `👥 *Comensales:* ${wl.comensales || '1'}\n` +
@@ -494,16 +510,31 @@ async function handleButtonResponse(from, buttonId) {
                     detalleMod: detalleEspera,
                     nombreCliente: wl.nombre || 'Cliente WhatsApp',
                     telefonoReserva: from,
+                    waitlistId: waitlistRecord.id,
                     diasPreferencia: wl.dias || 'Sin preferencia',
                     successMsgKey: 'waitlistSuccessMsg'
                 });
             } else if (currentState && currentState.step === 'menu_trad_step7_idioma') {
                 const mt = currentState.data.menuTrad || {};
-                mt.idioma = selectedLang;
+                const resRecord = db.createReservation({
+                    nombre: mt.nombre || 'Cliente WhatsApp',
+                    telefono: from,
+                    dni: mt.dni || 'N/A',
+                    email: 'N/A',
+                    nacionalidad: mt.nacionalidad || 'España',
+                    fecha: '',
+                    hora: mt.horario || '',
+                    comensales: 2,
+                    estado: 'PENDIENTE CONFIRMACION',
+                    dias_preferencia: mt.dias || 'Sin preferencia',
+                    tipo_reserva: 'tarjeta_regalo',
+                    idioma: selectedLang
+                });
 
                 let detalleMenuTrad = '';
                 if (selectedLang === 'eu') {
-                    detalleMenuTrad = `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
+                    detalleMenuTrad = `🆔 *Erreserba ID:* ${resRecord.id}\n` +
+                                            `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
                                             `🪪 *NAN/Pasaportea:* ${mt.dni || 'N/A'}\n` +
                                             `🌐 *Nazionalitatea:* ${mt.nacionalidad || 'Espainia'}\n` +
                                             `🎁 *Opari-Txartel Zenbakia:* ${mt.tarjeta || 'Ez zehaztua'}\n` +
@@ -516,7 +547,8 @@ async function handleButtonResponse(from, buttonId) {
                                             `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
                                             `📋 *Eskaera:* TRADIZIO MENUA ERRESERBA (OPARI TXARTELA)`;
                 } else if (selectedLang === 'en') {
-                    detalleMenuTrad = `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
+                    detalleMenuTrad = `🆔 *Reservation ID:* ${resRecord.id}\n` +
+                                            `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
                                             `🪪 *ID/Passport:* ${mt.dni || 'N/A'}\n` +
                                             `🌐 *Nationality:* ${mt.nacionalidad || 'Spain'}\n` +
                                             `🎁 *Gift Card No.:* ${mt.tarjeta || 'Not specified'}\n` +
@@ -529,7 +561,8 @@ async function handleButtonResponse(from, buttonId) {
                                             `📱 *Sender WhatsApp:* ${from}\n` +
                                             `📋 *Request:* TRADITION MENU BOOKING (GIFT CARD)`;
                 } else {
-                    detalleMenuTrad = `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
+                    detalleMenuTrad = `🆔 *ID Reserva:* ${resRecord.id}\n` +
+                                            `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
                                             `🪪 *DNI/Pasaporte:* ${mt.dni || 'N/A'}\n` +
                                             `🌐 *Nacionalidad:* ${mt.nacionalidad || 'España'}\n` +
                                             `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
@@ -552,6 +585,7 @@ async function handleButtonResponse(from, buttonId) {
                     diasPreferencia: mt.dias || 'Sin preferencia',
                     horario: mt.horario || '',
                     idioma: selectedLang,
+                    reservationId: resRecord.id,
                     successMsgKey: 'menuTradicionSuccessMsg'
                 });
             }
@@ -726,64 +760,22 @@ async function handleButtonResponse(from, buttonId) {
 
             if (pending) {
                 try {
-                    // 1. Guardar definitivamente en Neon PostgreSQL y db.json según el tipo de solicitud
-                    let updatedDetail = pending.detalleMod;
-
-                    if (pending.tipoAccion === 'SOLICITUD LISTA DE ESPERA') {
-                        const wl = state?.data?.waitlist || {};
-                        const waitlistRecord = db.addToWaitlist({
-                            nombre: wl.nombre || pending.nombreCliente,
-                            telefono: from,
-                            dni: wl.dni || 'N/A',
-                            email: 'N/A',
-                            nacionalidad: wl.nacionalidad || 'España',
-                            dias_preferencia: wl.dias || 'Sin preferencia',
-                            hora: wl.horario || 'No especificado',
-                            comensales: parseInt(wl.comensales, 10) || 1,
-                            ninos: wl.ninos || '0',
-                            alergias: wl.alergias || 'Ninguna',
-                            estado: 'Pendiente confirmar',
-                            idioma: lang
-                        });
-                        console.log(`✅ Registro de lista de espera guardado en Neon PostgreSQL y db.json: ${waitlistRecord.id}`);
-                        updatedDetail = `🆔 *ID:* ${waitlistRecord.id}\n${pending.detalleMod}`;
-                    } else if (pending.tipoAccion && pending.tipoAccion.includes('RESERVA MENÚ TRADICIÓN')) {
-                        if (pending.tarjetaCodigo) {
-                            await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
-                        }
-                        if (!pending.reservationId) {
-                            const mt = state?.data?.menuTrad || {};
-                            const resRecord = db.createReservation({
-                                nombre: pending.nombreCliente,
-                                telefono: pending.telefonoReserva,
-                                dni: mt.dni || 'N/A',
-                                email: 'N/A',
-                                nacionalidad: mt.nacionalidad || 'España',
-                                fecha: '',
-                                hora: pending.horario || '',
-                                comensales: 2,
-                                estado: 'PENDIENTE CONFIRMACION',
-                                dias_preferencia: pending.diasPreferencia || 'Sin preferencia',
-                                tipo_reserva: 'tarjeta_regalo',
-                                idioma: lang
-                            });
-                            console.log(`✅ Reserva Menú Tradición guardada en Neon PostgreSQL y db.json: ${resRecord.id}`);
-                            updatedDetail = `🆔 *ID:* ${resRecord.id}\n${pending.detalleMod}`;
-                        }
+                    if (pending.tarjetaCodigo) {
+                        await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
                     }
 
-                    // 2. Responder al cliente con la confirmación de envío y mensaje de agradecimiento (UNA SOLA VEZ)
+                    // 1. Responder al cliente con los mensajes de revisión y agradecimiento
                     await sendMessage(from, getTranslation(lang, pending.successMsgKey || 'modSuccessMsg'));
                     await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
                     
-                    // 3. Re-desplegar la selección de ubicación de restaurante
+                    // 2. Re-desplegar la selección de ubicación de restaurante
                     await sendLocationMenu(from);
 
-                    // 4. Notificar a recepción por WhatsApp y Email
+                    // 3. Notificar a recepción por WhatsApp y Email
                     await sendInternalStaffAlertInSpanish(
                         pending.tipoAccion,
                         from,
-                        updatedDetail,
+                        pending.detalleMod,
                         pending.nombreCliente,
                         pending.telefonoReserva
                     );
@@ -1283,6 +1275,12 @@ async function requestUserConfirmation(from, lang, pendingAlertData) {
     state.data.pendingAlert = pendingAlertData;
     userStates.set(from, state);
 
+    // 1. Enviar primero al cliente un mensaje con el resumen detallado de su solicitud
+    const summaryHeader = getTranslation(lang, 'requestSummaryHeader');
+    const clientSummaryMsg = `${summaryHeader}\n\n${pendingAlertData.detalleMod}`;
+    await sendMessage(from, clientSummaryMsg);
+
+    // 2. Enviar la pregunta interactiva con los botones de confirmación
     const promptBody = getTranslation(lang, 'confirmPrompt');
     const buttons = [
         { id: 'confirm_yes', title: getTranslation(lang, 'confirmYesBtn').slice(0, 20) },
