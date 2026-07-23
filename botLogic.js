@@ -255,6 +255,12 @@ async function handleListResponse(from, listId) {
                 await handleWaitlistDaySelection(from, listId, 3, lang);
             } else if (listId.startsWith('mt_slot_')) {
                 await handleMenuTradSlotSelection(from, listId, lang);
+            } else if (listId.startsWith('mt_day1_')) {
+                await handleMenuTradDaySelection(from, listId, 1, lang);
+            } else if (listId.startsWith('mt_day2_')) {
+                await handleMenuTradDaySelection(from, listId, 2, lang);
+            } else if (listId.startsWith('mt_day3_')) {
+                await handleMenuTradDaySelection(from, listId, 3, lang);
             } else if (listId.startsWith('faq_')) {
                 await handleFaqSelection(from, listId, lang);
             } else {
@@ -466,6 +472,22 @@ async function handleButtonResponse(from, buttonId) {
                 }
             ];
             await sendInteractiveList(from, bodyText, buttonText, sections);
+            break;
+        }
+
+        case 'mt_cena_viernes':
+        case 'mt_cena_sabado': {
+            const state = userStates.get(from) || { data: {} };
+            state.data.menuTrad = state.data.menuTrad || {};
+
+            const rawDay = buttonId.replace('mt_cena_', '');
+            const dayLabel = getTranslation(lang, 'day' + rawDay.charAt(0).toUpperCase() + rawDay.slice(1));
+
+            state.data.menuTrad.dias = dayLabel;
+            state.step = 'menu_trad_step6_alergias';
+            userStates.set(from, state);
+
+            await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
             break;
         }
 
@@ -687,8 +709,6 @@ async function handleMenuTradSlotSelection(from, slotId, lang) {
     const state = userStates.get(from) || { data: {} };
     state.data.menuTrad = state.data.menuTrad || {};
     state.data.menuTrad.horario = timeClean;
-    state.step = 'menu_trad_step5_dias';
-    userStates.set(from, state);
 
     // Consultar BD para buscar la siguiente fecha libre para esta hora y 2 comensales (Menú Tradición)
     const avail = db.getNextAvailableDate(timeClean, 2);
@@ -704,16 +724,81 @@ async function handleMenuTradSlotSelection(from, slotId, lang) {
         }
     } else {
         if (lang === 'eu') {
-            nextAvailMsg = `📅 *Erabilgarritasuna (${timeClean}):* Zure eskaeraren erabilgarritasuna eskuz kontsultatuko dugu.`;
+            nextAvailMsg = `📅 *Erabilgarritasuna (${timeClean}):* Eskuz kontsultatuko dugu.`;
         } else if (lang === 'en') {
-            nextAvailMsg = `📅 *Availability (${timeClean}):* We will check availability for your request manually.`;
+            nextAvailMsg = `📅 *Availability (${timeClean}):* We will check manually.`;
         } else {
-            nextAvailMsg = `📅 *Disponibilidad (${timeClean}):* Comprobaremos la disponibilidad para tu solicitud manualmente.`;
+            nextAvailMsg = `📅 *Disponibilidad (${timeClean}):* Comprobaremos la disponibilidad manualmente.`;
         }
     }
 
-    const promptText = getTranslation(lang, 'menuTradStep5Dias').replace('{nextAvailable}', nextAvailMsg);
-    await sendMessage(from, promptText);
+    if (state.data.menuTrad.tipoServicio === 'Cena') {
+        state.step = 'menu_trad_step5_cena';
+        userStates.set(from, state);
+
+        const promptBody = getTranslation(lang, 'menuTradStep5CenaDia').replace('{nextAvailable}', nextAvailMsg);
+        const buttons = [
+            { id: 'mt_cena_viernes', title: getTranslation(lang, 'dayViernes').slice(0, 20) },
+            { id: 'mt_cena_sabado', title: getTranslation(lang, 'daySabado').slice(0, 20) }
+        ];
+        await sendInteractiveButtons(from, promptBody, buttons);
+    } else {
+        state.step = 'menu_trad_step5_dia1';
+        userStates.set(from, state);
+
+        const bodyText = getTranslation(lang, 'menuTradStep5Dia1').replace('{nextAvailable}', nextAvailMsg);
+        const buttonText = getTranslation(lang, 'menuButtonText');
+        const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'mt_day1_' + r.id }));
+
+        await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 1 de preferencia", rows }]);
+    }
+}
+
+/**
+ * Maneja la selección interactiva de días (Día 1, 2, 3) en Menú Tradición.
+ */
+async function handleMenuTradDaySelection(from, listId, stepNum, lang) {
+    const state = userStates.get(from) || { data: {} };
+    state.data.menuTrad = state.data.menuTrad || {};
+
+    const rawDayKey = listId.replace(`mt_day${stepNum}_`, '');
+    const dayLabel = getTranslation(lang, 'day' + rawDayKey.charAt(0).toUpperCase() + rawDayKey.slice(1));
+
+    if (stepNum === 1) {
+        state.data.menuTrad.day1Key = rawDayKey;
+        state.data.menuTrad.day1 = dayLabel;
+        state.step = 'menu_trad_step5_dia2';
+        userStates.set(from, state);
+
+        const bodyText = getTranslation(lang, 'menuTradStep5Dia2').replace('{day1}', dayLabel);
+        const buttonText = getTranslation(lang, 'menuButtonText');
+        const rows = getDaysListRows(lang, [rawDayKey]).map(r => ({ ...r, id: 'mt_day2_' + r.id }));
+        await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 2 de preferencia", rows }]);
+    } else if (stepNum === 2) {
+        state.data.menuTrad.day2Key = rawDayKey;
+        state.data.menuTrad.day2 = dayLabel;
+        state.step = 'menu_trad_step5_dia3';
+        userStates.set(from, state);
+
+        const day1Label = state.data.menuTrad.day1;
+        const bodyText = getTranslation(lang, 'menuTradStep5Dia3').replace('{day1}', day1Label).replace('{day2}', dayLabel);
+        const buttonText = getTranslation(lang, 'menuButtonText');
+        const excluded = [state.data.menuTrad.day1Key, rawDayKey];
+        const rows = getDaysListRows(lang, excluded).map(r => ({ ...r, id: 'mt_day3_' + r.id }));
+        await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 3 de preferencia", rows }]);
+    } else if (stepNum === 3) {
+        state.data.menuTrad.day3Key = rawDayKey;
+        state.data.menuTrad.day3 = dayLabel;
+
+        const d1 = state.data.menuTrad.day1;
+        const d2 = state.data.menuTrad.day2;
+        const d3 = dayLabel;
+        state.data.menuTrad.dias = `${d1}, ${d2}, ${d3}`;
+
+        state.step = 'menu_trad_step6_alergias';
+        userStates.set(from, state);
+        await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+    }
 }
 
 /**
@@ -1010,12 +1095,47 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'menu_trad_step5_dias': {
+        case 'menu_trad_step5_cena': {
+            const lowerText = text.trim().toLowerCase();
+            if (lowerText.includes('viernes') || lowerText.includes('ostirala') || lowerText.includes('friday')) {
+                await handleButtonResponse(from, 'mt_cena_viernes');
+            } else {
+                await handleButtonResponse(from, 'mt_cena_sabado');
+            }
+            break;
+        }
+
+        case 'menu_trad_step5_dia1':
+        case 'menu_trad_step5_dia2':
+        case 'menu_trad_step5_dia3': {
+            const cleanDay = text.trim();
             currentState.data.menuTrad = currentState.data.menuTrad || {};
-            currentState.data.menuTrad.dias = text;
-            currentState.step = 'menu_trad_step6_alergias';
-            userStates.set(from, currentState);
-            await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+            if (currentState.step === 'menu_trad_step5_dia1') {
+                currentState.data.menuTrad.day1 = cleanDay;
+                currentState.step = 'menu_trad_step5_dia2';
+                userStates.set(from, currentState);
+                const bodyText = getTranslation(lang, 'menuTradStep5Dia2').replace('{day1}', cleanDay);
+                const buttonText = getTranslation(lang, 'menuButtonText');
+                const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'mt_day2_' + r.id }));
+                await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 2 de preferencia", rows }]);
+            } else if (currentState.step === 'menu_trad_step5_dia2') {
+                currentState.data.menuTrad.day2 = cleanDay;
+                currentState.step = 'menu_trad_step5_dia3';
+                userStates.set(from, currentState);
+                const d1 = currentState.data.menuTrad.day1;
+                const bodyText = getTranslation(lang, 'menuTradStep5Dia3').replace('{day1}', d1).replace('{day2}', cleanDay);
+                const buttonText = getTranslation(lang, 'menuButtonText');
+                const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'mt_day3_' + r.id }));
+                await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 3 de preferencia", rows }]);
+            } else {
+                currentState.data.menuTrad.day3 = cleanDay;
+                const d1 = currentState.data.menuTrad.day1;
+                const d2 = currentState.data.menuTrad.day2;
+                currentState.data.menuTrad.dias = `${d1}, ${d2}, ${cleanDay}`;
+                currentState.step = 'menu_trad_step6_alergias';
+                userStates.set(from, currentState);
+                await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+            }
             break;
         }
 
