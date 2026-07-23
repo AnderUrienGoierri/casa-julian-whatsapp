@@ -36,7 +36,9 @@ if (process.env.DATABASE_URL) {
                 ALTER TABLE lista_espera DROP COLUMN cliente_dni;
             END IF;
         END $$;
-        ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(100);
+        ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(255);
+        ALTER TABLE lista_espera ALTER COLUMN dias_preferencia TYPE VARCHAR(255);
+        ALTER TABLE reservas ALTER COLUMN dias_preferencia TYPE VARCHAR(255);
         CREATE TABLE IF NOT EXISTS tarjetas_regalo (
             id VARCHAR(50) PRIMARY KEY,
             codigo VARCHAR(50) UNIQUE NOT NULL,
