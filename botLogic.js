@@ -370,14 +370,18 @@ async function handleButtonResponse(from, buttonId) {
         }
 
         case 'wl_cena_viernes':
-        case 'wl_cena_sabado': {
+        case 'wl_cena_sabado':
+        case 'wl_cena_skip': {
             const state = userStates.get(from) || { data: {} };
             state.data.waitlist = state.data.waitlist || {};
             
-            const rawDay = buttonId.replace('wl_cena_', '');
-            const dayLabel = getTranslation(lang, 'day' + rawDay.charAt(0).toUpperCase() + rawDay.slice(1));
-            
-            state.data.waitlist.dias = dayLabel;
+            if (buttonId === 'wl_cena_skip') {
+                state.data.waitlist.dias = 'Sin preferencia';
+            } else {
+                const rawDay = buttonId.replace('wl_cena_', '');
+                const dayLabel = getTranslation(lang, 'day' + rawDay.charAt(0).toUpperCase() + rawDay.slice(1));
+                state.data.waitlist.dias = dayLabel;
+            }
             state.step = 'espera_step5_ninos';
             userStates.set(from, state);
 
@@ -400,7 +404,7 @@ async function handleButtonResponse(from, buttonId) {
                 telefono: from,
                 dni: 'N/A',
                 email: 'N/A',
-                fecha: wl.dias || 'No especificado',
+                dias_preferencia: wl.dias || 'Sin preferencia',
                 hora: wl.horario || 'No especificado',
                 comensales: parseInt(wl.comensales, 10) || 1,
                 idioma: lang
@@ -409,7 +413,7 @@ async function handleButtonResponse(from, buttonId) {
             const detalleEspera = `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
                                   `👥 *Comensales:* ${wl.comensales || '1'}\n` +
                                   `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
-                                  `📅 *Disponibilidad días:* ${wl.dias || 'No especificado'}\n` +
+                                  `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
                                   `👶 *Niños:* ${wl.ninos || '0'}\n` +
                                   `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
                                   `🎁 *Menú Tradición:* No\n` +
@@ -421,6 +425,7 @@ async function handleButtonResponse(from, buttonId) {
                 detalleMod: detalleEspera,
                 nombreCliente: wl.nombre || 'Cliente WhatsApp',
                 telefonoReserva: from,
+                diasPreferencia: wl.dias || 'Sin preferencia',
                 successMsgKey: 'waitlistSuccessMsg'
             });
             break;
@@ -476,14 +481,18 @@ async function handleButtonResponse(from, buttonId) {
         }
 
         case 'mt_cena_viernes':
-        case 'mt_cena_sabado': {
+        case 'mt_cena_sabado':
+        case 'mt_cena_skip': {
             const state = userStates.get(from) || { data: {} };
             state.data.menuTrad = state.data.menuTrad || {};
 
-            const rawDay = buttonId.replace('mt_cena_', '');
-            const dayLabel = getTranslation(lang, 'day' + rawDay.charAt(0).toUpperCase() + rawDay.slice(1));
-
-            state.data.menuTrad.dias = dayLabel;
+            if (buttonId === 'mt_cena_skip') {
+                state.data.menuTrad.dias = 'Sin preferencia';
+            } else {
+                const rawDay = buttonId.replace('mt_cena_', '');
+                const dayLabel = getTranslation(lang, 'day' + rawDay.charAt(0).toUpperCase() + rawDay.slice(1));
+                state.data.menuTrad.dias = dayLabel;
+            }
             state.step = 'menu_trad_step6_alergias';
             userStates.set(from, state);
 
@@ -513,10 +522,24 @@ async function handleButtonResponse(from, buttonId) {
                 // 3. Re-desplegar automáticamente la selección de ubicación de restaurante
                 await sendLocationMenu(from);
 
-                // 4. Enviar la alerta a recepción por WhatsApp y Email con AWAIT garantizado
+                // 4. Enviar la alerta a recepción por WhatsApp y Email con AWAIT garantizado y registrar en BD
                 try {
                     if (pending.tarjetaCodigo) {
                         await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
+                    }
+                    if (pending.tipoAccion && pending.tipoAccion.includes('RESERVA MENÚ TRADICIÓN')) {
+                        db.createReservation({
+                            nombre: pending.nombreCliente,
+                            telefono: pending.telefonoReserva,
+                            dni: 'N/A',
+                            email: 'N/A',
+                            fecha: '', // Fecha pendiente de asignación por recepción
+                            hora: pending.horario || '',
+                            comensales: 2,
+                            estado: 'PENDIENTE CONFIRMACIÓN',
+                            dias_preferencia: pending.diasPreferencia || 'Sin preferencia',
+                            idioma: lang
+                        });
                     }
                     await sendInternalStaffAlertInSpanish(
                         pending.tipoAccion,
@@ -574,9 +597,19 @@ async function handleButtonResponse(from, buttonId) {
 }
 
 /**
- * Genera filas para lista desplegable con los días de la semana (Martes a Domingo).
+ * Genera filas para lista desplegable con los días de la semana (Martes a Domingo), con opción opcional 'Sin preferencia'.
  */
-function getDaysListRows(lang, excludedKeys = []) {
+function getDaysListRows(lang, excludedKeys = [], includeSkipOption = false) {
+    const rows = [];
+
+    if (includeSkipOption) {
+        rows.push({
+            id: 'skip',
+            title: getTranslation(lang, 'rowSinPreferenciaTitle').slice(0, 24),
+            description: getTranslation(lang, 'rowSinPreferenciaDesc').slice(0, 72)
+        });
+    }
+
     const days = [
         { key: 'martes', label: getTranslation(lang, 'dayMartes') },
         { key: 'miercoles', label: getTranslation(lang, 'dayMiercoles') },
@@ -586,13 +619,17 @@ function getDaysListRows(lang, excludedKeys = []) {
         { key: 'domingo', label: getTranslation(lang, 'dayDomingo') }
     ];
 
-    return days
+    days
         .filter(d => !excludedKeys.includes(d.key))
-        .map(d => ({
-            id: d.key,
-            title: d.label.slice(0, 24),
-            description: `Día de preferencia: ${d.label}`.slice(0, 72)
-        }));
+        .forEach(d => {
+            rows.push({
+                id: d.key,
+                title: d.label.slice(0, 24),
+                description: `Día de preferencia: ${d.label}`.slice(0, 72)
+            });
+        });
+
+    return rows;
 }
 
 /**
@@ -637,7 +674,8 @@ async function handleWaitlistSlotSelection(from, listId, lang) {
         const promptBody = getTranslation(lang, 'waitlistStep4CenaDia').replace('{nextAvailable}', nextAvailMsg);
         const buttons = [
             { id: 'wl_cena_viernes', title: getTranslation(lang, 'dayViernes').slice(0, 20) },
-            { id: 'wl_cena_sabado', title: getTranslation(lang, 'daySabado').slice(0, 20) }
+            { id: 'wl_cena_sabado', title: getTranslation(lang, 'daySabado').slice(0, 20) },
+            { id: 'wl_cena_skip', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
         ];
         await sendInteractiveButtons(from, promptBody, buttons);
     } else {
@@ -646,7 +684,7 @@ async function handleWaitlistSlotSelection(from, listId, lang) {
 
         const bodyText = getTranslation(lang, 'waitlistStep4Dia1').replace('{nextAvailable}', nextAvailMsg);
         const buttonText = getTranslation(lang, 'menuButtonText');
-        const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'wl_day1_' + r.id }));
+        const rows = getDaysListRows(lang, [], true).map(r => ({ ...r, id: 'wl_day1_' + r.id }));
 
         await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 1 de preferencia", rows }]);
     }
@@ -658,6 +696,14 @@ async function handleWaitlistSlotSelection(from, listId, lang) {
 async function handleWaitlistDaySelection(from, listId, stepNum, lang) {
     const state = userStates.get(from) || { data: {} };
     state.data.waitlist = state.data.waitlist || {};
+
+    if (listId === 'wl_day1_skip') {
+        state.data.waitlist.dias = 'Sin preferencia';
+        state.step = 'espera_step5_ninos';
+        userStates.set(from, state);
+        await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
+        return;
+    }
 
     const rawDayKey = listId.replace(`wl_day${stepNum}_`, '');
     const dayLabel = getTranslation(lang, 'day' + rawDayKey.charAt(0).toUpperCase() + rawDayKey.slice(1));
@@ -739,7 +785,8 @@ async function handleMenuTradSlotSelection(from, slotId, lang) {
         const promptBody = getTranslation(lang, 'menuTradStep5CenaDia').replace('{nextAvailable}', nextAvailMsg);
         const buttons = [
             { id: 'mt_cena_viernes', title: getTranslation(lang, 'dayViernes').slice(0, 20) },
-            { id: 'mt_cena_sabado', title: getTranslation(lang, 'daySabado').slice(0, 20) }
+            { id: 'mt_cena_sabado', title: getTranslation(lang, 'daySabado').slice(0, 20) },
+            { id: 'mt_cena_skip', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
         ];
         await sendInteractiveButtons(from, promptBody, buttons);
     } else {
@@ -748,7 +795,7 @@ async function handleMenuTradSlotSelection(from, slotId, lang) {
 
         const bodyText = getTranslation(lang, 'menuTradStep5Dia1').replace('{nextAvailable}', nextAvailMsg);
         const buttonText = getTranslation(lang, 'menuButtonText');
-        const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'mt_day1_' + r.id }));
+        const rows = getDaysListRows(lang, [], true).map(r => ({ ...r, id: 'mt_day1_' + r.id }));
 
         await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 1 de preferencia", rows }]);
     }
@@ -760,6 +807,14 @@ async function handleMenuTradSlotSelection(from, slotId, lang) {
 async function handleMenuTradDaySelection(from, listId, stepNum, lang) {
     const state = userStates.get(from) || { data: {} };
     state.data.menuTrad = state.data.menuTrad || {};
+
+    if (listId === 'mt_day1_skip') {
+        state.data.menuTrad.dias = 'Sin preferencia';
+        state.step = 'menu_trad_step6_alergias';
+        userStates.set(from, state);
+        await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+        return;
+    }
 
     const rawDayKey = listId.replace(`mt_day${stepNum}_`, '');
     const dayLabel = getTranslation(lang, 'day' + rawDayKey.charAt(0).toUpperCase() + rawDayKey.slice(1));
@@ -1159,6 +1214,8 @@ async function handleTextMessage(from, text) {
                 nombreCliente: mt.nombre || 'Cliente WhatsApp',
                 telefonoReserva: from,
                 tarjetaCodigo: mt.tarjeta,
+                diasPreferencia: mt.dias || 'Sin preferencia',
+                horario: mt.horario || '',
                 successMsgKey: 'menuTradicionSuccessMsg'
             });
             break;

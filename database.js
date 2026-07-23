@@ -14,11 +14,19 @@ if (process.env.DATABASE_URL) {
     });
     console.log("🗄️ Modo Base de Datos: PostgreSQL Conectado.");
 
-    // Auto-migración para asegurar que las columnas de idioma y tabla tarjetas_regalo existan
+    // Auto-migración para asegurar que las columnas de idioma, dias_preferencia y tabla tarjetas_regalo existan
     pool.query(`
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(100);
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
+        DO $$ 
+        BEGIN 
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='lista_espera' AND column_name='fecha') THEN
+                ALTER TABLE lista_espera RENAME COLUMN fecha TO dias_preferencia;
+            END IF;
+        END $$;
+        ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(100);
         CREATE TABLE IF NOT EXISTS tarjetas_regalo (
             id VARCHAR(50) PRIMARY KEY,
             codigo VARCHAR(50) UNIQUE NOT NULL,
@@ -30,7 +38,7 @@ if (process.env.DATABASE_URL) {
         );
     `).then(() => {
         // Sincronizar reservas desde PostgreSQL al arrancar
-        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma FROM reservas WHERE estado = 'CONFIRMADA'");
+        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia FROM reservas WHERE estado = 'CONFIRMADA'");
     }).then(res => {
         if (res && res.rows && res.rows.length > 0) {
             const currentDb = loadDb();
@@ -44,7 +52,8 @@ if (process.env.DATABASE_URL) {
                 hora: r.hora,
                 comensales: parseInt(r.comensales, 10),
                 estado: r.estado,
-                idioma: r.idioma || 'es'
+                idioma: r.idioma || 'es',
+                dias_preferencia: r.dias_preferencia || 'Sin preferencia'
             }));
             saveDb(currentDb);
             console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon.`);
@@ -303,13 +312,14 @@ function createReservation(data) {
         id: 'RES-' + Date.now().toString().slice(-6),
         nombre: data.nombre,
         telefono: data.telefono,
-        dni: data.dni.toUpperCase().trim(),
-        email: data.email.toLowerCase().trim(),
-        fecha: data.fecha,
-        hora: data.hora,
-        comensales: parseInt(data.comensales, 10),
-        estado: 'CONFIRMADA',
+        dni: (data.dni || 'N/A').toUpperCase().trim(),
+        email: (data.email || 'N/A').toLowerCase().trim(),
+        fecha: data.fecha || '',
+        hora: data.hora || '',
+        comensales: parseInt(data.comensales, 10) || 2,
+        estado: data.estado || 'CONFIRMADA',
         idioma: data.idioma || 'es',
+        dias_preferencia: data.dias_preferencia || data.dias || 'Sin preferencia',
         fechaCreacion: new Date().toISOString()
     };
 
@@ -325,11 +335,11 @@ function createReservation(data) {
             [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma]
         ).catch(err => console.error("Error PostgreSQL INSERT cliente:", err.message));
 
-        // 2. Guardar reserva con idioma
+        // 2. Guardar reserva con idioma y dias_preferencia
         pool.query(
-            `INSERT INTO reservas(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma)
-             VALUES($1, $3, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT(id) DO NOTHING`,
-            [nuevaReserva.id, nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.comensales, nuevaReserva.estado, nuevaReserva.idioma]
+            `INSERT INTO reservas(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia)
+             VALUES($1, $3, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT(id) DO NOTHING`,
+            [nuevaReserva.id, nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.comensales, nuevaReserva.estado, nuevaReserva.idioma, nuevaReserva.dias_preferencia]
         ).catch(err => console.error("Error PostgreSQL INSERT reserva:", err.message));
     }
 
@@ -412,13 +422,14 @@ function cancelReservation(id) {
 
 function addToWaitlist(data) {
     const db = loadDb();
+    const diasPref = data.dias_preferencia || data.dias || data.fecha || 'Sin preferencia';
     const nuevoRegistro = {
         id: 'ESP-' + Date.now().toString().slice(-6),
         nombre: data.nombre,
         telefono: data.telefono,
-        dni: data.dni.toUpperCase().trim(),
-        email: data.email.toLowerCase().trim(),
-        fecha: data.fecha,
+        dni: (data.dni || 'N/A').toUpperCase().trim(),
+        email: (data.email || 'N/A').toLowerCase().trim(),
+        dias_preferencia: diasPref,
         hora: data.hora,
         comensales: parseInt(data.comensales, 10),
         idioma: data.idioma || 'es',
@@ -430,9 +441,9 @@ function addToWaitlist(data) {
 
     if (pool) {
         pool.query(
-            `INSERT INTO lista_espera(id, nombre, telefono, dni, email, fecha, hora, comensales, idioma)
+            `INSERT INTO lista_espera(id, nombre, telefono, dni, email, dias_preferencia, hora, comensales, idioma)
              VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT(id) DO NOTHING`,
-            [nuevoRegistro.id, nuevoRegistro.nombre, nuevoRegistro.telefono, nuevoRegistro.dni, nuevoRegistro.email, nuevoRegistro.fecha, nuevoRegistro.hora, nuevoRegistro.comensales, nuevoRegistro.idioma]
+            [nuevoRegistro.id, nuevoRegistro.nombre, nuevoRegistro.telefono, nuevoRegistro.dni, nuevoRegistro.email, nuevoRegistro.dias_preferencia, nuevoRegistro.hora, nuevoRegistro.comensales, nuevoRegistro.idioma]
         ).catch(err => console.error("Error PostgreSQL INSERT lista_espera:", err.message));
     }
 
