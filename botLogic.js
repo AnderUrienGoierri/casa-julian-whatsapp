@@ -222,7 +222,9 @@ async function handleListResponse(from, listId) {
             break;
 
         default:
-            if (listId.startsWith('faq_')) {
+            if (listId.startsWith('mt_slot_')) {
+                await handleMenuTradSlotSelection(from, listId, lang);
+            } else if (listId.startsWith('faq_')) {
                 await handleFaqSelection(from, listId, lang);
             } else {
                 await sendLanguageMenu(from, 1);
@@ -259,11 +261,11 @@ async function handleButtonResponse(from, buttonId) {
             await sendMessage(from, getTranslation(lang, 'waitlistStep1Nombre'));
             break;
 
-        case 'waitlist_menu_si': {
-            userStates.set(from, { step: 'menu_tradicion_formulario_reserva', data: {} });
-            await sendMessage(from, getTranslation(lang, 'menuTradicionFormPrompt'));
+        case 'waitlist_menu_si':
+        case 'menu_tradicion_reservar':
+            userStates.set(from, { step: 'menu_trad_step1_nombre', data: { menuTrad: {} } });
+            await sendMessage(from, getTranslation(lang, 'menuTradStep1Nombre'));
             break;
-        }
 
         case 'waitlist_menu_no': {
             const state = userStates.get(from);
@@ -300,10 +302,54 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'menu_tradicion_reservar':
-            userStates.set(from, { step: 'menu_tradicion_formulario_reserva', data: {} });
-            await sendMessage(from, getTranslation(lang, 'menuTradicionFormPrompt'));
+        case 'menu_trad_tipo_comida': {
+            const state = userStates.get(from) || { data: {} };
+            state.data.menuTrad = state.data.menuTrad || {};
+            state.data.menuTrad.tipoServicio = 'Comida';
+            state.step = 'menu_trad_step4_hora';
+            userStates.set(from, state);
+
+            const bodyText = getTranslation(lang, 'menuTradStep4HoraComida');
+            const buttonText = getTranslation(lang, 'menuButtonText');
+            const sections = [
+                {
+                    title: "Turnos Comida",
+                    rows: [
+                        { id: "mt_slot_1230", title: "12:30", description: "Turno comida 12:30" },
+                        { id: "mt_slot_1300", title: "13:00", description: "Turno comida 13:00" },
+                        { id: "mt_slot_1330", title: "13:30", description: "Turno comida 13:30" },
+                        { id: "mt_slot_1400", title: "14:00", description: "Turno comida 14:00" },
+                        { id: "mt_slot_1515", title: "15:15", description: "Turno comida 15:15" }
+                    ]
+                }
+            ];
+            await sendInteractiveList(from, bodyText, buttonText, sections);
             break;
+        }
+
+        case 'menu_trad_tipo_cena': {
+            const state = userStates.get(from) || { data: {} };
+            state.data.menuTrad = state.data.menuTrad || {};
+            state.data.menuTrad.tipoServicio = 'Cena';
+            state.step = 'menu_trad_step4_hora';
+            userStates.set(from, state);
+
+            const bodyText = getTranslation(lang, 'menuTradStep4HoraCena');
+            const buttonText = getTranslation(lang, 'menuButtonText');
+            const sections = [
+                {
+                    title: "Turnos Cena",
+                    rows: [
+                        { id: "mt_slot_2000", title: "20:00", description: "Turno cena 20:00 (Vie-Sáb)" },
+                        { id: "mt_slot_2030", title: "20:30", description: "Turno cena 20:30 (Vie-Sáb)" },
+                        { id: "mt_slot_2100", title: "21:00", description: "Turno cena 21:00 (Vie-Sáb)" },
+                        { id: "mt_slot_2130", title: "21:30", description: "Turno cena 21:30 (Vie-Sáb)" }
+                    ]
+                }
+            ];
+            await sendInteractiveList(from, bodyText, buttonText, sections);
+            break;
+        }
 
         case 'menu_tradicion_caducidad':
             userStates.set(from, { step: 'menu_tradicion_formulario_caducidad', data: {} });
@@ -381,8 +427,46 @@ async function handleButtonResponse(from, buttonId) {
 
         default:
             await sendLanguageMenu(from, 1);
-            break;
     }
+}
+
+/**
+ * Maneja la selección interactiva de turno horario (Comida/Cena) en el formulario de Menú Tradición.
+ */
+async function handleMenuTradSlotSelection(from, slotId, lang) {
+    const rawTime = slotId.replace('mt_slot_', '');
+    const timeClean = rawTime.replace(/(\d{2})(\d{2})/, '$1:$2');
+
+    const state = userStates.get(from) || { data: {} };
+    state.data.menuTrad = state.data.menuTrad || {};
+    state.data.menuTrad.horario = timeClean;
+    state.step = 'menu_trad_step5_dias';
+    userStates.set(from, state);
+
+    // Consultar BD para buscar la siguiente fecha libre para esta hora y 2 comensales (Menú Tradición)
+    const avail = db.getNextAvailableDate(timeClean, 2);
+
+    let nextAvailMsg = '';
+    if (avail && avail.encontrado) {
+        if (lang === 'eu') {
+            nextAvailMsg = `📅 *Hurrengo data librea (2 pertsona, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
+        } else if (lang === 'en') {
+            nextAvailMsg = `📅 *Next available date (2 guests, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
+        } else {
+            nextAvailMsg = `📅 *Próxima fecha libre (2 comensales, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
+        }
+    } else {
+        if (lang === 'eu') {
+            nextAvailMsg = `📅 *Erabilgarritasuna (${timeClean}):* Zure eskaeraren erabilgarritasuna eskuz kontsultatuko dugu.`;
+        } else if (lang === 'en') {
+            nextAvailMsg = `📅 *Availability (${timeClean}):* We will check availability for your request manually.`;
+        } else {
+            nextAvailMsg = `📅 *Disponibilidad (${timeClean}):* Comprobaremos la disponibilidad para tu solicitud manualmente.`;
+        }
+    }
+
+    const promptText = getTranslation(lang, 'menuTradStep5Dias').replace('{nextAvailable}', nextAvailMsg);
+    await sendMessage(from, promptText);
 }
 
 /**
@@ -581,6 +665,79 @@ async function handleTextMessage(from, text) {
             } else {
                 await handleButtonResponse(from, 'waitlist_menu_no');
             }
+            break;
+        }
+
+        case 'menu_trad_step1_nombre': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            currentState.data.menuTrad.nombre = text;
+            currentState.step = 'menu_trad_step2_tarjeta';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'menuTradStep2Tarjeta'));
+            break;
+        }
+
+        case 'menu_trad_step2_tarjeta': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            currentState.data.menuTrad.tarjeta = text;
+            currentState.step = 'menu_trad_step3_tipo';
+            userStates.set(from, currentState);
+
+            const promptBody = getTranslation(lang, 'menuTradStep3Tipo');
+            const buttons = [
+                { id: 'menu_trad_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
+                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'menu_trad_step3_tipo': {
+            const lowerText = text.trim().toLowerCase();
+            if (lowerText.includes('comida') || lowerText.includes('bazkari') || lowerText.includes('lunch')) {
+                await handleButtonResponse(from, 'menu_trad_tipo_comida');
+            } else {
+                await handleButtonResponse(from, 'menu_trad_tipo_cena');
+            }
+            break;
+        }
+
+        case 'menu_trad_step4_hora': {
+            const timeClean = text.trim().replace('.', ':');
+            await handleMenuTradSlotSelection(from, 'mt_slot_' + timeClean.replace(':', ''), lang);
+            break;
+        }
+
+        case 'menu_trad_step5_dias': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            currentState.data.menuTrad.dias = text;
+            currentState.step = 'menu_trad_step6_alergias';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+            break;
+        }
+
+        case 'menu_trad_step6_alergias': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            currentState.data.menuTrad.alergias = text;
+            const mt = currentState.data.menuTrad;
+
+            const detalleMenuTrad = `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
+                                    `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
+                                    `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
+                                    `🕐 *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
+                                    `📅 *Disponibilidad días:* ${mt.dias || 'No especificado'}\n` +
+                                    `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
+                                    `📱 *WhatsApp Remitente:* ${from}\n` +
+                                    `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
+
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
+                detalleMod: detalleMenuTrad,
+                nombreCliente: mt.nombre || 'Cliente WhatsApp',
+                telefonoReserva: from,
+                successMsgKey: 'menuTradicionSuccessMsg'
+            });
             break;
         }
 
