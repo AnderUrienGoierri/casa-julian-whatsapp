@@ -2,17 +2,22 @@ const nodemailer = require('nodemailer');
 const { sendMessage } = require('./whatsappApi');
 require('dotenv').config();
 
-// Configuración de correo SMTP (si existen credenciales o ethereal test)
+// Configuración de correo SMTP
 let transporter = null;
 
 if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || (process.env.SMTP_USER || '').includes('gmail');
+    
     transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.office365.com',
+        host: process.env.SMTP_HOST || (isGmail ? 'smtp.gmail.com' : 'smtp.office365.com'),
         port: parseInt(process.env.SMTP_PORT || '587', 10),
         secure: process.env.SMTP_SECURE === 'true',
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS
+        },
+        tls: {
+            rejectUnauthorized: false
         }
     });
 }
@@ -70,7 +75,7 @@ function getCategoryHeader(tipoAccion) {
 async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados) {
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
     const categoryInfo = getCategoryHeader(tipoAccion);
-    const targetEmail = process.env.STAFF_EMAIL || 'anurte@outlook.com';
+    const targetEmail = process.env.STAFF_EMAIL || 'anurte@gmail.com';
 
     const alertMessage = `${categoryInfo.banner}\n\n` +
         `🏷️ *Categoría:* ${categoryInfo.colorTag}\n` +
