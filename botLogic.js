@@ -926,7 +926,7 @@ async function handleTextMessage(from, text) {
     const cleanText = text.trim().toLowerCase();
 
     // Interceptador global para volver al menú de idioma o inicio
-    if (['menu', 'menú', 'inicio', '0', 'cancelar', 'salir', 'volver', 'home', 'start'].includes(cleanText)) {
+    if (['menu', 'menú', 'inicio', 'cancelar', 'salir', 'volver', 'home', 'start'].includes(cleanText)) {
         userStates.delete(from);
         await sendMessage(from, getTranslation(lang, 'returningToMenu'));
         await sendLanguageMenu(from, 1);
