@@ -388,9 +388,25 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'form_lang_more': {
+            await sendFormLanguageList(from, lang, true);
+            break;
+        }
+
         case 'form_lang_es':
         case 'form_lang_eu':
-        case 'form_lang_en': {
+        case 'form_lang_en':
+        case 'form_lang_fr':
+        case 'form_lang_de':
+        case 'form_lang_it':
+        case 'form_lang_pt':
+        case 'form_lang_nl':
+        case 'form_lang_ca':
+        case 'form_lang_gl':
+        case 'form_lang_ru':
+        case 'form_lang_zh':
+        case 'form_lang_ja':
+        case 'form_lang_ar': {
             const selectedLang = buttonId.replace('form_lang_', '');
             userLanguages.set(from, selectedLang);
             const currentState = userStates.get(from);
@@ -1129,6 +1145,50 @@ async function sendNationalityList(from, lang) {
 }
 
 /**
+ * Envía la lista desplegable interactiva de 14 Idiomas para el formulario de lista de espera / menú tradición.
+ */
+async function sendFormLanguageList(from, lang, showMore = false) {
+    const bodyText = getTranslation(lang, 'waitlistStep7Idioma');
+    const buttonText = (getTranslation(lang, 'listLangBtn') || 'Hautatu Hizkuntza').slice(0, 20);
+
+    let rows = [];
+    if (!showMore) {
+        rows = [
+            { id: 'form_lang_eu', title: 'EU Euskara', description: 'Euskara' },
+            { id: 'form_lang_es', title: 'ES Español', description: 'Español' },
+            { id: 'form_lang_en', title: 'EN English', description: 'English' },
+            { id: 'form_lang_fr', title: 'FR Français', description: 'Français' },
+            { id: 'form_lang_de', title: 'DE Deutsch', description: 'Deutsch' },
+            { id: 'form_lang_it', title: 'IT Italiano', description: 'Italiano' },
+            { id: 'form_lang_pt', title: 'PT Português', description: 'Português' },
+            { id: 'form_lang_nl', title: 'NL Nederlands', description: 'Nederlands' },
+            { id: 'form_lang_ca', title: 'CA Català', description: 'Català' },
+            { id: 'form_lang_more', title: '🌐 Beste batzuk / Otros', description: 'GL, RU, ZH, JA, AR...' }
+        ];
+    } else {
+        rows = [
+            { id: 'form_lang_gl', title: 'GL Galego', description: 'Galego' },
+            { id: 'form_lang_ru', title: 'RU Русский', description: 'Русский' },
+            { id: 'form_lang_zh', title: 'ZH 中文', description: '中文' },
+            { id: 'form_lang_ja', title: 'JA 日本語', description: '日本語' },
+            { id: 'form_lang_ar', title: 'AR العربية', description: 'العربية' },
+            { id: 'form_lang_eu', title: 'EU Euskara', description: 'Euskara' },
+            { id: 'form_lang_es', title: 'ES Español', description: 'Español' },
+            { id: 'form_lang_en', title: 'EN English', description: 'English' }
+        ];
+    }
+
+    const sections = [
+        {
+            title: showMore ? "Beste Hizkuntza Batzuk" : "Harreman-hizkuntza",
+            rows: rows
+        }
+    ];
+
+    await sendInteractiveList(from, bodyText, buttonText, sections);
+}
+
+/**
  * Responde a una selección de FAQ.
  */
 async function handleFaqSelection(from, faqId, lang) {
@@ -1337,23 +1397,25 @@ async function handleTextMessage(from, text) {
             currentState.step = 'espera_step7_idioma';
             userStates.set(from, currentState);
 
-            const promptBody = getTranslation(lang, 'waitlistStep7Idioma');
-            const buttons = [
-                { id: 'form_lang_es', title: getTranslation(lang, 'btnIdiomaEs').slice(0, 20) },
-                { id: 'form_lang_eu', title: getTranslation(lang, 'btnIdiomaEu').slice(0, 20) },
-                { id: 'form_lang_en', title: getTranslation(lang, 'btnIdiomaEn').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
+            await sendFormLanguageList(from, lang);
             break;
         }
 
         case 'espera_step7_idioma': {
             let selLang = 'es';
-            if (cleanText.includes('eusk') || cleanText.includes('basq') || cleanText.includes('eu')) {
-                selLang = 'eu';
-            } else if (cleanText.includes('eng') || cleanText.includes('ingl') || cleanText.includes('en')) {
-                selLang = 'en';
-            }
+            if (cleanText.includes('eusk') || cleanText.includes('basq') || cleanText === 'eu') selLang = 'eu';
+            else if (cleanText.includes('eng') || cleanText.includes('ingl') || cleanText === 'en') selLang = 'en';
+            else if (cleanText.includes('fran') || cleanText.includes('fren') || cleanText === 'fr') selLang = 'fr';
+            else if (cleanText.includes('deut') || cleanText.includes('germ') || cleanText.includes('aleman') || cleanText === 'de') selLang = 'de';
+            else if (cleanText.includes('ital') || cleanText === 'it') selLang = 'it';
+            else if (cleanText.includes('port') || cleanText === 'pt') selLang = 'pt';
+            else if (cleanText.includes('neder') || cleanText.includes('dutc') || cleanText === 'nl') selLang = 'nl';
+            else if (cleanText.includes('cat') || cleanText === 'ca') selLang = 'ca';
+            else if (cleanText.includes('gal') || cleanText === 'gl') selLang = 'gl';
+            else if (cleanText.includes('rus') || cleanText === 'ru') selLang = 'ru';
+            else if (cleanText.includes('chin') || cleanText === 'zh') selLang = 'zh';
+            else if (cleanText.includes('japo') || cleanText === 'ja') selLang = 'ja';
+            else if (cleanText.includes('arab') || cleanText === 'ar') selLang = 'ar';
             await handleButtonResponse(from, 'form_lang_' + selLang);
             break;
         }
@@ -1500,23 +1562,25 @@ async function handleTextMessage(from, text) {
             currentState.step = 'menu_trad_step7_idioma';
             userStates.set(from, currentState);
 
-            const promptBody = getTranslation(lang, 'menuTradStep7Idioma');
-            const buttons = [
-                { id: 'form_lang_es', title: getTranslation(lang, 'btnIdiomaEs').slice(0, 20) },
-                { id: 'form_lang_eu', title: getTranslation(lang, 'btnIdiomaEu').slice(0, 20) },
-                { id: 'form_lang_en', title: getTranslation(lang, 'btnIdiomaEn').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
+            await sendFormLanguageList(from, lang);
             break;
         }
 
         case 'menu_trad_step7_idioma': {
             let selLang = 'es';
-            if (cleanText.includes('eusk') || cleanText.includes('basq') || cleanText.includes('eu')) {
-                selLang = 'eu';
-            } else if (cleanText.includes('eng') || cleanText.includes('ingl') || cleanText.includes('en')) {
-                selLang = 'en';
-            }
+            if (cleanText.includes('eusk') || cleanText.includes('basq') || cleanText === 'eu') selLang = 'eu';
+            else if (cleanText.includes('eng') || cleanText.includes('ingl') || cleanText === 'en') selLang = 'en';
+            else if (cleanText.includes('fran') || cleanText.includes('fren') || cleanText === 'fr') selLang = 'fr';
+            else if (cleanText.includes('deut') || cleanText.includes('germ') || cleanText.includes('aleman') || cleanText === 'de') selLang = 'de';
+            else if (cleanText.includes('ital') || cleanText === 'it') selLang = 'it';
+            else if (cleanText.includes('port') || cleanText === 'pt') selLang = 'pt';
+            else if (cleanText.includes('neder') || cleanText.includes('dutc') || cleanText === 'nl') selLang = 'nl';
+            else if (cleanText.includes('cat') || cleanText === 'ca') selLang = 'ca';
+            else if (cleanText.includes('gal') || cleanText === 'gl') selLang = 'gl';
+            else if (cleanText.includes('rus') || cleanText === 'ru') selLang = 'ru';
+            else if (cleanText.includes('chin') || cleanText === 'zh') selLang = 'zh';
+            else if (cleanText.includes('japo') || cleanText === 'ja') selLang = 'ja';
+            else if (cleanText.includes('arab') || cleanText === 'ar') selLang = 'ar';
             await handleButtonResponse(from, 'form_lang_' + selLang);
             break;
         }
