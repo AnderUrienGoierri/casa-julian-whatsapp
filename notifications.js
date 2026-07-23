@@ -2,19 +2,29 @@ const nodemailer = require('nodemailer');
 const { sendMessage } = require('./whatsappApi');
 require('dotenv').config();
 
-// Configuración de correo SMTP
-let transporter = null;
+/**
+ * Genera dinámicamente el transporte SMTP consultando las variables de entorno activas.
+ */
+function getTransporter() {
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
 
-if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || (process.env.SMTP_USER || '').includes('gmail');
-    
-    transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || (isGmail ? 'smtp.gmail.com' : 'smtp.office365.com'),
-        port: parseInt(process.env.SMTP_PORT || '587', 10),
-        secure: process.env.SMTP_SECURE === 'true',
+    if (!smtpUser || !smtpPass) {
+        return null;
+    }
+
+    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || smtpUser.includes('gmail');
+    const host = process.env.SMTP_HOST || (isGmail ? 'smtp.gmail.com' : 'smtp.office365.com');
+    const port = parseInt(process.env.SMTP_PORT || '587', 10);
+    const secure = process.env.SMTP_SECURE === 'true';
+
+    return nodemailer.createTransport({
+        host: host,
+        port: port,
+        secure: secure,
         auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
+            user: smtpUser.trim(),
+            pass: smtpPass.trim()
         },
         tls: {
             rejectUnauthorized: false
@@ -101,8 +111,10 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         console.error('⚠️ Error al enviar alerta WhatsApp al personal:', error.message);
     }
 
-    // 2. Enviar email si el servidor SMTP está configurado
-    if (transporter) {
+    // 2. Enviar email si el servidor SMTP está configurado (construcción dinámica del transporter)
+    const activeTransporter = getTransporter();
+
+    if (activeTransporter) {
         try {
             const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; padding: 20px; background-color: #ffffff;">
@@ -125,7 +137,7 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
                 </div>
             </div>
             `;
-            const info = await transporter.sendMail({
+            const info = await activeTransporter.sendMail({
                 from: `"Casa Julian Bot" <${process.env.SMTP_USER}>`,
                 to: targetEmail,
                 subject: `${categoryInfo.subjectTag} - Solicitud de Cliente ${telefonoCliente}`,
@@ -176,9 +188,10 @@ async function sendEmailConfirmation(reserva) {
 
     console.log(`\n📧 [EMAIL CONFIRMACIÓN ENVIADO] ➔ A: ${reserva.email}`);
 
-    if (transporter) {
+    const activeTransporter = getTransporter();
+    if (activeTransporter) {
         try {
-            await transporter.sendMail({
+            await activeTransporter.sendMail({
                 from: `"Casa Julian Reservas" <${process.env.SMTP_USER}>`,
                 to: reserva.email,
                 subject: `✅ Reserva Confirmada (${reserva.id}) - Asador Casa Julian`,
