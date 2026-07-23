@@ -611,6 +611,7 @@ async function handleButtonResponse(from, buttonId) {
                             comensales: 2,
                             estado: 'PENDIENTE CONFIRMACIÓN',
                             dias_preferencia: pending.diasPreferencia || 'Sin preferencia',
+                            tipo_reserva: 'tarjeta_regalo',
                             idioma: lang
                         });
                     }

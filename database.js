@@ -19,6 +19,7 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(100);
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_reserva VARCHAR(50) DEFAULT 'online';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'Pendiente confirmar';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS ninos VARCHAR(50) DEFAULT '0';
@@ -41,7 +42,7 @@ if (process.env.DATABASE_URL) {
         );
     `).then(() => {
         // Sincronizar reservas desde PostgreSQL al arrancar
-        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia FROM reservas WHERE estado = 'CONFIRMADA'");
+        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva FROM reservas WHERE estado = 'CONFIRMADA'");
     }).then(res => {
         if (res && res.rows && res.rows.length > 0) {
             const currentDb = loadDb();
@@ -56,7 +57,8 @@ if (process.env.DATABASE_URL) {
                 comensales: parseInt(r.comensales, 10),
                 estado: r.estado,
                 idioma: r.idioma || 'es',
-                dias_preferencia: r.dias_preferencia || 'Sin preferencia'
+                dias_preferencia: r.dias_preferencia || 'Sin preferencia',
+                tipo_reserva: r.tipo_reserva || 'online'
             }));
             saveDb(currentDb);
             console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon.`);
@@ -323,6 +325,7 @@ function createReservation(data) {
         estado: data.estado || 'CONFIRMADA',
         idioma: data.idioma || 'es',
         dias_preferencia: data.dias_preferencia || data.dias || 'Sin preferencia',
+        tipo_reserva: data.tipo_reserva || 'online',
         fechaCreacion: new Date().toISOString()
     };
 
@@ -338,11 +341,11 @@ function createReservation(data) {
             [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma]
         ).catch(err => console.error("Error PostgreSQL INSERT cliente:", err.message));
 
-        // 2. Guardar reserva con idioma y dias_preferencia
+        // 2. Guardar reserva con idioma, dias_preferencia y tipo_reserva
         pool.query(
-            `INSERT INTO reservas(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia)
-             VALUES($1, $3, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT(id) DO NOTHING`,
-            [nuevaReserva.id, nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.comensales, nuevaReserva.estado, nuevaReserva.idioma, nuevaReserva.dias_preferencia]
+            `INSERT INTO reservas(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva)
+             VALUES($1, $3, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT(id) DO NOTHING`,
+            [nuevaReserva.id, nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.fecha, nuevaReserva.hora, nuevaReserva.comensales, nuevaReserva.estado, nuevaReserva.idioma, nuevaReserva.dias_preferencia, nuevaReserva.tipo_reserva]
         ).catch(err => console.error("Error PostgreSQL INSERT reserva:", err.message));
     }
 
