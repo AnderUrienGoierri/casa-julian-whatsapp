@@ -490,16 +490,16 @@ function removeFromWaitlist(id) {
 // -------------------------------------------------------------
 
 async function getGiftCard(criterio) {
-    if (!criterio || typeof criterio !== 'string') return null;
-    const search = criterio.trim().toUpperCase();
+    if (!criterio) return null;
+    const search = criterio.toString().trim().toUpperCase();
 
-    // 1. Consultar PostgreSQL Neon si la conexión está lista
+    // 1. Consultar PostgreSQL Neon si la conexión está lista (Coincidencia exacta 100%)
     if (pool) {
         try {
             const res = await pool.query(
                 `SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado 
                  FROM tarjetas_regalo 
-                 WHERE UPPER(codigo) = $1 OR UPPER(id) = $1 OR $1 LIKE '%' || UPPER(codigo) || '%' LIMIT 1`,
+                 WHERE UPPER(codigo) = $1 OR UPPER(id) = $1 LIMIT 1`,
                 [search]
             );
             if (res && res.rows && res.rows.length > 0) {
@@ -510,16 +510,49 @@ async function getGiftCard(criterio) {
         }
     }
 
-    // 2. Fallback a almacenamiento local db.json
+    // 2. Fallback a almacenamiento local db.json (Coincidencia exacta 100%)
     const db = loadDb();
     const tarjetas = db.tarjetasRegalo || [];
     const card = tarjetas.find(t => 
         (t.codigo && t.codigo.toUpperCase() === search) ||
-        (t.id && t.id.toUpperCase() === search) ||
-        (t.codigo && search.includes(t.codigo.toUpperCase()))
+        (t.id && t.id.toUpperCase() === search)
     );
 
     return card || null;
+}
+
+/**
+ * Actualiza el estado de una tarjeta regalo en Neon PostgreSQL y en db.json local.
+ */
+async function updateGiftCardStatus(criterio, nuevoEstado) {
+    if (!criterio) return null;
+    const search = criterio.toString().trim().toUpperCase();
+
+    // 1. Actualizar db.json local
+    const db = loadDb();
+    if (db.tarjetasRegalo) {
+        const localCard = db.tarjetasRegalo.find(t =>
+            (t.codigo && t.codigo.toUpperCase() === search) ||
+            (t.id && t.id.toUpperCase() === search)
+        );
+        if (localCard) {
+            localCard.estado = nuevoEstado;
+            saveDb(db);
+        }
+    }
+
+    // 2. Actualizar en Neon PostgreSQL
+    if (pool) {
+        try {
+            await pool.query(
+                `UPDATE tarjetas_regalo SET estado = $1 WHERE UPPER(codigo) = $2 OR UPPER(id) = $2`,
+                [nuevoEstado, search]
+            );
+            console.log(`✅ Estado de tarjeta ${search} actualizado a '${nuevoEstado}' en PostgreSQL.`);
+        } catch (err) {
+            console.error("Error actualizando tarjetas_regalo en PostgreSQL:", err.message);
+        }
+    }
 }
 
 function createGiftCard(data) {
@@ -565,6 +598,7 @@ module.exports = {
     getFirstWaitlistForSlot,
     removeFromWaitlist,
     getGiftCard,
+    updateGiftCardStatus,
     createGiftCard,
     SHIFT_CAPACITIES,
     SCHEDULE_BY_DAY

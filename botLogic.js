@@ -493,6 +493,9 @@ async function handleButtonResponse(from, buttonId) {
 
                 // 4. Enviar la alerta a recepción por WhatsApp y Email con AWAIT garantizado
                 try {
+                    if (pending.tarjetaCodigo) {
+                        await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
+                    }
                     await sendInternalStaffAlertInSpanish(
                         pending.tipoAccion,
                         from,
@@ -1035,6 +1038,7 @@ async function handleTextMessage(from, text) {
                 detalleMod: detalleMenuTrad,
                 nombreCliente: mt.nombre || 'Cliente WhatsApp',
                 telefonoReserva: from,
+                tarjetaCodigo: mt.tarjeta,
                 successMsgKey: 'menuTradicionSuccessMsg'
             });
             break;
