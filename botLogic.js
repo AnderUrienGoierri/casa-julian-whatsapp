@@ -438,7 +438,7 @@ async function handleButtonResponse(from, buttonId) {
                     nombre: wl.nombre || 'No especificado',
                     telefono: from,
                     dni: wl.dni || 'N/A',
-                    email: 'N/A',
+                    email: wl.email || 'N/A',
                     nacionalidad: wl.nacionalidad || 'España',
                     dias_preferencia: wl.dias || 'Sin preferencia',
                     hora: wl.horario || 'No especificado',
@@ -454,6 +454,7 @@ async function handleButtonResponse(from, buttonId) {
                     detalleEspera = `🆔 *Eskaera ID:* ${waitlistRecord.id}\n` +
                                           `👤 *Izen-abizenak:* ${wl.nombre || 'Ez zehaztua'}\n` +
                                           `🪪 *NAN/Pasaportea:* ${wl.dni || 'N/A'}\n` +
+                                          `📧 *Posta elektronikoa:* ${wl.email || 'N/A'}\n` +
                                           `🌐 *Nazionalitatea:* ${wl.nacionalidad || 'Espainia'}\n` +
                                           `👥 *Pertsona kopurua:* ${wl.comensales || '1'}\n` +
                                           `🕐 *Ordu hobespena:* ${wl.horario || 'Ez zehaztua'}\n` +
@@ -469,6 +470,7 @@ async function handleButtonResponse(from, buttonId) {
                     detalleEspera = `🆔 *Request ID:* ${waitlistRecord.id}\n` +
                                           `👤 *Full Name:* ${wl.nombre || 'Not specified'}\n` +
                                           `🪪 *ID/Passport:* ${wl.dni || 'N/A'}\n` +
+                                          `📧 *Email:* ${wl.email || 'N/A'}\n` +
                                           `🌐 *Nationality:* ${wl.nacionalidad || 'Spain'}\n` +
                                           `👥 *Guests:* ${wl.comensales || '1'}\n` +
                                           `🕐 *Time Preference:* ${wl.horario || 'Not specified'}\n` +
@@ -484,6 +486,7 @@ async function handleButtonResponse(from, buttonId) {
                     detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
                                           `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
                                           `🪪 *DNI/Pasaporte:* ${wl.dni || 'N/A'}\n` +
+                                          `📧 *Email:* ${wl.email || 'N/A'}\n` +
                                           `🌐 *Nacionalidad:* ${wl.nacionalidad || 'España'}\n` +
                                           `👥 *Comensales:* ${wl.comensales || '1'}\n` +
                                           `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
@@ -512,7 +515,7 @@ async function handleButtonResponse(from, buttonId) {
                     nombre: mt.nombre || 'Cliente WhatsApp',
                     telefono: from,
                     dni: mt.dni || 'N/A',
-                    email: 'N/A',
+                    email: mt.email || 'N/A',
                     nacionalidad: mt.nacionalidad || 'España',
                     fecha: '',
                     hora: mt.horario || '',
@@ -528,6 +531,7 @@ async function handleButtonResponse(from, buttonId) {
                     detalleMenuTrad = `🆔 *Erreserba ID:* ${resRecord.id}\n` +
                                             `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
                                             `🪪 *NAN/Pasaportea:* ${mt.dni || 'N/A'}\n` +
+                                            `📧 *Posta elektronikoa:* ${mt.email || 'N/A'}\n` +
                                             `🌐 *Nazionalitatea:* ${mt.nacionalidad || 'Espainia'}\n` +
                                             `🎁 *Opari-Txartel Zenbakia:* ${mt.tarjeta || 'Ez zehaztua'}\n` +
                                             `🍽️ *Zerbitzua:* ${mt.tipoServicio || 'Bazkaria/Afaria'}\n` +
@@ -542,6 +546,7 @@ async function handleButtonResponse(from, buttonId) {
                     detalleMenuTrad = `🆔 *Reservation ID:* ${resRecord.id}\n` +
                                             `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
                                             `🪪 *ID/Passport:* ${mt.dni || 'N/A'}\n` +
+                                            `📧 *Email:* ${mt.email || 'N/A'}\n` +
                                             `🌐 *Nationality:* ${mt.nacionalidad || 'Spain'}\n` +
                                             `🎁 *Gift Card No.:* ${mt.tarjeta || 'Not specified'}\n` +
                                             `🍽️ *Service:* ${mt.tipoServicio || 'Lunch/Dinner'}\n` +
@@ -556,6 +561,7 @@ async function handleButtonResponse(from, buttonId) {
                     detalleMenuTrad = `🆔 *ID Reserva:* ${resRecord.id}\n` +
                                             `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
                                             `🪪 *DNI/Pasaporte:* ${mt.dni || 'N/A'}\n` +
+                                            `📧 *Email:* ${mt.email || 'N/A'}\n` +
                                             `🌐 *Nacionalidad:* ${mt.nacionalidad || 'España'}\n` +
                                             `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
                                             `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
@@ -590,6 +596,14 @@ async function handleButtonResponse(from, buttonId) {
                 await handleTextMessage(from, 'btn_skip_dni');
             } else if (currentState && currentState.step === 'menu_trad_step2b_dni') {
                 await handleTextMessage(from, 'btn_skip_dni');
+            }
+            break;
+        }
+
+        case 'btn_skip_email': {
+            const currentState = userStates.get(from);
+            if (currentState && (currentState.step === 'espera_step1b2_email' || currentState.step === 'menu_trad_step2b2_email')) {
+                await handleTextMessage(from, 'btn_skip_email');
             }
             break;
         }
@@ -1445,6 +1459,25 @@ async function handleTextMessage(from, text) {
             } else {
                 currentState.data.waitlist.dni = cleanDni.toUpperCase();
             }
+            currentState.step = 'espera_step1b2_email';
+            userStates.set(from, currentState);
+
+            const promptBody = getTranslation(lang, 'waitlistStep1b2Email');
+            const buttons = [
+                { id: 'btn_skip_email', title: getTranslation(lang, 'btnOmitirEmail').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'espera_step1b2_email': {
+            currentState.data.waitlist = currentState.data.waitlist || {};
+            const cleanEmail = text.trim();
+            if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_email'].includes(cleanEmail.toLowerCase())) {
+                currentState.data.waitlist.email = 'N/A';
+            } else {
+                currentState.data.waitlist.email = cleanEmail.toLowerCase();
+            }
             currentState.step = 'espera_step1c_nac';
             userStates.set(from, currentState);
 
@@ -1623,6 +1656,25 @@ async function handleTextMessage(from, text) {
                 currentState.data.menuTrad.dni = 'N/A';
             } else {
                 currentState.data.menuTrad.dni = cleanDni.toUpperCase();
+            }
+            currentState.step = 'menu_trad_step2b2_email';
+            userStates.set(from, currentState);
+
+            const promptBody = getTranslation(lang, 'menuTradStep2b2Email');
+            const buttons = [
+                { id: 'btn_skip_email', title: getTranslation(lang, 'btnOmitirEmail').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'menu_trad_step2b2_email': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            const cleanEmail = text.trim();
+            if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_email'].includes(cleanEmail.toLowerCase())) {
+                currentState.data.menuTrad.email = 'N/A';
+            } else {
+                currentState.data.menuTrad.email = cleanEmail.toLowerCase();
             }
             currentState.step = 'menu_trad_step2c_nac';
             userStates.set(from, currentState);
