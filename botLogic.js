@@ -2,7 +2,8 @@ const {
     sendInteractiveButtons, 
     sendInteractiveList, 
     sendMessage,
-    sendImageMessage 
+    sendImageMessage,
+    sendVideoMessage
 } = require('./whatsappApi');
 const db = require('./database');
 const { sendInternalStaffAlertInSpanish } = require('./notifications');
@@ -103,11 +104,22 @@ async function sendLanguageMenu(from, page = 1) {
         ];
         await sendInteractiveList(from, bodyText, buttonText, sections);
     } else {
-        const welcomeImageUrl = process.env.WELCOME_IMAGE_URL || 'https://raw.githubusercontent.com/AnderUrienGoierri/casa-julian-whatsapp/main/documentacion/casa_julian_erretegia.jpg';
+        const baseUrl = process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
+        const welcomeImageUrl = process.env.WELCOME_IMAGE_URL || `${baseUrl}/public/casa_julian_erretegia.jpg`;
+        const welcomeGifUrl = `${baseUrl}/public/casa_julian_gif.mp4`;
+
+        // 1. Enviar imagen de bienvenida del restaurante
         try {
             await sendImageMessage(from, welcomeImageUrl, 'Asador Casa Julián de Tolosa');
         } catch (e) {
             console.error("⚠️ Error enviando imagen de bienvenida por WhatsApp:", e.message);
+        }
+
+        // 2. Enviar GIF animado de bienvenida (mp4) en el saludo inicial
+        try {
+            await sendVideoMessage(from, welcomeGifUrl, '🔥 Experiencia Casa Julián');
+        } catch (e) {
+            console.error("⚠️ Error enviando GIF de bienvenida por WhatsApp:", e.message);
         }
 
         const bodyText = "🥩🔥 *¡Bienvenido/a a Casa Julián!* 🥩🔥\n\nSerá un placer ayudarte. ¿En qué idioma deseas continuar? / Select your language:";

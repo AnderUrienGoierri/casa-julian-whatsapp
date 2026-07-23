@@ -153,9 +153,43 @@ async function sendImageMessage(to, imageUrl, caption = '') {
     }
 }
 
+/**
+ * Envía un vídeo o GIF animado por WhatsApp a través de un enlace URL público.
+ */
+async function sendVideoMessage(to, videoUrl, caption = '') {
+    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
+        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+        return;
+    }
+
+    try {
+        const response = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                messaging_product: 'whatsapp',
+                to: to,
+                type: 'video',
+                video: {
+                    link: videoUrl,
+                    caption: caption
+                }
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error enviando vídeo/GIF por WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    }
+}
+
 module.exports = {
     sendMessage,
     sendInteractiveButtons,
     sendInteractiveList,
-    sendImageMessage
+    sendImageMessage,
+    sendVideoMessage
 };
