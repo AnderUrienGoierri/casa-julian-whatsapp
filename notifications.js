@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-const headerImagePath = path.join(__dirname, 'documentacion', 'imagen_chat_casa_julian.jpg');
+const headerImagePath = path.join(__dirname, 'documentacion', 'casa_julian_erretegia.jpg');
 const hasHeaderImage = fs.existsSync(headerImagePath);
 
 /**
@@ -173,7 +173,7 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
                 subject: `${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`,
                 html: emailHtml,
                 attachments: hasHeaderImage ? [{
-                    filename: 'imagen_chat_casa_julian.jpg',
+                    filename: 'casa_julian_erretegia.jpg',
                     path: headerImagePath,
                     cid: 'casa_julian_header'
                 }] : []
@@ -238,7 +238,7 @@ async function sendEmailConfirmation(reserva) {
                 subject: `✅ Reserva Confirmada (${reserva.id}) - Asador Casa Julian`,
                 html: htmlTemplate,
                 attachments: hasHeaderImage ? [{
-                    filename: 'imagen_chat_casa_julian.jpg',
+                    filename: 'casa_julian_erretegia.jpg',
                     path: headerImagePath,
                     cid: 'casa_julian_header'
                 }] : []
