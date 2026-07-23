@@ -274,6 +274,8 @@ async function handleListResponse(from, listId) {
                 await handleMenuTradDaySelection(from, listId, 3, lang);
             } else if (listId.startsWith('faq_')) {
                 await handleFaqSelection(from, listId, lang);
+            } else if (listId.startsWith('nac_')) {
+                await handleNationalitySelection(from, listId, lang);
             } else {
                 await sendLanguageMenu(from, 1);
             }
@@ -399,6 +401,19 @@ async function handleButtonResponse(from, buttonId) {
             await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
             break;
         }
+
+        case 'nac_es':
+        case 'nac_fr':
+        case 'nac_uk':
+        case 'nac_us':
+        case 'nac_de':
+        case 'nac_it':
+        case 'nac_pt':
+        case 'nac_mx':
+        case 'nac_jp':
+        case 'nac_otro':
+            await handleNationalitySelection(from, buttonId, lang);
+            break;
 
         case 'form_lang_more': {
             await sendFormLanguageList(from, lang, true);
@@ -1154,6 +1169,51 @@ async function sendNationalityList(from, lang) {
     ];
 
     await sendInteractiveList(from, bodyText, buttonText, sections);
+}
+
+/**
+ * Maneja la selección interactiva de Nacionalidad desde la lista desplegable.
+ */
+async function handleNationalitySelection(from, listId, lang) {
+    const nacMap = {
+        'nac_es': getTranslation(lang, 'nacEs'),
+        'nac_fr': getTranslation(lang, 'nacFr'),
+        'nac_uk': getTranslation(lang, 'nacUk'),
+        'nac_us': getTranslation(lang, 'nacUs'),
+        'nac_de': getTranslation(lang, 'nacDe'),
+        'nac_it': getTranslation(lang, 'nacIt'),
+        'nac_pt': getTranslation(lang, 'nacPt'),
+        'nac_mx': getTranslation(lang, 'nacMx'),
+        'nac_jp': getTranslation(lang, 'nacJp'),
+        'nac_otro': getTranslation(lang, 'nacOtro')
+    };
+
+    const selNac = nacMap[listId] || listId.replace('nac_', '').toUpperCase();
+    const currentState = userStates.get(from) || { data: {} };
+
+    // Si estamos en el formulario de Menú Tradición
+    if (currentState.step === 'menu_trad_step2c_nac' || (currentState.data && currentState.data.menuTrad && !currentState.data.waitlist)) {
+        currentState.data.menuTrad = currentState.data.menuTrad || {};
+        currentState.data.menuTrad.nacionalidad = selNac;
+        currentState.step = 'menu_trad_step3_tipo';
+        userStates.set(from, currentState);
+
+        const promptBody = getTranslation(lang, 'menuTradStep3Tipo');
+        const buttons = [
+            { id: 'menu_trad_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
+            { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) }
+        ];
+        await sendInteractiveButtons(from, promptBody, buttons);
+        return;
+    }
+
+    // Por defecto o en formulario de Lista de Espera (espera_step1c_nac)
+    currentState.data.waitlist = currentState.data.waitlist || {};
+    currentState.data.waitlist.nacionalidad = selNac;
+    currentState.step = 'espera_step2_comensales';
+    userStates.set(from, currentState);
+
+    await sendMessage(from, getTranslation(lang, 'waitlistStep2Comensales'));
 }
 
 /**
