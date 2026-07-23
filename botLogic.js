@@ -206,7 +206,6 @@ async function handleListResponse(from, listId) {
     switch (listId) {
         case 'opt_quiero_reservar':
             userStates.set(from, { step: 'reserva_tipo', data: {} });
-            await sendMessage(from, getTranslation(lang, 'reservaIntro'));
             const resButtons = [
                 { id: 'btn_solicitar_reserva', title: getTranslation(lang, 'btnSolicitarReserva').slice(0, 20) },
                 { id: 'btn_add_lista_espera', title: getTranslation(lang, 'btnAddListaEspera').slice(0, 20) }
