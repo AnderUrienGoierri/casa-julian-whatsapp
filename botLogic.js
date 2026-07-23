@@ -474,15 +474,35 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'nac_es':
+        case 'nac_fr':
+        case 'nac_uk':
+        case 'nac_us':
+        case 'nac_de':
+        case 'nac_it':
+        case 'nac_pt':
+        case 'nac_mx':
+        case 'nac_jp':
+        case 'nac_otro':
         case 'btn_nac_es':
         case 'btn_nac_fr':
         case 'btn_nac_uk':
         case 'btn_nac_otro': {
             const currentState = userStates.get(from);
-            if (currentState && currentState.step === 'espera_step1c_nac') {
-                await handleTextMessage(from, buttonId);
-            } else if (currentState && currentState.step === 'menu_trad_step2c_nac') {
-                await handleTextMessage(from, buttonId);
+            if (currentState && (currentState.step === 'espera_step1c_nac' || currentState.step === 'menu_trad_step2c_nac')) {
+                let nac = '';
+                if (buttonId === 'nac_es' || buttonId === 'btn_nac_es') nac = lang === 'eu' ? 'Espainia' : (lang === 'en' ? 'Spain' : 'España');
+                else if (buttonId === 'nac_fr' || buttonId === 'btn_nac_fr') nac = lang === 'eu' ? 'Frantzia' : (lang === 'en' ? 'France' : 'Francia');
+                else if (buttonId === 'nac_uk' || buttonId === 'btn_nac_uk') nac = lang === 'eu' ? 'Erresuma Batua' : (lang === 'en' ? 'United Kingdom' : 'Reino Unido');
+                else if (buttonId === 'nac_us') nac = lang === 'eu' ? 'AEB (Estados Unidos)' : (lang === 'en' ? 'USA (United States)' : 'EE.UU. (Estados Unidos)');
+                else if (buttonId === 'nac_de') nac = lang === 'en' ? 'Germany' : 'Alemania';
+                else if (buttonId === 'nac_it') nac = 'Italia';
+                else if (buttonId === 'nac_pt') nac = 'Portugal';
+                else if (buttonId === 'nac_mx') nac = lang === 'eu' ? 'Mexiko' : (lang === 'en' ? 'Mexico' : 'México');
+                else if (buttonId === 'nac_jp') nac = lang === 'eu' ? 'Japonia' : (lang === 'en' ? 'Japan' : 'Japón');
+                else nac = lang === 'eu' ? 'Beste bat' : (lang === 'en' ? 'Other' : 'Otro');
+
+                await handleTextMessage(from, nac);
             }
             break;
         }
@@ -990,6 +1010,34 @@ async function sendFaqMenu(from, lang) {
 }
 
 /**
+ * Envía la lista desplegable interactiva de Nacionalidad (países y estados de EE.UU.).
+ */
+async function sendNationalityList(from, lang) {
+    const bodyText = getTranslation(lang, 'listNacBody');
+    const buttonText = getTranslation(lang, 'listNacBtn').slice(0, 20);
+
+    const sections = [
+        {
+            title: getTranslation(lang, 'listNacHeader').slice(0, 24),
+            rows: [
+                { id: 'nac_es', title: getTranslation(lang, 'nacEs').slice(0, 24) },
+                { id: 'nac_fr', title: getTranslation(lang, 'nacFr').slice(0, 24) },
+                { id: 'nac_uk', title: getTranslation(lang, 'nacUk').slice(0, 24) },
+                { id: 'nac_us', title: getTranslation(lang, 'nacUs').slice(0, 24), description: getTranslation(lang, 'nacUsDesc').slice(0, 72) },
+                { id: 'nac_de', title: getTranslation(lang, 'nacDe').slice(0, 24) },
+                { id: 'nac_it', title: getTranslation(lang, 'nacIt').slice(0, 24) },
+                { id: 'nac_pt', title: getTranslation(lang, 'nacPt').slice(0, 24) },
+                { id: 'nac_mx', title: getTranslation(lang, 'nacMx').slice(0, 24) },
+                { id: 'nac_jp', title: getTranslation(lang, 'nacJp').slice(0, 24) },
+                { id: 'nac_otro', title: getTranslation(lang, 'nacOtro').slice(0, 24), description: getTranslation(lang, 'nacOtroDesc').slice(0, 72) }
+            ]
+        }
+    ];
+
+    await sendInteractiveList(from, bodyText, buttonText, sections);
+}
+
+/**
  * Responde a una selección de FAQ.
  */
 async function handleFaqSelection(from, faqId, lang) {
@@ -1095,24 +1143,16 @@ async function handleTextMessage(from, text) {
             currentState.step = 'espera_step1c_nac';
             userStates.set(from, currentState);
 
-            const promptBody = getTranslation(lang, 'waitlistStep1cNac');
-            const buttons = [
-                { id: 'btn_nac_es', title: getTranslation(lang, 'btnNacEs').slice(0, 20) },
-                { id: 'btn_nac_fr', title: getTranslation(lang, 'btnNacFr').slice(0, 20) },
-                { id: 'btn_nac_otro', title: getTranslation(lang, 'btnNacOtro').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
+            await sendNationalityList(from, lang);
             break;
         }
 
         case 'espera_step1c_nac': {
             currentState.data.waitlist = currentState.data.waitlist || {};
             let nac = text.trim();
-            if (nac === 'btn_nac_es') nac = 'España';
-            else if (nac === 'btn_nac_fr') nac = 'Francia';
-            else if (nac === 'btn_nac_uk') nac = 'Reino Unido';
-            else if (nac === 'btn_nac_otro' || ['omitir', 'utzi', 'skip', 'otro'].includes(nac.toLowerCase())) nac = 'España';
-
+            if (['omitir', 'utzi', 'skip', 'otro', 'nac_otro'].includes(nac.toLowerCase())) {
+                nac = lang === 'eu' ? 'Beste bat / Sin especificar' : (lang === 'en' ? 'Other / Unspecified' : 'Otro / Sin especificar');
+            }
             currentState.data.waitlist.nacionalidad = nac;
             currentState.step = 'espera_step2_comensales';
             userStates.set(from, currentState);
@@ -1280,24 +1320,16 @@ async function handleTextMessage(from, text) {
             currentState.step = 'menu_trad_step2c_nac';
             userStates.set(from, currentState);
 
-            const promptBody = getTranslation(lang, 'menuTradStep2cNac');
-            const buttons = [
-                { id: 'btn_nac_es', title: getTranslation(lang, 'btnNacEs').slice(0, 20) },
-                { id: 'btn_nac_fr', title: getTranslation(lang, 'btnNacFr').slice(0, 20) },
-                { id: 'btn_nac_otro', title: getTranslation(lang, 'btnNacOtro').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
+            await sendNationalityList(from, lang);
             break;
         }
 
         case 'menu_trad_step2c_nac': {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
             let nac = text.trim();
-            if (nac === 'btn_nac_es') nac = 'España';
-            else if (nac === 'btn_nac_fr') nac = 'Francia';
-            else if (nac === 'btn_nac_uk') nac = 'Reino Unido';
-            else if (nac === 'btn_nac_otro' || ['omitir', 'utzi', 'skip', 'otro'].includes(nac.toLowerCase())) nac = 'España';
-
+            if (['omitir', 'utzi', 'skip', 'otro', 'nac_otro'].includes(nac.toLowerCase())) {
+                nac = lang === 'eu' ? 'Beste bat / Sin especificar' : (lang === 'en' ? 'Other / Unspecified' : 'Otro / Sin especificar');
+            }
             currentState.data.menuTrad.nacionalidad = nac;
             currentState.step = 'menu_trad_step3_tipo';
             userStates.set(from, currentState);
