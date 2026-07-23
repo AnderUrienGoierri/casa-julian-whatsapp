@@ -345,6 +345,19 @@ function formatNationalityCode(nacStr) {
     return 'OTRO';
 }
 
+function formatAllergiesInSpanish(alergiasStr) {
+    if (!alergiasStr || typeof alergiasStr !== 'string') return 'NO';
+    const clean = alergiasStr.trim().toLowerCase();
+    const noValues = [
+        '0', 'none', 'nada', 'no', 'ninguna', 'ninguno', 'ez', 'n/a', 'ningun', 
+        'ez dugu alergiarik', 'sin alergias', 'sin alergia', 'sin restricciones', 
+        'hobespenik ez', 'ez dugu', 'ninguna/sin alergia', 'sin alergias / ninguna',
+        'sin alergias/ninguna', 'no tenemos', 'ez'
+    ];
+    if (noValues.includes(clean) || clean === '') return 'NO';
+    return alergiasStr.trim();
+}
+
 function formatDaysInSpanish(diasStr) {
     if (!diasStr || typeof diasStr !== 'string') return 'Sin preferencia';
     const dayMap = {
@@ -520,7 +533,7 @@ async function addToWaitlist(data) {
         hora: data.hora || 'No especificado',
         comensales: validComensales,
         ninos: data.ninos || '0',
-        alergias: data.alergias || 'Ninguna',
+        alergias: formatAllergiesInSpanish(data.alergias),
         estado: data.estado || 'Pendiente confirmar',
         idioma: data.idioma || 'es',
         fechaRegistro: new Date().toISOString()

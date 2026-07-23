@@ -270,6 +270,8 @@ async function handleListResponse(from, listId) {
                 await handleNationalitySelection(from, listId, lang);
             } else if (listId.startsWith('form_lang_')) {
                 await handleButtonResponse(from, listId);
+            } else if (listId.startsWith('alg_')) {
+                await handleAllergiesListSelection(from, listId, lang);
             } else {
                 await sendLanguageMenu(from, 1);
             }
@@ -928,6 +930,136 @@ async function handleWaitlistSlotSelection(from, listId, lang) {
 }
 
 /**
+ * Envía la lista desplegable interactiva para seleccionar alergias, intolerancias y enfermedades.
+ */
+function getAllergiesListRows(lang, selectedList = []) {
+    const list = [
+        { id: 'alg_gluten', title: '🌾 Gluten / Celíacos', desc: 'Intolerancia o alergia al gluten' },
+        { id: 'alg_laktosa', title: '🥛 Lactosa / Lácteos', desc: 'Intolerancia a la lactosa o lácteos' },
+        { id: 'alg_frutos', title: '🥜 Frutos secos / Maní', desc: 'Alergia a frutos secos o cacahuetes' },
+        { id: 'alg_huevo', title: '🥚 Huevo', desc: 'Alergia al huevo' },
+        { id: 'alg_marisco', title: '🦐 Marisco / Crustáceos', desc: 'Alergia a mariscos o moluscos' },
+        { id: 'alg_pescado', title: '🐟 Pescado', desc: 'Alergia al pescado' },
+        { id: 'alg_diabetes', title: '🩺 Diabetes', desc: 'Diabético / Control de azúcar' },
+        { id: 'alg_hipertension', title: '🩸 Hipertensión / Sal', desc: 'Dieta baja en sodio / sal' },
+        { id: 'alg_vegano', title: '🥗 Vegetariano / Vegano', desc: 'Dieta vegetariana o vegana' },
+        { id: 'alg_otro', title: '✍️ Otra (escribir texto)', desc: 'Escribir otra alergia o enfermedad' }
+    ];
+
+    const rows = [];
+    
+    if (selectedList.length > 0) {
+        rows.push({
+            id: 'alg_finish',
+            title: getTranslation(lang, 'btnFinishAllergySelection').slice(0, 24),
+            description: getTranslation(lang, 'descFinishAllergySelection').slice(0, 72)
+        });
+    }
+
+    rows.push({
+        id: 'alg_no',
+        title: getTranslation(lang, 'btnNoAllergies').slice(0, 24),
+        description: getTranslation(lang, 'descNoAllergies').slice(0, 72)
+    });
+
+    const allergyMapInv = {
+        'Gluten / Celíacos': 'alg_gluten',
+        'Lactosa': 'alg_laktosa',
+        'Frutos secos': 'alg_frutos',
+        'Huevo': 'alg_huevo',
+        'Marisco': 'alg_marisco',
+        'Pescado': 'alg_pescado',
+        'Diabetes': 'alg_diabetes',
+        'Hipertensión': 'alg_hipertension',
+        'Vegetariano/Vegano': 'alg_vegano'
+    };
+
+    list.forEach(item => {
+        const titleClean = item.title.replace(/^[^\s]+\s*/, '');
+        const isSelected = selectedList.some(s => s.includes(titleClean) || allergyMapInv[s] === item.id);
+        rows.push({
+            id: item.id,
+            title: (isSelected ? '✅ ' + item.title : item.title).slice(0, 24),
+            description: item.desc.slice(0, 72)
+        });
+    });
+
+    return rows;
+}
+
+async function sendAllergiesList(from, lang, promptKey, selectedList = []) {
+    let bodyText = getTranslation(lang, promptKey);
+    if (selectedList.length > 0) {
+        const selStr = selectedList.join(', ');
+        bodyText = getTranslation(lang, 'selectedAllergiesHeader').replace('{allergies}', selStr) +
+            '\n\n' + getTranslation(lang, promptKey);
+    }
+    const buttonText = getTranslation(lang, 'menuButtonText');
+    const rows = getAllergiesListRows(lang, selectedList);
+    const sections = [{ title: "Alergias y Salud", rows }];
+
+    await sendInteractiveList(from, bodyText, buttonText, sections);
+}
+
+/**
+ * Maneja la selección interactiva de alergias/restricciones.
+ */
+async function handleAllergiesListSelection(from, listId, lang) {
+    const currentState = userStates.get(from) || { data: {} };
+    const isMenuTrad = (currentState.step === 'menu_trad_step6_alergias');
+    const formKey = isMenuTrad ? 'menuTrad' : 'waitlist';
+    currentState.data[formKey] = currentState.data[formKey] || {};
+    currentState.data[formKey].selectedAllergies = currentState.data[formKey].selectedAllergies || [];
+
+    if (listId === 'alg_no') {
+        currentState.data[formKey].alergias = 'NO';
+        currentState.step = isMenuTrad ? 'menu_trad_step7_idioma' : 'espera_step7_idioma';
+        userStates.set(from, currentState);
+        await sendFormLanguageList(from, lang);
+        return;
+    }
+
+    if (listId === 'alg_finish') {
+        const list = currentState.data[formKey].selectedAllergies;
+        currentState.data[formKey].alergias = list.length > 0 ? list.join(', ') : 'NO';
+        currentState.step = isMenuTrad ? 'menu_trad_step7_idioma' : 'espera_step7_idioma';
+        userStates.set(from, currentState);
+        await sendFormLanguageList(from, lang);
+        return;
+    }
+
+    if (listId === 'alg_otro') {
+        let msg = '';
+        if (lang === 'eu') msg = "⚠️ Mesedez, idatzi testuz zure alergia edo osasun egoera (adib. \"Diabetesa\"):";
+        else if (lang === 'en') msg = "⚠️ Please type your allergy or health condition (e.g. \"Diabetes\"):";
+        else msg = "⚠️ Por favor, escribe por texto tu alergia o restricción alimentaria (ej. \"Diabetes\"):";
+        await sendMessage(from, msg);
+        return;
+    }
+
+    const allergyMap = {
+        'alg_gluten': 'Gluten / Celíacos',
+        'alg_laktosa': 'Lactosa',
+        'alg_frutos': 'Frutos secos',
+        'alg_huevo': 'Huevo',
+        'alg_marisco': 'Marisco',
+        'alg_pescado': 'Pescado',
+        'alg_diabetes': 'Diabetes',
+        'alg_hipertension': 'Hipertensión',
+        'alg_vegano': 'Vegetariano/Vegano'
+    };
+
+    const selectedName = allergyMap[listId];
+    if (selectedName && !currentState.data[formKey].selectedAllergies.includes(selectedName)) {
+        currentState.data[formKey].selectedAllergies.push(selectedName);
+    }
+    userStates.set(from, currentState);
+
+    const promptTextKey = isMenuTrad ? 'menuTradStep6Alergias' : 'waitlistStep6Alergias';
+    await sendAllergiesList(from, lang, promptTextKey, currentState.data[formKey].selectedAllergies);
+}
+
+/**
  * Envía la lista desplegable interactiva para seleccionar de 1 a 3 días de preferencia en Lista de Espera.
  */
 async function sendWaitlistDaysList(from, lang) {
@@ -1159,8 +1291,9 @@ async function handleMenuTradDaySelection(from, listId, lang) {
     if (listId === 'mt_day_skip' || listId === 'mt_day1_skip') {
         state.data.menuTrad.dias = 'Sin preferencia';
         state.step = 'menu_trad_step6_alergias';
+        state.data.menuTrad.selectedAllergies = [];
         userStates.set(from, state);
-        await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+        await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
         return;
     }
 
@@ -1168,8 +1301,9 @@ async function handleMenuTradDaySelection(from, listId, lang) {
         const daysFormatted = selectedDays.map(d => d.label).join(', ');
         state.data.menuTrad.dias = daysFormatted || 'Sin preferencia';
         state.step = 'menu_trad_step6_alergias';
+        state.data.menuTrad.selectedAllergies = [];
         userStates.set(from, state);
-        await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+        await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
         return;
     }
 
@@ -1186,8 +1320,9 @@ async function handleMenuTradDaySelection(from, listId, lang) {
         const daysFormatted = selectedDays.map(d => d.label).join(', ');
         state.data.menuTrad.dias = daysFormatted;
         state.step = 'menu_trad_step6_alergias';
+        state.data.menuTrad.selectedAllergies = [];
         userStates.set(from, state);
-        await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+        await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
     } else {
         await sendMenuTradDaysList(from, lang);
     }
@@ -1574,13 +1709,17 @@ async function handleTextMessage(from, text) {
         case 'espera_step5_ninos': {
             currentState.data.waitlist.ninos = text;
             currentState.step = 'espera_step6_alergias';
+            currentState.data.waitlist.selectedAllergies = [];
             userStates.set(from, currentState);
-            await sendMessage(from, getTranslation(lang, 'waitlistStep6Alergias'));
+            await sendAllergiesList(from, lang, 'waitlistStep6Alergias', []);
             break;
         }
 
         case 'espera_step6_alergias': {
-            currentState.data.waitlist.alergias = text;
+            currentState.data.waitlist = currentState.data.waitlist || {};
+            const cleanText = text.trim();
+            const formattedAlergias = db.formatAllergiesInSpanish(cleanText);
+            currentState.data.waitlist.alergias = formattedAlergias;
             currentState.step = 'espera_step7_idioma';
             userStates.set(from, currentState);
 
@@ -1756,15 +1895,18 @@ async function handleTextMessage(from, text) {
                 const d2 = currentState.data.menuTrad.day2;
                 currentState.data.menuTrad.dias = `${d1}, ${d2}, ${cleanDay}`;
                 currentState.step = 'menu_trad_step6_alergias';
+                currentState.data.menuTrad.selectedAllergies = [];
                 userStates.set(from, currentState);
-                await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+                await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
             }
             break;
         }
 
         case 'menu_trad_step6_alergias': {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
-            currentState.data.menuTrad.alergias = text;
+            const cleanText = text.trim();
+            const formattedAlergias = db.formatAllergiesInSpanish(cleanText);
+            currentState.data.menuTrad.alergias = formattedAlergias;
             currentState.step = 'menu_trad_step7_idioma';
             userStates.set(from, currentState);
 
