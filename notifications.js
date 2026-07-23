@@ -9,9 +9,9 @@ const hasHeaderImage = fs.existsSync(headerImagePath);
 
 /**
  * Genera dinámicamente el transporte SMTP consultando las variables de entorno activas.
- * Detecta automáticamente si el usuario es de Gmail y corrige cualquier conflicto de servidor (ej: smtp.office365.com con cuenta @gmail.com).
+ * Soporta puerto 465 (SSL) y puerto 587 (STARTTLS) con fallback automático para entornos como Render.com.
  */
-function getTransporter() {
+function getTransporter(forcedPort = null) {
     let smtpUser = (process.env.SMTP_USER || 'anurte@gmail.com').trim();
     let smtpPass = (process.env.SMTP_PASS || 'gnymaconrsfygnek').trim();
 
@@ -22,23 +22,31 @@ function getTransporter() {
     const isGmailUser = smtpUser.toLowerCase().endsWith('@gmail.com');
 
     if (isGmailUser) {
-        // Si en el panel de Render quedó la contraseña antigua de Outlook (Errotagain...), utilizar la App Password válida de Google
         if (!smtpPass || smtpPass.includes('Errotagain')) {
             smtpPass = 'gnymaconrsfygnek';
         }
 
+        const targetPort = forcedPort || 465;
+        const isSecure = targetPort === 465;
+
         return nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: targetPort,
+            secure: isSecure,
             auth: {
                 user: smtpUser,
                 pass: smtpPass
-            }
+            },
+            connectionTimeout: 8000,
+            greetingTimeout: 5000,
+            socketTimeout: 10000,
+            tls: { rejectUnauthorized: false }
         });
     }
 
     const host = process.env.SMTP_HOST || 'smtp.office365.com';
-    const port = parseInt(process.env.SMTP_PORT || '587', 10);
-    const secure = process.env.SMTP_SECURE === 'true';
+    const port = forcedPort || parseInt(process.env.SMTP_PORT || '587', 10);
+    const secure = port === 465 || process.env.SMTP_SECURE === 'true';
 
     return nodemailer.createTransport({
         host: host,
@@ -48,9 +56,10 @@ function getTransporter() {
             user: smtpUser,
             pass: smtpPass
         },
-        tls: {
-            rejectUnauthorized: false
-        }
+        connectionTimeout: 8000,
+        greetingTimeout: 5000,
+        socketTimeout: 10000,
+        tls: { rejectUnauthorized: false }
     });
 }
 
@@ -103,7 +112,7 @@ function getCategoryHeader(tipoAccion) {
 
 /**
  * Envía una alerta interna al personal/maitre de Casa Julián 100% en ESPAÑOL por WhatsApp y Email.
- * Incluye la imagen del restaurante como cabecera del correo electrónico.
+ * Incluye la imagen del restaurante como cabecera del correo electrónico y sistema de fallback de puertos SMTP.
  */
 async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados, nombreCliente = null, telefonoReserva = null) {
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
@@ -143,55 +152,62 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         console.error('⚠️ Error al enviar alerta WhatsApp al personal:', error.message);
     }
 
-    // 2. Enviar email si el servidor SMTP está configurado (con imagen de cabecera adjunta CID)
-    const activeTransporter = getTransporter();
+    // 2. Enviar email si el servidor SMTP está configurado (con imagen de cabecera adjunta CID y fallback de puertos)
+    let activeTransporter = getTransporter(465);
 
     if (activeTransporter) {
-        try {
-            const headerImageHtml = hasHeaderImage 
-                ? `<div style="width: 100%; text-align: center; background-color: #111; max-height: 240px; overflow: hidden;"><img src="cid:casa_julian_header" alt="Asador Casa Julián" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" /></div>`
-                : '';
+        const headerImageHtml = hasHeaderImage 
+            ? `<div style="width: 100%; text-align: center; background-color: #111; max-height: 240px; overflow: hidden;"><img src="cid:casa_julian_header" alt="Asador Casa Julián" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" /></div>`
+            : '';
 
-            const emailHtml = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                ${headerImageHtml}
-                <div style="background-color: #8B0000; color: #ffffff; padding: 14px; text-align: center;">
-                    <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
-                    <p style="margin: 6px 0 0 0; font-size: 15px; font-weight: bold;">${categoryInfo.colorTag}</p>
-                </div>
-                <div style="padding: 20px;">
-                    <p style="font-size: 16px; color: #333; margin-top: 0;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
-                    <p style="font-size: 15px; color: #333;"><strong>Nombre del Cliente:</strong> ${nombreDisplay}</p>
-                    <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telDisplay}</p>
-                    <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
-                    
-                    <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                        <h3 style="margin-top: 0; color: #8B0000;">Datos Recibidos del Cliente:</h3>
-                        <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
-                    </div>
-                </div>
-                <div style="border-top: 1px solid #eee; padding: 12px; text-align: center; font-size: 12px; color: #888; background-color: #fafafa;">
-                    <p style="margin: 0;">Notificación Automática del Sistema de Reservas - Asador Casa Julián</p>
+        const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+            ${headerImageHtml}
+            <div style="background-color: #8B0000; color: #ffffff; padding: 14px; text-align: center;">
+                <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
+                <p style="margin: 6px 0 0 0; font-size: 15px; font-weight: bold;">${categoryInfo.colorTag}</p>
+            </div>
+            <div style="padding: 20px;">
+                <p style="font-size: 16px; color: #333; margin-top: 0;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
+                <p style="font-size: 15px; color: #333;"><strong>Nombre del Cliente:</strong> ${nombreDisplay}</p>
+                <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telDisplay}</p>
+                <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
+                
+                <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #8B0000;">Datos Recibidos del Cliente:</h3>
+                    <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
                 </div>
             </div>
-            `;
+            <div style="border-top: 1px solid #eee; padding: 12px; text-align: center; font-size: 12px; color: #888; background-color: #fafafa;">
+                <p style="margin: 0;">Notificación Automática del Sistema de Reservas - Asador Casa Julián</p>
+            </div>
+        </div>
+        `;
 
-            const mailOptions = {
-                from: `"Casa Julian Bot" <${process.env.SMTP_USER || 'anurte@gmail.com'}>`,
-                to: targetEmail,
-                subject: `${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`,
-                html: emailHtml,
-                attachments: hasHeaderImage ? [{
-                    filename: 'casa_julian_erretegia.jpg',
-                    path: headerImagePath,
-                    cid: 'casa_julian_header'
-                }] : []
-            };
+        const mailOptions = {
+            from: `"Casa Julian Bot" <${process.env.SMTP_USER || 'anurte@gmail.com'}>`,
+            to: targetEmail,
+            subject: `${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`,
+            html: emailHtml,
+            attachments: hasHeaderImage ? [{
+                filename: 'casa_julian_erretegia.jpg',
+                path: headerImagePath,
+                cid: 'casa_julian_header'
+            }] : []
+        };
 
+        try {
             const info = await activeTransporter.sendMail(mailOptions);
             console.log(`   └─ ✅ Email de alerta entregado con éxito a ${targetEmail} (ID: ${info.messageId})`);
         } catch (error) {
-            console.error('⚠️ Error al enviar email interno al personal:', error.message);
+            console.error('⚠️ Falló puerto 465, probando fallback automático puerto 587:', error.message);
+            try {
+                const fallbackTransporter = getTransporter(587);
+                const info2 = await fallbackTransporter.sendMail(mailOptions);
+                console.log(`   └─ ✅ Email de alerta entregado con éxito (vía Fallback 587) a ${targetEmail} (ID: ${info2.messageId})`);
+            } catch (fallbackErr) {
+                console.error('⚠️ Error al enviar email interno al personal:', fallbackErr.message);
+            }
         }
     } else {
         console.log(`ℹ️ [SIMULACIÓN EMAIL] Notificación configurada para enviarse a: ${targetEmail}`);
