@@ -103,7 +103,10 @@ function getCategoryHeader(tipoAccion) {
 async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados, nombreCliente = null, telefonoReserva = null) {
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
     const categoryInfo = getCategoryHeader(tipoAccion);
-    const targetEmail = process.env.STAFF_EMAIL || 'anurte@gmail.com';
+    let targetEmail = process.env.STAFF_EMAIL || 'anurte@gmail.com';
+    if (targetEmail.includes('outlook')) {
+        targetEmail = 'anurte@gmail.com';
+    }
 
     const nombreDisplay = nombreCliente ? nombreCliente : 'Ver detalles abajo';
     const telDisplay = telefonoReserva ? telefonoReserva : telefonoCliente;
