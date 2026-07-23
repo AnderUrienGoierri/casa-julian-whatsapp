@@ -773,9 +773,10 @@ async function handleButtonResponse(from, buttonId) {
                 state.data.menuTrad.dias = dayLabel;
             }
             state.step = 'menu_trad_step6_alergias';
+            state.data.menuTrad.selectedAllergies = [];
             userStates.set(from, state);
 
-            await sendMessage(from, getTranslation(lang, 'menuTradStep6Alergias'));
+            await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
             break;
         }
 
@@ -1049,6 +1050,9 @@ async function handleAllergiesListSelection(from, listId, lang) {
         if (lang === 'eu') msg = "⚠️ Mesedez, idatzi testuz zure alergia edo osasun egoera (adib. \"Diabetesa\"):";
         else if (lang === 'en') msg = "⚠️ Please type your allergy or health condition (e.g. \"Diabetes\"):";
         else msg = "⚠️ Por favor, escribe por texto tu alergia o restricción alimentaria (ej. \"Diabetes\"):";
+        // Marcamos el flag para que el handler de texto sepa que espera texto libre
+        currentState.data[formKey]._pendingAlgOtro = true;
+        userStates.set(from, currentState);
         await sendMessage(from, msg);
         return;
     }
@@ -1741,12 +1745,22 @@ async function handleTextMessage(from, text) {
         case 'espera_step6_alergias': {
             currentState.data.waitlist = currentState.data.waitlist || {};
             const cleanText = text.trim();
-            const formattedAlergias = db.formatAllergiesInSpanish(cleanText);
-            currentState.data.waitlist.alergias = formattedAlergias;
-            currentState.step = 'espera_step7_idioma';
-            userStates.set(from, currentState);
-
-            await sendFormLanguageList(from, lang);
+            const pendingOtro = currentState.data.waitlist._pendingAlgOtro;
+            if (pendingOtro) {
+                delete currentState.data.waitlist._pendingAlgOtro;
+                const selectedAllergies = currentState.data.waitlist.selectedAllergies || [];
+                if (cleanText && !['no', 'ninguna', 'none', '0', 'nada'].includes(cleanText.toLowerCase())) {
+                    selectedAllergies.push(cleanText);
+                }
+                currentState.data.waitlist.selectedAllergies = selectedAllergies;
+                userStates.set(from, currentState);
+                await sendAllergiesList(from, lang, 'waitlistStep6Alergias', selectedAllergies);
+            } else {
+                // Texto no esperado: volver a mostrar la lista desplegable
+                currentState.data.waitlist.selectedAllergies = currentState.data.waitlist.selectedAllergies || [];
+                userStates.set(from, currentState);
+                await sendAllergiesList(from, lang, 'waitlistStep6Alergias', currentState.data.waitlist.selectedAllergies);
+            }
             break;
         }
 
@@ -1938,12 +1952,24 @@ async function handleTextMessage(from, text) {
         case 'menu_trad_step6_alergias': {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
             const cleanText = text.trim();
-            const formattedAlergias = db.formatAllergiesInSpanish(cleanText);
-            currentState.data.menuTrad.alergias = formattedAlergias;
-            currentState.step = 'menu_trad_step7_idioma';
-            userStates.set(from, currentState);
-
-            await sendFormLanguageList(from, lang);
+            // Si el texto viene de 'alg_otro' (texto libre de alergia personalizada),
+            // lo guardamos y continuamos. En caso contrario, re-mostramos la lista.
+            const pendingOtro = currentState.data.menuTrad._pendingAlgOtro;
+            if (pendingOtro) {
+                delete currentState.data.menuTrad._pendingAlgOtro;
+                const selectedAllergies = currentState.data.menuTrad.selectedAllergies || [];
+                if (cleanText && !['no', 'ninguna', 'none', '0', 'nada'].includes(cleanText.toLowerCase())) {
+                    selectedAllergies.push(cleanText);
+                }
+                currentState.data.menuTrad.selectedAllergies = selectedAllergies;
+                userStates.set(from, currentState);
+                await sendAllergiesList(from, lang, 'menuTradStep6Alergias', selectedAllergies);
+            } else {
+                // Texto no esperado: volver a mostrar la lista desplegable
+                currentState.data.menuTrad.selectedAllergies = currentState.data.menuTrad.selectedAllergies || [];
+                userStates.set(from, currentState);
+                await sendAllergiesList(from, lang, 'menuTradStep6Alergias', currentState.data.menuTrad.selectedAllergies);
+            }
             break;
         }
 
