@@ -241,7 +241,7 @@ async function handleButtonResponse(from, buttonId) {
         case 'loc_madrid':
             await sendMessage(from, getTranslation(lang, 'madridMsg'));
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
+            await sendLocationMenu(from);
             break;
 
         case 'loc_pais_vasco':
@@ -251,7 +251,7 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_solicitar_reserva':
             await sendMessage(from, getTranslation(lang, 'webReservaLinkMsg'));
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
+            await sendLocationMenu(from);
             break;
 
         case 'btn_add_lista_espera':
@@ -282,9 +282,11 @@ async function handleButtonResponse(from, buttonId) {
                 // 2. Responder al cliente con los mensajes de revisión y agradecimiento del diagrama
                 await sendMessage(from, getTranslation(lang, pending.successMsgKey || 'modSuccessMsg'));
                 await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                userStates.delete(from);
+                
+                // 3. Re-desplegar automáticamente la selección de ubicación de restaurante
+                await sendLocationMenu(from);
 
-                // 3. Enviar la alerta a recepción por WhatsApp y Email con AWAIT garantizado
+                // 4. Enviar la alerta a recepción por WhatsApp y Email con AWAIT garantizado
                 try {
                     await sendInternalStaffAlertInSpanish(
                         pending.tipoAccion,
@@ -297,17 +299,15 @@ async function handleButtonResponse(from, buttonId) {
                     console.error("⚠️ Error alerta recepción:", err.message);
                 }
             } else {
-                userStates.delete(from);
                 await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                await sendLocationMenu(from);
             }
             break;
         }
 
         case 'confirm_no': {
-            userStates.delete(from);
             await sendMessage(from, getTranslation(lang, 'confirmCancelledMsg'));
-            await sendMessage(from, getTranslation(lang, 'returningToMenu'));
-            await sendLanguageMenu(from, 1);
+            await sendLocationMenu(from);
             break;
         }
 
@@ -386,7 +386,7 @@ async function handleFaqSelection(from, faqId, lang) {
     }
     
     await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-    userStates.delete(from);
+    await sendLocationMenu(from);
 }
 
 /**
