@@ -17,6 +17,23 @@ app.get('/', (req, res) => {
     res.send('🔥 Asador Casa Julian - Servidor de WhatsApp Bot 24/7 Activo');
 });
 
+// Endpoint de diagnóstico directo para probar el envío de emails desde Render
+app.get('/test-email', async (req, res) => {
+    const { sendInternalStaffAlertInSpanish } = require('./notifications');
+    try {
+        const result = await sendInternalStaffAlertInSpanish(
+            'SOLICITUD MODIFICACIÓN DE RESERVA (DIAGNÓSTICO)',
+            '34664037707',
+            'Prueba de diagnóstico de correo desde Render.com',
+            'Sophie Fernández',
+            '+34624570248'
+        );
+        res.json({ status: 'OK', message: 'Intento de envío de email ejecutado', result: result });
+    } catch (e) {
+        res.status(500).json({ status: 'ERROR', error: e.message, stack: e.stack });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
 

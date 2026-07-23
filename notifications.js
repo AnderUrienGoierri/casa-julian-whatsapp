@@ -199,18 +199,22 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         try {
             const info = await activeTransporter.sendMail(mailOptions);
             console.log(`   └─ ✅ Email de alerta entregado con éxito a ${targetEmail} (ID: ${info.messageId})`);
+            return { success: true, method: 'port_465_ssl', messageId: info.messageId, targetEmail };
         } catch (error) {
             console.error('⚠️ Falló puerto 465, probando fallback automático puerto 587:', error.message);
             try {
                 const fallbackTransporter = getTransporter(587);
                 const info2 = await fallbackTransporter.sendMail(mailOptions);
                 console.log(`   └─ ✅ Email de alerta entregado con éxito (vía Fallback 587) a ${targetEmail} (ID: ${info2.messageId})`);
+                return { success: true, method: 'port_587_tls_fallback', messageId: info2.messageId, targetEmail, errPort465: error.message };
             } catch (fallbackErr) {
                 console.error('⚠️ Error al enviar email interno al personal:', fallbackErr.message);
+                return { success: false, targetEmail, errPort465: error.message, errPort587: fallbackErr.message };
             }
         }
     } else {
         console.log(`ℹ️ [SIMULACIÓN EMAIL] Notificación configurada para enviarse a: ${targetEmail}`);
+        return { success: false, simulated: true, targetEmail };
     }
 }
 
