@@ -1197,6 +1197,17 @@ async function handleFaqSelection(from, faqId, lang) {
     const responseMsg = getTranslation(lang, msgKey);
 
     if (responseMsg) {
+        if (faqNum === '1' || faqNum === '2') {
+            const baseUrl = process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
+            const imageUrl = `${baseUrl}/public/casa_julian_erretegia.jpg`;
+            const imageCaption = "Asador Casa Julián (Tolosa) - Santa Clara Kalea, 6";
+            
+            try {
+                await sendImageMessage(from, imageUrl, imageCaption);
+            } catch (imgErr) {
+                console.error("⚠️ Error enviando imagen de horarios:", imgErr.message);
+            }
+        }
         await sendMessage(from, responseMsg);
     }
     
