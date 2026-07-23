@@ -276,6 +276,8 @@ async function handleListResponse(from, listId) {
                 await handleFaqSelection(from, listId, lang);
             } else if (listId.startsWith('nac_')) {
                 await handleNationalitySelection(from, listId, lang);
+            } else if (listId.startsWith('form_lang_')) {
+                await handleButtonResponse(from, listId);
             } else {
                 await sendLanguageMenu(from, 1);
             }
