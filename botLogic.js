@@ -255,8 +255,8 @@ async function handleButtonResponse(from, buttonId) {
             break;
 
         case 'btn_add_lista_espera':
-            userStates.set(from, { step: 'espera_formulario', data: {} });
-            await sendMessage(from, getTranslation(lang, 'waitlistFormPrompt'));
+            userStates.set(from, { step: 'espera_step1_nombre', data: { waitlist: {} } });
+            await sendMessage(from, getTranslation(lang, 'waitlistStep1Nombre'));
             break;
 
         case 'menu_tradicion_reservar':
@@ -444,29 +444,74 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'espera_formulario': {
-            let nombreCliente = null;
-            let telefonoReserva = from;
-            const esTelefono = text.match(/\+?\d{8,15}/);
-            if (esTelefono) {
-                telefonoReserva = esTelefono[0];
-                const restoTexto = text.replace(esTelefono[0], '').trim();
-                if (restoTexto) nombreCliente = restoTexto;
-            } else {
-                nombreCliente = text;
-            }
+        case 'espera_step1_nombre': {
+            currentState.data.waitlist = currentState.data.waitlist || {};
+            currentState.data.waitlist.nombre = text;
+            currentState.step = 'espera_step2_comensales';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'waitlistStep2Comensales'));
+            break;
+        }
 
-            const detalleEspera = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
-                                  `📞 *Teléfono Contacto:* ${telefonoReserva}\n` +
+        case 'espera_step2_comensales': {
+            currentState.data.waitlist.comensales = text;
+            currentState.step = 'espera_step3_horario';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'waitlistStep3Horario'));
+            break;
+        }
+
+        case 'espera_step3_horario': {
+            currentState.data.waitlist.horario = text;
+            currentState.step = 'espera_step4_dias';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'waitlistStep4Dias'));
+            break;
+        }
+
+        case 'espera_step4_dias': {
+            currentState.data.waitlist.dias = text;
+            currentState.step = 'espera_step5_ninos';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
+            break;
+        }
+
+        case 'espera_step5_ninos': {
+            currentState.data.waitlist.ninos = text;
+            currentState.step = 'espera_step6_alergias';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'waitlistStep6Alergias'));
+            break;
+        }
+
+        case 'espera_step6_alergias': {
+            currentState.data.waitlist.alergias = text;
+            currentState.step = 'espera_step7_menu_tradicion';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'waitlistStep7MenuTradicion'));
+            break;
+        }
+
+        case 'espera_step7_menu_tradicion': {
+            currentState.data.waitlist.menuTradicion = text;
+            const wl = currentState.data.waitlist;
+
+            const detalleEspera = `👤 *Nombre:* ${wl.nombre}\n` +
+                                  `👥 *Comensales:* ${wl.comensales}\n` +
+                                  `🕐 *Preferencia horaria:* ${wl.horario}\n` +
+                                  `📅 *Disponibilidad días:* ${wl.dias}\n` +
+                                  `👶 *Niños:* ${wl.ninos}\n` +
+                                  `⚠️ *Alergias/Restricciones:* ${wl.alergias}\n` +
+                                  `🎁 *Menú Tradición:* ${wl.menuTradicion}\n` +
                                   `📱 *WhatsApp Remitente:* ${from}\n` +
-                                  `📄 *Datos Ingresados:* ${text}\n` +
                                   `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
 
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD LISTA DE ESPERA',
                 detalleMod: detalleEspera,
-                nombreCliente: nombreCliente,
-                telefonoReserva: telefonoReserva,
+                nombreCliente: wl.nombre,
+                telefonoReserva: from,
                 successMsgKey: 'waitlistSuccessMsg'
             });
             break;
