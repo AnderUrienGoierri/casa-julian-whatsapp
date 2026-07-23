@@ -429,7 +429,7 @@ async function handleButtonResponse(from, buttonId) {
         case 'form_lang_ja':
         case 'form_lang_ar': {
             const selectedLang = buttonId.replace('form_lang_', '');
-            userLanguages.set(from, selectedLang);
+            const chatLang = userLanguages.get(from) || 'es';
             const currentState = userStates.get(from);
 
             if (currentState && currentState.step === 'espera_step7_idioma') {
@@ -450,7 +450,7 @@ async function handleButtonResponse(from, buttonId) {
                 });
 
                 let detalleEspera = '';
-                if (selectedLang === 'eu') {
+                if (chatLang === 'eu') {
                     detalleEspera = `🆔 *Eskaera ID:* ${waitlistRecord.id}\n` +
                                           `👤 *Izen-abizenak:* ${wl.nombre || 'Ez zehaztua'}\n` +
                                           `🪪 *NAN/Pasaportea:* ${wl.dni || 'N/A'}\n` +
@@ -461,12 +461,12 @@ async function handleButtonResponse(from, buttonId) {
                                           `📅 *Egunen erabilgarritasuna:* ${wl.dias || 'Hobespenik ez'}\n` +
                                           `👶 *Haurrak:* ${wl.ninos || '0'}\n` +
                                           `⚠️ *Alergiak/Mugak:* ${wl.alergias || 'Ez'}\n` +
-                                          `🗣️ *Harremanetarako hizkuntza:* EU\n` +
+                                          `🗣️ *Harremanetarako hizkuntza:* ${selectedLang.toUpperCase()}\n` +
                                           `📌 *Egoera:* Pendiente confirmar\n` +
                                           `🎁 *Tradizio Menua:* Ez\n` +
                                           `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
                                           `📋 *Eskaera:* ITXARON ZERRENDAN INSKRIPZIOA`;
-                } else if (selectedLang === 'en') {
+                } else if (chatLang === 'en') {
                     detalleEspera = `🆔 *Request ID:* ${waitlistRecord.id}\n` +
                                           `👤 *Full Name:* ${wl.nombre || 'Not specified'}\n` +
                                           `🪪 *ID/Passport:* ${wl.dni || 'N/A'}\n` +
@@ -477,7 +477,7 @@ async function handleButtonResponse(from, buttonId) {
                                           `📅 *Days Availability:* ${wl.dias || 'No preference'}\n` +
                                           `👶 *Children:* ${wl.ninos || '0'}\n` +
                                           `⚠️ *Allergies/Restrictions:* ${wl.alergias || 'None'}\n` +
-                                          `🗣️ *Contact Language:* EN\n` +
+                                          `🗣️ *Contact Language:* ${selectedLang.toUpperCase()}\n` +
                                           `📌 *Status:* Pendiente confirmar\n` +
                                           `🎁 *Tradition Menu:* No\n` +
                                           `📱 *Sender WhatsApp:* ${from}\n` +
@@ -500,7 +500,7 @@ async function handleButtonResponse(from, buttonId) {
                                           `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
                 }
 
-                await requestUserConfirmation(from, selectedLang, {
+                await requestUserConfirmation(from, chatLang, {
                     tipoAccion: 'SOLICITUD LISTA DE ESPERA',
                     detalleMod: detalleEspera,
                     nombreCliente: wl.nombre || 'Cliente WhatsApp',
@@ -527,7 +527,7 @@ async function handleButtonResponse(from, buttonId) {
                 });
 
                 let detalleMenuTrad = '';
-                if (selectedLang === 'eu') {
+                if (chatLang === 'eu') {
                     detalleMenuTrad = `🆔 *Erreserba ID:* ${resRecord.id}\n` +
                                             `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
                                             `🪪 *NAN/Pasaportea:* ${mt.dni || 'N/A'}\n` +
@@ -538,11 +538,11 @@ async function handleButtonResponse(from, buttonId) {
                                             `⏰ *Aukeratutako ordua:* ${mt.horario || 'Ez zehaztua'}\n` +
                                             `📅 *Egunen erabilgarritasuna:* ${mt.dias || 'Hobespenik ez'}\n` +
                                             `⚠️ *Alergiak/Mugak:* ${mt.alergias || 'Ez'}\n` +
-                                            `🗣️ *Harremanetarako hizkuntza:* EU\n` +
+                                            `🗣️ *Harremanetarako hizkuntza:* ${selectedLang.toUpperCase()}\n` +
                                             `📌 *Egoera:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
                                             `📋 *Eskaera:* TRADIZIO MENUA ERRESERBA (OPARI TXARTELA)`;
-                } else if (selectedLang === 'en') {
+                } else if (chatLang === 'en') {
                     detalleMenuTrad = `🆔 *Reservation ID:* ${resRecord.id}\n` +
                                             `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
                                             `🪪 *ID/Passport:* ${mt.dni || 'N/A'}\n` +
@@ -553,7 +553,7 @@ async function handleButtonResponse(from, buttonId) {
                                             `⏰ *Selected Time:* ${mt.horario || 'Not specified'}\n` +
                                             `📅 *Days Availability:* ${mt.dias || 'No preference'}\n` +
                                             `⚠️ *Allergies/Restrictions:* ${mt.alergias || 'None'}\n` +
-                                            `🗣️ *Contact Language:* EN\n` +
+                                            `🗣️ *Contact Language:* ${selectedLang.toUpperCase()}\n` +
                                             `📌 *Status:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *Sender WhatsApp:* ${from}\n` +
                                             `📋 *Request:* TRADITION MENU BOOKING (GIFT CARD)`;
@@ -568,13 +568,13 @@ async function handleButtonResponse(from, buttonId) {
                                             `⏰ *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
                                             `📅 *Disponibilidad días:* ${mt.dias || 'Sin preferencia'}\n` +
                                             `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
-                                            `🗣️ *Idioma contacto:* ES\n` +
+                                            `🗣️ *Idioma contacto:* ${selectedLang.toUpperCase()}\n` +
                                             `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *WhatsApp Remitente:* ${from}\n` +
                                             `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
                 }
 
-                await requestUserConfirmation(from, selectedLang, {
+                await requestUserConfirmation(from, chatLang, {
                     tipoAccion: 'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
                     detalleMod: detalleMenuTrad,
                     nombreCliente: mt.nombre || 'Cliente WhatsApp',
