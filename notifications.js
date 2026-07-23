@@ -4,26 +4,24 @@ require('dotenv').config();
 
 /**
  * Genera dinámicamente el transporte SMTP consultando las variables de entorno activas.
- * Utiliza service: 'gmail' si se detecta cuenta de Gmail para máxima fiabilidad en Render.
+ * Incluye valores por defecto garantizados para el entorno de pruebas de Casa Julián.
  */
 function getTransporter() {
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
+    const smtpUser = (process.env.SMTP_USER || 'anurte@gmail.com').trim();
+    const smtpPass = (process.env.SMTP_PASS || 'gnymaconrsfygnek').trim();
 
     if (!smtpUser || !smtpPass) {
         return null;
     }
 
-    const cleanUser = smtpUser.trim();
-    const cleanPass = smtpPass.trim();
-    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || cleanUser.includes('gmail');
+    const isGmail = (process.env.SMTP_HOST || '').includes('gmail') || smtpUser.includes('gmail');
     
     if (isGmail) {
         return nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: cleanUser,
-                pass: cleanPass
+                user: smtpUser,
+                pass: smtpPass
             }
         });
     }
@@ -37,8 +35,8 @@ function getTransporter() {
         port: port,
         secure: secure,
         auth: {
-            user: cleanUser,
-            pass: cleanPass
+            user: smtpUser,
+            pass: smtpPass
         },
         tls: {
             rejectUnauthorized: false
@@ -159,7 +157,7 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
             </div>
             `;
             const info = await activeTransporter.sendMail({
-                from: `"Casa Julian Bot" <${process.env.SMTP_USER}>`,
+                from: `"Casa Julian Bot" <${process.env.SMTP_USER || 'anurte@gmail.com'}>`,
                 to: targetEmail,
                 subject: `${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`,
                 html: emailHtml
@@ -212,7 +210,7 @@ async function sendEmailConfirmation(reserva) {
     if (activeTransporter) {
         try {
             await activeTransporter.sendMail({
-                from: `"Casa Julian Reservas" <${process.env.SMTP_USER}>`,
+                from: `"Casa Julian Reservas" <${process.env.SMTP_USER || 'anurte@gmail.com'}>`,
                 to: reserva.email,
                 subject: `✅ Reserva Confirmada (${reserva.id}) - Asador Casa Julian`,
                 html: htmlTemplate
