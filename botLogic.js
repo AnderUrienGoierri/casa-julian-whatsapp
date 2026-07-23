@@ -442,7 +442,7 @@ async function handleButtonResponse(from, buttonId) {
 
             if (currentState && currentState.step === 'espera_step7_idioma') {
                 const wl = currentState.data.waitlist || {};
-                const waitlistRecord = db.addToWaitlist({
+                const waitlistRecord = await db.addToWaitlist({
                     nombre: wl.nombre || 'No especificado',
                     telefono: from,
                     dni: wl.dni || 'N/A',

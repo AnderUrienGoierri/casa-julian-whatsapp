@@ -449,19 +449,22 @@ function cancelReservation(id) {
 // OPERACIONES DE LISTA DE ESPERA
 // -------------------------------------------------------------
 
-function addToWaitlist(data) {
+async function addToWaitlist(data) {
     const db = loadDb();
     const diasPref = data.dias_preferencia || data.dias || data.fecha || 'Sin preferencia';
+    const comensalesNum = parseInt(data.comensales, 10);
+    const validComensales = isNaN(comensalesNum) ? 1 : comensalesNum;
+
     const nuevoRegistro = {
         id: 'ESP-' + Date.now().toString().slice(-6),
-        nombre: data.nombre,
-        telefono: data.telefono,
+        nombre: data.nombre || 'No especificado',
+        telefono: data.telefono || '',
         dni: (data.dni || 'N/A').toUpperCase().trim(),
         email: (data.email || 'N/A').toLowerCase().trim(),
         nacionalidad: data.nacionalidad || 'España',
         dias_preferencia: diasPref,
-        hora: data.hora,
-        comensales: parseInt(data.comensales, 10),
+        hora: data.hora || 'No especificado',
+        comensales: validComensales,
         ninos: data.ninos || '0',
         alergias: data.alergias || 'Ninguna',
         estado: data.estado || 'Pendiente confirmar',
@@ -473,11 +476,30 @@ function addToWaitlist(data) {
     saveDb(db);
 
     if (pool) {
-        pool.query(
-            `INSERT INTO lista_espera(id, nombre, telefono, dni, email, dias_preferencia, hora, comensales, ninos, alergias, estado, idioma, nacionalidad)
-             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) ON CONFLICT(id) DO NOTHING`,
-            [nuevoRegistro.id, nuevoRegistro.nombre, nuevoRegistro.telefono, nuevoRegistro.dni, nuevoRegistro.email, nuevoRegistro.dias_preferencia, nuevoRegistro.hora, nuevoRegistro.comensales, nuevoRegistro.ninos, nuevoRegistro.alergias, nuevoRegistro.estado, nuevoRegistro.idioma, nuevoRegistro.nacionalidad]
-        ).catch(err => console.error("Error PostgreSQL INSERT lista_espera:", err.message));
+        try {
+            await pool.query(
+                `INSERT INTO lista_espera(id, nombre, telefono, dni, email, dias_preferencia, hora, comensales, ninos, alergias, estado, idioma, nacionalidad)
+                 VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) ON CONFLICT(id) DO NOTHING`,
+                [
+                    nuevoRegistro.id,
+                    nuevoRegistro.nombre,
+                    nuevoRegistro.telefono,
+                    nuevoRegistro.dni,
+                    nuevoRegistro.email,
+                    nuevoRegistro.dias_preferencia,
+                    nuevoRegistro.hora,
+                    nuevoRegistro.comensales,
+                    nuevoRegistro.ninos,
+                    nuevoRegistro.alergias,
+                    nuevoRegistro.estado,
+                    nuevoRegistro.idioma,
+                    nuevoRegistro.nacionalidad
+                ]
+            );
+            console.log(`✅ Registro ${nuevoRegistro.id} insertado exitosamente en PostgreSQL Neon y db.json.`);
+        } catch (err) {
+            console.error("❌ Error PostgreSQL INSERT lista_espera:", err.message);
+        }
     }
 
     return nuevoRegistro;
