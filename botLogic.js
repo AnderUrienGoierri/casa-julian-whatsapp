@@ -404,7 +404,8 @@ async function handleTextMessage(from, text) {
             break;
 
         case 'mod_val_comensales': {
-            const numDiners = parseInt(text.trim(), 10);
+            const match = text.match(/\d+/);
+            const numDiners = match ? parseInt(match[0], 10) : NaN;
             if (isNaN(numDiners) || numDiners <= 0 || numDiners > 6) {
                 await sendMessage(from, getTranslation(lang, 'maxComensalesErrorMsg'));
                 return;

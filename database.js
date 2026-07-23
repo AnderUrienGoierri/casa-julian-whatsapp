@@ -290,7 +290,8 @@ function getReservation(criterio) {
         (r.id && r.id.toUpperCase() === search) ||
         (r.dni && r.dni.toUpperCase() === search) || 
         (r.telefono && r.telefono.includes(search)) ||
-        (r.email && r.email.toUpperCase() === search)
+        (r.email && r.email.toUpperCase() === search) ||
+        (r.nombre && r.nombre.toUpperCase().includes(search))
     );
 }
 
@@ -302,7 +303,8 @@ function getAllReservations(criterio) {
         (r.id && r.id.toUpperCase() === search) ||
         (r.dni && r.dni.toUpperCase() === search) || 
         (r.telefono && r.telefono.includes(search)) ||
-        (r.email && r.email.toUpperCase() === search)
+        (r.email && r.email.toUpperCase() === search) ||
+        (r.nombre && r.nombre.toUpperCase().includes(search))
     );
 }
 
