@@ -2,16 +2,20 @@ const nodemailer = require('nodemailer');
 const { sendMessage } = require('./whatsappApi');
 require('dotenv').config();
 
-// Configuración opcional de correo SMTP
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-    port: process.env.SMTP_PORT || 587,
-    secure: false,
-    auth: {
-        user: process.env.SMTP_USER || '',
-        pass: process.env.SMTP_PASS || ''
-    }
-});
+// Configuración de correo SMTP (si existen credenciales o ethereal test)
+let transporter = null;
+
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.office365.com',
+        port: parseInt(process.env.SMTP_PORT || '587', 10),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        }
+    });
+}
 
 /**
  * Obtiene el encabezado visual con iconos y colores según la categoría de la solicitud.
@@ -23,6 +27,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `📋🟡 *[CATEGORÍA: LISTA DE ESPERA]* 🟡📋`,
             colorTag: `🟡 LISTA DE ESPERA`,
+            subjectTag: `[🟡 LISTA DE ESPERA]`,
             emoji: `📋`
         };
     }
@@ -30,6 +35,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `✏️🔵 *[CATEGORÍA: MODIFICACIÓN]* 🔵✏️`,
             colorTag: `🔵 MODIFICACIÓN DE RESERVA`,
+            subjectTag: `[🔵 MODIFICACIÓN]`,
             emoji: `✏️`
         };
     }
@@ -37,6 +43,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN]* 🔴❌`,
             colorTag: `🔴 CANCELACIÓN DE RESERVA`,
+            subjectTag: `[🔴 CANCELACIÓN]`,
             emoji: `❌`
         };
     }
@@ -44,6 +51,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `🎁🟢 *[CATEGORÍA: MENÚ TRADICIÓN]* 🟢🎁`,
             colorTag: `🟢 MENÚ TRADICIÓN / REGALO`,
+            subjectTag: `[🟢 MENÚ TRADICIÓN]`,
             emoji: `🎁`
         };
     }
@@ -51,6 +59,7 @@ function getCategoryHeader(tipoAccion) {
     return {
         banner: `🚨 *[ALERTA RECEPCIÓN CASA JULIÁN]* 🚨`,
         colorTag: `⚪ GESTIÓN GENERAL`,
+        subjectTag: `[⚪ ALERTA RECEPCIÓN]`,
         emoji: `📌`
     };
 }
@@ -61,6 +70,7 @@ function getCategoryHeader(tipoAccion) {
 async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados) {
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
     const categoryInfo = getCategoryHeader(tipoAccion);
+    const targetEmail = process.env.STAFF_EMAIL || 'anurte@outlook.com';
 
     const alertMessage = `${categoryInfo.banner}\n\n` +
         `🏷️ *Categoría:* ${categoryInfo.colorTag}\n` +
@@ -71,6 +81,7 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
     console.log(`\n================ [NOTIFICACIÓN INTERNA PARA PERSONAL EN ESPAÑOL] ================`);
     console.log(categoryInfo.banner);
     console.log(`🏷️ CATEGORÍA: ${categoryInfo.colorTag}`);
+    console.log(`📧 EMAIL DESTINO: ${targetEmail}`);
     console.log(`📞 TELÉFONO CLIENTE: ${telefonoCliente}`);
     console.log(`⏰ FECHA: ${timestamp}`);
     console.log(`📝 DATOS RECIBIDOS:\n${datosDetallados}`);
@@ -85,17 +96,17 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         console.error('⚠️ Error al enviar alerta WhatsApp al personal:', error.message);
     }
 
-    // 2. Enviar email opcional si SMTP está configurado
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    // 2. Enviar email si el servidor SMTP está configurado
+    if (transporter) {
         try {
             const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; padding: 20px; background-color: #ffffff;">
-                <div style="background-color: #8B0000; color: #ffffff; padding: 12px; text-align: center; border-radius: 4px;">
+                <div style="background-color: #8B0000; color: #ffffff; padding: 14px; text-align: center; border-radius: 4px;">
                     <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 14px;">Solicitud de Cliente por WhatsApp [${categoryInfo.colorTag}]</p>
+                    <p style="margin: 6px 0 0 0; font-size: 15px; font-weight: bold;">${categoryInfo.colorTag}</p>
                 </div>
                 <div style="padding: 20px 0;">
-                    <p style="font-size: 16px; color: #333;"><strong>Categoría:</strong> <span style="color: #8B0000;">${categoryInfo.colorTag}</span></p>
+                    <p style="font-size: 16px; color: #333;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
                     <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telefonoCliente}</p>
                     <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
                     
@@ -104,18 +115,24 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
                         <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
                     </div>
                 </div>
+                <div style="border-top: 1px solid #eee; padding-top: 10px; text-align: center; font-size: 12px; color: #888;">
+                    <p>Notificación Automática del Sistema de Reservas - Asador Casa Julián</p>
+                </div>
             </div>
             `;
-            await transporter.sendMail({
-                from: '"Casa Julian WhatsApp Bot" <alertas@casajulian.eus>',
-                to: process.env.STAFF_EMAIL || 'recepcion@casajulian.eus',
-                subject: `[${categoryInfo.colorTag}] - Cliente ${telefonoCliente}`,
+            const info = await transporter.sendMail({
+                from: `"Casa Julian Bot" <${process.env.SMTP_USER}>`,
+                to: targetEmail,
+                subject: `${categoryInfo.subjectTag} - Solicitud de Cliente ${telefonoCliente}`,
                 html: emailHtml
             });
-            console.log(`   └─ Email de alerta enviado al personal (${process.env.STAFF_EMAIL || 'recepcion@casajulian.eus'})`);
+            console.log(`   └─ ✅ Email de alerta entregado con éxito a ${targetEmail} (ID: ${info.messageId})`);
         } catch (error) {
             console.error('⚠️ Error al enviar email interno al personal:', error.message);
         }
+    } else {
+        console.log(`ℹ️ [SIMULACIÓN EMAIL] Notificación configurada para enviarse a: ${targetEmail}`);
+        console.log(`   (Para recibir el correo real en tu bandeja de entrada de ${targetEmail}, introduce tus credenciales SMTP en Render / .env)`);
     }
 }
 
@@ -153,17 +170,16 @@ async function sendEmailConfirmation(reserva) {
     `;
 
     console.log(`\n📧 [EMAIL CONFIRMACIÓN ENVIADO] ➔ A: ${reserva.email}`);
-    console.log(`   Asunto: Confirmación de Reserva ${reserva.id} - Casa Julian`);
 
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    if (transporter) {
         try {
             await transporter.sendMail({
-                from: '"Casa Julian Reservas" <reservas@casajulian.eus>',
+                from: `"Casa Julian Reservas" <${process.env.SMTP_USER}>`,
                 to: reserva.email,
                 subject: `✅ Reserva Confirmada (${reserva.id}) - Asador Casa Julian`,
                 html: htmlTemplate
             });
-            console.log(`   └─ Status: Email entregado en bandeja de entrada real (${reserva.email})`);
+            console.log(`   └─ Status: Email entregado a ${reserva.email}`);
         } catch (error) {
             console.error('⚠️ Error al enviar email de confirmación:', error.message);
         }
