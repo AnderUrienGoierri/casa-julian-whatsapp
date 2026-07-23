@@ -401,14 +401,29 @@ function updateReservation(id, newData) {
 
         if (pool) {
             pool.query(
-                `UPDATE reservas SET fecha=$1, hora=$2, comensales=$3 WHERE id=$4`,
-                [newData.fecha, newData.hora, newData.comensales, id]
+                `UPDATE reservas SET fecha=$1, hora=$2, comensales=$3, estado=$4, dias_preferencia=$5 WHERE id=$6`,
+                [
+                    db.reservas[index].fecha,
+                    db.reservas[index].hora,
+                    db.reservas[index].comensales,
+                    db.reservas[index].estado,
+                    db.reservas[index].dias_preferencia,
+                    id
+                ]
             ).catch(err => console.error("Error PostgreSQL UPDATE reserva:", err.message));
         }
 
         return db.reservas[index];
     }
     return null;
+}
+
+function confirmReservation(id, fecha, hora) {
+    return updateReservation(id, {
+        estado: 'CONFIRMADA',
+        fecha: fecha,
+        hora: hora
+    });
 }
 
 function cancelReservation(id) {
@@ -621,6 +636,7 @@ module.exports = {
     getAllReservations,
     getReservationById,
     updateReservation,
+    confirmReservation,
     cancelReservation,
     addToWaitlist,
     getWaitlistPosition,

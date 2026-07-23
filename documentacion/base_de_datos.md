@@ -111,7 +111,7 @@ Contiene todas las reservas formalizadas y pendientes de asignación final.
 | `fecha` | `VARCHAR(20)` | 🌐 Sí | `''` | Fecha confirmada (formato `DD/MM/AAAA`). Vacía si está sin confirmar. |
 | `hora` | `VARCHAR(10)` | 🌐 Sí | `''` | Turno horario (ej: `13:30`, `20:30`). |
 | `comensales` | `INT` | ❌ No | `2` | Número de comensales (máximo permitido: 6). |
-| `estado` | `VARCHAR(30)` | ❌ No | `'CONFIRMADA'` | Estado actual de la reserva. |
+| `estado` | `VARCHAR(30)` | ❌ No | `'CONFIRMADA'` | Estado de la reserva (`'CONFIRMADA'` para reservas online directas, `'PENDIENTE CONFIRMACION'` para reservas de Menú Tradición hasta que el personal las apruebe). |
 | `idioma` | `VARCHAR(10)` | 🌐 Sí | `'es'` | Idioma en el que se formalizó la reserva (`es`, `eu`, `en`). |
 | `dias_preferencia`| `VARCHAR(100)`| 🌐 Sí | `'Sin preferencia'` | Días preferidos indicados en el formulario. |
 | `tipo_reserva` | `VARCHAR(50)` | ❌ No | `'online'` | Origen de la reserva (`online`, `tarjeta_regalo`, `lista_espera`, `telefonica`). |

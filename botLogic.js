@@ -412,20 +412,53 @@ async function handleButtonResponse(from, buttonId) {
                     idioma: selectedLang
                 });
 
-                const detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
-                                      `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
-                                      `🪪 *DNI/Pasaporte:* ${wl.dni || 'N/A'}\n` +
-                                      `🌐 *Nacionalidad:* ${wl.nacionalidad || 'España'}\n` +
-                                      `👥 *Comensales:* ${wl.comensales || '1'}\n` +
-                                      `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
-                                      `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
-                                      `👶 *Niños:* ${wl.ninos || '0'}\n` +
-                                      `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
-                                      `🗣️ *Idioma contacto:* ${selectedLang.toUpperCase()}\n` +
-                                      `📌 *Estado:* Pendiente confirmar\n` +
-                                      `🎁 *Menú Tradición:* No\n` +
-                                      `📱 *WhatsApp Remitente:* ${from}\n` +
-                                      `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
+                let detalleEspera = '';
+                if (selectedLang === 'eu') {
+                    detalleEspera = `🆔 *Eskaera ID:* ${waitlistRecord.id}\n` +
+                                          `👤 *Izen-abizenak:* ${wl.nombre || 'Ez zehaztua'}\n` +
+                                          `🪪 *NAN/Pasaportea:* ${wl.dni || 'N/A'}\n` +
+                                          `🌐 *Nazionalitatea:* ${wl.nacionalidad || 'Espainia'}\n` +
+                                          `👥 *Pertsona kopurua:* ${wl.comensales || '1'}\n` +
+                                          `🕐 *Ordu hobespena:* ${wl.horario || 'Ez zehaztua'}\n` +
+                                          `📅 *Egunen erabilgarritasuna:* ${wl.dias || 'Hobespenik ez'}\n` +
+                                          `👶 *Haurrak:* ${wl.ninos || '0'}\n` +
+                                          `⚠️ *Alergiak/Mugak:* ${wl.alergias || 'Ez'}\n` +
+                                          `🗣️ *Harremanetarako hizkuntza:* EU\n` +
+                                          `📌 *Egoera:* Pendiente confirmar\n` +
+                                          `🎁 *Tradizio Menua:* Ez\n` +
+                                          `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
+                                          `📋 *Eskaera:* ITXARON ZERRENDAN INSKRIPZIOA`;
+                } else if (selectedLang === 'en') {
+                    detalleEspera = `🆔 *Request ID:* ${waitlistRecord.id}\n` +
+                                          `👤 *Full Name:* ${wl.nombre || 'Not specified'}\n` +
+                                          `🪪 *ID/Passport:* ${wl.dni || 'N/A'}\n` +
+                                          `🌐 *Nationality:* ${wl.nacionalidad || 'Spain'}\n` +
+                                          `👥 *Guests:* ${wl.comensales || '1'}\n` +
+                                          `🕐 *Time Preference:* ${wl.horario || 'Not specified'}\n` +
+                                          `📅 *Days Availability:* ${wl.dias || 'No preference'}\n` +
+                                          `👶 *Children:* ${wl.ninos || '0'}\n` +
+                                          `⚠️ *Allergies/Restrictions:* ${wl.alergias || 'None'}\n` +
+                                          `🗣️ *Contact Language:* EN\n` +
+                                          `📌 *Status:* Pendiente confirmar\n` +
+                                          `🎁 *Tradition Menu:* No\n` +
+                                          `📱 *Sender WhatsApp:* ${from}\n` +
+                                          `📋 *Request:* WAITLIST REGISTRATION`;
+                } else {
+                    detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
+                                          `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
+                                          `🪪 *DNI/Pasaporte:* ${wl.dni || 'N/A'}\n` +
+                                          `🌐 *Nacionalidad:* ${wl.nacionalidad || 'España'}\n` +
+                                          `👥 *Comensales:* ${wl.comensales || '1'}\n` +
+                                          `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
+                                          `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
+                                          `👶 *Niños:* ${wl.ninos || '0'}\n` +
+                                          `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
+                                          `🗣️ *Idioma contacto:* ${selectedLang.toUpperCase()}\n` +
+                                          `📌 *Estado:* Pendiente confirmar\n` +
+                                          `🎁 *Menú Tradición:* No\n` +
+                                          `📱 *WhatsApp Remitente:* ${from}\n` +
+                                          `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
+                }
 
                 await requestUserConfirmation(from, selectedLang, {
                     tipoAccion: 'SOLICITUD LISTA DE ESPERA',
@@ -437,17 +470,67 @@ async function handleButtonResponse(from, buttonId) {
                 });
             } else if (currentState && currentState.step === 'menu_trad_step7_idioma') {
                 const mt = currentState.data.menuTrad || {};
-                const detalleMenuTrad = `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
-                                        `🪪 *DNI/Pasaporte:* ${mt.dni || 'N/A'}\n` +
-                                        `🌐 *Nacionalidad:* ${mt.nacionalidad || 'España'}\n` +
-                                        `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
-                                        `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
-                                        `🕐 *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
-                                        `📅 *Disponibilidad días:* ${mt.dias || 'No especificado'}\n` +
-                                        `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
-                                        `🗣️ *Idioma contacto:* ${selectedLang.toUpperCase()}\n` +
-                                        `📱 *WhatsApp Remitente:* ${from}\n` +
-                                        `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
+                
+                // Crear la reserva en la base de datos con estado PENDIENTE CONFIRMACION
+                const resRecord = db.createReservation({
+                    nombre: mt.nombre || 'Cliente WhatsApp',
+                    telefono: from,
+                    dni: mt.dni || 'N/A',
+                    email: 'N/A',
+                    nacionalidad: mt.nacionalidad || 'España',
+                    fecha: '', // Fecha sin asignar hasta que la confirme el restaurante
+                    hora: mt.horario || '',
+                    comensales: 2,
+                    estado: 'PENDIENTE CONFIRMACION',
+                    dias_preferencia: mt.dias || 'Sin preferencia',
+                    tipo_reserva: 'tarjeta_regalo',
+                    idioma: selectedLang
+                });
+
+                let detalleMenuTrad = '';
+                if (selectedLang === 'eu') {
+                    detalleMenuTrad = `🆔 *Erreserba ID:* ${resRecord.id}\n` +
+                                            `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
+                                            `🪪 *NAN/Pasaportea:* ${mt.dni || 'N/A'}\n` +
+                                            `🌐 *Nazionalitatea:* ${mt.nacionalidad || 'Espainia'}\n` +
+                                            `🎁 *Opari-Txartel Zenbakia:* ${mt.tarjeta || 'Ez zehaztua'}\n` +
+                                            `🍽️ *Zerbitzua:* ${mt.tipoServicio || 'Bazkaria/Afaria'}\n` +
+                                            `⏰ *Aukeratutako ordua:* ${mt.horario || 'Ez zehaztua'}\n` +
+                                            `📅 *Egunen erabilgarritasuna:* ${mt.dias || 'Hobespenik ez'}\n` +
+                                            `⚠️ *Alergiak/Mugak:* ${mt.alergias || 'Ez'}\n` +
+                                            `🗣️ *Harremanetarako hizkuntza:* EU\n` +
+                                            `📌 *Egoera:* PENDIENTE CONFIRMACION\n` +
+                                            `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
+                                            `📋 *Eskaera:* TRADIZIO MENUA ERRESERBA (OPARI TXARTELA)`;
+                } else if (selectedLang === 'en') {
+                    detalleMenuTrad = `🆔 *Reservation ID:* ${resRecord.id}\n` +
+                                            `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
+                                            `🪪 *ID/Passport:* ${mt.dni || 'N/A'}\n` +
+                                            `🌐 *Nationality:* ${mt.nacionalidad || 'Spain'}\n` +
+                                            `🎁 *Gift Card No.:* ${mt.tarjeta || 'Not specified'}\n` +
+                                            `🍽️ *Service:* ${mt.tipoServicio || 'Lunch/Dinner'}\n` +
+                                            `⏰ *Selected Time:* ${mt.horario || 'Not specified'}\n` +
+                                            `📅 *Days Availability:* ${mt.dias || 'No preference'}\n` +
+                                            `⚠️ *Allergies/Restrictions:* ${mt.alergias || 'None'}\n` +
+                                            `🗣️ *Contact Language:* EN\n` +
+                                            `📌 *Status:* PENDIENTE CONFIRMACION\n` +
+                                            `📱 *Sender WhatsApp:* ${from}\n` +
+                                            `📋 *Request:* TRADITION MENU BOOKING (GIFT CARD)`;
+                } else {
+                    detalleMenuTrad = `🆔 *ID Reserva:* ${resRecord.id}\n` +
+                                            `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
+                                            `🪪 *DNI/Pasaporte:* ${mt.dni || 'N/A'}\n` +
+                                            `🌐 *Nacionalidad:* ${mt.nacionalidad || 'España'}\n` +
+                                            `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
+                                            `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
+                                            `⏰ *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
+                                            `📅 *Disponibilidad días:* ${mt.dias || 'Sin preferencia'}\n` +
+                                            `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
+                                            `🗣️ *Idioma contacto:* ES\n` +
+                                            `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
+                                            `📱 *WhatsApp Remitente:* ${from}\n` +
+                                            `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
+                }
 
                 await requestUserConfirmation(from, selectedLang, {
                     tipoAccion: 'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
@@ -458,6 +541,7 @@ async function handleButtonResponse(from, buttonId) {
                     diasPreferencia: mt.dias || 'Sin preferencia',
                     horario: mt.horario || '',
                     idioma: selectedLang,
+                    reservationId: resRecord.id,
                     successMsgKey: 'menuTradicionSuccessMsg'
                 });
             }
@@ -649,21 +733,23 @@ async function handleButtonResponse(from, buttonId) {
                         await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
                     }
                     if (pending.tipoAccion && pending.tipoAccion.includes('RESERVA MENÚ TRADICIÓN')) {
-                        const mt = state?.data?.menuTrad || {};
-                        db.createReservation({
-                            nombre: pending.nombreCliente,
-                            telefono: pending.telefonoReserva,
-                            dni: mt.dni || 'N/A',
-                            email: 'N/A',
-                            nacionalidad: mt.nacionalidad || 'España',
-                            fecha: '', // Fecha pendiente de asignación por recepción
-                            hora: pending.horario || '',
-                            comensales: 2,
-                            estado: 'PENDIENTE CONFIRMACIÓN',
-                            dias_preferencia: pending.diasPreferencia || 'Sin preferencia',
-                            tipo_reserva: 'tarjeta_regalo',
-                            idioma: lang
-                        });
+                        if (!pending.reservationId) {
+                            const mt = state?.data?.menuTrad || {};
+                            db.createReservation({
+                                nombre: pending.nombreCliente,
+                                telefono: pending.telefonoReserva,
+                                dni: mt.dni || 'N/A',
+                                email: 'N/A',
+                                nacionalidad: mt.nacionalidad || 'España',
+                                fecha: '', // Fecha pendiente de asignación por recepción
+                                hora: pending.horario || '',
+                                comensales: 2,
+                                estado: 'PENDIENTE CONFIRMACION',
+                                dias_preferencia: pending.diasPreferencia || 'Sin preferencia',
+                                tipo_reserva: 'tarjeta_regalo',
+                                idioma: lang
+                            });
+                        }
                     }
                     await sendInternalStaffAlertInSpanish(
                         pending.tipoAccion,
@@ -683,6 +769,11 @@ async function handleButtonResponse(from, buttonId) {
         }
 
         case 'confirm_no': {
+            const state = userStates.get(from);
+            const pending = state?.data?.pendingAlert;
+            if (pending && pending.reservationId) {
+                db.cancelReservation(pending.reservationId);
+            }
             await sendMessage(from, getTranslation(lang, 'confirmCancelledMsg'));
             await sendLocationMenu(from);
             break;
