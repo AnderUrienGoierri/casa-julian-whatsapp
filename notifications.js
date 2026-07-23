@@ -14,19 +14,63 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
+ * Obtiene el encabezado visual con iconos y colores según la categoría de la solicitud.
+ */
+function getCategoryHeader(tipoAccion) {
+    const tipo = (tipoAccion || '').toUpperCase();
+
+    if (tipo.includes('ESPERA')) {
+        return {
+            banner: `📋🟡 *[CATEGORÍA: LISTA DE ESPERA]* 🟡📋`,
+            colorTag: `🟡 LISTA DE ESPERA`,
+            emoji: `📋`
+        };
+    }
+    if (tipo.includes('MODIFICACIÓN') || tipo.includes('MODIFICACION')) {
+        return {
+            banner: `✏️🔵 *[CATEGORÍA: MODIFICACIÓN]* 🔵✏️`,
+            colorTag: `🔵 MODIFICACIÓN DE RESERVA`,
+            emoji: `✏️`
+        };
+    }
+    if (tipo.includes('CANCELACIÓN') || tipo.includes('CANCELACION')) {
+        return {
+            banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN]* 🔴❌`,
+            colorTag: `🔴 CANCELACIÓN DE RESERVA`,
+            emoji: `❌`
+        };
+    }
+    if (tipo.includes('TRADICIÓN') || tipo.includes('TRADICION') || tipo.includes('REGALO')) {
+        return {
+            banner: `🎁🟢 *[CATEGORÍA: MENÚ TRADICIÓN]* 🟢🎁`,
+            colorTag: `🟢 MENÚ TRADICIÓN / REGALO`,
+            emoji: `🎁`
+        };
+    }
+
+    return {
+        banner: `🚨 *[ALERTA RECEPCIÓN CASA JULIÁN]* 🚨`,
+        colorTag: `⚪ GESTIÓN GENERAL`,
+        emoji: `📌`
+    };
+}
+
+/**
  * Envía una alerta interna al personal/maitre de Casa Julián 100% en ESPAÑOL por WhatsApp y Email.
  */
 async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, datosDetallados) {
     const timestamp = new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
+    const categoryInfo = getCategoryHeader(tipoAccion);
 
-    const alertMessage = `🚨 *[ALERTA RECEPCIÓN CASA JULIÁN]* 🚨\n\n` +
-        `📌 *Tipo de Gestión:* ${tipoAccion}\n` +
+    const alertMessage = `${categoryInfo.banner}\n\n` +
+        `🏷️ *Categoría:* ${categoryInfo.colorTag}\n` +
         `📞 *Teléfono Cliente:* ${telefonoCliente}\n` +
         `⏰ *Fecha:* ${timestamp}\n\n` +
         `📝 *Datos Recibidos:*\n${datosDetallados}`;
 
     console.log(`\n================ [NOTIFICACIÓN INTERNA PARA PERSONAL EN ESPAÑOL] ================`);
-    console.log(`📌 TIPO: ${tipoAccion}`);
+    console.log(categoryInfo.banner);
+    console.log(`🏷️ CATEGORÍA: ${categoryInfo.colorTag}`);
     console.log(`📞 TELÉFONO CLIENTE: ${telefonoCliente}`);
     console.log(`⏰ FECHA: ${timestamp}`);
     console.log(`📝 DATOS RECIBIDOS:\n${datosDetallados}`);
@@ -48,10 +92,10 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; padding: 20px; background-color: #ffffff;">
                 <div style="background-color: #8B0000; color: #ffffff; padding: 12px; text-align: center; border-radius: 4px;">
                     <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
-                    <p style="margin: 4px 0 0 0; font-size: 14px;">Solicitud de Cliente por WhatsApp (Atención en Español)</p>
+                    <p style="margin: 4px 0 0 0; font-size: 14px;">Solicitud de Cliente por WhatsApp [${categoryInfo.colorTag}]</p>
                 </div>
                 <div style="padding: 20px 0;">
-                    <p style="font-size: 16px; color: #333;"><strong>Tipo de Gestión:</strong> <span style="color: #8B0000;">${tipoAccion}</span></p>
+                    <p style="font-size: 16px; color: #333;"><strong>Categoría:</strong> <span style="color: #8B0000;">${categoryInfo.colorTag}</span></p>
                     <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telefonoCliente}</p>
                     <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
                     
@@ -65,7 +109,7 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
             await transporter.sendMail({
                 from: '"Casa Julian WhatsApp Bot" <alertas@casajulian.eus>',
                 to: process.env.STAFF_EMAIL || 'recepcion@casajulian.eus',
-                subject: `🚨 ${tipoAccion} - WhatsApp Cliente ${telefonoCliente}`,
+                subject: `[${categoryInfo.colorTag}] - Cliente ${telefonoCliente}`,
                 html: emailHtml
             });
             console.log(`   └─ Email de alerta enviado al personal (${process.env.STAFF_EMAIL || 'recepcion@casajulian.eus'})`);
