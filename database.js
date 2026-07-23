@@ -21,6 +21,8 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(100);
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'Pendiente confirmar';
+        ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS ninos VARCHAR(50) DEFAULT '0';
+        ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'Ninguna';
         DO $$ 
         BEGIN 
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='lista_espera' AND column_name='fecha') THEN
@@ -433,6 +435,8 @@ function addToWaitlist(data) {
         dias_preferencia: diasPref,
         hora: data.hora,
         comensales: parseInt(data.comensales, 10),
+        ninos: data.ninos || '0',
+        alergias: data.alergias || 'Ninguna',
         estado: data.estado || 'Pendiente confirmar',
         idioma: data.idioma || 'es',
         fechaRegistro: new Date().toISOString()
@@ -443,9 +447,9 @@ function addToWaitlist(data) {
 
     if (pool) {
         pool.query(
-            `INSERT INTO lista_espera(id, nombre, telefono, dni, email, dias_preferencia, hora, comensales, estado, idioma)
-             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT(id) DO NOTHING`,
-            [nuevoRegistro.id, nuevoRegistro.nombre, nuevoRegistro.telefono, nuevoRegistro.dni, nuevoRegistro.email, nuevoRegistro.dias_preferencia, nuevoRegistro.hora, nuevoRegistro.comensales, nuevoRegistro.estado, nuevoRegistro.idioma]
+            `INSERT INTO lista_espera(id, nombre, telefono, dni, email, dias_preferencia, hora, comensales, ninos, alergias, estado, idioma)
+             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT(id) DO NOTHING`,
+            [nuevoRegistro.id, nuevoRegistro.nombre, nuevoRegistro.telefono, nuevoRegistro.dni, nuevoRegistro.email, nuevoRegistro.dias_preferencia, nuevoRegistro.hora, nuevoRegistro.comensales, nuevoRegistro.ninos, nuevoRegistro.alergias, nuevoRegistro.estado, nuevoRegistro.idioma]
         ).catch(err => console.error("Error PostgreSQL INSERT lista_espera:", err.message));
     }
 

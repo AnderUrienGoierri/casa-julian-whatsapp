@@ -388,6 +388,77 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'form_lang_es':
+        case 'form_lang_eu':
+        case 'form_lang_en': {
+            const selectedLang = buttonId.replace('form_lang_', '');
+            userLanguages.set(from, selectedLang);
+            const currentState = userStates.get(from);
+
+            if (currentState && currentState.step === 'espera_step7_idioma') {
+                const wl = currentState.data.waitlist || {};
+                const waitlistRecord = db.addToWaitlist({
+                    nombre: wl.nombre || 'No especificado',
+                    telefono: from,
+                    dni: 'N/A',
+                    email: 'N/A',
+                    dias_preferencia: wl.dias || 'Sin preferencia',
+                    hora: wl.horario || 'No especificado',
+                    comensales: parseInt(wl.comensales, 10) || 1,
+                    ninos: wl.ninos || '0',
+                    alergias: wl.alergias || 'Ninguna',
+                    estado: 'Pendiente confirmar',
+                    idioma: selectedLang
+                });
+
+                const detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
+                                      `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
+                                      `👥 *Comensales:* ${wl.comensales || '1'}\n` +
+                                      `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
+                                      `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
+                                      `👶 *Niños:* ${wl.ninos || '0'}\n` +
+                                      `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
+                                      `🗣️ *Idioma contacto:* ${selectedLang.toUpperCase()}\n` +
+                                      `📌 *Estado:* Pendiente confirmar\n` +
+                                      `🎁 *Menú Tradición:* No\n` +
+                                      `📱 *WhatsApp Remitente:* ${from}\n` +
+                                      `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
+
+                await requestUserConfirmation(from, selectedLang, {
+                    tipoAccion: 'SOLICITUD LISTA DE ESPERA',
+                    detalleMod: detalleEspera,
+                    nombreCliente: wl.nombre || 'Cliente WhatsApp',
+                    telefonoReserva: from,
+                    diasPreferencia: wl.dias || 'Sin preferencia',
+                    successMsgKey: 'waitlistSuccessMsg'
+                });
+            } else if (currentState && currentState.step === 'menu_trad_step7_idioma') {
+                const mt = currentState.data.menuTrad || {};
+                const detalleMenuTrad = `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
+                                        `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
+                                        `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
+                                        `🕐 *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
+                                        `📅 *Disponibilidad días:* ${mt.dias || 'No especificado'}\n` +
+                                        `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
+                                        `🗣️ *Idioma contacto:* ${selectedLang.toUpperCase()}\n` +
+                                        `📱 *WhatsApp Remitente:* ${from}\n` +
+                                        `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
+
+                await requestUserConfirmation(from, selectedLang, {
+                    tipoAccion: 'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
+                    detalleMod: detalleMenuTrad,
+                    nombreCliente: mt.nombre || 'Cliente WhatsApp',
+                    telefonoReserva: from,
+                    tarjetaCodigo: mt.tarjeta,
+                    diasPreferencia: mt.dias || 'Sin preferencia',
+                    horario: mt.horario || '',
+                    idioma: selectedLang,
+                    successMsgKey: 'menuTradicionSuccessMsg'
+                });
+            }
+            break;
+        }
+
         case 'waitlist_menu_si':
         case 'menu_tradicion_reservar':
             userStates.set(from, { step: 'menu_trad_step1_nombre', data: { menuTrad: {} } });
@@ -1060,39 +1131,27 @@ async function handleTextMessage(from, text) {
 
         case 'espera_step6_alergias': {
             currentState.data.waitlist.alergias = text;
-            const wl = currentState.data.waitlist;
+            currentState.step = 'espera_step7_idioma';
+            userStates.set(from, currentState);
 
-            const waitlistRecord = db.addToWaitlist({
-                nombre: wl.nombre || 'No especificado',
-                telefono: from,
-                dni: 'N/A',
-                email: 'N/A',
-                dias_preferencia: wl.dias || 'Sin preferencia',
-                hora: wl.horario || 'No especificado',
-                comensales: parseInt(wl.comensales, 10) || 1,
-                estado: 'Pendiente confirmar',
-                idioma: lang
-            });
+            const promptBody = getTranslation(lang, 'waitlistStep7Idioma');
+            const buttons = [
+                { id: 'form_lang_es', title: getTranslation(lang, 'btnIdiomaEs').slice(0, 20) },
+                { id: 'form_lang_eu', title: getTranslation(lang, 'btnIdiomaEu').slice(0, 20) },
+                { id: 'form_lang_en', title: getTranslation(lang, 'btnIdiomaEn').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
 
-            const detalleEspera = `🆔 *ID Solicitud:* ${waitlistRecord.id}\n` +
-                                  `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
-                                  `👥 *Comensales:* ${wl.comensales || '1'}\n` +
-                                  `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
-                                  `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
-                                  `👶 *Niños:* ${wl.ninos || '0'}\n` +
-                                  `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
-                                  `📌 *Estado:* Pendiente confirmar\n` +
-                                  `🎁 *Menú Tradición:* No\n` +
-                                  `📱 *WhatsApp Remitente:* ${from}\n` +
-                                  `📋 *Solicitud:* INSCRIPCIÓN EN LISTA DE ESPERA`;
-
-            await requestUserConfirmation(from, lang, {
-                tipoAccion: 'SOLICITUD LISTA DE ESPERA',
-                detalleMod: detalleEspera,
-                nombreCliente: wl.nombre || 'Cliente WhatsApp',
-                telefonoReserva: from,
-                successMsgKey: 'waitlistSuccessMsg'
-            });
+        case 'espera_step7_idioma': {
+            let selLang = 'es';
+            if (cleanText.includes('eusk') || cleanText.includes('basq') || cleanText.includes('eu')) {
+                selLang = 'eu';
+            } else if (cleanText.includes('eng') || cleanText.includes('ingl') || cleanText.includes('en')) {
+                selLang = 'en';
+            }
+            await handleButtonResponse(from, 'form_lang_' + selLang);
             break;
         }
 
@@ -1202,27 +1261,27 @@ async function handleTextMessage(from, text) {
         case 'menu_trad_step6_alergias': {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
             currentState.data.menuTrad.alergias = text;
-            const mt = currentState.data.menuTrad;
+            currentState.step = 'menu_trad_step7_idioma';
+            userStates.set(from, currentState);
 
-            const detalleMenuTrad = `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
-                                    `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
-                                    `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
-                                    `🕐 *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
-                                    `📅 *Disponibilidad días:* ${mt.dias || 'No especificado'}\n` +
-                                    `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
-                                    `📱 *WhatsApp Remitente:* ${from}\n` +
-                                    `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
+            const promptBody = getTranslation(lang, 'menuTradStep7Idioma');
+            const buttons = [
+                { id: 'form_lang_es', title: getTranslation(lang, 'btnIdiomaEs').slice(0, 20) },
+                { id: 'form_lang_eu', title: getTranslation(lang, 'btnIdiomaEu').slice(0, 20) },
+                { id: 'form_lang_en', title: getTranslation(lang, 'btnIdiomaEn').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
 
-            await requestUserConfirmation(from, lang, {
-                tipoAccion: 'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
-                detalleMod: detalleMenuTrad,
-                nombreCliente: mt.nombre || 'Cliente WhatsApp',
-                telefonoReserva: from,
-                tarjetaCodigo: mt.tarjeta,
-                diasPreferencia: mt.dias || 'Sin preferencia',
-                horario: mt.horario || '',
-                successMsgKey: 'menuTradicionSuccessMsg'
-            });
+        case 'menu_trad_step7_idioma': {
+            let selLang = 'es';
+            if (cleanText.includes('eusk') || cleanText.includes('basq') || cleanText.includes('eu')) {
+                selLang = 'eu';
+            } else if (cleanText.includes('eng') || cleanText.includes('ingl') || cleanText.includes('en')) {
+                selLang = 'en';
+            }
+            await handleButtonResponse(from, 'form_lang_' + selLang);
             break;
         }
 
