@@ -936,12 +936,9 @@ function getAllergiesListRows(lang, selectedList = []) {
     const list = [
         { id: 'alg_gluten', title: '🌾 Gluten / Celíacos', desc: 'Intolerancia o alergia al gluten' },
         { id: 'alg_laktosa', title: '🥛 Lactosa / Lácteos', desc: 'Intolerancia a la lactosa o lácteos' },
-        { id: 'alg_frutos', title: '🥜 Frutos secos / Maní', desc: 'Alergia a frutos secos o cacahuetes' },
-        { id: 'alg_huevo', title: '🥚 Huevo', desc: 'Alergia al huevo' },
-        { id: 'alg_marisco', title: '🦐 Marisco / Crustáceos', desc: 'Alergia a mariscos o moluscos' },
-        { id: 'alg_pescado', title: '🐟 Pescado', desc: 'Alergia al pescado' },
-        { id: 'alg_diabetes', title: '🩺 Diabetes', desc: 'Diabético / Control de azúcar' },
-        { id: 'alg_hipertension', title: '🩸 Hipertensión / Sal', desc: 'Dieta baja en sodio / sal' },
+        { id: 'alg_frutos_huevo', title: '🥜 Frutos secos / Huevo', desc: 'Alergia a frutos secos, cacahuete o huevo' },
+        { id: 'alg_marisco_pescado', title: '🦐 Marisco / Pescado', desc: 'Alergia a marisco, crustáceos o pescado' },
+        { id: 'alg_diabetes_sal', title: '🩺 Diabetes/Hipertensión', desc: 'Diabético, azúcar o bajo en sal' },
         { id: 'alg_vegano', title: '🥗 Vegetariano / Vegano', desc: 'Dieta vegetariana o vegana' },
         { id: 'alg_otro', title: '✍️ Otra (escribir texto)', desc: 'Escribir otra alergia o enfermedad' }
     ];
@@ -965,12 +962,9 @@ function getAllergiesListRows(lang, selectedList = []) {
     const allergyMapInv = {
         'Gluten / Celíacos': 'alg_gluten',
         'Lactosa': 'alg_laktosa',
-        'Frutos secos': 'alg_frutos',
-        'Huevo': 'alg_huevo',
-        'Marisco': 'alg_marisco',
-        'Pescado': 'alg_pescado',
-        'Diabetes': 'alg_diabetes',
-        'Hipertensión': 'alg_hipertension',
+        'Frutos secos / Huevo': 'alg_frutos_huevo',
+        'Marisco / Pescado': 'alg_marisco_pescado',
+        'Diabetes / Hipertensión': 'alg_diabetes_sal',
         'Vegetariano/Vegano': 'alg_vegano'
     };
 
@@ -1040,12 +1034,9 @@ async function handleAllergiesListSelection(from, listId, lang) {
     const allergyMap = {
         'alg_gluten': 'Gluten / Celíacos',
         'alg_laktosa': 'Lactosa',
-        'alg_frutos': 'Frutos secos',
-        'alg_huevo': 'Huevo',
-        'alg_marisco': 'Marisco',
-        'alg_pescado': 'Pescado',
-        'alg_diabetes': 'Diabetes',
-        'alg_hipertension': 'Hipertensión',
+        'alg_frutos_huevo': 'Frutos secos / Huevo',
+        'alg_marisco_pescado': 'Marisco / Pescado',
+        'alg_diabetes_sal': 'Diabetes / Hipertensión',
         'alg_vegano': 'Vegetariano/Vegano'
     };
 
