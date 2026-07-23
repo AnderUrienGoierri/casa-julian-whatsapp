@@ -155,7 +155,7 @@ const baseEn = {
     menuButtonText: "View Options",
     selectLocationTitle: "📍 *Restaurant Location*",
     selectLocationBody: "Which of our restaurants are you interested in?",
-    locPaisVasco: "Tolosa (Basque Country)",
+    locPaisVasco: "Tolosa (Euskadi)",
     locMadrid: "Madrid (Madrid)",
     madridMsg: "You are contacting our restaurant in the Basque Country. To contact Madrid restaurants:\n\n*Cava Baja:* +34 925 94 28 94 (Whatsapp)\n*Calle Ibiza:* +34 925 94 28 91 (Whatsapp)",
     mainMenuHeader: "TELL US HOW WE CAN HELP YOU:",
