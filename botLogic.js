@@ -278,8 +278,8 @@ async function handleButtonResponse(from, buttonId) {
         case 'waitlist_init_si':
         case 'waitlist_menu_si':
         case 'menu_tradicion_reservar':
-            userStates.set(from, { step: 'menu_trad_step1_nombre', data: { menuTrad: {} } });
-            await sendMessage(from, getTranslation(lang, 'menuTradStep1Nombre'));
+            userStates.set(from, { step: 'menu_trad_step1_tarjeta', data: { menuTrad: { comensales: 2 } } });
+            await sendMessage(from, getTranslation(lang, 'menuTradStep1Tarjeta'));
             break;
 
         case 'waitlist_init_no':
@@ -921,18 +921,37 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'menu_trad_step1_nombre': {
-            currentState.data.menuTrad = currentState.data.menuTrad || {};
-            currentState.data.menuTrad.nombre = text;
-            currentState.step = 'menu_trad_step2_tarjeta';
-            userStates.set(from, currentState);
-            await sendMessage(from, getTranslation(lang, 'menuTradStep2Tarjeta'));
+        case 'menu_trad_step1_tarjeta': {
+            const rawCardCode = text.trim();
+            const card = await db.getGiftCard(rawCardCode);
+
+            if (card && (card.estado === 'ACTIVA' || !card.estado)) {
+                currentState.data.menuTrad = currentState.data.menuTrad || {};
+                currentState.data.menuTrad.card = card;
+                currentState.data.menuTrad.tarjeta = card.codigo;
+                currentState.data.menuTrad.comensales = 2; // Cada tarjeta cuenta como 2 comensales
+                currentState.step = 'menu_trad_step2_nombre';
+                userStates.set(from, currentState);
+
+                const expiry = card.fecha_caducidad || 'N/A';
+                const successNotice = getTranslation(lang, 'menuTradCardVerified')
+                    .replace('{code}', card.codigo)
+                    .replace('{expiry}', expiry);
+                await sendMessage(from, successNotice);
+
+                await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+            } else {
+                const failNotice = getTranslation(lang, 'menuTradCardNotFound')
+                    .replace('{code}', rawCardCode);
+                await sendMessage(from, failNotice);
+            }
             break;
         }
 
-        case 'menu_trad_step2_tarjeta': {
+        case 'menu_trad_step2_nombre': {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
-            currentState.data.menuTrad.tarjeta = text;
+            currentState.data.menuTrad.nombre = text;
+            currentState.data.menuTrad.comensales = 2;
             currentState.step = 'menu_trad_step3_tipo';
             userStates.set(from, currentState);
 
