@@ -13,6 +13,28 @@ const userStates = new Map();
 const userLanguages = new Map();
 
 /**
+ * Parsea el payload de mensaje entrante de Meta Webhook y lo envía a handleUserMessage.
+ */
+async function processMessage(message) {
+    const from = message.from;
+    const type = message.type;
+
+    if (type === 'text') {
+        const text = message.text ? message.text.body : '';
+        await handleUserMessage(from, text, 'text');
+    } else if (type === 'interactive') {
+        const interactive = message.interactive;
+        if (interactive.type === 'list_reply') {
+            const listId = interactive.list_reply.id;
+            await handleUserMessage(from, listId, 'interactive', { type: 'list', id: listId });
+        } else if (interactive.type === 'button_reply') {
+            const buttonId = interactive.button_reply.id;
+            await handleUserMessage(from, buttonId, 'interactive', { type: 'button', id: buttonId });
+        }
+    }
+}
+
+/**
  * Maneja el flujo de mensajes recibidos de WhatsApp.
  */
 async function handleUserMessage(from, body, type = 'text', interactiveData = null) {
@@ -400,6 +422,7 @@ async function handleTextMessage(from, text) {
 }
 
 module.exports = {
+    processMessage,
     handleUserMessage,
     sendLanguageMenu,
     sendLocationMenu,
