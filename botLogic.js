@@ -318,6 +318,22 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'wl_cena_viernes':
+        case 'wl_cena_sabado': {
+            const state = userStates.get(from) || { data: {} };
+            state.data.waitlist = state.data.waitlist || {};
+            
+            const rawDay = buttonId.replace('wl_cena_', '');
+            const dayLabel = getTranslation(lang, 'day' + rawDay.charAt(0).toUpperCase() + rawDay.slice(1));
+            
+            state.data.waitlist.dias = dayLabel;
+            state.step = 'espera_step5_ninos';
+            userStates.set(from, state);
+
+            await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
+            break;
+        }
+
         case 'waitlist_menu_si':
         case 'menu_tradicion_reservar':
             userStates.set(from, { step: 'menu_trad_step1_nombre', data: { menuTrad: {} } });
@@ -544,11 +560,26 @@ async function handleWaitlistSlotSelection(from, listId, lang) {
         }
     }
 
-    const bodyText = getTranslation(lang, 'waitlistStep4Dia1').replace('{nextAvailable}', nextAvailMsg);
-    const buttonText = getTranslation(lang, 'menuButtonText');
-    const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'wl_day1_' + r.id }));
+    if (state.data.waitlist.tipoServicio === 'Cena') {
+        state.step = 'espera_step4_cena';
+        userStates.set(from, state);
 
-    await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 1 de preferencia", rows }]);
+        const promptBody = getTranslation(lang, 'waitlistStep4CenaDia').replace('{nextAvailable}', nextAvailMsg);
+        const buttons = [
+            { id: 'wl_cena_viernes', title: getTranslation(lang, 'dayViernes').slice(0, 20) },
+            { id: 'wl_cena_sabado', title: getTranslation(lang, 'daySabado').slice(0, 20) }
+        ];
+        await sendInteractiveButtons(from, promptBody, buttons);
+    } else {
+        state.step = 'espera_step4_dia1';
+        userStates.set(from, state);
+
+        const bodyText = getTranslation(lang, 'waitlistStep4Dia1').replace('{nextAvailable}', nextAvailMsg);
+        const buttonText = getTranslation(lang, 'menuButtonText');
+        const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'wl_day1_' + r.id }));
+
+        await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 1 de preferencia", rows }]);
+    }
 }
 
 /**
@@ -773,6 +804,16 @@ async function handleTextMessage(from, text) {
         case 'espera_step3_hora': {
             const timeClean = text.trim().replace('.', ':');
             await handleWaitlistSlotSelection(from, 'wl_slot_' + timeClean.replace(':', ''), lang);
+            break;
+        }
+
+        case 'espera_step4_cena': {
+            const lowerText = text.trim().toLowerCase();
+            if (lowerText.includes('viernes') || lowerText.includes('ostirala') || lowerText.includes('friday')) {
+                await handleButtonResponse(from, 'wl_cena_viernes');
+            } else {
+                await handleButtonResponse(from, 'wl_cena_sabado');
+            }
             break;
         }
 
