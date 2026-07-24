@@ -200,6 +200,7 @@ async function sendMainMenu(from) {
                 { id: "opt_quiero_reservar", title: getTranslation(lang, 'opt1Title').slice(0, 24), description: getTranslation(lang, 'opt1Desc').slice(0, 72) },
                 { id: "opt_modificacion", title: getTranslation(lang, 'opt2Title').slice(0, 24), description: getTranslation(lang, 'opt2Desc').slice(0, 72) },
                 { id: "opt_cancelacion", title: getTranslation(lang, 'opt3Title').slice(0, 24), description: getTranslation(lang, 'opt3Desc').slice(0, 72) },
+                { id: "opt_cancelar_lista_espera", title: getTranslation(lang, 'opt3bTitle').slice(0, 24), description: getTranslation(lang, 'opt3bDesc').slice(0, 72) },
                 { id: "opt_tengo_menu_tradicion", title: getTranslation(lang, 'opt4Title').slice(0, 24), description: getTranslation(lang, 'opt4Desc').slice(0, 72) },
                 { id: "opt_regalar_menu_tradicion", title: getTranslation(lang, 'opt5Title').slice(0, 24), description: getTranslation(lang, 'opt5Desc').slice(0, 72) },
                 { id: "opt_otras_cuestiones", title: getTranslation(lang, 'opt6Title').slice(0, 24), description: getTranslation(lang, 'opt6Desc').slice(0, 72) },
@@ -255,6 +256,11 @@ async function handleListResponse(from, listId) {
         case 'opt_cancelacion':
             userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
             await sendMessage(from, getTranslation(lang, 'modCancelDataPrompt'));
+            break;
+
+        case 'opt_cancelar_lista_espera':
+            userStates.set(from, { step: 'cancelacion_waitlist_datos', data: {} });
+            await sendMessage(from, getTranslation(lang, 'cancelWaitlistPrompt'));
             break;
 
         case 'opt_tengo_menu_tradicion': {
@@ -2112,6 +2118,28 @@ async function handleTextMessage(from, text) {
                 telefonoReserva: telefonoReserva,
                 successMsgKey: 'cancelSuccessMsg'
             });
+            break;
+        }
+
+        case 'cancelacion_waitlist_datos': {
+            const queryText = text.trim();
+            const entry = db.getWaitlistEntry(queryText) || db.getWaitlistEntry(from);
+
+            if (entry) {
+                const cancelledEntry = db.cancelWaitlistEntry(entry.id);
+                const successMsg = getTranslation(lang, 'cancelWaitlistSuccessMsg')
+                    .replace('{id}', cancelledEntry.id)
+                    .replace('{nombre}', cancelledEntry.nombre || 'N/A')
+                    .replace('{telefono}', cancelledEntry.telefono || 'N/A')
+                    .replace('{dias}', cancelledEntry.dias_preferencia || 'Sin preferencia');
+
+                await sendMessage(from, successMsg);
+                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                await sendLocationMenu(from);
+            } else {
+                const notFoundMsg = getTranslation(lang, 'cancelWaitlistNotFoundMsg').replace('{query}', queryText);
+                await sendMessage(from, notFoundMsg);
+            }
             break;
         }
 

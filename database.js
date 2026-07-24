@@ -673,6 +673,40 @@ function removeFromWaitlist(id) {
     return null;
 }
 
+function getWaitlistEntry(criterio) {
+    const db = loadDb();
+    const search = (criterio || '').toUpperCase().trim();
+    if (!search) return null;
+
+    return db.listaEspera.find(e => 
+        (e.estado !== 'Cancelado') && (
+            (e.id && e.id.toUpperCase() === search) || 
+            (e.dni && e.dni.toUpperCase() === search) || 
+            (e.telefono && e.telefono.includes(search)) ||
+            (e.email && e.email.toUpperCase() === search) ||
+            (e.nombre && e.nombre.toUpperCase().includes(search))
+        )
+    );
+}
+
+function cancelWaitlistEntry(id) {
+    const db = loadDb();
+    const index = db.listaEspera.findIndex(e => e.id === id);
+
+    if (index !== -1) {
+        db.listaEspera[index].estado = 'Cancelado';
+        saveDb(db);
+
+        if (pool) {
+            pool.query(`UPDATE lista_espera SET estado = 'Cancelado' WHERE id = $1`, [id])
+                .catch(err => console.error("❌ Error PostgreSQL UPDATE cancel lista_espera:", err.message));
+        }
+
+        return db.listaEspera[index];
+    }
+    return null;
+}
+
 // -------------------------------------------------------------
 // OPERACIONES DE TARJETAS REGALO
 // -------------------------------------------------------------
@@ -786,6 +820,8 @@ module.exports = {
     getWaitlistPosition,
     getFirstWaitlistForSlot,
     removeFromWaitlist,
+    getWaitlistEntry,
+    cancelWaitlistEntry,
     getGiftCard,
     updateGiftCardStatus,
     createGiftCard,
