@@ -255,7 +255,7 @@ async function handleListResponse(from, listId) {
 
         case 'opt_cancelacion':
             userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
-            await sendMessage(from, getTranslation(lang, 'modCancelDataPrompt'));
+            await sendMessage(from, getTranslation(lang, 'cancelDataPrompt'));
             break;
 
         case 'opt_cancelar_lista_espera':
@@ -2109,7 +2109,8 @@ async function handleTextMessage(from, text) {
                                        `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
                                        `📱 *WhatsApp Remitente:* ${from}\n` +
                                        `📄 *Datos Ingresados:* ${text}\n` +
-                                       `❌ *Solicitud:* CANCELACIÓN DE RESERVA`;
+                                       `❌ *Solicitud:* CANCELACIÓN DE RESERVA\n` +
+                                       `⚠️ *Nota Responsables:* Requiere confirmación manual. Si la cancelación se solicita con menos de 24h de antelación al día del servicio, aplicar cargo de 45€ por comensal.`;
 
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
