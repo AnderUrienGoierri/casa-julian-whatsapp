@@ -22,6 +22,9 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(100);
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_reserva VARCHAR(50) DEFAULT 'online';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'NO';
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(30);
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(50);
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'Pendiente confirmar';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS ninos VARCHAR(50) DEFAULT '0';
@@ -432,6 +435,9 @@ function createReservation(data) {
         idioma: data.idioma || 'es',
         dias_preferencia: diasPref,
         tipo_reserva: data.tipo_reserva || 'online',
+        alergias: formatAllergiesInSpanish(data.alergias),
+        tipo_servicio: data.tipo_servicio || null,
+        tarjeta_regalo: data.tarjeta_regalo || null,
         fechaCreacion: now.toISOString()
     };
 
@@ -439,7 +445,7 @@ function createReservation(data) {
     saveDb(db);
 
     if (pool) {
-        // 1. Guardar o actualizar cliente con idioma y nacionalidad
+        // 1. Guardar o actualizar cliente
         pool.query(
             `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
              VALUES($1, $2, $3, $4, $5, $6)
@@ -447,10 +453,10 @@ function createReservation(data) {
             [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
         ).catch(err => console.error("❌ Error PostgreSQL INSERT cliente:", err.message));
 
-        // 2. Guardar reserva
+        // 2. Guardar reserva con todos los campos del formulario
         pool.query(
-            `INSERT INTO reservas(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad)
-             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT(id) DO NOTHING`,
+            `INSERT INTO reservas(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo)
+             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) ON CONFLICT(id) DO NOTHING`,
             [
                 nuevaReserva.id,
                 nuevaReserva.dni,
@@ -465,7 +471,10 @@ function createReservation(data) {
                 nuevaReserva.idioma,
                 nuevaReserva.dias_preferencia,
                 nuevaReserva.tipo_reserva,
-                nuevaReserva.nacionalidad
+                nuevaReserva.nacionalidad,
+                nuevaReserva.alergias,
+                nuevaReserva.tipo_servicio,
+                nuevaReserva.tarjeta_regalo
             ]
         ).then(() => console.log(`✅ Reserva guardada en PostgreSQL: ${nuevaReserva.id}`))
          .catch(err => console.error("❌ Error PostgreSQL INSERT reserva:", err.message, JSON.stringify(nuevaReserva)));

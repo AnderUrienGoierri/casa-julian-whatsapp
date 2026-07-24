@@ -543,10 +543,13 @@ async function handleButtonResponse(from, buttonId) {
                     nacionalidad: mt.nacionalidad || 'España',
                     fecha: '',
                     hora: mt.horario || '',
-                    comensales: 2,
+                    comensales: mt.comensales || 2,
                     estado: 'PENDIENTE CONFIRMACION',
                     dias_preferencia: mt.dias || 'Sin preferencia',
                     tipo_reserva: 'tarjeta_regalo',
+                    alergias: mt.alergias || 'NO',
+                    tipo_servicio: mt.tipoServicio || null,
+                    tarjeta_regalo: mt.tarjeta || null,
                     idioma: selectedLang
                 });
 
