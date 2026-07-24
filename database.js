@@ -38,6 +38,9 @@ if (process.env.DATABASE_URL) {
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='lista_espera' AND column_name='cliente_dni') THEN
                 ALTER TABLE lista_espera DROP COLUMN cliente_dni;
             END IF;
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='reservas' AND column_name='cliente_dni') THEN
+                ALTER TABLE reservas DROP COLUMN cliente_dni;
+            END IF;
         END $$;
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(255);
         ALTER TABLE lista_espera ALTER COLUMN dias_preferencia TYPE VARCHAR(255);
@@ -455,11 +458,10 @@ function createReservation(data) {
 
         // 2. Guardar reserva con todos los campos del formulario
         pool.query(
-            `INSERT INTO reservas(id, cliente_dni, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo)
-             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) ON CONFLICT(id) DO NOTHING`,
+            `INSERT INTO reservas(id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo)
+             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) ON CONFLICT(id) DO NOTHING`,
             [
                 nuevaReserva.id,
-                nuevaReserva.dni,
                 nuevaReserva.nombre,
                 nuevaReserva.telefono,
                 nuevaReserva.dni,
