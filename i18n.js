@@ -16,7 +16,7 @@ const baseEs = {
     opt1Desc: "Solicitud de reserva online o lista de espera.",
     opt2Title: "2. Modificación",
     opt2Desc: "Modificar nº de comensales, día u hora de reserva.",
-    opt3Title: "3. Cancelacion reserva",
+    opt3Title: "3. Cancelar reserva",
     opt3Desc: "Solicitar cancelación de una reserva.",
     opt3bTitle: "4. Cancelar lista espera",
     opt3bDesc: "Eliminar tu inscripción en la lista de espera.",
