@@ -128,7 +128,7 @@ async function sendLanguageMenu(from, page = 1) {
     } else {
         const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
         const welcomeImageUrl = process.env.WELCOME_IMAGE_URL || `${baseUrl}/public/casa_julian_erretegia.jpg`;
-        const welcomeGifUrl = `${baseUrl}/public/casa_julian.gif`;
+        const welcomeGifUrl = `${baseUrl}/public/casa_julian.webp`;
 
         // 1. Enviar imagen de bienvenida del restaurante (una sola vez)
         try {
@@ -137,11 +137,11 @@ async function sendLanguageMenu(from, page = 1) {
             console.error("⚠️ Error enviando imagen de bienvenida por WhatsApp:", e.message);
         }
 
-        // 2. Enviar el archivo GIF de bienvenida (casa_julian.gif)
+        // 2. Enviar el archivo animado de bienvenida (casa_julian.webp)
         try {
             await sendImageMessage(from, welcomeGifUrl, '🔥 Experiencia Casa Julián');
         } catch (e) {
-            console.error("⚠️ Error enviando GIF de bienvenida por WhatsApp:", e.message);
+            console.error("⚠️ Error enviando animación de bienvenida por WhatsApp:", e.message);
         }
 
         const bodyText = "🥩🔥 *¡Bienvenido/a a Casa Julián!* 🥩🔥\n\nSerá un placer ayudarte. ¿En qué idioma deseas continuar? / Select your language:";
