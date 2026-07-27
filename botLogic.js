@@ -800,7 +800,9 @@ async function handleButtonResponse(from, buttonId) {
 
             if (pending) {
                 try {
-                    if (pending.tarjetaCodigo) {
+                    if (pending.isCancellation && pending.reservationId) {
+                        await db.updateReservationStatus(pending.reservationId, 'PENDIENTE CANCELACION');
+                    } else if (pending.tarjetaCodigo) {
                         await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
                     }
 
@@ -2088,37 +2090,95 @@ async function handleTextMessage(from, text) {
         }
 
         case 'cancelacion_datos_actuales': {
-            let nombreCliente = null;
-            let telefonoReserva = from;
-            const reservaEncontrada = db.getReservation(text) || db.getReservation(from);
-            if (reservaEncontrada) {
-                nombreCliente = reservaEncontrada.nombre;
-                telefonoReserva = reservaEncontrada.telefono;
-            } else {
-                const esTelefono = text.match(/\+?\d{8,15}/);
-                if (esTelefono) {
-                    telefonoReserva = esTelefono[0];
-                    const restoTexto = text.replace(esTelefono[0], '').trim();
-                    if (restoTexto) nombreCliente = restoTexto;
-                } else {
-                    nombreCliente = text;
-                }
+            const queryText = text.trim();
+            const searchResult = db.findReservationForCancellation(queryText, from);
+
+            if (!searchResult || !searchResult.reservation) {
+                const notFoundMsg = getTranslation(lang, 'cancelReservationNotFoundMsg').replace('{query}', queryText);
+                await sendMessage(from, notFoundMsg);
+                break;
             }
 
-            const detalleCancelacion = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
-                                       `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
+            const reservaFound = searchResult.reservation;
+
+            if (!searchResult.verified) {
+                userStates.set(from, {
+                    step: 'cancelacion_verificar_datos',
+                    data: { reservationId: reservaFound.id }
+                });
+                const verifyPrompt = getTranslation(lang, 'cancelReservationVerifyPrompt').replace('{id}', reservaFound.id);
+                await sendMessage(from, verifyPrompt);
+                break;
+            }
+
+            const detalleCancelacion = `🆔 *Código Reserva:* ${reservaFound.id}\n` +
+                                       `👤 *Nombre Cliente:* ${reservaFound.nombre}\n` +
+                                       `📞 *Teléfono Reserva:* ${reservaFound.telefono}\n` +
+                                       `📅 *Fecha y Hora:* ${reservaFound.fecha || 'N/A'} ${reservaFound.hora || ''}\n` +
+                                       `👥 *Comensales:* ${reservaFound.comensales}\n` +
                                        `📱 *WhatsApp Remitente:* ${from}\n` +
-                                       `📄 *Datos Ingresados:* ${text}\n` +
+                                       `📄 *Datos Ingresados:* ${queryText}\n` +
                                        `❌ *Solicitud:* CANCELACIÓN DE RESERVA\n` +
                                        `⚠️ *Nota Responsables:* Requiere confirmación manual. Si la cancelación se solicita con menos de 24h de antelación al día del servicio, aplicar cargo de 45€ por comensal.`;
 
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
+                reservationId: reservaFound.id,
+                isCancellation: true,
                 detalleMod: detalleCancelacion,
-                nombreCliente: nombreCliente,
-                telefonoReserva: telefonoReserva,
+                nombreCliente: reservaFound.nombre,
+                telefonoReserva: reservaFound.telefono,
                 successMsgKey: 'cancelSuccessMsg'
             });
+            break;
+        }
+
+        case 'cancelacion_verificar_datos': {
+            const state = userStates.get(from);
+            const resId = state?.data?.reservationId;
+            const reservaFound = db.getReservationById(resId);
+
+            if (!reservaFound) {
+                const notFoundMsg = getTranslation(lang, 'cancelReservationNotFoundMsg').replace('{query}', text);
+                await sendMessage(from, notFoundMsg);
+                userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
+                break;
+            }
+
+            const inputNorm = text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const inputDigits = text.toString().replace(/\D/g, '');
+
+            const resPhoneDigits = (reservaFound.telefono || '').replace(/\D/g, '');
+            const resNameNorm = (reservaFound.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+            const phoneMatches = inputDigits.length >= 7 && (inputDigits.includes(resPhoneDigits) || resPhoneDigits.includes(inputDigits));
+            const nameWords = resNameNorm.split(/\s+/).filter(w => w.length >= 3);
+            const nameMatches = nameWords.some(w => inputNorm.includes(w)) || (inputNorm.length >= 3 && resNameNorm.includes(inputNorm));
+
+            if (phoneMatches || nameMatches) {
+                const detalleCancelacion = `🆔 *Código Reserva:* ${reservaFound.id}\n` +
+                                           `👤 *Nombre Cliente:* ${reservaFound.nombre}\n` +
+                                           `📞 *Teléfono Reserva:* ${reservaFound.telefono}\n` +
+                                           `📅 *Fecha y Hora:* ${reservaFound.fecha || 'N/A'} ${reservaFound.hora || ''}\n` +
+                                           `👥 *Comensales:* ${reservaFound.comensales}\n` +
+                                           `📱 *WhatsApp Remitente:* ${from}\n` +
+                                           `📄 *Datos Ingresados:* ${text}\n` +
+                                           `❌ *Solicitud:* CANCELACIÓN DE RESERVA\n` +
+                                           `⚠️ *Nota Responsables:* Requiere confirmación manual. Si la cancelación se solicita con menos de 24h de antelación al día del servicio, aplicar cargo de 45€ por comensal.`;
+
+                await requestUserConfirmation(from, lang, {
+                    tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
+                    reservationId: reservaFound.id,
+                    isCancellation: true,
+                    detalleMod: detalleCancelacion,
+                    nombreCliente: reservaFound.nombre,
+                    telefonoReserva: reservaFound.telefono,
+                    successMsgKey: 'cancelSuccessMsg'
+                });
+            } else {
+                const mismatchMsg = getTranslation(lang, 'cancelReservationMismatchMsg').replace('{id}', reservaFound.id);
+                await sendMessage(from, mismatchMsg);
+            }
             break;
         }
 

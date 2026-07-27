@@ -25,6 +25,7 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'NO';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(30);
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(50);
+        DO $$ BEGIN
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='lista_espera' AND column_name='cliente_dni') THEN
                 ALTER TABLE lista_espera DROP COLUMN cliente_dni;
             END IF;
@@ -51,7 +52,7 @@ if (process.env.DATABASE_URL) {
         );
     `).then(() => {
         // Sincronizar reservas desde PostgreSQL al arrancar
-        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad FROM reservas WHERE estado = 'CONFIRMADA'");
+        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad FROM reservas WHERE estado IN ('CONFIRMADA', 'PENDIENTE CANCELACION', 'PENDIENTE CONFIRMACIÓN')");
     }).then(res => {
         if (res && res.rows && res.rows.length > 0) {
             const currentDb = loadDb();
@@ -565,6 +566,129 @@ function cancelReservation(id) {
     return null;
 }
 
+function updateReservationStatus(id, nuevoEstado) {
+    const db = loadDb();
+    const index = db.reservas.findIndex(r => r.id === id);
+
+    if (index !== -1) {
+        db.reservas[index].estado = nuevoEstado;
+        saveDb(db);
+
+        if (pool) {
+            pool.query(
+                `UPDATE reservas SET estado = $1 WHERE id = $2`,
+                [nuevoEstado, id]
+            ).catch(err => console.error("❌ Error PostgreSQL UPDATE estado reserva:", err.message));
+        }
+
+        return db.reservas[index];
+    }
+    return null;
+}
+
+function normalizePhone(phone) {
+    if (!phone) return '';
+    let digits = phone.toString().replace(/\D/g, '');
+    if (digits.startsWith('34') && digits.length > 9) {
+        digits = digits.slice(2);
+    }
+    return digits;
+}
+
+function normalizeText(text) {
+    if (!text) return '';
+    return text.toString().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .trim();
+}
+
+function findReservationForCancellation(queryText, fromNumber) {
+    const db = loadDb();
+    const queryNorm = normalizeText(queryText);
+    const queryDigits = normalizePhone(queryText);
+    const fromDigits = normalizePhone(fromNumber);
+
+    const activeReservations = (db.reservas || []).filter(r => r.estado !== 'CANCELADA');
+
+    if (activeReservations.length === 0) return null;
+
+    // 1. Coincidencia directa por Código/ID de Reserva (ej. RES-20260722-1001 o 20260722-1001)
+    const matchedById = activeReservations.find(r => {
+        if (!r.id) return false;
+        const resIdNorm = normalizeText(r.id);
+        return queryNorm.includes(resIdNorm) || resIdNorm.includes(queryNorm);
+    });
+
+    if (matchedById) {
+        const resPhoneDigits = normalizePhone(matchedById.telefono);
+        const resNameNorm = normalizeText(matchedById.nombre);
+
+        const phoneMatches = (queryDigits.length >= 7 && (queryDigits.includes(resPhoneDigits) || resPhoneDigits.includes(queryDigits))) ||
+                             (fromDigits.length >= 7 && (fromDigits.includes(resPhoneDigits) || resPhoneDigits.includes(fromDigits)));
+
+        const nameWords = resNameNorm.split(/\s+/).filter(w => w.length >= 3);
+        const nameMatches = nameWords.some(w => queryNorm.includes(w));
+
+        const isVerified = phoneMatches || nameMatches;
+
+        return {
+            reservation: matchedById,
+            verified: isVerified
+        };
+    }
+
+    // 2. Coincidencia por Número de Teléfono
+    if (queryDigits.length >= 7 || fromDigits.length >= 7) {
+        const matchedByPhone = activeReservations.find(r => {
+            if (!r.telefono) return false;
+            const resPhoneDigits = normalizePhone(r.telefono);
+            return (queryDigits.length >= 7 && (resPhoneDigits.includes(queryDigits) || queryDigits.includes(resPhoneDigits))) ||
+                   (fromDigits.length >= 7 && (resPhoneDigits.includes(fromDigits) || fromDigits.includes(resPhoneDigits)));
+        });
+
+        if (matchedByPhone) {
+            return {
+                reservation: matchedByPhone,
+                verified: true
+            };
+        }
+    }
+
+    // 3. Coincidencia por Nombre / Apellidos
+    const matchedByName = activeReservations.find(r => {
+        if (!r.nombre) return false;
+        const resNameNorm = normalizeText(r.nombre);
+        if (!resNameNorm || !queryNorm) return false;
+        const queryWords = queryNorm.split(/\s+/).filter(w => w.length >= 3);
+        const nameWords = resNameNorm.split(/\s+/).filter(w => w.length >= 3);
+        return queryWords.some(qw => resNameNorm.includes(qw)) || nameWords.some(nw => queryNorm.includes(nw));
+    });
+
+    if (matchedByName) {
+        return {
+            reservation: matchedByName,
+            verified: true
+        };
+    }
+
+    // 4. Coincidencia por DNI o Email
+    const matchedByDniOrEmail = activeReservations.find(r => {
+        const dniNorm = normalizeText(r.dni);
+        const emailNorm = normalizeText(r.email);
+        return (dniNorm && dniNorm.length >= 4 && queryNorm.includes(dniNorm)) ||
+               (emailNorm && emailNorm.length >= 4 && queryNorm.includes(emailNorm));
+    });
+
+    if (matchedByDniOrEmail) {
+        return {
+            reservation: matchedByDniOrEmail,
+            verified: true
+        };
+    }
+
+    return null;
+}
+
 // -------------------------------------------------------------
 // OPERACIONES DE LISTA DE ESPERA
 // -------------------------------------------------------------
@@ -814,6 +938,8 @@ module.exports = {
     getAllReservations,
     getReservationById,
     updateReservation,
+    updateReservationStatus,
+    findReservationForCancellation,
     confirmReservation,
     cancelReservation,
     addToWaitlist,

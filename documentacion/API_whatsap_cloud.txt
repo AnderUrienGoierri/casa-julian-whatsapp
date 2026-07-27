@@ -1,0 +1,1 @@
+La API oficial de WhatsApp Cloud (Meta) impone un límite estricto de máximo 10 filas en total por mensaje interactivo de lista desplegable (Section rows count must be between 1 and 10).
