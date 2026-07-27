@@ -151,7 +151,11 @@ async function sendLanguageMenu(from, page = 1) {
 
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const bodyText = "🥩🔥 *¡Bienvenido/a a Casa Julián!* 🥩🔥\n\nSerá un placer ayudarte. ¿En qué idioma deseas continuar? / Select your language:";
+        const bodyText = "🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n" +
+            "🇪🇺 *EU:* Ongi etorri! Plazera izango da zu laguntzea. Zein hizkuntzatan jarraitu nahi duzu?\n" +
+            "🇪🇸 *ES:* ¡Bienvenido/a! Será un placer ayudarte. ¿En qué idioma deseas continuar?\n" +
+            "🇬🇧 *EN:* Welcome! It will be a pleasure to help you. Which language would you like to continue in?\n" +
+            "🇫🇷 *FR:* Bienvenue! Ce sera un plaisir de vous aider. Dans quelle langue souhaitez-vous continuer?";
         const buttonText = "Seleccionar Idioma";
         const sections = [
             {
