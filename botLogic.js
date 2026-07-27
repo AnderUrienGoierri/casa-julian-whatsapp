@@ -800,7 +800,9 @@ async function handleButtonResponse(from, buttonId) {
 
             if (pending) {
                 try {
-                    if (pending.isCancellation && pending.reservationId) {
+                    if (pending.isModification && pending.reservationId) {
+                        await db.updateReservationStatus(pending.reservationId, 'PENDIENTE MODIFICACION');
+                    } else if (pending.isCancellation && pending.reservationId) {
                         await db.updateReservationStatus(pending.reservationId, 'PENDIENTE CANCELACION');
                     } else if (pending.tarjetaCodigo) {
                         await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
@@ -2003,28 +2005,33 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'modificacion_datos_actuales':
-            // Guardar datos de reserva actual y buscar si existe en BD o en el texto
-            currentState.data.reservaActual = text;
-            
-            // Intentar encontrar reserva previa en la BD por texto o por número del usuario
-            const reservaEncontrada = db.getReservation(text) || db.getReservation(from);
-            if (reservaEncontrada) {
-                currentState.data.comensalesActuales = reservaEncontrada.comensales;
-                currentState.data.nombreCliente = reservaEncontrada.nombre;
-                currentState.data.telefonoReserva = reservaEncontrada.telefono;
-            } else {
-                const esTelefono = text.match(/\+?\d{8,15}/);
-                if (esTelefono) {
-                    currentState.data.telefonoReserva = esTelefono[0];
-                    const restoTexto = text.replace(esTelefono[0], '').trim();
-                    if (restoTexto) {
-                        currentState.data.nombreCliente = restoTexto;
-                    }
-                } else {
-                    currentState.data.nombreCliente = text;
-                }
+        case 'modificacion_datos_actuales': {
+            const queryText = text.trim();
+            const searchResult = db.findActiveReservation(queryText, from);
+
+            if (!searchResult || !searchResult.reservation) {
+                const notFoundMsg = getTranslation(lang, 'modReservationNotFoundMsg').replace('{query}', queryText);
+                await sendMessage(from, notFoundMsg);
+                break;
             }
+
+            const reservaFound = searchResult.reservation;
+
+            if (!searchResult.verified) {
+                userStates.set(from, {
+                    step: 'modificacion_verificar_datos',
+                    data: { reservationId: reservaFound.id }
+                });
+                const verifyPrompt = getTranslation(lang, 'modReservationVerifyPrompt').replace('{id}', reservaFound.id);
+                await sendMessage(from, verifyPrompt);
+                break;
+            }
+
+            currentState.data.reservationId = reservaFound.id;
+            currentState.data.comensalesActuales = reservaFound.comensales;
+            currentState.data.nombreCliente = reservaFound.nombre;
+            currentState.data.telefonoReserva = reservaFound.telefono;
+            currentState.data.reservaActual = `🆔 ${reservaFound.id} (${reservaFound.nombre}, ${reservaFound.telefono})`;
 
             currentState.step = 'modificacion_tipo';
             userStates.set(from, currentState);
@@ -2037,6 +2044,57 @@ async function handleTextMessage(from, text) {
             ];
             await sendInteractiveButtons(from, modBody, modButtons);
             break;
+        }
+
+        case 'modificacion_verificar_datos': {
+            const state = userStates.get(from);
+            const resId = state?.data?.reservationId;
+            const reservaFound = db.getReservationById(resId);
+
+            if (!reservaFound) {
+                const notFoundMsg = getTranslation(lang, 'modReservationNotFoundMsg').replace('{query}', text);
+                await sendMessage(from, notFoundMsg);
+                userStates.set(from, { step: 'modificacion_datos_actuales', data: {} });
+                break;
+            }
+
+            const inputNorm = text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const inputDigits = text.toString().replace(/\D/g, '');
+
+            const resPhoneDigits = (reservaFound.telefono || '').replace(/\D/g, '');
+            const resNameNorm = (reservaFound.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const resDniNorm = (reservaFound.dni || '').toLowerCase().trim();
+            const resEmailNorm = (reservaFound.email || '').toLowerCase().trim();
+
+            const phoneMatches = inputDigits.length >= 7 && (inputDigits.includes(resPhoneDigits) || resPhoneDigits.includes(inputDigits));
+            const nameWords = resNameNorm.split(/\s+/).filter(w => w.length >= 3);
+            const nameMatches = nameWords.some(w => inputNorm.includes(w)) || (inputNorm.length >= 3 && resNameNorm.includes(inputNorm));
+            const dniMatches = resDniNorm.length >= 4 && inputNorm.includes(resDniNorm);
+            const emailMatches = resEmailNorm.length >= 4 && inputNorm.includes(resEmailNorm);
+
+            if (phoneMatches || nameMatches || dniMatches || emailMatches) {
+                state.data.reservationId = reservaFound.id;
+                state.data.comensalesActuales = reservaFound.comensales;
+                state.data.nombreCliente = reservaFound.nombre;
+                state.data.telefonoReserva = reservaFound.telefono;
+                state.data.reservaActual = `🆔 ${reservaFound.id} (${reservaFound.nombre}, ${reservaFound.telefono})`;
+
+                state.step = 'modificacion_tipo';
+                userStates.set(from, state);
+
+                const modBody = getTranslation(lang, 'modOptionsPrompt');
+                const modButtons = [
+                    { id: 'mod_comensales', title: getTranslation(lang, 'modOptComensales').slice(0, 20) },
+                    { id: 'mod_dia', title: getTranslation(lang, 'modOptDia').slice(0, 20) },
+                    { id: 'mod_hora', title: getTranslation(lang, 'modOptHora').slice(0, 20) }
+                ];
+                await sendInteractiveButtons(from, modBody, modButtons);
+            } else {
+                const mismatchMsg = getTranslation(lang, 'modReservationMismatchMsg').replace('{id}', reservaFound.id);
+                await sendMessage(from, mismatchMsg);
+            }
+            break;
+        }
 
         case 'mod_val_comensales': {
             const match = text.match(/\d+/);
@@ -2046,6 +2104,7 @@ async function handleTextMessage(from, text) {
                 return;
             }
 
+            const reservationId = currentState.data.reservationId || null;
             const nombreCliente = currentState.data.nombreCliente || null;
             const telefonoReserva = currentState.data.telefonoReserva || from;
             const reservaActual = currentState.data.reservaActual || 'No especificada';
@@ -2053,11 +2112,13 @@ async function handleTextMessage(from, text) {
             const detalleMod = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
                                `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
                                `📱 *WhatsApp Remitente:* ${from}\n` +
-                               `📄 *Datos Ingresados:* ${reservaActual}\n` +
+                               `📄 *Reserva Actual:* ${reservaActual}\n` +
                                `✏️ *Modificación (COMENSALES):* ${numDiners} personas`;
             
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                reservationId: reservationId,
+                isModification: true,
                 detalleMod: detalleMod,
                 nombreCliente: nombreCliente,
                 telefonoReserva: telefonoReserva,
@@ -2069,6 +2130,7 @@ async function handleTextMessage(from, text) {
         case 'mod_val_dia':
         case 'mod_val_hora': {
             const tipoModLabel = currentState.step.replace('mod_val_', '').toUpperCase();
+            const reservationId = currentState.data.reservationId || null;
             const nombreCliente = currentState.data.nombreCliente || null;
             const telefonoReserva = currentState.data.telefonoReserva || from;
             const reservaActual = currentState.data.reservaActual || 'No especificada';
@@ -2076,11 +2138,13 @@ async function handleTextMessage(from, text) {
             const detalleMod = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
                                `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
                                `📱 *WhatsApp Remitente:* ${from}\n` +
-                               `📄 *Datos Ingresados:* ${reservaActual}\n` +
+                               `📄 *Reserva Actual:* ${reservaActual}\n` +
                                `✏️ *Modificación (${tipoModLabel}):* ${text}`;
             
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                reservationId: reservationId,
+                isModification: true,
                 detalleMod: detalleMod,
                 nombreCliente: nombreCliente,
                 telefonoReserva: telefonoReserva,

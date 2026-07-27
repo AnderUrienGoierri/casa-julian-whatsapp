@@ -52,7 +52,7 @@ if (process.env.DATABASE_URL) {
         );
     `).then(() => {
         // Sincronizar reservas desde PostgreSQL al arrancar
-        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad FROM reservas WHERE estado IN ('CONFIRMADA', 'PENDIENTE CANCELACION', 'PENDIENTE CONFIRMACIÓN')");
+        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad FROM reservas WHERE estado IN ('CONFIRMADA', 'PENDIENTE CANCELACION', 'PENDIENTE MODIFICACION', 'PENDIENTE CONFIRMACIÓN')");
     }).then(res => {
         if (res && res.rows && res.rows.length > 0) {
             const currentDb = loadDb();
@@ -602,7 +602,7 @@ function normalizeText(text) {
         .trim();
 }
 
-function findReservationForCancellation(queryText, fromNumber) {
+function findActiveReservation(queryText, fromNumber) {
     const db = loadDb();
     const queryNorm = normalizeText(queryText);
     const queryDigits = normalizePhone(queryText);
@@ -611,6 +611,9 @@ function findReservationForCancellation(queryText, fromNumber) {
     const activeReservations = (db.reservas || []).filter(r => r.estado !== 'CANCELADA');
 
     if (activeReservations.length === 0) return null;
+
+    // Detectar si el usuario introdujo explícitamente un patrón de código de reserva (ej. RES-...)
+    const isExplicitCodePattern = /RES-/i.test(queryText) || /^\d{8}-\d+$/i.test(queryText.trim());
 
     // 1. Coincidencia directa por Código/ID de Reserva (ej. RES-20260722-1001 o 20260722-1001)
     const matchedById = activeReservations.find(r => {
@@ -635,6 +638,11 @@ function findReservationForCancellation(queryText, fromNumber) {
             reservation: matchedById,
             verified: isVerified
         };
+    }
+
+    // Si se introdujo explícitamente un código con formato RES- y no existe en BD, rechazar de inmediato
+    if (isExplicitCodePattern) {
+        return null;
     }
 
     // 2. Coincidencia por Número de Teléfono
@@ -688,6 +696,8 @@ function findReservationForCancellation(queryText, fromNumber) {
 
     return null;
 }
+
+const findReservationForCancellation = findActiveReservation;
 
 // -------------------------------------------------------------
 // OPERACIONES DE LISTA DE ESPERA
@@ -939,6 +949,7 @@ module.exports = {
     getReservationById,
     updateReservation,
     updateReservationStatus,
+    findActiveReservation,
     findReservationForCancellation,
     confirmReservation,
     cancelReservation,
