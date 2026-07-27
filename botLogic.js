@@ -2094,14 +2094,23 @@ async function handleTextMessage(from, text) {
 
             const resPhoneDigits = (reservaFound.telefono || '').replace(/\D/g, '');
             const resNameNorm = (reservaFound.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const resDniNorm = (reservaFound.dni || '').toLowerCase().trim();
-            const resEmailNorm = (reservaFound.email || '').toLowerCase().trim();
+            const resDniNorm = (reservaFound.dni || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const resEmailNorm = (reservaFound.email || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
             const phoneMatches = inputDigits.length >= 7 && (inputDigits.includes(resPhoneDigits) || resPhoneDigits.includes(inputDigits));
-            const nameWords = resNameNorm.split(/\s+/).filter(w => w.length >= 3);
-            const nameMatches = nameWords.some(w => inputNorm.includes(w)) || (inputNorm.length >= 3 && resNameNorm.includes(inputNorm));
-            const dniMatches = resDniNorm.length >= 4 && inputNorm.includes(resDniNorm);
-            const emailMatches = resEmailNorm.length >= 4 && inputNorm.includes(resEmailNorm);
+
+            const resWords = resNameNorm.split(/\s+/).filter(w => w.length >= 2);
+            const inputWords = inputNorm.split(/\s+/).filter(w => w.length >= 2);
+            let nameMatches = false;
+            if (inputWords.length > 0 && resWords.length > 0) {
+                const firstWordMatches = resWords.includes(inputWords[0]);
+                const fullStringMatches = resNameNorm.includes(inputNorm) || inputNorm.includes(resNameNorm);
+                const wordsOverlap = inputWords.filter(iw => resWords.includes(iw)).length >= 2;
+                nameMatches = firstWordMatches && (fullStringMatches || wordsOverlap || inputWords.length === 1);
+            }
+
+            const dniMatches = resDniNorm.length >= 4 && (inputNorm.includes(resDniNorm) || resDniNorm.includes(inputNorm));
+            const emailMatches = resEmailNorm.length >= 4 && (inputNorm.includes(resEmailNorm) || resEmailNorm.includes(inputNorm));
 
             if (phoneMatches || nameMatches || dniMatches || emailMatches) {
                 state.data.reservationId = reservaFound.id;
@@ -2265,12 +2274,25 @@ async function handleTextMessage(from, text) {
 
             const resPhoneDigits = (reservaFound.telefono || '').replace(/\D/g, '');
             const resNameNorm = (reservaFound.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const resDniNorm = (reservaFound.dni || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const resEmailNorm = (reservaFound.email || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
             const phoneMatches = inputDigits.length >= 7 && (inputDigits.includes(resPhoneDigits) || resPhoneDigits.includes(inputDigits));
-            const nameWords = resNameNorm.split(/\s+/).filter(w => w.length >= 3);
-            const nameMatches = nameWords.some(w => inputNorm.includes(w)) || (inputNorm.length >= 3 && resNameNorm.includes(inputNorm));
 
-            if (phoneMatches || nameMatches) {
+            const resWords = resNameNorm.split(/\s+/).filter(w => w.length >= 2);
+            const inputWords = inputNorm.split(/\s+/).filter(w => w.length >= 2);
+            let nameMatches = false;
+            if (inputWords.length > 0 && resWords.length > 0) {
+                const firstWordMatches = resWords.includes(inputWords[0]);
+                const fullStringMatches = resNameNorm.includes(inputNorm) || inputNorm.includes(resNameNorm);
+                const wordsOverlap = inputWords.filter(iw => resWords.includes(iw)).length >= 2;
+                nameMatches = firstWordMatches && (fullStringMatches || wordsOverlap || inputWords.length === 1);
+            }
+
+            const dniMatches = resDniNorm.length >= 4 && (inputNorm.includes(resDniNorm) || resDniNorm.includes(inputNorm));
+            const emailMatches = resEmailNorm.length >= 4 && (inputNorm.includes(resEmailNorm) || resEmailNorm.includes(inputNorm));
+
+            if (phoneMatches || nameMatches || dniMatches || emailMatches) {
                 const detalleCancelacion = `🆔 *Código Reserva:* ${reservaFound.id}\n` +
                                            `👤 *Nombre Cliente:* ${reservaFound.nombre}\n` +
                                            `📞 *Teléfono Reserva:* ${reservaFound.telefono}\n` +

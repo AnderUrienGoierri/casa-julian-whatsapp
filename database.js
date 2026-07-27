@@ -697,14 +697,26 @@ function findActiveReservation(queryText, fromNumber) {
     const formatResult = (res) => {
         const resPhoneDigits = normalizePhone(res.telefono);
         const resNameNorm = normalizeText(res.nombre);
+        const resDniNorm = normalizeText(res.dni);
+        const resEmailNorm = normalizeText(res.email);
 
         const phoneMatches = (queryDigits.length >= 7 && (queryDigits.includes(resPhoneDigits) || resPhoneDigits.includes(queryDigits))) ||
                              (fromDigits.length >= 7 && (fromDigits.includes(resPhoneDigits) || resPhoneDigits.includes(fromDigits)));
 
-        const nameWords = resNameNorm.split(/\s+/).filter(w => w.length >= 3);
-        const nameMatches = nameWords.some(w => queryNorm.includes(w));
+        const resWords = resNameNorm.split(/\s+/).filter(w => w.length >= 2);
+        const queryWords = queryNorm.split(/\s+/).filter(w => w.length >= 2);
+        let nameMatches = false;
+        if (queryWords.length > 0 && resWords.length > 0) {
+            const firstWordMatches = resWords.includes(queryWords[0]);
+            const fullStringMatches = resNameNorm.includes(queryNorm) || queryNorm.includes(resNameNorm);
+            const wordsOverlap = queryWords.filter(qw => resWords.includes(qw)).length >= 2;
+            nameMatches = firstWordMatches && (fullStringMatches || wordsOverlap || queryWords.length === 1);
+        }
 
-        const isVerified = phoneMatches || nameMatches;
+        const dniMatches = resDniNorm && resDniNorm.length >= 4 && (queryNorm.includes(resDniNorm) || resDniNorm.includes(queryNorm));
+        const emailMatches = resEmailNorm && resEmailNorm.length >= 4 && (queryNorm.includes(resEmailNorm) || resEmailNorm.includes(queryNorm));
+
+        const isVerified = phoneMatches || nameMatches || dniMatches || emailMatches;
         const isModifiable = res.estado === 'CONFIRMADA';
 
         return {
