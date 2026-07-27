@@ -52,7 +52,7 @@ if (process.env.DATABASE_URL) {
         );
     `).then(() => {
         // Sincronizar reservas desde PostgreSQL al arrancar
-        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas WHERE estado IN ('CONFIRMADA', 'PENDIENTE CANCELACION', 'PENDIENTE MODIFICACION', 'PENDIENTE CONFIRMACIÓN')");
+        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas ORDER BY id DESC");
     }).then(res => {
         if (res && res.rows && res.rows.length > 0) {
             const currentDb = loadDb();
@@ -81,6 +81,81 @@ if (process.env.DATABASE_URL) {
 } else {
     console.log("🗄️ Modo Base de Datos: Almacenamiento Local (db.json).");
 }
+
+function autoUpdateReservationStatuses() {
+    const db = loadDb();
+    if (!db.reservas || db.reservas.length === 0) return;
+
+    const now = new Date();
+    let updatedCount = 0;
+
+    db.reservas.forEach(r => {
+        if (!r.fecha || !r.hora) return;
+        if (r.estado === 'CANCELADA' || r.estado === 'SERVICIO FINALIZADO') return;
+
+        let day, month, year;
+        if (r.fecha.includes('/')) {
+            const parts = r.fecha.split('/');
+            day = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10) - 1;
+            year = parseInt(parts[2], 10);
+        } else if (r.fecha.includes('-')) {
+            const parts = r.fecha.split('-');
+            year = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10) - 1;
+            day = parseInt(parts[2], 10);
+        } else {
+            return;
+        }
+
+        const partsTime = r.hora.split(':');
+        const hour = parseInt(partsTime[0], 10);
+        const min = parseInt(partsTime[1], 10) || 0;
+
+        if (isNaN(day) || isNaN(month) || isNaN(year) || isNaN(hour)) return;
+
+        const startDate = new Date(year, month, day, hour, min, 0);
+        const endDate = new Date(startDate.getTime() + (2.5 * 60 * 60 * 1000)); // 2.5 horas de servicio
+
+        if (now >= endDate) {
+            if (r.estado !== 'SERVICIO FINALIZADO') {
+                r.estado = 'SERVICIO FINALIZADO';
+                updatedCount++;
+            }
+        } else if (now >= startDate) {
+            if (r.estado !== 'EN SERVICIO') {
+                r.estado = 'EN SERVICIO';
+                updatedCount++;
+            }
+        }
+    });
+
+    if (updatedCount > 0) {
+        saveDb(db);
+        console.log(`🔄 Actualizados automáticamente ${updatedCount} estados de reserva a EN SERVICIO / SERVICIO FINALIZADO.`);
+    }
+
+    if (pool) {
+        pool.query(`
+            UPDATE reservas 
+            SET estado = 'EN SERVICIO' 
+            WHERE estado IN ('CONFIRMADA', 'PENDIENTE CONFIRMACIÓN') 
+              AND TO_TIMESTAMP(fecha || ' ' || hora, 'DD/MM/YYYY HH24:MI') <= NOW()
+              AND TO_TIMESTAMP(fecha || ' ' || hora, 'DD/MM/YYYY HH24:MI') + INTERVAL '2.5 hours' > NOW();
+        `).catch(err => console.error("Error actualizando EN SERVICIO en PG:", err.message));
+
+        pool.query(`
+            UPDATE reservas 
+            SET estado = 'SERVICIO FINALIZADO' 
+            WHERE estado IN ('CONFIRMADA', 'PENDIENTE CONFIRMACIÓN', 'EN SERVICIO', 'PENDIENTE CANCELACION', 'PENDIENTE MODIFICACION') 
+              AND TO_TIMESTAMP(fecha || ' ' || hora, 'DD/MM/YYYY HH24:MI') + INTERVAL '2.5 hours' <= NOW();
+        `).catch(err => console.error("Error actualizando SERVICIO FINALIZADO en PG:", err.message));
+    }
+}
+
+// Ejecutar inmediatamente y programar cada 5 minutos
+autoUpdateReservationStatuses();
+setInterval(autoUpdateReservationStatuses, 5 * 60 * 1000);
 
 const defaultData = {
     capacidadMaximaPorTurno: 20,
@@ -499,6 +574,7 @@ function getReservation(criterio) {
 
 function getAllReservations(criterio) {
     const db = loadDb();
+    if (!criterio) return db.reservas || [];
     const search = criterio.toUpperCase().trim();
     
     return db.reservas.filter(r => 
@@ -606,28 +682,21 @@ function normalizeText(text) {
 }
 
 function findActiveReservation(queryText, fromNumber) {
+    autoUpdateReservationStatuses();
     const db = loadDb();
     const queryNorm = normalizeText(queryText);
     const queryDigits = normalizePhone(queryText);
     const fromDigits = normalizePhone(fromNumber);
 
-    const activeReservations = (db.reservas || []).filter(r => r.estado !== 'CANCELADA');
-
-    if (activeReservations.length === 0) return null;
+    const allReservations = db.reservas || [];
+    if (allReservations.length === 0) return null;
 
     // Detectar si el usuario introdujo explícitamente un patrón de código de reserva (ej. RES-...)
     const isExplicitCodePattern = /RES-/i.test(queryText) || /^\d{8}-\d+$/i.test(queryText.trim());
 
-    // 1. Coincidencia directa por Código/ID de Reserva (ej. RES-20260722-1001 o 20260722-1001)
-    const matchedById = activeReservations.find(r => {
-        if (!r.id) return false;
-        const resIdNorm = normalizeText(r.id);
-        return queryNorm.includes(resIdNorm) || resIdNorm.includes(queryNorm);
-    });
-
-    if (matchedById) {
-        const resPhoneDigits = normalizePhone(matchedById.telefono);
-        const resNameNorm = normalizeText(matchedById.nombre);
+    const formatResult = (res) => {
+        const resPhoneDigits = normalizePhone(res.telefono);
+        const resNameNorm = normalizeText(res.nombre);
 
         const phoneMatches = (queryDigits.length >= 7 && (queryDigits.includes(resPhoneDigits) || resPhoneDigits.includes(queryDigits))) ||
                              (fromDigits.length >= 7 && (fromDigits.includes(resPhoneDigits) || resPhoneDigits.includes(fromDigits)));
@@ -636,11 +705,25 @@ function findActiveReservation(queryText, fromNumber) {
         const nameMatches = nameWords.some(w => queryNorm.includes(w));
 
         const isVerified = phoneMatches || nameMatches;
+        const isModifiable = res.estado === 'CONFIRMADA';
 
         return {
-            reservation: matchedById,
-            verified: isVerified
+            reservation: res,
+            verified: isVerified,
+            isModifiable: isModifiable,
+            statusReason: res.estado
         };
+    };
+
+    // 1. Coincidencia directa por Código/ID de Reserva (ej. RES-20260722-1001 o 20260722-1001)
+    const matchedById = allReservations.find(r => {
+        if (!r.id) return false;
+        const resIdNorm = normalizeText(r.id);
+        return queryNorm.includes(resIdNorm) || resIdNorm.includes(queryNorm);
+    });
+
+    if (matchedById) {
+        return formatResult(matchedById);
     }
 
     // Si se introdujo explícitamente un código con formato RES- y no existe en BD, rechazar de inmediato
@@ -650,7 +733,7 @@ function findActiveReservation(queryText, fromNumber) {
 
     // 2. Coincidencia por Número de Teléfono
     if (queryDigits.length >= 7 || fromDigits.length >= 7) {
-        const matchedByPhone = activeReservations.find(r => {
+        const matchedByPhone = allReservations.find(r => {
             if (!r.telefono) return false;
             const resPhoneDigits = normalizePhone(r.telefono);
             return (queryDigits.length >= 7 && (resPhoneDigits.includes(queryDigits) || queryDigits.includes(resPhoneDigits))) ||
@@ -658,15 +741,12 @@ function findActiveReservation(queryText, fromNumber) {
         });
 
         if (matchedByPhone) {
-            return {
-                reservation: matchedByPhone,
-                verified: true
-            };
+            return formatResult(matchedByPhone);
         }
     }
 
     // 3. Coincidencia por Nombre / Apellidos
-    const matchedByName = activeReservations.find(r => {
+    const matchedByName = allReservations.find(r => {
         if (!r.nombre) return false;
         const resNameNorm = normalizeText(r.nombre);
         if (!resNameNorm || !queryNorm) return false;
@@ -676,14 +756,11 @@ function findActiveReservation(queryText, fromNumber) {
     });
 
     if (matchedByName) {
-        return {
-            reservation: matchedByName,
-            verified: true
-        };
+        return formatResult(matchedByName);
     }
 
     // 4. Coincidencia por DNI o Email
-    const matchedByDniOrEmail = activeReservations.find(r => {
+    const matchedByDniOrEmail = allReservations.find(r => {
         const dniNorm = normalizeText(r.dni);
         const emailNorm = normalizeText(r.email);
         return (dniNorm && dniNorm.length >= 4 && queryNorm.includes(dniNorm)) ||
@@ -691,10 +768,7 @@ function findActiveReservation(queryText, fromNumber) {
     });
 
     if (matchedByDniOrEmail) {
-        return {
-            reservation: matchedByDniOrEmail,
-            verified: true
-        };
+        return formatResult(matchedByDniOrEmail);
     }
 
     return null;
@@ -952,6 +1026,7 @@ module.exports = {
     getReservationById,
     updateReservation,
     updateReservationStatus,
+    autoUpdateReservationStatuses,
     findActiveReservation,
     findReservationForCancellation,
     confirmReservation,

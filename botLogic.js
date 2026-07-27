@@ -2017,6 +2017,16 @@ async function handleTextMessage(from, text) {
 
             const reservaFound = searchResult.reservation;
 
+            if (!searchResult.isModifiable) {
+                let restrictionMsg = getTranslation(lang, 'resStatusFinished').replace('{id}', reservaFound.id);
+                if (searchResult.statusReason === 'PENDIENTE CANCELACION') restrictionMsg = getTranslation(lang, 'resStatusPendingCancel').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'PENDIENTE MODIFICACION') restrictionMsg = getTranslation(lang, 'resStatusPendingMod').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'EN SERVICIO') restrictionMsg = getTranslation(lang, 'resStatusInService').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'CANCELADA') restrictionMsg = getTranslation(lang, 'resStatusCancelled').replace('{id}', reservaFound.id);
+                await sendMessage(from, restrictionMsg);
+                break;
+            }
+
             if (!searchResult.verified) {
                 userStates.set(from, {
                     step: 'modificacion_verificar_datos',
@@ -2055,6 +2065,16 @@ async function handleTextMessage(from, text) {
                 const notFoundMsg = getTranslation(lang, 'modReservationNotFoundMsg').replace('{query}', text);
                 await sendMessage(from, notFoundMsg);
                 userStates.set(from, { step: 'modificacion_datos_actuales', data: {} });
+                break;
+            }
+
+            if (reservaFound.estado !== 'CONFIRMADA') {
+                let restrictionMsg = getTranslation(lang, 'resStatusFinished').replace('{id}', reservaFound.id);
+                if (reservaFound.estado === 'PENDIENTE CANCELACION') restrictionMsg = getTranslation(lang, 'resStatusPendingCancel').replace('{id}', reservaFound.id);
+                else if (reservaFound.estado === 'PENDIENTE MODIFICACION') restrictionMsg = getTranslation(lang, 'resStatusPendingMod').replace('{id}', reservaFound.id);
+                else if (reservaFound.estado === 'EN SERVICIO') restrictionMsg = getTranslation(lang, 'resStatusInService').replace('{id}', reservaFound.id);
+                else if (reservaFound.estado === 'CANCELADA') restrictionMsg = getTranslation(lang, 'resStatusCancelled').replace('{id}', reservaFound.id);
+                await sendMessage(from, restrictionMsg);
                 break;
             }
 
@@ -2165,6 +2185,16 @@ async function handleTextMessage(from, text) {
 
             const reservaFound = searchResult.reservation;
 
+            if (!searchResult.isModifiable) {
+                let restrictionMsg = getTranslation(lang, 'resStatusFinished').replace('{id}', reservaFound.id);
+                if (searchResult.statusReason === 'PENDIENTE CANCELACION') restrictionMsg = getTranslation(lang, 'resStatusPendingCancel').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'PENDIENTE MODIFICACION') restrictionMsg = getTranslation(lang, 'resStatusPendingMod').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'EN SERVICIO') restrictionMsg = getTranslation(lang, 'resStatusInService').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'CANCELADA') restrictionMsg = getTranslation(lang, 'resStatusCancelled').replace('{id}', reservaFound.id);
+                await sendMessage(from, restrictionMsg);
+                break;
+            }
+
             if (!searchResult.verified) {
                 userStates.set(from, {
                     step: 'cancelacion_verificar_datos',
@@ -2206,6 +2236,16 @@ async function handleTextMessage(from, text) {
                 const notFoundMsg = getTranslation(lang, 'cancelReservationNotFoundMsg').replace('{query}', text);
                 await sendMessage(from, notFoundMsg);
                 userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
+                break;
+            }
+
+            if (reservaFound.estado !== 'CONFIRMADA') {
+                let restrictionMsg = getTranslation(lang, 'resStatusFinished').replace('{id}', reservaFound.id);
+                if (reservaFound.estado === 'PENDIENTE CANCELACION') restrictionMsg = getTranslation(lang, 'resStatusPendingCancel').replace('{id}', reservaFound.id);
+                else if (reservaFound.estado === 'PENDIENTE MODIFICACION') restrictionMsg = getTranslation(lang, 'resStatusPendingMod').replace('{id}', reservaFound.id);
+                else if (reservaFound.estado === 'EN SERVICIO') restrictionMsg = getTranslation(lang, 'resStatusInService').replace('{id}', reservaFound.id);
+                else if (reservaFound.estado === 'CANCELADA') restrictionMsg = getTranslation(lang, 'resStatusCancelled').replace('{id}', reservaFound.id);
+                await sendMessage(from, restrictionMsg);
                 break;
             }
 
