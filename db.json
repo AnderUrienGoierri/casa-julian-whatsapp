@@ -40587,5 +40587,457 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-23T21:25:42.945Z"
     }
+  ],
+  "tarjetasRegalo": [
+    {
+      "id": "TR-001",
+      "codigo": "MT-2026-001",
+      "comprador_nombre": "Juan Pérez",
+      "comprador_telefono": "+34600112233",
+      "fecha_compra": "01/01/2026",
+      "fecha_caducidad": "31/12/2026",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-002",
+      "codigo": "MT-2026-002",
+      "comprador_nombre": "María López",
+      "comprador_telefono": "+34611223344",
+      "fecha_compra": "15/01/2026",
+      "fecha_caducidad": "15/01/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-003",
+      "codigo": "12345",
+      "comprador_nombre": "Cliente Prueba",
+      "comprador_telefono": "+34622334455",
+      "fecha_compra": "01/02/2026",
+      "fecha_caducidad": "01/02/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-004",
+      "codigo": "MT-2026-004",
+      "comprador_nombre": "Mikel Agirreetxea",
+      "comprador_telefono": "+34633445566",
+      "fecha_compra": "10/02/2026",
+      "fecha_caducidad": "10/02/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-005",
+      "codigo": "MT-2026-005",
+      "comprador_nombre": "Ane Zubizarreta",
+      "comprador_telefono": "+34644556677",
+      "fecha_compra": "14/02/2026",
+      "fecha_caducidad": "14/02/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-006",
+      "codigo": "MT-2026-006",
+      "comprador_nombre": "Carlos Sainz Vázquez",
+      "comprador_telefono": "+34655667788",
+      "fecha_compra": "20/02/2026",
+      "fecha_caducidad": "20/02/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-007",
+      "codigo": "MT-2026-007",
+      "comprador_nombre": "Laura Gómez Fernández",
+      "comprador_telefono": "+34666778899",
+      "fecha_compra": "01/03/2026",
+      "fecha_caducidad": "01/03/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-008",
+      "codigo": "MT-2026-008",
+      "comprador_nombre": "Jon Gurrutxaga Bengoa",
+      "comprador_telefono": "+34677889900",
+      "fecha_compra": "05/03/2026",
+      "fecha_caducidad": "05/03/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-009",
+      "codigo": "MT-2026-009",
+      "comprador_nombre": "Sophie Dubois",
+      "comprador_telefono": "+33612345678",
+      "fecha_compra": "10/03/2026",
+      "fecha_caducidad": "10/03/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-010",
+      "codigo": "MT-2026-010",
+      "comprador_nombre": "David Smith",
+      "comprador_telefono": "+447911123456",
+      "fecha_compra": "15/03/2026",
+      "fecha_caducidad": "15/03/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-011",
+      "codigo": "MT-2026-011",
+      "comprador_nombre": "Amaia Etxebarria",
+      "comprador_telefono": "+34688990011",
+      "fecha_compra": "20/03/2026",
+      "fecha_caducidad": "20/03/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-012",
+      "codigo": "MT-2026-012",
+      "comprador_nombre": "Javier Martínez Ruiz",
+      "comprador_telefono": "+34699001122",
+      "fecha_compra": "25/03/2026",
+      "fecha_caducidad": "25/03/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-013",
+      "codigo": "88492",
+      "comprador_nombre": "Elena Izagirre",
+      "comprador_telefono": "+34611112233",
+      "fecha_compra": "01/04/2026",
+      "fecha_caducidad": "01/04/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-014",
+      "codigo": "MT-2026-014",
+      "comprador_nombre": "Inés de la Fuente",
+      "comprador_telefono": "+34622223344",
+      "fecha_compra": "05/04/2026",
+      "fecha_caducidad": "05/04/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-015",
+      "codigo": "MT-2026-015",
+      "comprador_nombre": "Koldo Mendizabal",
+      "comprador_telefono": "+34633334455",
+      "fecha_compra": "10/04/2026",
+      "fecha_caducidad": "10/04/2027",
+      "estado": "NO CONSUMIDA"
+    },
+    {
+      "id": "TR-016",
+      "codigo": "MT-2026-016",
+      "comprador_nombre": "Ainhoa Goikoetxea",
+      "comprador_telefono": "+34644445566",
+      "fecha_compra": "12/04/2026",
+      "fecha_caducidad": "12/04/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-017",
+      "codigo": "MT-2026-017",
+      "comprador_nombre": "Roberto Navarro Santos",
+      "comprador_telefono": "+34655556677",
+      "fecha_compra": "15/04/2026",
+      "fecha_caducidad": "15/04/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-018",
+      "codigo": "74910",
+      "comprador_nombre": "Beatriz Otegi",
+      "comprador_telefono": "+34666667788",
+      "fecha_compra": "18/04/2026",
+      "fecha_caducidad": "18/04/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-019",
+      "codigo": "MT-2026-019",
+      "comprador_nombre": "Unai Sarasola",
+      "comprador_telefono": "+34677778899",
+      "fecha_compra": "20/04/2026",
+      "fecha_caducidad": "20/04/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-020",
+      "codigo": "MT-2026-020",
+      "comprador_nombre": "Carmen Gil Delgado",
+      "comprador_telefono": "+34688889900",
+      "fecha_compra": "22/04/2026",
+      "fecha_caducidad": "22/04/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-021",
+      "codigo": "MT-2026-021",
+      "comprador_nombre": "Gorka Aranburu",
+      "comprador_telefono": "+34699990011",
+      "fecha_compra": "25/04/2026",
+      "fecha_caducidad": "25/04/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-022",
+      "codigo": "MT-2026-022",
+      "comprador_nombre": "Marta Pastor Herrero",
+      "comprador_telefono": "+34610001122",
+      "fecha_compra": "28/04/2026",
+      "fecha_caducidad": "28/04/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-023",
+      "codigo": "MT-2026-023",
+      "comprador_nombre": "Iker Azurmendi",
+      "comprador_telefono": "+34620002233",
+      "fecha_compra": "01/05/2026",
+      "fecha_caducidad": "01/05/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-024",
+      "codigo": "MT-2026-024",
+      "comprador_nombre": "Patricia Benítez",
+      "comprador_telefono": "+34630003344",
+      "fecha_compra": "03/05/2026",
+      "fecha_caducidad": "03/05/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-025",
+      "codigo": "99102",
+      "comprador_nombre": "Andoni Elorza",
+      "comprador_telefono": "+34640004455",
+      "fecha_compra": "05/05/2026",
+      "fecha_caducidad": "05/05/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-026",
+      "codigo": "MT-2026-026",
+      "comprador_nombre": "Silvia Morales",
+      "comprador_telefono": "+34650005566",
+      "fecha_compra": "08/05/2026",
+      "fecha_caducidad": "08/05/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-027",
+      "codigo": "MT-2026-027",
+      "comprador_nombre": "Xabier Urresti",
+      "comprador_telefono": "+34660006677",
+      "fecha_compra": "10/05/2026",
+      "fecha_caducidad": "10/05/2027",
+      "estado": "PENDIENTE RESERVA"
+    },
+    {
+      "id": "TR-028",
+      "codigo": "MT-2026-028",
+      "comprador_nombre": "Nerea Ibarretxe",
+      "comprador_telefono": "+34670007788",
+      "fecha_compra": "15/11/2025",
+      "fecha_caducidad": "15/11/2026",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-029",
+      "codigo": "MT-2026-029",
+      "comprador_nombre": "Gonzalo Alonso Moreno",
+      "comprador_telefono": "+34680008899",
+      "fecha_compra": "20/11/2025",
+      "fecha_caducidad": "20/11/2026",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-030",
+      "codigo": "55123",
+      "comprador_nombre": "Itziar Larrañaga",
+      "comprador_telefono": "+34690009900",
+      "fecha_compra": "01/12/2025",
+      "fecha_caducidad": "01/12/2026",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-031",
+      "codigo": "MT-2026-031",
+      "comprador_nombre": "Alfonso Serrano",
+      "comprador_telefono": "+34611122233",
+      "fecha_compra": "05/12/2025",
+      "fecha_caducidad": "05/12/2026",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-032",
+      "codigo": "MT-2026-032",
+      "comprador_nombre": "Maite Zabaleta",
+      "comprador_telefono": "+34622233344",
+      "fecha_compra": "10/12/2025",
+      "fecha_caducidad": "10/12/2026",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-033",
+      "codigo": "MT-2026-033",
+      "comprador_nombre": "Fernando Gallego",
+      "comprador_telefono": "+34633344455",
+      "fecha_compra": "15/12/2025",
+      "fecha_caducidad": "15/12/2026",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-034",
+      "codigo": "MT-2026-034",
+      "comprador_nombre": "Oihana Alkorta",
+      "comprador_telefono": "+34644455566",
+      "fecha_compra": "20/12/2025",
+      "fecha_caducidad": "20/12/2026",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-035",
+      "codigo": "MT-2026-035",
+      "comprador_nombre": "Enrique Santos",
+      "comprador_telefono": "+34655566677",
+      "fecha_compra": "24/12/2025",
+      "fecha_caducidad": "24/12/2026",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-036",
+      "codigo": "MT-2026-036",
+      "comprador_nombre": "Leire Iriondo",
+      "comprador_telefono": "+34666677788",
+      "fecha_compra": "02/01/2026",
+      "fecha_caducidad": "02/01/2027",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-037",
+      "codigo": "MT-2026-037",
+      "comprador_nombre": "Pablo Vicandi",
+      "comprador_telefono": "+34677788899",
+      "fecha_compra": "05/01/2026",
+      "fecha_caducidad": "05/01/2027",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-038",
+      "codigo": "MT-2026-038",
+      "comprador_nombre": "Izaro Egiguren",
+      "comprador_telefono": "+34688899900",
+      "fecha_compra": "10/01/2026",
+      "fecha_caducidad": "10/01/2027",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-039",
+      "codigo": "MT-2026-039",
+      "comprador_nombre": "Jaime Roldán",
+      "comprador_telefono": "+34699900011",
+      "fecha_compra": "15/01/2026",
+      "fecha_caducidad": "15/01/2027",
+      "estado": "RESERVADA"
+    },
+    {
+      "id": "TR-040",
+      "codigo": "MT-2026-040",
+      "comprador_nombre": "Nagore Eizagirre",
+      "comprador_telefono": "+34612312312",
+      "fecha_compra": "01/06/2025",
+      "fecha_caducidad": "01/06/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-041",
+      "codigo": "MT-2026-041",
+      "comprador_nombre": "Esteban Braojos",
+      "comprador_telefono": "+34623423423",
+      "fecha_compra": "15/06/2025",
+      "fecha_caducidad": "15/06/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-042",
+      "codigo": "MT-2026-042",
+      "comprador_nombre": "Garazi Ormazabal",
+      "comprador_telefono": "+34634534534",
+      "fecha_compra": "01/07/2025",
+      "fecha_caducidad": "01/07/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-043",
+      "codigo": "MT-2026-043",
+      "comprador_nombre": "Francisco Javier Gil",
+      "comprador_telefono": "+34645645645",
+      "fecha_compra": "15/07/2025",
+      "fecha_caducidad": "15/07/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-044",
+      "codigo": "MT-2026-044",
+      "comprador_nombre": "Aintzane Lopetegi",
+      "comprador_telefono": "+34656756756",
+      "fecha_compra": "01/08/2025",
+      "fecha_caducidad": "01/08/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-045",
+      "codigo": "MT-2026-045",
+      "comprador_nombre": "Mariano Rajoy Brey",
+      "comprador_telefono": "+34667867867",
+      "fecha_compra": "15/08/2025",
+      "fecha_caducidad": "15/08/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-046",
+      "codigo": "MT-2026-046",
+      "comprador_nombre": "Estitxu Uria",
+      "comprador_telefono": "+34678978978",
+      "fecha_compra": "01/09/2025",
+      "fecha_caducidad": "01/09/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-047",
+      "codigo": "MT-2026-047",
+      "comprador_nombre": "Ignacio Zuloaga",
+      "comprador_telefono": "+34689089089",
+      "fecha_compra": "15/09/2025",
+      "fecha_caducidad": "15/09/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-048",
+      "codigo": "MT-2026-048",
+      "comprador_nombre": "Miren Josune Agirre",
+      "comprador_telefono": "+34690190190",
+      "fecha_compra": "01/10/2025",
+      "fecha_caducidad": "01/10/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-049",
+      "codigo": "MT-2026-049",
+      "comprador_nombre": "José Antonio Primo",
+      "comprador_telefono": "+34601201201",
+      "fecha_compra": "15/10/2025",
+      "fecha_caducidad": "15/10/2026",
+      "estado": "CONSUMIDA"
+    },
+    {
+      "id": "TR-050",
+      "codigo": "MT-2026-050",
+      "comprador_nombre": "Idoia Aranzabal",
+      "comprador_telefono": "+34612301230",
+      "fecha_compra": "01/11/2025",
+      "fecha_caducidad": "01/11/2026",
+      "estado": "CONSUMIDA"
+    }
   ]
 }

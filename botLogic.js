@@ -1811,21 +1811,55 @@ async function handleTextMessage(from, text) {
             const rawCardCode = text.trim();
             const card = await db.getGiftCard(rawCardCode);
 
-            if (card && (card.estado === 'ACTIVA' || !card.estado)) {
-                currentState.data.menuTrad = currentState.data.menuTrad || {};
-                currentState.data.menuTrad.card = card;
-                currentState.data.menuTrad.tarjeta = card.codigo;
-                currentState.data.menuTrad.comensales = 2; // Cada tarjeta cuenta como 2 comensales
-                currentState.step = 'menu_trad_step2_nombre';
-                userStates.set(from, currentState);
+            if (card) {
+                const estadoNorm = (card.estado || 'NO CONSUMIDA').trim().toUpperCase();
 
-                const expiry = card.fecha_caducidad || 'N/A';
-                const successNotice = getTranslation(lang, 'menuTradCardVerified')
-                    .replace('{code}', card.codigo)
-                    .replace('{expiry}', expiry);
-                await sendMessage(from, successNotice);
+                if (estadoNorm === 'NO CONSUMIDA' || estadoNorm === 'ACTIVA') {
+                    currentState.data.menuTrad = currentState.data.menuTrad || {};
+                    currentState.data.menuTrad.card = card;
+                    currentState.data.menuTrad.tarjeta = card.codigo;
+                    currentState.data.menuTrad.comensales = 2; // Cada tarjeta cuenta como 2 comensales
+                    currentState.step = 'menu_trad_step2_nombre';
+                    userStates.set(from, currentState);
 
-                await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+                    const expiry = card.fecha_caducidad || 'N/A';
+                    const successNotice = getTranslation(lang, 'menuTradCardVerified')
+                        .replace('{code}', card.codigo)
+                        .replace('{expiry}', expiry);
+                    await sendMessage(from, successNotice);
+
+                    await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+                } else {
+                    let failNotice = '';
+                    if (estadoNorm === 'PENDIENTE RESERVA') {
+                        if (lang === 'eu') {
+                            failNotice = `⚠️ *${card.codigo}* opari-txartelak badu dagoeneko jatetxearen berrespena behar duen erreserba-eskaera bat. Opari-txartelak behin bakarrik erabil daitezke.`;
+                        } else if (lang === 'en') {
+                            failNotice = `⚠️ Gift card *${card.codigo}* already has a booking request pending restaurant confirmation. Gift cards can only be used once.`;
+                        } else {
+                            failNotice = `⚠️ La tarjeta regalo *${card.codigo}* ya tiene una solicitud de reserva pendiente de confirmación por el restaurante. Las tarjetas regalo solo pueden utilizarse una sola vez.`;
+                        }
+                    } else if (estadoNorm === 'RESERVADA') {
+                        if (lang === 'eu') {
+                            failNotice = `⚠️ *${card.codigo}* opari-txartela dagoeneko erreserba bat egiteko erabili da. Opari-txartelak behin bakarrik erabil daitezke.`;
+                        } else if (lang === 'en') {
+                            failNotice = `⚠️ Gift card *${card.codigo}* has already been redeemed for a confirmed reservation. Gift cards can only be used once.`;
+                        } else {
+                            failNotice = `⚠️ La tarjeta regalo *${card.codigo}* ya ha sido utilizada para realizar una reserva confirmada. Las tarjetas regalo solo son utilizables una sola vez.`;
+                        }
+                    } else if (estadoNorm === 'CONSUMIDA') {
+                        if (lang === 'eu') {
+                            failNotice = `⚠️ *${card.codigo}* opari-txartela kontsumituta dago dagoeneko eta ezin da berriro erabili.`;
+                        } else if (lang === 'en') {
+                            failNotice = `⚠️ Gift card *${card.codigo}* has already been consumed and cannot be used again.`;
+                        } else {
+                            failNotice = `⚠️ La tarjeta regalo *${card.codigo}* ya ha sido consumida y no puede volver a utilizarse.`;
+                        }
+                    } else {
+                        failNotice = getTranslation(lang, 'menuTradCardNotFound').replace('{code}', rawCardCode);
+                    }
+                    await sendMessage(from, failNotice);
+                }
             } else {
                 const failNotice = getTranslation(lang, 'menuTradCardNotFound')
                     .replace('{code}', rawCardCode);

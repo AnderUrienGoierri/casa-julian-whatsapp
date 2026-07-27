@@ -51,7 +51,7 @@ if (process.env.DATABASE_URL) {
             estado VARCHAR(20) DEFAULT 'ACTIVA'
         );
     `).then(() => {
-        // Sincronizar reservas desde PostgreSQL al arrancar
+        // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar
         return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas ORDER BY id DESC");
     }).then(res => {
         if (res && res.rows && res.rows.length > 0) {
@@ -76,6 +76,14 @@ if (process.env.DATABASE_URL) {
             }));
             saveDb(currentDb);
             console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon.`);
+        }
+        return pool.query("SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado FROM tarjetas_regalo ORDER BY id ASC");
+    }).then(resCards => {
+        if (resCards && resCards.rows && resCards.rows.length > 0) {
+            const currentDb = loadDb();
+            currentDb.tarjetasRegalo = resCards.rows;
+            saveDb(currentDb);
+            console.log(`✅ Sincronizadas ${resCards.rows.length} tarjetas de regalo desde PostgreSQL Neon.`);
         }
     }).catch(err => console.error("Error en inicialización/sincronización de PostgreSQL:", err.message));
 } else {
