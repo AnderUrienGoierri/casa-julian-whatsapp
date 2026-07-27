@@ -187,7 +187,8 @@ const translations = {
         "confirmYesBtn": "Sí, enviar",
         "confirmNoBtn": "No, cancelar",
         "confirmCancelledMsg": "Solicitud cancelada. No se ha enviado ninguna petición.",
-        "langName": "Español"
+        "langName": "Español",
+        "btnTarjetaRegalo": "Tarjeta Regalo"
     },
     "eu": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -377,7 +378,8 @@ const translations = {
         "confirmYesBtn": "Bai, bidali",
         "confirmNoBtn": "Ez, ezeztatu",
         "confirmCancelledMsg": "Eskaera bertan behera utzi da. Ez da eskaerarik bidali.",
-        "langName": "Euskara"
+        "langName": "Euskara",
+        "btnTarjetaRegalo": "Opari Txartela"
     },
     "en": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -567,7 +569,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "English"
+        "langName": "English",
+        "btnTarjetaRegalo": "Gift Card"
     },
     "fr": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -757,7 +760,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "Français"
+        "langName": "Français",
+        "btnTarjetaRegalo": "Carte Cadeau"
     },
     "de": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -947,7 +951,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "Deutsch"
+        "langName": "Deutsch",
+        "btnTarjetaRegalo": "Gutschein"
     },
     "nl": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1137,7 +1142,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "Nederlands"
+        "langName": "Nederlands",
+        "btnTarjetaRegalo": "Cadeaubon"
     },
     "it": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1327,7 +1333,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "Italiano"
+        "langName": "Italiano",
+        "btnTarjetaRegalo": "Carta Regalo"
     },
     "pt": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1517,7 +1524,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "Português"
+        "langName": "Português",
+        "btnTarjetaRegalo": "Cartão Presente"
     },
     "ca": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -1707,7 +1715,8 @@ const translations = {
         "confirmYesBtn": "Bai, bidali",
         "confirmNoBtn": "Ez, ezeztatu",
         "confirmCancelledMsg": "Eskaera bertan behera utzi da. Ez da eskaerarik bidali.",
-        "langName": "Català"
+        "langName": "Català",
+        "btnTarjetaRegalo": "Targeta Regal"
     },
     "gl": {
         "welcomeMessage": "¡Bienvenido/a a Casa Julián! Será un placer ayudarte. ¿En qué idioma deseas continuar?",
@@ -1897,7 +1906,8 @@ const translations = {
         "confirmYesBtn": "Sí, enviar",
         "confirmNoBtn": "No, cancelar",
         "confirmCancelledMsg": "Solicitud cancelada. No se ha enviado ninguna petición.",
-        "langName": "Galego"
+        "langName": "Galego",
+        "btnTarjetaRegalo": "Tarxeta Regalo"
     },
     "ru": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2087,7 +2097,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "Русский"
+        "langName": "Русский",
+        "btnTarjetaRegalo": "Подарочная карта"
     },
     "zh": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2277,7 +2288,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "中文"
+        "langName": "中文",
+        "btnTarjetaRegalo": "礼品卡"
     },
     "ja": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2467,7 +2479,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "日本語"
+        "langName": "日本語",
+        "btnTarjetaRegalo": "ギフトカード"
     },
     "ar": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2657,7 +2670,8 @@ const translations = {
         "confirmYesBtn": "Yes, send",
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
-        "langName": "العربية"
+        "langName": "العربية",
+        "btnTarjetaRegalo": "بطاقة هدايا"
     }
 };
 

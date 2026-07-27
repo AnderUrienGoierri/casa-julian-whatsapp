@@ -254,7 +254,8 @@ async function handleListResponse(from, listId) {
             userStates.set(from, { step: 'reserva_tipo', data: {} });
             const resButtons = [
                 { id: 'btn_solicitar_reserva', title: getTranslation(lang, 'btnSolicitarReserva').slice(0, 20) },
-                { id: 'btn_add_lista_espera', title: getTranslation(lang, 'btnAddListaEspera').slice(0, 20) }
+                { id: 'btn_add_lista_espera', title: getTranslation(lang, 'btnAddListaEspera').slice(0, 20) },
+                { id: 'btn_tarjeta_regalo', title: getTranslation(lang, 'btnTarjetaRegalo').slice(0, 20) }
             ];
             await sendInteractiveButtons(from, getTranslation(lang, 'reservaIntro'), resButtons);
             break;
@@ -349,6 +350,18 @@ async function handleButtonResponse(from, buttonId) {
                 { id: 'waitlist_init_no', title: getTranslation(lang, 'waitlistMenuTradicionBtnNo').slice(0, 20) }
             ];
             await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'btn_tarjeta_regalo': {
+            userStates.set(from, { step: 'menu_tradicion_opciones', data: {} });
+            const menuTradBody = getTranslation(lang, 'menuTradicionTitle');
+            const menuTradButtons = [
+                { id: 'menu_tradicion_regalar', title: getTranslation(lang, 'menuTradicionOptRegalar').slice(0, 20) },
+                { id: 'menu_tradicion_reservar', title: getTranslation(lang, 'menuTradicionOptReservar').slice(0, 20) },
+                { id: 'menu_tradicion_caducidad', title: getTranslation(lang, 'menuTradicionOptCaducidad').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, menuTradBody, menuTradButtons);
             break;
         }
 
