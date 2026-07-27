@@ -189,10 +189,43 @@ async function sendVideoMessage(to, videoUrl, caption = '') {
     }
 }
 
+/**
+ * Envía un sticker animado por WhatsApp a través de un enlace URL público.
+ */
+async function sendStickerMessage(to, stickerUrl) {
+    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
+        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+        return;
+    }
+
+    try {
+        const response = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                messaging_product: 'whatsapp',
+                to: to,
+                type: 'sticker',
+                sticker: {
+                    link: stickerUrl
+                }
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error enviando sticker animado por WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    }
+}
+
 module.exports = {
     sendMessage,
     sendInteractiveButtons,
     sendInteractiveList,
     sendImageMessage,
-    sendVideoMessage
+    sendVideoMessage,
+    sendStickerMessage
 };

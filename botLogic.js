@@ -3,7 +3,8 @@ const {
     sendInteractiveList, 
     sendMessage,
     sendImageMessage,
-    sendVideoMessage
+    sendVideoMessage,
+    sendStickerMessage
 } = require('./whatsappApi');
 const db = require('./database');
 const { sendInternalStaffAlertInSpanish } = require('./notifications');
@@ -128,7 +129,7 @@ async function sendLanguageMenu(from, page = 1) {
     } else {
         const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
         const welcomeImageUrl = process.env.WELCOME_IMAGE_URL || `${baseUrl}/public/casa_julian_erretegia.jpg`;
-        const welcomeGifUrl = `${baseUrl}/public/casa_julian_gif.mp4`;
+        const welcomeStickerUrl = `${baseUrl}/public/casa_julian_sticker.webp`;
 
         // 1. Enviar imagen de bienvenida del restaurante (una sola vez)
         try {
@@ -140,11 +141,11 @@ async function sendLanguageMenu(from, page = 1) {
         // Pequeña pausa de 1 segundo para asegurar la entrega secuencial en Meta WhatsApp API
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // 2. Enviar el GIF / animación de bienvenida (casa_julian_gif.mp4 / casa_julian.gif)
+        // 2. Enviar el Sticker animado de bienvenida sin reproductor de vídeo (casa_julian_sticker.webp)
         try {
-            await sendVideoMessage(from, welcomeGifUrl, '🔥 Experiencia Casa Julián');
+            await sendStickerMessage(from, welcomeStickerUrl);
         } catch (e) {
-            console.error("⚠️ Error enviando GIF de bienvenida por WhatsApp:", e.message);
+            console.error("⚠️ Error enviando sticker animado por WhatsApp:", e.message);
         }
 
         await new Promise(resolve => setTimeout(resolve, 1000));
