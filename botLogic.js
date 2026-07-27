@@ -144,7 +144,7 @@ async function sendLanguageMenu(from, page = 1) {
         // 2. Enviar el Sticker animado de bienvenida sin reproductor de vídeo (casa_julian_sticker.webp)
         try {
             const path = require('path');
-            await sendStickerMessage(from, path.join(__dirname, 'documentacion', 'casa_julian_sticker.webp'));
+            await sendStickerMessage(from, path.join(__dirname, 'media', 'casa_julian_sticker.webp'));
         } catch (e) {
             console.error("⚠️ Error enviando sticker animado por WhatsApp:", e.message);
         }
@@ -152,7 +152,7 @@ async function sendLanguageMenu(from, page = 1) {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         const bodyText = "🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n" +
-            "🇪🇺 *EU:* Ongi etorri! Plazera izango da zu laguntzea. Zein hizkuntzatan jarraitu nahi duzu?\n" +
+            "🇪🇺 *EU:* Ongi etorri! Plazera izango da laguntzea. Zein hizkuntzatan jarraitu nahi duzu?\n" +
             "🇪🇸 *ES:* ¡Bienvenido/a! Será un placer ayudarte. ¿En qué idioma deseas continuar?\n" +
             "🇬🇧 *EN:* Welcome! It will be a pleasure to help you. Which language would you like to continue in?\n" +
             "🇫🇷 *FR:* Bienvenue! Ce sera un plaisir de vous aider. Dans quelle langue souhaitez-vous continuer?";

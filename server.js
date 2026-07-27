@@ -8,8 +8,9 @@ const app = express();
 
 // Middleware para parsear el JSON que envía Meta
 app.use(express.json());
-// Servir archivos estáticos (imágenes) en /public y /documentacion
-app.use('/public', express.static(path.join(__dirname, 'documentacion')));
+// Servir archivos estáticos (imágenes, vídeos, gifs, stickers) en /public, /media y /documentacion
+app.use('/public', express.static(path.join(__dirname, 'media')));
+app.use('/media', express.static(path.join(__dirname, 'media')));
 app.use('/documentacion', express.static(path.join(__dirname, 'documentacion')));
 
 // Endpoint de salud raíz para Render.com

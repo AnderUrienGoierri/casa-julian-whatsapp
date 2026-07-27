@@ -223,7 +223,7 @@ async function sendStickerMessage(to, stickerFilePath) {
         return;
     }
 
-    const filePath = stickerFilePath || path.join(__dirname, 'documentacion', 'casa_julian_sticker.webp');
+    const filePath = stickerFilePath || path.join(__dirname, 'media', 'casa_julian_sticker.webp');
     if (!fs.existsSync(filePath)) {
         console.error("El archivo de sticker no existe en la ruta:", filePath);
         return;
