@@ -157,7 +157,7 @@ async function sendImageMessage(to, imageUrl, caption = '') {
  * Envía un vídeo o GIF animado por WhatsApp a través de un enlace URL público.
  * Si isGif es true, incluye gif_playback: true para autoreproducción en bucle tipo GIF.
  */
-async function sendVideoMessage(to, videoUrl, caption = '', isGif = false) {
+async function sendVideoMessage(to, videoUrl, caption = '') {
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
         console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
@@ -168,10 +168,6 @@ async function sendVideoMessage(to, videoUrl, caption = '', isGif = false) {
             link: videoUrl,
             caption: caption
         };
-
-        if (isGif) {
-            videoPayload.gif_playback = true;
-        }
 
         const response = await axios({
             method: 'POST',
