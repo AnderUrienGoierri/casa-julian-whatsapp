@@ -2044,8 +2044,47 @@ function formatModificationDetail(nombreCliente, telefonoReserva, from, reservaA
     }
 }
 
+function getHoursUntilService(fechaStr, horaStr) {
+    if (!fechaStr || typeof fechaStr !== 'string') return 999;
+    const parts = fechaStr.trim().split('/');
+    if (parts.length !== 3) return 999;
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+
+    let hours = 13;
+    let mins = 0;
+    if (horaStr && typeof horaStr === 'string') {
+        const timeParts = horaStr.trim().split(':');
+        if (timeParts.length >= 2) {
+            hours = parseInt(timeParts[0], 10) || 13;
+            mins = parseInt(timeParts[1], 10) || 0;
+        }
+    }
+
+    const serviceDate = new Date(year, month, day, hours, mins);
+    const now = new Date();
+    const diffMs = serviceDate.getTime() - now.getTime();
+    return diffMs / (1000 * 60 * 60);
+}
+
 function formatCancellationDetail(reservaFound, queryText, from, lang) {
+    const hoursLeft = getHoursUntilService(reservaFound.fecha, reservaFound.hora);
+    const isLessThan24h = hoursLeft < 24;
+    const comensales = parseInt(reservaFound.comensales, 10) || 1;
+    const totalFee = comensales * 45;
+    const hoursFormatted = Math.max(0, Math.floor(hoursLeft));
+
+    let noteText = '';
+
     if (lang === 'eu') {
+        if (isLessThan24h) {
+            noteText = `🚨 *KONTUZ - 24H BAINO GUTXIAGOKO EZEZTAPEN KARGUA!*\n` +
+                       `Zerbitzurako 24 ordu baino gutxiago falta dira (${hoursFormatted}h). Jatetxearen politikaren arabera, ezeztapen honek *45 €-ko kargua du mahaikide bakoitzeko* (Guztira: ${comensales} × 45 € = *${totalFee} €*). Ezeztapenak harrerako taldearen eskuzko berrespena behar du.`;
+        } else {
+            noteText = `✅ *KARGU GABEKO EZEZTAPENA (24H BAINO GEHIAGOKO ALDEZ AURRETIK)*\n` +
+                       `Ezeztapena 24 ordu baino gehiagoko aldez aurretik eskatu da. Ez da inolako kargurik ezarriko. Jatetxeko arduradunen berrespena behar du.`;
+        }
         return `🆔 *Erreserba Kodea:* ${reservaFound.id}\n` +
                `👤 *Bezeroaren Izena:* ${reservaFound.nombre}\n` +
                `📞 *Erreserbaren Telefonoa:* ${reservaFound.telefono}\n` +
@@ -2054,8 +2093,15 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                `📱 *Igorlearen WhatsApp-a:* ${from}\n` +
                `📄 *Sartutako Datuak:* ${queryText}\n` +
                `❌ *Eskaera:* ERRESERBA EZEZTATZEA\n` +
-               `⚠️ *Arduradunen Oharra:* Eskuzko berrespena behar du. Zerbitzu egunetik 24 ordu baino gutxiagoko aldez aurretik ezeztatuz gero, 45 €-ko kargua ezarriko da mahaikide bakoitzeko.`;
+               `${noteText}`;
     } else if (lang === 'en') {
+        if (isLessThan24h) {
+            noteText = `🚨 *ATTENTION - CANCELLATION FEE APPLIES (LESS THAN 24H)!*\n` +
+                       `There are less than 24 hours remaining until service (${hoursFormatted}h). According to restaurant policy, this cancellation incurs a fee of *€45 per guest* (Total: ${comensales} × €45 = *€${totalFee}*). Requires manual confirmation from management.`;
+        } else {
+            noteText = `✅ *FREE CANCELLATION (MORE THAN 24H NOTICE)*\n` +
+                       `This cancellation is requested with more than 24 hours notice. No fee per guest will be charged. Requires manual confirmation from restaurant management.`;
+        }
         return `🆔 *Reservation Code:* ${reservaFound.id}\n` +
                `👤 *Customer Name:* ${reservaFound.nombre}\n` +
                `📞 *Reservation Phone:* ${reservaFound.telefono}\n` +
@@ -2064,8 +2110,15 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                `📱 *Sender WhatsApp:* ${from}\n` +
                `📄 *Input Data:* ${queryText}\n` +
                `❌ *Request:* RESERVATION CANCELLATION\n` +
-               `⚠️ *Management Note:* Requires manual confirmation. If requested less than 24h prior to service date, a €45 fee per guest will apply.`;
+               `${noteText}`;
     } else if (lang === 'fr') {
+        if (isLessThan24h) {
+            noteText = `🚨 *ATTENTION - FRAIS D'ANNULATION EN MOINS DE 24H !*\n` +
+                       `Il reste moins de 24 heures avant le service (${hoursFormatted}h). Selon la politique du restaurant, cette annulation entraîne des frais de *45 € par couvert* (Total : ${comensales} × 45 € = *${totalFee} €*). Nécessite une confirmation manuelle de l'équipe.`;
+        } else {
+            noteText = `✅ *ANNULATION SANS FRAIS (PLUS DE 24H À L'AVANCE)*\n` +
+                       `Demande faite plus de 24h à l'avance. Aucun frais par couvert ne sera appliqué. Nécessite une confirmation par la direction.`;
+        }
         return `🆔 *Code Réservation:* ${reservaFound.id}\n` +
                `👤 *Nom du Client:* ${reservaFound.nombre}\n` +
                `📞 *Téléphone Réservation:* ${reservaFound.telefono}\n` +
@@ -2074,8 +2127,15 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                `📱 *WhatsApp Expéditeur:* ${from}\n` +
                `📄 *Données Saisies:* ${queryText}\n` +
                `❌ *Demande:* ANNULATION DE RÉSERVATION\n` +
-               `⚠️ *Note Gestion:* Nécessite une confirmation manuelle. Si l'annulation est demandée moins de 24h avant le service, des frais de 45 € par couvert s'appliqueront.`;
+               `${noteText}`;
     } else {
+        if (isLessThan24h) {
+            noteText = `🚨 *¡ATENCIÓN - CARGO POR CANCELACIÓN EN MENOS DE 24H!*\n` +
+                       `Faltan menos de 24 horas para el día del servicio (${hoursFormatted}h). Según la política del restaurante, esta cancelación conlleva un cargo de *45 € por comensal* (Total: ${comensales} × 45 € = *${totalFee} €*). La cancelación requiere confirmación manual por parte del equipo de recepción.`;
+        } else {
+            noteText = `✅ *CANCELACIÓN SIN CARGO (CON MÁS DE 24H DE ANTELACIÓN)*\n` +
+                       `La cancelación se solicita con más de 24 horas de antelación respecto al día del servicio. No se aplicará ningún cargo por comensal. Requiere confirmación por parte de los responsables del restaurante.`;
+        }
         return `🆔 *Código Reserva:* ${reservaFound.id}\n` +
                `👤 *Nombre Cliente:* ${reservaFound.nombre}\n` +
                `📞 *Teléfono Reserva:* ${reservaFound.telefono}\n` +
@@ -2084,7 +2144,7 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                `📱 *WhatsApp Remitente:* ${from}\n` +
                `📄 *Datos Ingresados:* ${queryText}\n` +
                `❌ *Solicitud:* CANCELACIÓN DE RESERVA\n` +
-               `⚠️ *Nota Responsables:* Requiere confirmación manual. Si la cancelación se solicita con menos de 24h de antelación al día del servicio, aplicar cargo de 45€ por comensal.`;
+               `${noteText}`;
     }
 }
 
