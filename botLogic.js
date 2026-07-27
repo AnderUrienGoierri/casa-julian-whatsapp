@@ -143,7 +143,8 @@ async function sendLanguageMenu(from, page = 1) {
 
         // 2. Enviar el Sticker animado de bienvenida sin reproductor de vídeo (casa_julian_sticker.webp)
         try {
-            await sendStickerMessage(from, welcomeStickerUrl);
+            const path = require('path');
+            await sendStickerMessage(from, path.join(__dirname, 'documentacion', 'casa_julian_sticker.webp'));
         } catch (e) {
             console.error("⚠️ Error enviando sticker animado por WhatsApp:", e.message);
         }
