@@ -52,7 +52,7 @@ if (process.env.DATABASE_URL) {
         );
     `).then(() => {
         // Sincronizar reservas desde PostgreSQL al arrancar
-        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad FROM reservas WHERE estado IN ('CONFIRMADA', 'PENDIENTE CANCELACION', 'PENDIENTE MODIFICACION', 'PENDIENTE CONFIRMACIÓN')");
+        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas WHERE estado IN ('CONFIRMADA', 'PENDIENTE CANCELACION', 'PENDIENTE MODIFICACION', 'PENDIENTE CONFIRMACIÓN')");
     }).then(res => {
         if (res && res.rows && res.rows.length > 0) {
             const currentDb = loadDb();
@@ -69,7 +69,10 @@ if (process.env.DATABASE_URL) {
                 idioma: r.idioma || 'es',
                 dias_preferencia: r.dias_preferencia || 'Sin preferencia',
                 tipo_reserva: r.tipo_reserva || 'online',
-                nacionalidad: r.nacionalidad || 'España'
+                nacionalidad: r.nacionalidad || 'España',
+                alergias: r.alergias || 'NO',
+                tipo_servicio: r.tipo_servicio || (r.hora ? (parseInt(r.hora.split(':')[0], 10) >= 20 ? 'Cena' : 'Comida') : 'Comida'),
+                tarjeta_regalo: r.tarjeta_regalo || null
             }));
             saveDb(currentDb);
             console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon.`);
@@ -435,7 +438,7 @@ function createReservation(data) {
         dias_preferencia: diasPref,
         tipo_reserva: data.tipo_reserva || 'online',
         alergias: formatAllergiesInSpanish(data.alergias),
-        tipo_servicio: data.tipo_servicio || null,
+        tipo_servicio: data.tipo_servicio || (data.hora ? (parseInt(data.hora.split(':')[0], 10) >= 20 ? 'Cena' : 'Comida') : 'Comida'),
         tarjeta_regalo: data.tarjeta_regalo || null,
         fechaCreacion: now.toISOString()
     };
