@@ -126,7 +126,7 @@ async function sendLanguageMenu(from, page = 1) {
         ];
         await sendInteractiveList(from, bodyText, buttonText, sections);
     } else {
-        const baseUrl = process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
+        const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
         const welcomeImageUrl = process.env.WELCOME_IMAGE_URL || `${baseUrl}/public/casa_julian_erretegia.jpg`;
         const welcomeGifUrl = `${baseUrl}/public/casa_julian_gif.mp4`;
 
