@@ -2016,6 +2016,78 @@ async function handleTextMessage(from, text) {
             break;
         }
 
+function formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, label, value, lang) {
+    if (lang === 'eu') {
+        return `👤 *Bezeroaren Izena:* ${nombreCliente || 'Ez dago berariaz zehaztuta'}\n` +
+               `📞 *Erreserbaren Telefonoa:* ${telefonoReserva}\n` +
+               `📱 *Igorlearen WhatsApp-a:* ${from}\n` +
+               `📄 *Egungo Erreserba:* ${reservaActual}\n` +
+               `✏️ *Aldaketa (${label}):* ${value}`;
+    } else if (lang === 'en') {
+        return `👤 *Customer Name:* ${nombreCliente || 'Not specified'}\n` +
+               `📞 *Reservation Phone:* ${telefonoReserva}\n` +
+               `📱 *Sender WhatsApp:* ${from}\n` +
+               `📄 *Current Reservation:* ${reservaActual}\n` +
+               `✏️ *Modification (${label}):* ${value}`;
+    } else if (lang === 'fr') {
+        return `👤 *Nom du Client:* ${nombreCliente || 'Non spécifié'}\n` +
+               `📞 *Téléphone Réservation:* ${telefonoReserva}\n` +
+               `📱 *WhatsApp Expéditeur:* ${from}\n` +
+               `📄 *Réservation Actuelle:* ${reservaActual}\n` +
+               `✏️ *Modification (${label}):* ${value}`;
+    } else {
+        return `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
+               `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
+               `📱 *WhatsApp Remitente:* ${from}\n` +
+               `📄 *Reserva Actual:* ${reservaActual}\n` +
+               `✏️ *Modificación (${label}):* ${value}`;
+    }
+}
+
+function formatCancellationDetail(reservaFound, queryText, from, lang) {
+    if (lang === 'eu') {
+        return `🆔 *Erreserba Kodea:* ${reservaFound.id}\n` +
+               `👤 *Bezeroaren Izena:* ${reservaFound.nombre}\n` +
+               `📞 *Erreserbaren Telefonoa:* ${reservaFound.telefono}\n` +
+               `📅 *Data eta Ordua:* ${reservaFound.fecha || 'N/A'} ${reservaFound.hora || ''}\n` +
+               `👥 *Mahaikideak:* ${reservaFound.comensales}\n` +
+               `📱 *Igorlearen WhatsApp-a:* ${from}\n` +
+               `📄 *Sartutako Datuak:* ${queryText}\n` +
+               `❌ *Eskaera:* ERRESERBA EZEZTATZEA\n` +
+               `⚠️ *Arduradunen Oharra:* Eskuzko berrespena behar du. Zerbitzu egunetik 24 ordu baino gutxiagoko aldez aurretik ezeztatuz gero, 45 €-ko kargua ezarriko da mahaikide bakoitzeko.`;
+    } else if (lang === 'en') {
+        return `🆔 *Reservation Code:* ${reservaFound.id}\n` +
+               `👤 *Customer Name:* ${reservaFound.nombre}\n` +
+               `📞 *Reservation Phone:* ${reservaFound.telefono}\n` +
+               `📅 *Date and Time:* ${reservaFound.fecha || 'N/A'} ${reservaFound.hora || ''}\n` +
+               `👥 *Guests:* ${reservaFound.comensales}\n` +
+               `📱 *Sender WhatsApp:* ${from}\n` +
+               `📄 *Input Data:* ${queryText}\n` +
+               `❌ *Request:* RESERVATION CANCELLATION\n` +
+               `⚠️ *Management Note:* Requires manual confirmation. If requested less than 24h prior to service date, a €45 fee per guest will apply.`;
+    } else if (lang === 'fr') {
+        return `🆔 *Code Réservation:* ${reservaFound.id}\n` +
+               `👤 *Nom du Client:* ${reservaFound.nombre}\n` +
+               `📞 *Téléphone Réservation:* ${reservaFound.telefono}\n` +
+               `📅 *Date et Heure:* ${reservaFound.fecha || 'N/A'} ${reservaFound.hora || ''}\n` +
+               `👥 *Couverts:* ${reservaFound.comensales}\n` +
+               `📱 *WhatsApp Expéditeur:* ${from}\n` +
+               `📄 *Données Saisies:* ${queryText}\n` +
+               `❌ *Demande:* ANNULATION DE RÉSERVATION\n` +
+               `⚠️ *Note Gestion:* Nécessite une confirmation manuelle. Si l'annulation est demandée moins de 24h avant le service, des frais de 45 € par couvert s'appliqueront.`;
+    } else {
+        return `🆔 *Código Reserva:* ${reservaFound.id}\n` +
+               `👤 *Nombre Cliente:* ${reservaFound.nombre}\n` +
+               `📞 *Teléfono Reserva:* ${reservaFound.telefono}\n` +
+               `📅 *Fecha y Hora:* ${reservaFound.fecha || 'N/A'} ${reservaFound.hora || ''}\n` +
+               `👥 *Comensales:* ${reservaFound.comensales}\n` +
+               `📱 *WhatsApp Remitente:* ${from}\n` +
+               `📄 *Datos Ingresados:* ${queryText}\n` +
+               `❌ *Solicitud:* CANCELACIÓN DE RESERVA\n` +
+               `⚠️ *Nota Responsables:* Requiere confirmación manual. Si la cancelación se solicita con menos de 24h de antelación al día del servicio, aplicar cargo de 45€ por comensal.`;
+    }
+}
+
         case 'modificacion_datos_actuales': {
             const queryText = text.trim();
             const searchResult = db.findActiveReservation(queryText, from);
@@ -2149,11 +2221,7 @@ async function handleTextMessage(from, text) {
             const telefonoReserva = currentState.data.telefonoReserva || from;
             const reservaActual = currentState.data.reservaActual || 'No especificada';
 
-            const detalleMod = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
-                               `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
-                               `📱 *WhatsApp Remitente:* ${from}\n` +
-                               `📄 *Reserva Actual:* ${reservaActual}\n` +
-                               `✏️ *Modificación (COMENSALES):* ${numDiners} personas`;
+            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'MAHAIKIDEAK / COMENSALES', `${numDiners} pax`, lang);
             
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
@@ -2175,11 +2243,7 @@ async function handleTextMessage(from, text) {
             const telefonoReserva = currentState.data.telefonoReserva || from;
             const reservaActual = currentState.data.reservaActual || 'No especificada';
 
-            const detalleMod = `👤 *Nombre Cliente:* ${nombreCliente || 'No especificado explícitamente'}\n` +
-                               `📞 *Teléfono Reserva:* ${telefonoReserva}\n` +
-                               `📱 *WhatsApp Remitente:* ${from}\n` +
-                               `📄 *Reserva Actual:* ${reservaActual}\n` +
-                               `✏️ *Modificación (${tipoModLabel}):* ${text}`;
+            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, tipoModLabel, text, lang);
             
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
@@ -2225,15 +2289,7 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
-            const detalleCancelacion = `🆔 *Código Reserva:* ${reservaFound.id}\n` +
-                                       `👤 *Nombre Cliente:* ${reservaFound.nombre}\n` +
-                                       `📞 *Teléfono Reserva:* ${reservaFound.telefono}\n` +
-                                       `📅 *Fecha y Hora:* ${reservaFound.fecha || 'N/A'} ${reservaFound.hora || ''}\n` +
-                                       `👥 *Comensales:* ${reservaFound.comensales}\n` +
-                                       `📱 *WhatsApp Remitente:* ${from}\n` +
-                                       `📄 *Datos Ingresados:* ${queryText}\n` +
-                                       `❌ *Solicitud:* CANCELACIÓN DE RESERVA\n` +
-                                       `⚠️ *Nota Responsables:* Requiere confirmación manual. Si la cancelación se solicita con menos de 24h de antelación al día del servicio, aplicar cargo de 45€ por comensal.`;
+            const detalleCancelacion = formatCancellationDetail(reservaFound, queryText, from, lang);
 
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
@@ -2293,15 +2349,7 @@ async function handleTextMessage(from, text) {
             const emailMatches = resEmailNorm.length >= 4 && (inputNorm.includes(resEmailNorm) || resEmailNorm.includes(inputNorm));
 
             if (phoneMatches || nameMatches || dniMatches || emailMatches) {
-                const detalleCancelacion = `🆔 *Código Reserva:* ${reservaFound.id}\n` +
-                                           `👤 *Nombre Cliente:* ${reservaFound.nombre}\n` +
-                                           `📞 *Teléfono Reserva:* ${reservaFound.telefono}\n` +
-                                           `📅 *Fecha y Hora:* ${reservaFound.fecha || 'N/A'} ${reservaFound.hora || ''}\n` +
-                                           `👥 *Comensales:* ${reservaFound.comensales}\n` +
-                                           `📱 *WhatsApp Remitente:* ${from}\n` +
-                                           `📄 *Datos Ingresados:* ${text}\n` +
-                                           `❌ *Solicitud:* CANCELACIÓN DE RESERVA\n` +
-                                           `⚠️ *Nota Responsables:* Requiere confirmación manual. Si la cancelación se solicita con menos de 24h de antelación al día del servicio, aplicar cargo de 45€ por comensal.`;
+                const detalleCancelacion = formatCancellationDetail(reservaFound, text, from, lang);
 
                 await requestUserConfirmation(from, lang, {
                     tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
