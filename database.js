@@ -727,6 +727,12 @@ function findActiveReservation(queryText, fromNumber) {
         };
     };
 
+    const pickBestMatch = (candidates) => {
+        if (!candidates || candidates.length === 0) return null;
+        const active = candidates.find(r => r.estado === 'CONFIRMADA');
+        return active || candidates[0];
+    };
+
     // 1. Coincidencia directa por Código/ID de Reserva (ej. RES-20260722-1001 o 20260722-1001)
     const matchedById = allReservations.find(r => {
         if (!r.id) return false;
@@ -743,44 +749,68 @@ function findActiveReservation(queryText, fromNumber) {
         return null;
     }
 
-    // 2. Coincidencia por Número de Teléfono
-    if (queryDigits.length >= 7 || fromDigits.length >= 7) {
-        const matchedByPhone = allReservations.find(r => {
+    // 2. Coincidencia por Número de Teléfono introducido explícitamente en el texto de búsqueda
+    if (queryDigits.length >= 7) {
+        const phoneCandidates = allReservations.filter(r => {
             if (!r.telefono) return false;
             const resPhoneDigits = normalizePhone(r.telefono);
-            return (queryDigits.length >= 7 && (resPhoneDigits.includes(queryDigits) || queryDigits.includes(resPhoneDigits))) ||
-                   (fromDigits.length >= 7 && (resPhoneDigits.includes(fromDigits) || fromDigits.includes(resPhoneDigits)));
+            return resPhoneDigits.includes(queryDigits) || queryDigits.includes(resPhoneDigits);
         });
 
-        if (matchedByPhone) {
-            return formatResult(matchedByPhone);
+        const bestByQueryPhone = pickBestMatch(phoneCandidates);
+        if (bestByQueryPhone) {
+            return formatResult(bestByQueryPhone);
         }
     }
 
-    // 3. Coincidencia por Nombre / Apellidos
-    const matchedByName = allReservations.find(r => {
-        if (!r.nombre) return false;
-        const resNameNorm = normalizeText(r.nombre);
-        if (!resNameNorm || !queryNorm) return false;
-        const queryWords = queryNorm.split(/\s+/).filter(w => w.length >= 3);
-        const nameWords = resNameNorm.split(/\s+/).filter(w => w.length >= 3);
-        return queryWords.some(qw => resNameNorm.includes(qw)) || nameWords.some(nw => queryNorm.includes(nw));
-    });
+    // 3. Coincidencia por Nombre / Apellidos introducidos en el texto de búsqueda
+    if (queryNorm.length >= 2) {
+        const queryWords = queryNorm.split(/\s+/).filter(w => w.length >= 2);
+        const nameCandidates = allReservations.filter(r => {
+            if (!r.nombre) return false;
+            const resNameNorm = normalizeText(r.nombre);
+            const resWords = resNameNorm.split(/\s+/).filter(w => w.length >= 2);
+            if (queryWords.length === 0 || resWords.length === 0) return false;
 
-    if (matchedByName) {
-        return formatResult(matchedByName);
+            const firstWordMatches = resWords.includes(queryWords[0]);
+            const fullStringMatches = resNameNorm.includes(queryNorm) || queryNorm.includes(resNameNorm);
+            const wordsOverlap = queryWords.filter(qw => resWords.includes(qw)).length >= 2;
+            return firstWordMatches && (fullStringMatches || wordsOverlap || queryWords.length === 1);
+        });
+
+        const bestByName = pickBestMatch(nameCandidates);
+        if (bestByName) {
+            return formatResult(bestByName);
+        }
     }
 
-    // 4. Coincidencia por DNI o Email
-    const matchedByDniOrEmail = allReservations.find(r => {
-        const dniNorm = normalizeText(r.dni);
-        const emailNorm = normalizeText(r.email);
-        return (dniNorm && dniNorm.length >= 4 && queryNorm.includes(dniNorm)) ||
-               (emailNorm && emailNorm.length >= 4 && queryNorm.includes(emailNorm));
-    });
+    // 4. Coincidencia por DNI o Email introducidos en el texto de búsqueda
+    if (queryNorm.length >= 4) {
+        const dniOrEmailCandidates = allReservations.filter(r => {
+            const dniNorm = normalizeText(r.dni);
+            const emailNorm = normalizeText(r.email);
+            return (dniNorm && dniNorm.length >= 4 && (queryNorm.includes(dniNorm) || dniNorm.includes(queryNorm))) ||
+                   (emailNorm && emailNorm.length >= 4 && (queryNorm.includes(emailNorm) || emailNorm.includes(queryNorm)));
+        });
 
-    if (matchedByDniOrEmail) {
-        return formatResult(matchedByDniOrEmail);
+        const bestByDniOrEmail = pickBestMatch(dniOrEmailCandidates);
+        if (bestByDniOrEmail) {
+            return formatResult(bestByDniOrEmail);
+        }
+    }
+
+    // 5. Fallback por Número de Teléfono del remitente (WhatsApp fromNumber)
+    if (fromDigits.length >= 7) {
+        const fromCandidates = allReservations.filter(r => {
+            if (!r.telefono) return false;
+            const resPhoneDigits = normalizePhone(r.telefono);
+            return resPhoneDigits.includes(fromDigits) || fromDigits.includes(resPhoneDigits);
+        });
+
+        const bestByFromPhone = pickBestMatch(fromCandidates);
+        if (bestByFromPhone) {
+            return formatResult(bestByFromPhone);
+        }
     }
 
     return null;
