@@ -58,12 +58,27 @@ app.get('/webhook', (req, res) => {
     }
 });
 
+// Cache en memoria para deduplicar mensajes de webhook reintentados por Meta
+const processedMessageIds = new Map();
+
+setInterval(() => {
+    const now = Date.now();
+    for (const [id, timestamp] of processedMessageIds.entries()) {
+        if (now - timestamp > 10 * 60 * 1000) {
+            processedMessageIds.delete(id);
+        }
+    }
+}, 5 * 60 * 1000);
+
 /**
  * 2. Endpoint POST: Recepción de mensajes
  * Aquí es donde Meta enviará todas las notificaciones de nuevos mensajes
  * que los clientes envíen a nuestro bot.
  */
 app.post('/webhook', async (req, res) => {
+    // Responder a Meta 200 OK inmediatamente para evitar reintentos duplicados
+    res.sendStatus(200);
+
     try {
         const body = req.body;
         
@@ -78,17 +93,22 @@ app.post('/webhook', async (req, res) => {
                     if (change.value && change.value.messages && change.value.messages[0]) {
                         
                         const message = change.value.messages[0];
+
+                        // Evitar procesar mensajes duplicados si Meta reintenta la petición
+                        if (processedMessageIds.has(message.id)) {
+                            console.log(`⚠️ Webhook duplicado omitido (${message.id})`);
+                            continue;
+                        }
+                        processedMessageIds.set(message.id, Date.now());
                         
-                        // Enviamos el mensaje a nuestra lógica (botLogic.js) y esperamos la finalización completa
+                        // Enviamos el mensaje a nuestra lógica (botLogic.js)
                         await processMessage(message);
                     }
                 }
             }
         }
-        res.sendStatus(200);
     } catch (error) {
         console.error("Error al procesar el webhook entrante:", error);
-        res.sendStatus(200);
     }
 });
 

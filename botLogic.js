@@ -128,18 +128,18 @@ async function sendLanguageMenu(from, page = 1) {
     } else {
         const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
         const welcomeImageUrl = process.env.WELCOME_IMAGE_URL || `${baseUrl}/public/casa_julian_erretegia.jpg`;
-        const welcomeGifUrl = `${baseUrl}/public/casa_julian_gif.mp4`;
+        const welcomeGifUrl = `${baseUrl}/public/casa_julian.gif`;
 
-        // 1. Enviar imagen de bienvenida del restaurante
+        // 1. Enviar imagen de bienvenida del restaurante (una sola vez)
         try {
             await sendImageMessage(from, welcomeImageUrl, 'Asador Casa Julián de Tolosa');
         } catch (e) {
             console.error("⚠️ Error enviando imagen de bienvenida por WhatsApp:", e.message);
         }
 
-        // 2. Enviar GIF/vídeo animado de bienvenida (casa_julian_gif.mp4)
+        // 2. Enviar el archivo GIF de bienvenida (casa_julian.gif)
         try {
-            await sendVideoMessage(from, welcomeGifUrl, '🔥 Experiencia Casa Julián');
+            await sendImageMessage(from, welcomeGifUrl, '🔥 Experiencia Casa Julián');
         } catch (e) {
             console.error("⚠️ Error enviando GIF de bienvenida por WhatsApp:", e.message);
         }
