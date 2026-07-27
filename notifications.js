@@ -104,35 +104,66 @@ function getTransporter(forcedPort = null) {
 function getCategoryHeader(tipoAccion) {
     const tipo = (tipoAccion || '').toUpperCase();
 
-    if (tipo.includes('ESPERA')) {
+    if (tipo.includes('CANCELACIÓN') || tipo.includes('CANCELACION')) {
+        if (tipo.includes('ESPERA')) {
+            return {
+                banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN LISTA DE ESPERA]* 🔴❌`,
+                colorTag: `🔴 CANCELACIÓN LISTA DE ESPERA`,
+                subjectTag: `[🔴 CANCELACIÓN LISTA ESPERA]`,
+                labelCategory: `Cancelaciones`,
+                subLabel: `cancelacion_lista_espera`,
+                emoji: `❌`
+            };
+        }
         return {
-            banner: `📋🟡 *[CATEGORÍA: LISTA DE ESPERA]* 🟡📋`,
-            colorTag: `🟡 LISTA DE ESPERA`,
-            subjectTag: `[🟡 LISTA DE ESPERA]`,
-            emoji: `📋`
+            banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN DE RESERVA]* 🔴❌`,
+            colorTag: `🔴 CANCELACIÓN DE RESERVA`,
+            subjectTag: `[🔴 CANCELACIÓN RESERVA]`,
+            labelCategory: `Cancelaciones`,
+            subLabel: `cancelacion_reserva`,
+            emoji: `❌`
         };
     }
+
     if (tipo.includes('MODIFICACIÓN') || tipo.includes('MODIFICACION')) {
         return {
             banner: `✏️🔵 *[CATEGORÍA: MODIFICACIÓN]* 🔵✏️`,
             colorTag: `🔵 MODIFICACIÓN DE RESERVA`,
             subjectTag: `[🔵 MODIFICACIÓN]`,
+            labelCategory: `Modificaciones`,
+            subLabel: null,
             emoji: `✏️`
         };
     }
-    if (tipo.includes('CANCELACIÓN') || tipo.includes('CANCELACION')) {
+
+    if (tipo.includes('ESPERA')) {
         return {
-            banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN]* 🔴❌`,
-            colorTag: `🔴 CANCELACIÓN DE RESERVA`,
-            subjectTag: `[🔴 CANCELACIÓN]`,
-            emoji: `❌`
+            banner: `📋🟡 *[CATEGORÍA: LISTA DE ESPERA]* 🟡📋`,
+            colorTag: `🟡 LISTA DE ESPERA`,
+            subjectTag: `[🟡 LISTA DE ESPERA]`,
+            labelCategory: `Listas de espera`,
+            subLabel: null,
+            emoji: `📋`
         };
     }
+
     if (tipo.includes('TRADICIÓN') || tipo.includes('TRADICION') || tipo.includes('REGALO')) {
+        if (tipo.includes('CADUCIDAD') || tipo.includes('CONSULTA')) {
+            return {
+                banner: `🎁🟢 *[CATEGORÍA: CONSULTA MENÚ TRADICIÓN]* 🟢🎁`,
+                colorTag: `🟢 CONSULTA MENÚ TRADICIÓN`,
+                subjectTag: `[🟢 MENÚ TRADICIÓN CADUCIDAD]`,
+                labelCategory: `Reservas Menu-Tradición`,
+                subLabel: `Consultas Fecha Caducidad`,
+                emoji: `🎁`
+            };
+        }
         return {
-            banner: `🎁🟢 *[CATEGORÍA: MENÚ TRADICIÓN]* 🟢🎁`,
-            colorTag: `🟢 MENÚ TRADICIÓN / REGALO`,
-            subjectTag: `[🟢 MENÚ TRADICIÓN]`,
+            banner: `🎁🟢 *[CATEGORÍA: RESERVA MENÚ TRADICIÓN]* 🟢🎁`,
+            colorTag: `🟢 RESERVA MENÚ TRADICIÓN`,
+            subjectTag: `[🟢 MENÚ TRADICIÓN SOLICITUD]`,
+            labelCategory: `Reservas Menu-Tradición`,
+            subLabel: `Solicitudes Reservas`,
             emoji: `🎁`
         };
     }
@@ -141,6 +172,8 @@ function getCategoryHeader(tipoAccion) {
         banner: `🚨 *[ALERTA RECEPCIÓN CASA JULIÁN]* 🚨`,
         colorTag: `⚪ GESTIÓN GENERAL`,
         subjectTag: `[⚪ ALERTA RECEPCIÓN]`,
+        labelCategory: `General`,
+        subLabel: null,
         emoji: `📌`
     };
 }
@@ -212,7 +245,7 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
     </div>
     `;
 
-    const subject = `${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`;
+    const subject = `[Casa Julián] ${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`;
 
     // Intento 1: API REST HTTPS Resend (Puerto 443 garantizado sin bloqueos cloud)
     const resendResult = await sendViaResendHttpApi(targetEmail, subject, emailHtmlResend);
