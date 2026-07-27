@@ -137,9 +137,9 @@ async function sendLanguageMenu(from, page = 1) {
             console.error("⚠️ Error enviando imagen de bienvenida por WhatsApp:", e.message);
         }
 
-        // 2. Enviar GIF animado de bienvenida (mp4) en el saludo inicial
+        // 2. Enviar GIF animado de bienvenida (mp4) en el saludo inicial con reproduccion automatica (gif_playback: true)
         try {
-            await sendVideoMessage(from, welcomeGifUrl, '🔥 Experiencia Casa Julián');
+            await sendVideoMessage(from, welcomeGifUrl, '🔥 Experiencia Casa Julián', true);
         } catch (e) {
             console.error("⚠️ Error enviando GIF de bienvenida por WhatsApp:", e.message);
         }

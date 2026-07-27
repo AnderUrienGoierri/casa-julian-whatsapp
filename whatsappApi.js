@@ -155,14 +155,24 @@ async function sendImageMessage(to, imageUrl, caption = '') {
 
 /**
  * Envía un vídeo o GIF animado por WhatsApp a través de un enlace URL público.
+ * Si isGif es true, incluye gif_playback: true para autoreproducción en bucle tipo GIF.
  */
-async function sendVideoMessage(to, videoUrl, caption = '') {
+async function sendVideoMessage(to, videoUrl, caption = '', isGif = false) {
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
         console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
     }
 
     try {
+        const videoPayload = {
+            link: videoUrl,
+            caption: caption
+        };
+
+        if (isGif) {
+            videoPayload.gif_playback = true;
+        }
+
         const response = await axios({
             method: 'POST',
             url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
@@ -174,10 +184,7 @@ async function sendVideoMessage(to, videoUrl, caption = '') {
                 messaging_product: 'whatsapp',
                 to: to,
                 type: 'video',
-                video: {
-                    link: videoUrl,
-                    caption: caption
-                }
+                video: videoPayload
             }
         });
         return response.data;
