@@ -2171,15 +2171,24 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
             }
 
             if (!searchResult.verified) {
+                // Reserva encontrada pero no verificada (solo por nombre o teléfono del remitente)
+                // Mostrar detalles reales de la BD y pedir verificación con segundo factor
                 userStates.set(from, {
                     step: 'modificacion_verificar_datos',
                     data: { reservationId: reservaFound.id }
                 });
-                const verifyPrompt = getTranslation(lang, 'modReservationVerifyPrompt').replace('{id}', reservaFound.id);
+                const verifyPrompt = getTranslation(lang, 'modReservationVerifyWithDetailsPrompt')
+                    .replace('{id}', reservaFound.id)
+                    .replace('{nombre}', reservaFound.nombre || 'N/A')
+                    .replace('{fecha}', reservaFound.fecha || 'N/A')
+                    .replace('{hora}', reservaFound.hora || 'N/A')
+                    .replace('{comensales}', reservaFound.comensales || 'N/A');
                 await sendMessage(from, verifyPrompt);
                 break;
             }
 
+            // Verificado por factores fuertes (código, teléfono explícito, DNI, email)
+            // Usar datos REALES de la base de datos
             currentState.data.reservationId = reservaFound.id;
             currentState.data.comensalesActuales = reservaFound.comensales;
             currentState.data.nombreCliente = reservaFound.nombre;
@@ -2224,27 +2233,21 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
             const inputNorm = text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             const inputDigits = text.toString().replace(/\D/g, '');
 
+            // Verificar por código de reserva (ID)
+            const resIdNorm = (reservaFound.id || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const idMatches = resIdNorm && inputNorm.includes(resIdNorm);
+
             const resPhoneDigits = (reservaFound.telefono || '').replace(/\D/g, '');
-            const resNameNorm = (reservaFound.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             const resDniNorm = (reservaFound.dni || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             const resEmailNorm = (reservaFound.email || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
             const phoneMatches = inputDigits.length >= 7 && (inputDigits.includes(resPhoneDigits) || resPhoneDigits.includes(inputDigits));
-
-            const resWords = resNameNorm.split(/\s+/).filter(w => w.length >= 2);
-            const inputWords = inputNorm.split(/\s+/).filter(w => w.length >= 2);
-            let nameMatches = false;
-            if (inputWords.length > 0 && resWords.length > 0) {
-                const firstWordMatches = resWords.includes(inputWords[0]);
-                const fullStringMatches = resNameNorm.includes(inputNorm) || inputNorm.includes(resNameNorm);
-                const wordsOverlap = inputWords.filter(iw => resWords.includes(iw)).length >= 2;
-                nameMatches = firstWordMatches && (fullStringMatches || wordsOverlap || inputWords.length === 1);
-            }
-
             const dniMatches = resDniNorm.length >= 4 && (inputNorm.includes(resDniNorm) || resDniNorm.includes(inputNorm));
             const emailMatches = resEmailNorm.length >= 4 && (inputNorm.includes(resEmailNorm) || resEmailNorm.includes(inputNorm));
 
-            if (phoneMatches || nameMatches || dniMatches || emailMatches) {
+            // Verificadores válidos: código de reserva, teléfono, DNI o email
+            if (idMatches || phoneMatches || dniMatches || emailMatches) {
+                // Usar datos REALES de la base de datos
                 state.data.reservationId = reservaFound.id;
                 state.data.comensalesActuales = reservaFound.comensales;
                 state.data.nombreCliente = reservaFound.nombre;
@@ -2340,11 +2343,17 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
             }
 
             if (!searchResult.verified) {
+                // Reserva encontrada pero no verificada — mostrar detalles reales de la BD
                 userStates.set(from, {
                     step: 'cancelacion_verificar_datos',
                     data: { reservationId: reservaFound.id }
                 });
-                const verifyPrompt = getTranslation(lang, 'cancelReservationVerifyPrompt').replace('{id}', reservaFound.id);
+                const verifyPrompt = getTranslation(lang, 'cancelReservationVerifyWithDetailsPrompt')
+                    .replace('{id}', reservaFound.id)
+                    .replace('{nombre}', reservaFound.nombre || 'N/A')
+                    .replace('{fecha}', reservaFound.fecha || 'N/A')
+                    .replace('{hora}', reservaFound.hora || 'N/A')
+                    .replace('{comensales}', reservaFound.comensales || 'N/A');
                 await sendMessage(from, verifyPrompt);
                 break;
             }
@@ -2388,27 +2397,20 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
             const inputNorm = text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             const inputDigits = text.toString().replace(/\D/g, '');
 
+            // Verificar por código de reserva (ID)
+            const resIdNorm = (reservaFound.id || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const idMatches = resIdNorm && inputNorm.includes(resIdNorm);
+
             const resPhoneDigits = (reservaFound.telefono || '').replace(/\D/g, '');
-            const resNameNorm = (reservaFound.nombre || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             const resDniNorm = (reservaFound.dni || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             const resEmailNorm = (reservaFound.email || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
             const phoneMatches = inputDigits.length >= 7 && (inputDigits.includes(resPhoneDigits) || resPhoneDigits.includes(inputDigits));
-
-            const resWords = resNameNorm.split(/\s+/).filter(w => w.length >= 2);
-            const inputWords = inputNorm.split(/\s+/).filter(w => w.length >= 2);
-            let nameMatches = false;
-            if (inputWords.length > 0 && resWords.length > 0) {
-                const firstWordMatches = resWords.includes(inputWords[0]);
-                const fullStringMatches = resNameNorm.includes(inputNorm) || inputNorm.includes(resNameNorm);
-                const wordsOverlap = inputWords.filter(iw => resWords.includes(iw)).length >= 2;
-                nameMatches = firstWordMatches && (fullStringMatches || wordsOverlap || inputWords.length === 1);
-            }
-
             const dniMatches = resDniNorm.length >= 4 && (inputNorm.includes(resDniNorm) || resDniNorm.includes(inputNorm));
             const emailMatches = resEmailNorm.length >= 4 && (inputNorm.includes(resEmailNorm) || resEmailNorm.includes(inputNorm));
 
-            if (phoneMatches || nameMatches || dniMatches || emailMatches) {
+            // Verificadores válidos: código de reserva, teléfono, DNI o email
+            if (idMatches || phoneMatches || dniMatches || emailMatches) {
                 const detalleCancelacion = formatCancellationDetail(reservaFound, text, from, lang);
 
                 await requestUserConfirmation(from, lang, {

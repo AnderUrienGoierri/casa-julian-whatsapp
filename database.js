@@ -694,14 +694,15 @@ function findActiveReservation(queryText, fromNumber) {
     // Detectar si el usuario introdujo explícitamente un patrón de código de reserva (ej. RES-...)
     const isExplicitCodePattern = /RES-/i.test(queryText) || /^\d{8}-\d+$/i.test(queryText.trim());
 
-    const formatResult = (res) => {
+    const formatResult = (res, matchMethod = 'unknown') => {
         const resPhoneDigits = normalizePhone(res.telefono);
         const resNameNorm = normalizeText(res.nombre);
         const resDniNorm = normalizeText(res.dni);
         const resEmailNorm = normalizeText(res.email);
 
-        const phoneMatches = (queryDigits.length >= 7 && (queryDigits.includes(resPhoneDigits) || resPhoneDigits.includes(queryDigits))) ||
-                             (fromDigits.length >= 7 && (fromDigits.includes(resPhoneDigits) || resPhoneDigits.includes(fromDigits)));
+        // Verificación basada SOLO en lo que el usuario escribió explícitamente (queryText)
+        // El teléfono del remitente NO cuenta como verificación de identidad
+        const queryPhoneMatches = queryDigits.length >= 7 && (queryDigits.includes(resPhoneDigits) || resPhoneDigits.includes(queryDigits));
 
         const resWords = resNameNorm.split(/\s+/).filter(w => w.length >= 2);
         const queryWords = queryNorm.split(/\s+/).filter(w => w.length >= 2);
@@ -716,14 +717,23 @@ function findActiveReservation(queryText, fromNumber) {
         const dniMatches = resDniNorm && resDniNorm.length >= 4 && (queryNorm.includes(resDniNorm) || resDniNorm.includes(queryNorm));
         const emailMatches = resEmailNorm && resEmailNorm.length >= 4 && (queryNorm.includes(resEmailNorm) || resEmailNorm.includes(queryNorm));
 
-        const isVerified = phoneMatches || nameMatches || dniMatches || emailMatches;
+        // Verificación estricta: solo se considera verificado si el usuario proporcionó
+        // al menos DOS factores de identificación diferentes, o si proporcionó el código de reserva.
+        // Nombre solo NO es suficiente — necesita código, teléfono, DNI o email adicional.
+        const factorsMatched = [queryPhoneMatches, nameMatches, dniMatches, emailMatches].filter(Boolean).length;
+        const isVerifiedById = matchMethod === 'byId';
+        const isVerified = isVerifiedById || factorsMatched >= 2 || queryPhoneMatches || dniMatches || emailMatches;
+        // Nota: teléfono explícito, DNI o email son verificadores fuertes por sí solos.
+        // Nombre solo requiere un segundo factor.
+
         const isModifiable = res.estado === 'CONFIRMADA';
 
         return {
             reservation: res,
             verified: isVerified,
             isModifiable: isModifiable,
-            statusReason: res.estado
+            statusReason: res.estado,
+            matchMethod: matchMethod
         };
     };
 
@@ -741,7 +751,7 @@ function findActiveReservation(queryText, fromNumber) {
     });
 
     if (matchedById) {
-        return formatResult(matchedById);
+        return formatResult(matchedById, 'byId');
     }
 
     // Si se introdujo explícitamente un código con formato RES- y no existe en BD, rechazar de inmediato
@@ -759,7 +769,7 @@ function findActiveReservation(queryText, fromNumber) {
 
         const bestByQueryPhone = pickBestMatch(phoneCandidates);
         if (bestByQueryPhone) {
-            return formatResult(bestByQueryPhone);
+            return formatResult(bestByQueryPhone, 'byQueryPhone');
         }
     }
 
@@ -780,7 +790,7 @@ function findActiveReservation(queryText, fromNumber) {
 
         const bestByName = pickBestMatch(nameCandidates);
         if (bestByName) {
-            return formatResult(bestByName);
+            return formatResult(bestByName, 'byName');
         }
     }
 
@@ -795,7 +805,7 @@ function findActiveReservation(queryText, fromNumber) {
 
         const bestByDniOrEmail = pickBestMatch(dniOrEmailCandidates);
         if (bestByDniOrEmail) {
-            return formatResult(bestByDniOrEmail);
+            return formatResult(bestByDniOrEmail, 'byDniEmail');
         }
     }
 
@@ -809,7 +819,7 @@ function findActiveReservation(queryText, fromNumber) {
 
         const bestByFromPhone = pickBestMatch(fromCandidates);
         if (bestByFromPhone) {
-            return formatResult(bestByFromPhone);
+            return formatResult(bestByFromPhone, 'byFromPhone');
         }
     }
 
