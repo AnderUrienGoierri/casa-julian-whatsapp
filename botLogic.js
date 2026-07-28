@@ -1732,26 +1732,29 @@ async function handleTextMessage(from, text) {
     const lang = userLanguages.get(from) || 'es';
     const cleanText = text.trim().toLowerCase();
 
-    // Interceptador global para volver al menú de idioma o inicio
-    if (['menu', 'menú', 'inicio', 'cancelar', 'salir', 'volver', 'home', 'start'].includes(cleanText)) {
+    // 1. Interceptador de Saludo / Inicio: Borra cualquier estado o formulario incompleto y empieza el flujo desde cero
+    const isGreeting = ['hola', 'kaixo', 'hello', 'hi', 'bonjour', 'hallo', 'buenos dias', 'buenos días', 'buenas tardes', 'buenas noches', 'egun on', 'arratsalde on', 'gabon', 'start', 'inicio', 'empezar', 'menu', 'menú', 'volver', 'home', 'reiniciar', 'reset'].some(k => cleanText === k || cleanText.startsWith(k + ' '));
+
+    if (isGreeting) {
         userStates.delete(from);
-        await sendMessage(from, getTranslation(lang, 'returningToMenu'));
         await sendLanguageMenu(from, 1);
+        return;
+    }
+
+    // 2. Interceptador de Despedida / Finalización: Borra la memoria del estado y despide al cliente
+    const isFarewell = ['adios', 'adiós', 'agur', 'bye', 'goodbye', 'gracias', 'eskerrik asko', 'thank you', 'thanks', 'merci', 'danke', 'chao', 'chau', 'hasta luego', 'hasta pronto', 'salir', 'cancelar', 'finish', 'end'].some(k => cleanText === k || cleanText.startsWith(k + ' '));
+
+    if (isFarewell) {
+        userStates.delete(from);
+        await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
         return;
     }
 
     const currentState = userStates.get(from);
 
     if (!currentState || currentState.step === 'select_language') {
-        const knownLang = userLanguages.get(from);
-        if (knownLang && !['hola', 'kaixo', 'hello', 'hi', 'start', 'menu', 'menú'].includes(cleanText)) {
-            userStates.set(from, { step: 'main_menu', data: {} });
-            await sendMainMenu(from);
-            return;
-        } else {
-            await sendLanguageMenu(from, 1);
-            return;
-        }
+        await sendLanguageMenu(from, 1);
+        return;
     }
 
     switch (currentState.step) {
