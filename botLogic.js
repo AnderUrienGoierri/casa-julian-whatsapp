@@ -365,6 +365,38 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'btn_mt_add_misma_mesa': {
+            const state = userStates.get(from) || { data: {} };
+            state.data.menuTrad = state.data.menuTrad || {};
+            const currentCards = state.data.menuTrad.cards || [];
+
+            if (currentCards.length >= 3) {
+                await sendMessage(from, getTranslation(lang, 'menuTradMaxTableCardsNotice'));
+                state.step = 'menu_trad_step2_nombre';
+                userStates.set(from, state);
+                await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+            } else {
+                state.step = 'menu_trad_step1_tarjeta';
+                userStates.set(from, state);
+                await sendMessage(from, getTranslation(lang, 'menuTradAddSameTablePrompt'));
+            }
+            break;
+        }
+
+        case 'btn_mt_otra_mesa': {
+            userStates.set(from, { step: 'menu_trad_step1_tarjeta', data: { menuTrad: { comensales: 2 } } });
+            await sendMessage(from, getTranslation(lang, 'menuTradNewTablePrompt'));
+            break;
+        }
+
+        case 'btn_mt_continuar': {
+            const state = userStates.get(from) || { data: {} };
+            state.step = 'menu_trad_step2_nombre';
+            userStates.set(from, state);
+            await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+            break;
+        }
+
         case 'menu_tradicion_regalar':
             await handleRegalarMenuTradicion(from, lang);
             break;
@@ -829,7 +861,10 @@ async function handleButtonResponse(from, buttonId) {
                     } else if (pending.isCancellation && pending.reservationId) {
                         await db.updateReservationStatus(pending.reservationId, 'PENDIENTE CANCELACION');
                     } else if (pending.tarjetaCodigo) {
-                        await db.updateGiftCardStatus(pending.tarjetaCodigo, 'PENDIENTE RESERVA');
+                        const codes = pending.tarjetaCodigo.split(',').map(c => c.trim()).filter(Boolean);
+                        for (const code of codes) {
+                            await db.updateGiftCardStatus(code, 'PENDIENTE RESERVA');
+                        }
                     }
 
                     // 1. Responder al cliente con los mensajes de revisión y agradecimiento
@@ -1829,11 +1864,19 @@ async function handleTextMessage(from, text) {
 
                 if (estadoNorm === 'NO CONSUMIDA' || estadoNorm === 'ACTIVA') {
                     currentState.data.menuTrad = currentState.data.menuTrad || {};
-                    currentState.data.menuTrad.card = card;
-                    currentState.data.menuTrad.tarjeta = card.codigo;
-                    currentState.data.menuTrad.comensales = 2; // Cada tarjeta cuenta como 2 comensales
-                    currentState.step = 'menu_trad_step2_nombre';
-                    userStates.set(from, currentState);
+                    const currentCards = currentState.data.menuTrad.cards || [];
+
+                    // Evitar duplicar el mismo código en la misma sesión
+                    if (currentCards.some(c => c.codigo.toUpperCase() === card.codigo.toUpperCase())) {
+                        await sendMessage(from, `⚠️ La tarjeta regalo *${card.codigo}* ya ha sido añadida a esta reserva.`);
+                        break;
+                    }
+
+                    currentCards.push(card);
+                    currentState.data.menuTrad.cards = currentCards;
+                    currentState.data.menuTrad.card = card; // Para compatibilidad
+                    currentState.data.menuTrad.tarjeta = currentCards.map(c => c.codigo).join(', ');
+                    currentState.data.menuTrad.comensales = currentCards.length * 2; // Cada tarjeta cuenta como 2 comensales
 
                     const expiry = card.fecha_caducidad || 'N/A';
                     const successNotice = getTranslation(lang, 'menuTradCardVerified')
@@ -1841,7 +1884,26 @@ async function handleTextMessage(from, text) {
                         .replace('{expiry}', expiry);
                     await sendMessage(from, successNotice);
 
-                    await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+                    // Si se alcanza el máximo de 3 tarjetas (6 comensales), avanzar automáticamente
+                    if (currentCards.length >= 3) {
+                        await sendMessage(from, getTranslation(lang, 'menuTradMaxTableCardsNotice'));
+                        currentState.step = 'menu_trad_step2_nombre';
+                        userStates.set(from, currentState);
+                        await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+                    } else {
+                        // Ofrecer botones para añadir a misma mesa, otra mesa o continuar
+                        currentState.step = 'menu_trad_more_cards_choice';
+                        userStates.set(from, currentState);
+
+                        const promptBody = getTranslation(lang, 'menuTradMoreCardsPrompt')
+                            .replace('{comensales}', currentState.data.menuTrad.comensales);
+                        const buttons = [
+                            { id: 'btn_mt_add_misma_mesa', title: getTranslation(lang, 'btnMtAddMismaMesa').slice(0, 20) },
+                            { id: 'btn_mt_otra_mesa', title: getTranslation(lang, 'btnMtOtraMesa').slice(0, 20) },
+                            { id: 'btn_mt_continuar', title: getTranslation(lang, 'btnMtContinuar').slice(0, 20) }
+                        ];
+                        await sendInteractiveButtons(from, promptBody, buttons);
+                    }
                 } else {
                     let failNotice = '';
                     if (estadoNorm === 'PENDIENTE RESERVA') {
@@ -1881,10 +1943,32 @@ async function handleTextMessage(from, text) {
             break;
         }
 
+        case 'menu_trad_more_cards_choice': {
+            const maybeCard = await db.getGiftCard(text.trim());
+            if (maybeCard) {
+                userStates.set(from, { step: 'menu_trad_step1_tarjeta', data: currentState.data });
+                await handleUserMessage(from, text, 'text');
+            } else if (['continuar', 'no', 'skip', 'jarraitu', 'continue'].includes(text.trim().toLowerCase())) {
+                currentState.step = 'menu_trad_step2_nombre';
+                userStates.set(from, currentState);
+                await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+            } else {
+                const promptBody = getTranslation(lang, 'menuTradMoreCardsPrompt')
+                    .replace('{comensales}', currentState.data.menuTrad?.comensales || 2);
+                const buttons = [
+                    { id: 'btn_mt_add_misma_mesa', title: getTranslation(lang, 'btnMtAddMismaMesa').slice(0, 20) },
+                    { id: 'btn_mt_otra_mesa', title: getTranslation(lang, 'btnMtOtraMesa').slice(0, 20) },
+                    { id: 'btn_mt_continuar', title: getTranslation(lang, 'btnMtContinuar').slice(0, 20) }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
+            }
+            break;
+        }
+
         case 'menu_trad_step2_nombre': {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
             currentState.data.menuTrad.nombre = text;
-            currentState.data.menuTrad.comensales = 2;
+            currentState.data.menuTrad.comensales = currentState.data.menuTrad.comensales || 2;
             currentState.step = 'menu_trad_step2b_dni';
             userStates.set(from, currentState);
 

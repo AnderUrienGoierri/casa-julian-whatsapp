@@ -188,7 +188,14 @@ const translations = {
         "confirmNoBtn": "No, cancelar",
         "confirmCancelledMsg": "Solicitud cancelada. No se ha enviado ninguna petición.",
         "langName": "Español",
-        "btnTarjetaRegalo": "Tarjeta Regalo"
+        "btnTarjetaRegalo": "Tarjeta Regalo",
+        "menuTradMoreCardsPrompt": "🎁 *¿Tienes más tarjetas regalo?*\n\nIndícanos si deseas añadir otra tarjeta a la *misma mesa* (+2 comensales), hacer una reserva para *otra mesa distinta*, o *continuar* con la reserva actual ({comensales} personas):",
+        "btnMtAddMismaMesa": "Añadir a misma mesa",
+        "btnMtOtraMesa": "Mesa distinta",
+        "btnMtContinuar": "Continuar reserva",
+        "menuTradAddSameTablePrompt": "🎁 *Añadir otra tarjeta regalo (misma mesa)*\n\nIndícanos el código de la siguiente tarjeta regalo:",
+        "menuTradNewTablePrompt": "🎁 *Nueva reserva con Tarjeta Regalo (otra mesa)*\n\nIndícanos el código de la tarjeta regalo para la nueva reserva:",
+        "menuTradMaxTableCardsNotice": "📌 *Has alcanzado el límite máximo por mesa (6 comensales / 3 tarjetas regalo).* Vamos a proceder con los datos de tu reserva."
     },
     "eu": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -379,7 +386,14 @@ const translations = {
         "confirmNoBtn": "Ez, ezeztatu",
         "confirmCancelledMsg": "Eskaera bertan behera utzi da. Ez da eskaerarik bidali.",
         "langName": "Euskara",
-        "btnTarjetaRegalo": "Opari Txartela"
+        "btnTarjetaRegalo": "Opari Txartela",
+        "menuTradMoreCardsPrompt": "🎁 *Opari-txartel gehiago dituzu?*\n\nAdierazi beste txartel bat *mahai berean* gehitu (+2 pertsona), *beste mahai baterako* erreserba egin edo uneko erreserbarekin ({comensales} pertsona) *jarraitu* nahi duzun:",
+        "btnMtAddMismaMesa": "Mahaian gehitu",
+        "btnMtOtraMesa": "Beste mahai bat",
+        "btnMtContinuar": "Jarraitu erreserba",
+        "menuTradAddSameTablePrompt": "🎁 *Beste opari-txartel bat gehitu (mahai bera)*\n\nAdierazi hurrengo opari-txartelaren kodea:",
+        "menuTradNewTablePrompt": "🎁 *Opari-txartel bidezko erreserba berria (beste mahai bat)*\n\nAdierazi erreserba berrirako opari-txartelaren kodea:",
+        "menuTradMaxTableCardsNotice": "📌 *Mahaiko gehienezko muga lortu duzu (6 pertsona / 3 opari-txartel).* Zure erreserbaren datuekin jarraituko dugu."
     },
     "en": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -570,7 +584,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "English",
-        "btnTarjetaRegalo": "Gift Card"
+        "btnTarjetaRegalo": "Gift Card",
+        "menuTradMoreCardsPrompt": "🎁 *Do you have more gift cards?*\n\nPlease select if you want to add another card to the *same table* (+2 guests), book a *different table*, or *continue* with current booking ({comensales} guests):",
+        "btnMtAddMismaMesa": "Add to same table",
+        "btnMtOtraMesa": "Different table",
+        "btnMtContinuar": "Continue booking",
+        "menuTradAddSameTablePrompt": "🎁 *Add another gift card (same table)*\n\nPlease enter the code for the next gift card:",
+        "menuTradNewTablePrompt": "🎁 *New Gift Card booking (different table)*\n\nPlease enter the gift card code for the new booking:",
+        "menuTradMaxTableCardsNotice": "📌 *You have reached the maximum limit per table (6 guests / 3 gift cards).* We will proceed with your booking details."
     },
     "fr": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -761,7 +782,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "Français",
-        "btnTarjetaRegalo": "Carte Cadeau"
+        "btnTarjetaRegalo": "Carte Cadeau",
+        "menuTradMoreCardsPrompt": "🎁 *Avez-vous d'autres cartes cadeaux ?*\n\nIndiquez si vous souhaitez ajouter une carte sur la *même table* (+2 convives), réserver pour une *autre table*, ou *continuer* avec la réservation actuelle ({comensales} personnes) :",
+        "btnMtAddMismaMesa": "Même table (+2 p.)",
+        "btnMtOtraMesa": "Table différente",
+        "btnMtContinuar": "Continuer résa",
+        "menuTradAddSameTablePrompt": "🎁 *Ajouter une autre carte cadeau (même table)*\n\nVeuillez indiquer le code de la carte cadeau suivante :",
+        "menuTradNewTablePrompt": "🎁 *Nouvelle réservation avec Carte Cadeau (autre table)*\n\nVeuillez indiquer le code de la carte cadeau pour la nouvelle réservation :",
+        "menuTradMaxTableCardsNotice": "📌 *Vous avez atteint la limite maximale par table (6 convives / 3 cartes cadeaux).* Nous procédons aux détails de votre réservation."
     },
     "de": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -952,7 +980,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "Deutsch",
-        "btnTarjetaRegalo": "Gutschein"
+        "btnTarjetaRegalo": "Gutschein",
+        "menuTradMoreCardsPrompt": "🎁 *Haben Sie weitere Gutscheine?*\n\nBitte wählen Sie, ob Sie einen weiteren Gutschein für denselben Tisch (+2 Personen) hinzufügen, einen anderen Tisch buchen oder fortfahren möchten ({comensales} Personen):",
+        "btnMtAddMismaMesa": "Gleicher Tisch (+2)",
+        "btnMtOtraMesa": "Anderer Tisch",
+        "btnMtContinuar": "Weiter buchen",
+        "menuTradAddSameTablePrompt": "🎁 *Gutschein hinzufügen (gleicher Tisch)*\n\nBitte geben Sie den nächsten Gutscheincode ein:",
+        "menuTradNewTablePrompt": "🎁 *Neue Gutschein-Buchung (anderer Tisch)*\n\nBitte geben Sie den Gutscheincode für die neue Buchung ein:",
+        "menuTradMaxTableCardsNotice": "📌 *Sie haben das Limit pro Tisch erreicht (6 Personen / 3 Gutscheine).* Wir fahren mit Ihren Buchungsdaten fort."
     },
     "nl": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1143,7 +1178,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "Nederlands",
-        "btnTarjetaRegalo": "Cadeaubon"
+        "btnTarjetaRegalo": "Cadeaubon",
+        "menuTradMoreCardsPrompt": "🎁 *Heeft u meer cadeaubonnen?*\n\nKies of u nog een bon wilt toevoegen aan dezelfde tafel (+2 personen), een andere tafel wilt boeken of wilt doorgaan ({comensales} personen):",
+        "btnMtAddMismaMesa": "Zelfde tafel (+2)",
+        "btnMtOtraMesa": "Andere tafel",
+        "btnMtContinuar": "Doorgaan",
+        "menuTradAddSameTablePrompt": "🎁 *Cadeaubon toevoegen (zelfde tafel)*\n\nVoer de volgende cadeauboncode in:",
+        "menuTradNewTablePrompt": "🎁 *Nieuwe boeking met cadeaubon (andere tafel)*\n\nVoer de cadeauboncode in voor de nieuwe boeking:",
+        "menuTradMaxTableCardsNotice": "📌 *U heeft de limiet per tafel bereikt (6 personen / 3 cadeaubonnen).* We gaan door met uw reserveringsgegevens."
     },
     "it": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1334,7 +1376,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "Italiano",
-        "btnTarjetaRegalo": "Carta Regalo"
+        "btnTarjetaRegalo": "Carta Regalo",
+        "menuTradMoreCardsPrompt": "🎁 *Hai altre carte regalo?*\n\nScegli se aggiungere un'altra carta allo *stesso tavolo* (+2 ospiti), prenotare un *altro tavolo*, o *continuare* con la prenotazione attuale ({comensales} ospiti):",
+        "btnMtAddMismaMesa": "Stesso tavolo (+2)",
+        "btnMtOtraMesa": "Tavolo diverso",
+        "btnMtContinuar": "Continua prenotaz.",
+        "menuTradAddSameTablePrompt": "🎁 *Aggiungi altra carta regalo (stesso tavolo)*\n\nInserisci il codice della prossima carta regalo:",
+        "menuTradNewTablePrompt": "🎁 *Nuova prenotazione carta regalo (altro tavolo)*\n\nInserisci il codice della carta regalo per la nuova prenotazione:",
+        "menuTradMaxTableCardsNotice": "📌 *Hai raggiunto il limite massimo per tavolo (6 ospiti / 3 carte regalo).* Procediamo con i dettagli della prenotazione."
     },
     "pt": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1525,7 +1574,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "Português",
-        "btnTarjetaRegalo": "Cartão Presente"
+        "btnTarjetaRegalo": "Cartão Presente",
+        "menuTradMoreCardsPrompt": "🎁 *Tem mais cartões presente?*\n\nIndique se deseja adicionar outro cartão à *mesma mesa* (+2 pessoas), reservar outra *mesa diferente*, ou *continuar* com a reserva atual ({comensales} pessoas):",
+        "btnMtAddMismaMesa": "Mesma mesa (+2)",
+        "btnMtOtraMesa": "Mesa diferente",
+        "btnMtContinuar": "Continuar reserva",
+        "menuTradAddSameTablePrompt": "🎁 *Adicionar outro cartão presente (mesma mesa)*\n\nIndique o código do próximo cartão presente:",
+        "menuTradNewTablePrompt": "🎁 *Nova reserva com cartão presente (outra mesa)*\n\nIndique o código do cartão presente para a nova reserva:",
+        "menuTradMaxTableCardsNotice": "📌 *Atingiu o limite máximo por mesa (6 pessoas / 3 cartões).* Vamos prosseguir com os dados da sua reserva."
     },
     "ca": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -1716,7 +1772,14 @@ const translations = {
         "confirmNoBtn": "Ez, ezeztatu",
         "confirmCancelledMsg": "Eskaera bertan behera utzi da. Ez da eskaerarik bidali.",
         "langName": "Català",
-        "btnTarjetaRegalo": "Targeta Regal"
+        "btnTarjetaRegalo": "Targeta Regal",
+        "menuTradMoreCardsPrompt": "🎁 *Tens més targetes regal?*\n\nIndica si vols afegir una altra targeta a la *mateixa taula* (+2 comensals), fer una reserva per a una *altra taula*, o *continuar* amb la reserva actual ({comensales} persones):",
+        "btnMtAddMismaMesa": "Mateixa taula (+2)",
+        "btnMtOtraMesa": "Taula diferent",
+        "btnMtContinuar": "Continuar reserva",
+        "menuTradAddSameTablePrompt": "🎁 *Afegir una altra targeta regal (mateixa taula)*\n\nIndica el codi de la següent targeta regal:",
+        "menuTradNewTablePrompt": "🎁 *Nova reserva amb Targeta Regal (altra taula)*\n\nIndica el codi de la targeta regal per a la nova reserva:",
+        "menuTradMaxTableCardsNotice": "📌 *Hass assolit el límit màxim per taula (6 comensals / 3 targetes regal).* Procedim amb les dades de la teva reserva."
     },
     "gl": {
         "welcomeMessage": "¡Bienvenido/a a Casa Julián! Será un placer ayudarte. ¿En qué idioma deseas continuar?",
@@ -1907,7 +1970,14 @@ const translations = {
         "confirmNoBtn": "No, cancelar",
         "confirmCancelledMsg": "Solicitud cancelada. No se ha enviado ninguna petición.",
         "langName": "Galego",
-        "btnTarjetaRegalo": "Tarxeta Regalo"
+        "btnTarjetaRegalo": "Tarxeta Regalo",
+        "menuTradMoreCardsPrompt": "🎁 *Tes máis tarxetas regalo?*\n\nIndícanos se desexas engadir outra tarxeta á *mesma mesa* (+2 comensais), facer unha reserva para *outra mesa diferente*, ou *continuar* coa reserva actual ({comensales} persoas):",
+        "btnMtAddMismaMesa": "Mesma mesa (+2)",
+        "btnMtOtraMesa": "Mesa diferente",
+        "btnMtContinuar": "Continuar reserva",
+        "menuTradAddSameTablePrompt": "🎁 *Engadir outra tarxeta regalo (mesma mesa)*\n\nIndícanos o código da seguinte tarxeta regalo:",
+        "menuTradNewTablePrompt": "🎁 *Nova reserva con Tarxeta Regalo (outra mesa)*\n\nIndícanos o código da tarxeta regalo para a nova reserva:",
+        "menuTradMaxTableCardsNotice": "📌 *Alcanzaches o límite máximo por mesa (6 comensais / 3 tarxetas regalo).* Procedemos cos datos da túa reserva."
     },
     "ru": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2098,7 +2168,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "Русский",
-        "btnTarjetaRegalo": "Подарочная карта"
+        "btnTarjetaRegalo": "Подарочная карта",
+        "menuTradMoreCardsPrompt": "🎁 *У вас есть еще подарочные карты?*\n\nВыберите: добавить еще карту за *тот же стол* (+2 гостя), забронировать *другой стол* или *продолжить* текущую бронь ({comensales} гостей):",
+        "btnMtAddMismaMesa": "Тот же стол (+2)",
+        "btnMtOtraMesa": "Другой стол",
+        "btnMtContinuar": "Продолжить бронь",
+        "menuTradAddSameTablePrompt": "🎁 *Добавить карту (тот же стол)*\n\nВведите код следующей подарочной карты:",
+        "menuTradNewTablePrompt": "🎁 *Новая бронь карты (другой стол)*\n\nВведите код карты для новой брони:",
+        "menuTradMaxTableCardsNotice": "📌 *Вы достигли лимита на стол (6 гостей / 3 карты).* Переходим к оформлению бронирования."
     },
     "zh": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2289,7 +2366,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "中文",
-        "btnTarjetaRegalo": "礼品卡"
+        "btnTarjetaRegalo": "礼品卡",
+        "menuTradMoreCardsPrompt": "🎁 *您还有更多礼品卡吗？*\n\n请选择：为*同桌*添加礼品卡（+2人），预订*另一桌*，或*继续*当前预订（{comensales} 人）：",
+        "btnMtAddMismaMesa": "同桌加卡（+2）",
+        "btnMtOtraMesa": "预订另一桌",
+        "btnMtContinuar": "继续当前预订",
+        "menuTradAddSameTablePrompt": "🎁 *添加礼品卡（同桌）*\n\n请输入下一张礼品卡的代码：",
+        "menuTradNewTablePrompt": "🎁 *新礼品卡预订（另一桌）*\n\n请输入新预订的礼品卡代码：",
+        "menuTradMaxTableCardsNotice": "📌 *您已达到每桌上限（6人 / 3张礼品卡）。* 我们将继续完成您的预订信息。"
     },
     "ja": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2480,7 +2564,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "日本語",
-        "btnTarjetaRegalo": "ギフトカード"
+        "btnTarjetaRegalo": "ギフトカード",
+        "menuTradMoreCardsPrompt": "🎁 *他にもギフトカードをお持ちですか？*\n\n*同じテーブル*に追加（+2名）、*別のテーブル*を予約、または現在の予約（{comensales} 名）を*継続*からお選びください：",
+        "btnMtAddMismaMesa": "同卓に追加（+2）",
+        "btnMtOtraMesa": "別のテーブル予約",
+        "btnMtContinuar": "予約を続ける",
+        "menuTradAddSameTablePrompt": "🎁 *ギフトカード追加（同卓）*\n\n次のギフトカードのコードを入力してください：",
+        "menuTradNewTablePrompt": "🎁 *新規ギフトカード予約（別卓）*\n\n新しい予約用のギフトカードコードを入力してください：",
+        "menuTradMaxTableCardsNotice": "📌 *1卓あたりの上限（6名様 / ギフトカード3枚）に達しました。* 予約手続きを進めます。"
     },
     "ar": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2671,7 +2762,14 @@ const translations = {
         "confirmNoBtn": "No, cancel",
         "confirmCancelledMsg": "Request cancelled. No information was sent.",
         "langName": "العربية",
-        "btnTarjetaRegalo": "بطاقة هدايا"
+        "btnTarjetaRegalo": "بطاقة هدايا",
+        "menuTradMoreCardsPrompt": "🎁 *هل لديك المزيد من بطاقات الهدايا؟*\n\nيرجى تحديد ما إذا كنت تريد إضافة بطاقة أخرى إلى *نفس الطاولة* (+2 ضيوف)، أو حجز *طاولة أخرى*، أو *المتابعة* بالحجز الحالي ({comensales} ضيوف):",
+        "btnMtAddMismaMesa": "نفس الطاولة (+2)",
+        "btnMtOtraMesa": "طاولة أخرى",
+        "btnMtContinuar": "متابعة الحجز",
+        "menuTradAddSameTablePrompt": "🎁 *إضافة بطاقة هدايا أخرى (نفس الطاولة)*\n\nيرجى إدخال رمز بطاقة الهدايا التالية:",
+        "menuTradNewTablePrompt": "🎁 *حجز جديد ببطاقة هدايا (طاولة أخرى)*\n\nيرجى إدخال رمز بطاقة الهدايا للحجز الجديد:",
+        "menuTradMaxTableCardsNotice": "📌 *لقد وصلت إلى الحد الأقصى للطاولة (6 ضيوف / 3 بطاقات هدايا).* سنتابع تفاصيل حجزك."
     }
 };
 
