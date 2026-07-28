@@ -499,11 +499,26 @@ function formatDaysInSpanish(diasStr) {
     return translated.join(', ');
 }
 
+function formatNationalityCode(nacStr) {
+    if (!nacStr || ['null', 'undefined', 'n/a', 'omitir', 'omitido', 'sin especificar', 'otro / sin especificar', 'other / unspecified', 'beste bat / sin especificar'].includes(nacStr.toString().trim().toLowerCase())) {
+        return null;
+    }
+    return nacStr.trim();
+}
+
+function formatLanguageCode(langStr) {
+    if (!langStr || ['null', 'undefined', 'n/a', 'omitir', 'omitido', 'sin especificar', 'form_lang_skip'].includes(langStr.toString().trim().toLowerCase())) {
+        return null;
+    }
+    return langStr.trim().toLowerCase();
+}
+
 function createReservation(data) {
     const db = loadDb();
     const rawDias = data.dias_preferencia || data.dias || 'Sin preferencia';
     const diasPref = formatDaysInSpanish(rawDias);
     const nacCode = formatNationalityCode(data.nacionalidad);
+    const langCode = formatLanguageCode(data.idioma);
 
     const now = new Date();
     const dateStr = now.toISOString().slice(0,10).replace(/-/g,'');
@@ -519,7 +534,7 @@ function createReservation(data) {
         hora: data.hora || '',
         comensales: parseInt(data.comensales, 10) || 2,
         estado: data.estado || 'CONFIRMADA',
-        idioma: data.idioma || 'es',
+        idioma: langCode,
         dias_preferencia: diasPref,
         tipo_reserva: data.tipo_reserva || 'online',
         alergias: formatAllergiesInSpanish(data.alergias),
@@ -863,7 +878,7 @@ async function addToWaitlist(data) {
         ninos: data.ninos || '0',
         alergias: formatAllergiesInSpanish(data.alergias),
         estado: data.estado || 'Pendiente confirmar',
-        idioma: data.idioma || 'es',
+        idioma: formatLanguageCode(data.idioma),
         fechaRegistro: new Date().toISOString()
     };
 

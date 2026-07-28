@@ -507,6 +507,14 @@ async function handleButtonResponse(from, buttonId) {
         case 'form_lang_de':
         case 'form_lang_it':
         case 'form_lang_pt':
+        case 'form_lang_skip':
+        case 'form_lang_eu':
+        case 'form_lang_es':
+        case 'form_lang_en':
+        case 'form_lang_fr':
+        case 'form_lang_de':
+        case 'form_lang_it':
+        case 'form_lang_pt':
         case 'form_lang_nl':
         case 'form_lang_ca':
         case 'form_lang_gl':
@@ -514,9 +522,11 @@ async function handleButtonResponse(from, buttonId) {
         case 'form_lang_zh':
         case 'form_lang_ja':
         case 'form_lang_ar': {
-            const selectedLang = buttonId.replace('form_lang_', '');
+            const selectedLang = buttonId === 'form_lang_skip' ? null : buttonId.replace('form_lang_', '');
             const chatLang = userLanguages.get(from) || 'es';
             const currentState = userStates.get(from);
+
+            const displayLang = selectedLang ? selectedLang.toUpperCase() : (chatLang === 'eu' ? 'Ez zehaztua (NULL)' : (chatLang === 'en' ? 'Not specified (NULL)' : 'No especificado (NULL)'));
 
             if (currentState && currentState.step === 'espera_step7_idioma') {
                 const wl = currentState.data.waitlist || {};
@@ -525,7 +535,7 @@ async function handleButtonResponse(from, buttonId) {
                     telefono: from,
                     dni: wl.dni || 'N/A',
                     email: wl.email || 'N/A',
-                    nacionalidad: wl.nacionalidad || 'España',
+                    nacionalidad: wl.nacionalidad,
                     dias_preferencia: wl.dias || 'Sin preferencia',
                     hora: wl.horario || 'No especificado',
                     comensales: parseInt(wl.comensales, 10) || 1,
@@ -535,19 +545,21 @@ async function handleButtonResponse(from, buttonId) {
                     idioma: selectedLang
                 });
 
+                const displayNac = wl.nacionalidad || (chatLang === 'eu' ? 'Ez zehaztua (NULL)' : (chatLang === 'en' ? 'Not specified (NULL)' : 'No especificada (NULL)'));
+
                 let detalleEspera = '';
                 if (chatLang === 'eu') {
                     detalleEspera = `🆔 *Eskaera ID:* ${waitlistRecord.id}\n` +
                                           `👤 *Izen-abizenak:* ${wl.nombre || 'Ez zehaztua'}\n` +
                                           `🪪 *NAN/Pasaportea:* ${wl.dni || 'N/A'}\n` +
                                           `📧 *Posta elektronikoa:* ${wl.email || 'N/A'}\n` +
-                                          `🌐 *Nazionalitatea:* ${wl.nacionalidad || 'Espainia'}\n` +
+                                          `🌐 *Nazionalitatea:* ${displayNac}\n` +
                                           `👥 *Pertsona kopurua:* ${wl.comensales || '1'}\n` +
                                           `🕐 *Ordu hobespena:* ${wl.horario || 'Ez zehaztua'}\n` +
                                           `📅 *Egunen erabilgarritasuna:* ${wl.dias || 'Hobespenik ez'}\n` +
                                           `👶 *Haurrak:* ${wl.ninos || '0'}\n` +
                                           `⚠️ *Alergiak/Mugak:* ${wl.alergias || 'Ez'}\n` +
-                                          `🗣️ *Harremanetarako hizkuntza:* ${selectedLang.toUpperCase()}\n` +
+                                          `🗣️ *Harremanetarako hizkuntza:* ${displayLang}\n` +
                                           `📌 *Egoera:* Pendiente confirmar\n` +
                                           `🎁 *Tradizio Menua:* Ez\n` +
                                           `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
@@ -557,13 +569,13 @@ async function handleButtonResponse(from, buttonId) {
                                           `👤 *Full Name:* ${wl.nombre || 'Not specified'}\n` +
                                           `🪪 *ID/Passport:* ${wl.dni || 'N/A'}\n` +
                                           `📧 *Email:* ${wl.email || 'N/A'}\n` +
-                                          `🌐 *Nationality:* ${wl.nacionalidad || 'Spain'}\n` +
+                                          `🌐 *Nationality:* ${displayNac}\n` +
                                           `👥 *Guests:* ${wl.comensales || '1'}\n` +
                                           `🕐 *Time Preference:* ${wl.horario || 'Not specified'}\n` +
                                           `📅 *Days Availability:* ${wl.dias || 'No preference'}\n` +
                                           `👶 *Children:* ${wl.ninos || '0'}\n` +
                                           `⚠️ *Allergies/Restrictions:* ${wl.alergias || 'None'}\n` +
-                                          `🗣️ *Contact Language:* ${selectedLang.toUpperCase()}\n` +
+                                          `🗣️ *Contact Language:* ${displayLang}\n` +
                                           `📌 *Status:* Pendiente confirmar\n` +
                                           `🎁 *Tradition Menu:* No\n` +
                                           `📱 *Sender WhatsApp:* ${from}\n` +
@@ -573,13 +585,13 @@ async function handleButtonResponse(from, buttonId) {
                                           `👤 *Nombre:* ${wl.nombre || 'No especificado'}\n` +
                                           `🪪 *DNI/Pasaporte:* ${wl.dni || 'N/A'}\n` +
                                           `📧 *Email:* ${wl.email || 'N/A'}\n` +
-                                          `🌐 *Nacionalidad:* ${wl.nacionalidad || 'España'}\n` +
+                                          `🌐 *Nacionalidad:* ${displayNac}\n` +
                                           `👥 *Comensales:* ${wl.comensales || '1'}\n` +
                                           `🕐 *Preferencia horaria:* ${wl.horario || 'No especificado'}\n` +
                                           `📅 *Disponibilidad días:* ${wl.dias || 'Sin preferencia'}\n` +
                                           `👶 *Niños:* ${wl.ninos || '0'}\n` +
                                           `⚠️ *Alergias/Restricciones:* ${wl.alergias || 'Ninguna'}\n` +
-                                          `🗣️ *Idioma contacto:* ${selectedLang.toUpperCase()}\n` +
+                                          `🗣️ *Idioma contacto:* ${displayLang}\n` +
                                           `📌 *Estado:* Pendiente confirmar\n` +
                                           `🎁 *Menú Tradición:* No\n` +
                                           `📱 *WhatsApp Remitente:* ${from}\n` +
@@ -602,7 +614,7 @@ async function handleButtonResponse(from, buttonId) {
                     telefono: from,
                     dni: mt.dni || 'N/A',
                     email: mt.email || 'N/A',
-                    nacionalidad: mt.nacionalidad || 'España',
+                    nacionalidad: mt.nacionalidad,
                     fecha: '',
                     hora: mt.horario || '',
                     comensales: mt.comensales || 2,
@@ -615,19 +627,21 @@ async function handleButtonResponse(from, buttonId) {
                     idioma: selectedLang
                 });
 
+                const displayNac = mt.nacionalidad || (chatLang === 'eu' ? 'Ez zehaztua (NULL)' : (chatLang === 'en' ? 'Not specified (NULL)' : 'No especificada (NULL)'));
+
                 let detalleMenuTrad = '';
                 if (chatLang === 'eu') {
                     detalleMenuTrad = `🆔 *Erreserba ID:* ${resRecord.id}\n` +
                                             `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
                                             `🪪 *NAN/Pasaportea:* ${mt.dni || 'N/A'}\n` +
                                             `📧 *Posta elektronikoa:* ${mt.email || 'N/A'}\n` +
-                                            `🌐 *Nazionalitatea:* ${mt.nacionalidad || 'Espainia'}\n` +
+                                            `🌐 *Nazionalitatea:* ${displayNac}\n` +
                                             `🎁 *Opari-Txartel Zenbakia:* ${mt.tarjeta || 'Ez zehaztua'}\n` +
                                             `🍽️ *Zerbitzua:* ${mt.tipoServicio || 'Bazkaria/Afaria'}\n` +
                                             `⏰ *Aukeratutako ordua:* ${mt.horario || 'Ez zehaztua'}\n` +
                                             `📅 *Egunen erabilgarritasuna:* ${mt.dias || 'Hobespenik ez'}\n` +
                                             `⚠️ *Alergiak/Mugak:* ${mt.alergias || 'Ez'}\n` +
-                                            `🗣️ *Harremanetarako hizkuntza:* ${selectedLang.toUpperCase()}\n` +
+                                            `🗣️ *Harremanetarako hizkuntza:* ${displayLang}\n` +
                                             `📌 *Egoera:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
                                             `📋 *Eskaera:* TRADIZIO MENUA ERRESERBA (OPARI TXARTELA)`;
@@ -636,13 +650,13 @@ async function handleButtonResponse(from, buttonId) {
                                             `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
                                             `🪪 *ID/Passport:* ${mt.dni || 'N/A'}\n` +
                                             `📧 *Email:* ${mt.email || 'N/A'}\n` +
-                                            `🌐 *Nationality:* ${mt.nacionalidad || 'Spain'}\n` +
+                                            `🌐 *Nationality:* ${displayNac}\n` +
                                             `🎁 *Gift Card No.:* ${mt.tarjeta || 'Not specified'}\n` +
                                             `🍽️ *Service:* ${mt.tipoServicio || 'Lunch/Dinner'}\n` +
                                             `⏰ *Selected Time:* ${mt.horario || 'Not specified'}\n` +
                                             `📅 *Days Availability:* ${mt.dias || 'No preference'}\n` +
                                             `⚠️ *Allergies/Restrictions:* ${mt.alergias || 'None'}\n` +
-                                            `🗣️ *Contact Language:* ${selectedLang.toUpperCase()}\n` +
+                                            `🗣️ *Contact Language:* ${displayLang}\n` +
                                             `📌 *Status:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *Sender WhatsApp:* ${from}\n` +
                                             `📋 *Request:* TRADITION MENU BOOKING (GIFT CARD)`;
@@ -651,13 +665,13 @@ async function handleButtonResponse(from, buttonId) {
                                             `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
                                             `🪪 *DNI/Pasaporte:* ${mt.dni || 'N/A'}\n` +
                                             `📧 *Email:* ${mt.email || 'N/A'}\n` +
-                                            `🌐 *Nacionalidad:* ${mt.nacionalidad || 'España'}\n` +
+                                            `🌐 *Nacionalidad:* ${displayNac}\n` +
                                             `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
                                             `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
                                             `⏰ *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
                                             `📅 *Disponibilidad días:* ${mt.dias || 'Sin preferencia'}\n` +
                                             `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
-                                            `🗣️ *Idioma contacto:* ${selectedLang.toUpperCase()}\n` +
+                                            `🗣️ *Idioma contacto:* ${displayLang}\n` +
                                             `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *WhatsApp Remitente:* ${from}\n` +
                                             `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
@@ -1457,6 +1471,7 @@ async function sendNationalityList(from, lang) {
         {
             title: getTranslation(lang, 'listNacHeader').slice(0, 24),
             rows: [
+                { id: 'nac_skip', title: getTranslation(lang, 'nacSkipTitle').slice(0, 24), description: getTranslation(lang, 'nacSkipDesc').slice(0, 72) },
                 { id: 'nac_es', title: getTranslation(lang, 'nacEs').slice(0, 24) },
                 { id: 'nac_fr', title: getTranslation(lang, 'nacFr').slice(0, 24) },
                 { id: 'nac_uk', title: getTranslation(lang, 'nacUk').slice(0, 24) },
@@ -1478,20 +1493,23 @@ async function sendNationalityList(from, lang) {
  * Maneja la selección interactiva de Nacionalidad desde la lista desplegable.
  */
 async function handleNationalitySelection(from, listId, lang) {
-    const nacMap = {
-        'nac_es': getTranslation(lang, 'nacEs'),
-        'nac_fr': getTranslation(lang, 'nacFr'),
-        'nac_uk': getTranslation(lang, 'nacUk'),
-        'nac_us': getTranslation(lang, 'nacUs'),
-        'nac_de': getTranslation(lang, 'nacDe'),
-        'nac_it': getTranslation(lang, 'nacIt'),
-        'nac_pt': getTranslation(lang, 'nacPt'),
-        'nac_mx': getTranslation(lang, 'nacMx'),
-        'nac_jp': getTranslation(lang, 'nacJp'),
-        'nac_otro': getTranslation(lang, 'nacOtro')
-    };
+    let selNac = null;
+    if (listId !== 'nac_skip' && !['omitir', 'skip', 'utzi', 'no'].includes(listId.toLowerCase())) {
+        const nacMap = {
+            'nac_es': getTranslation(lang, 'nacEs'),
+            'nac_fr': getTranslation(lang, 'nacFr'),
+            'nac_uk': getTranslation(lang, 'nacUk'),
+            'nac_us': getTranslation(lang, 'nacUs'),
+            'nac_de': getTranslation(lang, 'nacDe'),
+            'nac_it': getTranslation(lang, 'nacIt'),
+            'nac_pt': getTranslation(lang, 'nacPt'),
+            'nac_mx': getTranslation(lang, 'nacMx'),
+            'nac_jp': getTranslation(lang, 'nacJp'),
+            'nac_otro': getTranslation(lang, 'nacOtro')
+        };
+        selNac = nacMap[listId] || listId.replace('nac_', '').toUpperCase();
+    }
 
-    const selNac = nacMap[listId] || listId.replace('nac_', '').toUpperCase();
     const currentState = userStates.get(from) || { data: {} };
 
     // Si estamos en el formulario de Menú Tradición
@@ -1529,6 +1547,7 @@ async function sendFormLanguageList(from, lang, showMore = false) {
     let rows = [];
     if (!showMore) {
         rows = [
+            { id: 'form_lang_skip', title: getTranslation(lang, 'formLangSkipTitle').slice(0, 24), description: getTranslation(lang, 'formLangSkipDesc').slice(0, 72) },
             { id: 'form_lang_eu', title: 'EU Euskara', description: 'Euskara' },
             { id: 'form_lang_es', title: 'ES Español', description: 'Español' },
             { id: 'form_lang_en', title: 'EN English', description: 'English' },
@@ -1542,6 +1561,7 @@ async function sendFormLanguageList(from, lang, showMore = false) {
         ];
     } else {
         rows = [
+            { id: 'form_lang_skip', title: getTranslation(lang, 'formLangSkipTitle').slice(0, 24), description: getTranslation(lang, 'formLangSkipDesc').slice(0, 72) },
             { id: 'form_lang_gl', title: 'GL Galego', description: 'Galego' },
             { id: 'form_lang_ru', title: 'RU Русский', description: 'Русский' },
             { id: 'form_lang_zh', title: 'ZH 中文', description: '中文' },
@@ -1837,6 +1857,10 @@ async function handleTextMessage(from, text) {
         }
 
         case 'espera_step7_idioma': {
+            if (['omitir', 'utzi', 'skip', 'no', 'form_lang_skip'].includes(cleanText.toLowerCase())) {
+                await handleButtonResponse(from, 'form_lang_skip');
+                break;
+            }
             let selLang = 'es';
             if (cleanText.includes('eusk') || cleanText.includes('basq') || cleanText === 'eu') selLang = 'eu';
             else if (cleanText.includes('eng') || cleanText.includes('ingl') || cleanText === 'en') selLang = 'en';
@@ -2129,6 +2153,10 @@ async function handleTextMessage(from, text) {
         }
 
         case 'menu_trad_step7_idioma': {
+            if (['omitir', 'utzi', 'skip', 'no', 'form_lang_skip'].includes(cleanText.toLowerCase())) {
+                await handleButtonResponse(from, 'form_lang_skip');
+                break;
+            }
             let selLang = 'es';
             if (cleanText.includes('eusk') || cleanText.includes('basq') || cleanText === 'eu') selLang = 'eu';
             else if (cleanText.includes('eng') || cleanText.includes('ingl') || cleanText === 'en') selLang = 'en';

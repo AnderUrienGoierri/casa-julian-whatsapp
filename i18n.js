@@ -133,7 +133,7 @@ const translations = {
         "nacFr": "🇫🇷 Francia",
         "nacUk": "🇬🇧 Reino Unido",
         "nacUs": "🇺🇸 EE.UU. / USA",
-        "nacUsDesc": "EE.UU. (California, NY, Texas...)",
+        "nacUsDesc": "Estados Unidos / USA",
         "nacDe": "🇩🇪 Alemania",
         "nacIt": "🇮🇹 Italia",
         "nacPt": "🇵🇹 Portugal",
@@ -195,7 +195,11 @@ const translations = {
         "btnMtContinuar": "Continuar reserva",
         "menuTradAddSameTablePrompt": "🎁 *Añadir otra tarjeta regalo (misma mesa)*\n\nIndícanos el código de la siguiente tarjeta regalo:",
         "menuTradNewTablePrompt": "🎁 *Nueva reserva con Tarjeta Regalo (otra mesa)*\n\nIndícanos el código de la tarjeta regalo para la nueva reserva:",
-        "menuTradMaxTableCardsNotice": "📌 *Has alcanzado el límite máximo por mesa (6 comensales / 3 tarjetas regalo).* Vamos a proceder con los datos de tu reserva."
+        "menuTradMaxTableCardsNotice": "📌 *Has alcanzado el límite máximo por mesa (6 comensales / 3 tarjetas regalo).* Vamos a proceder con los datos de tu reserva.",
+        "nacSkipTitle": "❌ Omitir País",
+        "nacSkipDesc": "No indicar país de procedencia",
+        "formLangSkipTitle": "❌ Omitir Idioma",
+        "formLangSkipDesc": "No especificar idioma de contacto"
     },
     "eu": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -331,7 +335,7 @@ const translations = {
         "nacFr": "🇫🇷 Frantzia",
         "nacUk": "🇬🇧 Erresuma Batua",
         "nacUs": "🇺🇸 AEB / USA",
-        "nacUsDesc": "AEB (Kalifornia, NY, Texas...)",
+        "nacUsDesc": "AEB / Ameriketako Estatu Batuak",
         "nacDe": "🇩🇪 Alemania",
         "nacIt": "🇮🇹 Italia",
         "nacPt": "🇵🇹 Portugal",
@@ -393,7 +397,11 @@ const translations = {
         "btnMtContinuar": "Jarraitu erreserba",
         "menuTradAddSameTablePrompt": "🎁 *Beste opari-txartel bat gehitu (mahai bera)*\n\nAdierazi hurrengo opari-txartelaren kodea:",
         "menuTradNewTablePrompt": "🎁 *Opari-txartel bidezko erreserba berria (beste mahai bat)*\n\nAdierazi erreserba berrirako opari-txartelaren kodea:",
-        "menuTradMaxTableCardsNotice": "📌 *Mahaiko gehienezko muga lortu duzu (6 pertsona / 3 opari-txartel).* Zure erreserbaren datuekin jarraituko dugu."
+        "menuTradMaxTableCardsNotice": "📌 *Mahaiko gehienezko muga lortu duzu (6 pertsona / 3 opari-txartel).* Zure erreserbaren datuekin jarraituko dugu.",
+        "nacSkipTitle": "❌ Herrialdea utzi",
+        "nacSkipDesc": "Ez zehaztu jatorrizko herrialdea",
+        "formLangSkipTitle": "❌ Hizkuntza utzi",
+        "formLangSkipDesc": "Ez zehaztu harreman-hizkuntza"
     },
     "en": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -529,7 +537,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "United States / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -591,7 +599,11 @@ const translations = {
         "btnMtContinuar": "Continue booking",
         "menuTradAddSameTablePrompt": "🎁 *Add another gift card (same table)*\n\nPlease enter the code for the next gift card:",
         "menuTradNewTablePrompt": "🎁 *New Gift Card booking (different table)*\n\nPlease enter the gift card code for the new booking:",
-        "menuTradMaxTableCardsNotice": "📌 *You have reached the maximum limit per table (6 guests / 3 gift cards).* We will proceed with your booking details."
+        "menuTradMaxTableCardsNotice": "📌 *You have reached the maximum limit per table (6 guests / 3 gift cards).* We will proceed with your booking details.",
+        "nacSkipTitle": "❌ Skip Country",
+        "nacSkipDesc": "Do not specify country of origin",
+        "formLangSkipTitle": "❌ Skip Language",
+        "formLangSkipDesc": "Do not specify contact language"
     },
     "fr": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -727,7 +739,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "États-Unis / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -789,7 +801,11 @@ const translations = {
         "btnMtContinuar": "Continuer résa",
         "menuTradAddSameTablePrompt": "🎁 *Ajouter une autre carte cadeau (même table)*\n\nVeuillez indiquer le code de la carte cadeau suivante :",
         "menuTradNewTablePrompt": "🎁 *Nouvelle réservation avec Carte Cadeau (autre table)*\n\nVeuillez indiquer le code de la carte cadeau pour la nouvelle réservation :",
-        "menuTradMaxTableCardsNotice": "📌 *Vous avez atteint la limite maximale par table (6 convives / 3 cartes cadeaux).* Nous procédons aux détails de votre réservation."
+        "menuTradMaxTableCardsNotice": "📌 *Vous avez atteint la limite maximale par table (6 convives / 3 cartes cadeaux).* Nous procédons aux détails de votre réservation.",
+        "nacSkipTitle": "❌ Ignorer le pays",
+        "nacSkipDesc": "Ne pas indiquer le pays d'origine",
+        "formLangSkipTitle": "❌ Ignorer la langue",
+        "formLangSkipDesc": "Ne pas indiquer la langue de contact"
     },
     "de": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -925,7 +941,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "Vereinigte Staaten / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -987,7 +1003,11 @@ const translations = {
         "btnMtContinuar": "Weiter buchen",
         "menuTradAddSameTablePrompt": "🎁 *Gutschein hinzufügen (gleicher Tisch)*\n\nBitte geben Sie den nächsten Gutscheincode ein:",
         "menuTradNewTablePrompt": "🎁 *Neue Gutschein-Buchung (anderer Tisch)*\n\nBitte geben Sie den Gutscheincode für die neue Buchung ein:",
-        "menuTradMaxTableCardsNotice": "📌 *Sie haben das Limit pro Tisch erreicht (6 Personen / 3 Gutscheine).* Wir fahren mit Ihren Buchungsdaten fort."
+        "menuTradMaxTableCardsNotice": "📌 *Sie haben das Limit pro Tisch erreicht (6 Personen / 3 Gutscheine).* Wir fahren mit Ihren Buchungsdaten fort.",
+        "nacSkipTitle": "❌ Land überspringen",
+        "nacSkipDesc": "Herkunftsland nicht angeben",
+        "formLangSkipTitle": "❌ Sprache überspringen",
+        "formLangSkipDesc": "Kontaktsprache nicht angeben"
     },
     "nl": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1123,7 +1143,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "Verenigde Staten / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -1185,7 +1205,11 @@ const translations = {
         "btnMtContinuar": "Doorgaan",
         "menuTradAddSameTablePrompt": "🎁 *Cadeaubon toevoegen (zelfde tafel)*\n\nVoer de volgende cadeauboncode in:",
         "menuTradNewTablePrompt": "🎁 *Nieuwe boeking met cadeaubon (andere tafel)*\n\nVoer de cadeauboncode in voor de nieuwe boeking:",
-        "menuTradMaxTableCardsNotice": "📌 *U heeft de limiet per tafel bereikt (6 personen / 3 cadeaubonnen).* We gaan door met uw reserveringsgegevens."
+        "menuTradMaxTableCardsNotice": "📌 *U heeft de limiet per tafel bereikt (6 personen / 3 cadeaubonnen).* We gaan door met uw reserveringsgegevens.",
+        "nacSkipTitle": "❌ Land overslaan",
+        "nacSkipDesc": "Land van herkomst niet opgeven",
+        "formLangSkipTitle": "❌ Taal overslaan",
+        "formLangSkipDesc": "Contacttaal niet opgeven"
     },
     "it": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1321,7 +1345,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "Stati Uniti / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -1383,7 +1407,11 @@ const translations = {
         "btnMtContinuar": "Continua prenotaz.",
         "menuTradAddSameTablePrompt": "🎁 *Aggiungi altra carta regalo (stesso tavolo)*\n\nInserisci il codice della prossima carta regalo:",
         "menuTradNewTablePrompt": "🎁 *Nuova prenotazione carta regalo (altro tavolo)*\n\nInserisci il codice della carta regalo per la nuova prenotazione:",
-        "menuTradMaxTableCardsNotice": "📌 *Hai raggiunto il limite massimo per tavolo (6 ospiti / 3 carte regalo).* Procediamo con i dettagli della prenotazione."
+        "menuTradMaxTableCardsNotice": "📌 *Hai raggiunto il limite massimo per tavolo (6 ospiti / 3 carte regalo).* Procediamo con i dettagli della prenotazione.",
+        "nacSkipTitle": "❌ Salta paese",
+        "nacSkipDesc": "Non indicare il paese di origine",
+        "formLangSkipTitle": "❌ Salta lingua",
+        "formLangSkipDesc": "Non indicare la lingua di contatto"
     },
     "pt": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1519,7 +1547,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "Estados Unidos / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -1581,7 +1609,11 @@ const translations = {
         "btnMtContinuar": "Continuar reserva",
         "menuTradAddSameTablePrompt": "🎁 *Adicionar outro cartão presente (mesma mesa)*\n\nIndique o código do próximo cartão presente:",
         "menuTradNewTablePrompt": "🎁 *Nova reserva com cartão presente (outra mesa)*\n\nIndique o código do cartão presente para a nova reserva:",
-        "menuTradMaxTableCardsNotice": "📌 *Atingiu o limite máximo por mesa (6 pessoas / 3 cartões).* Vamos prosseguir com os dados da sua reserva."
+        "menuTradMaxTableCardsNotice": "📌 *Atingiu o limite máximo por mesa (6 pessoas / 3 cartões).* Vamos prosseguir com os dados da sua reserva.",
+        "nacSkipTitle": "❌ Omitir País",
+        "nacSkipDesc": "Não indicar país de origem",
+        "formLangSkipTitle": "❌ Omitir Idioma",
+        "formLangSkipDesc": "Não especificar idioma de contacto"
     },
     "ca": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -1717,7 +1749,7 @@ const translations = {
         "nacFr": "🇫🇷 Frantzia",
         "nacUk": "🇬🇧 Erresuma Batua",
         "nacUs": "🇺🇸 AEB / USA",
-        "nacUsDesc": "AEB (Kalifornia, NY, Texas...)",
+        "nacUsDesc": "Estats Units / USA",
         "nacDe": "🇩🇪 Alemania",
         "nacIt": "🇮🇹 Italia",
         "nacPt": "🇵🇹 Portugal",
@@ -1779,7 +1811,11 @@ const translations = {
         "btnMtContinuar": "Continuar reserva",
         "menuTradAddSameTablePrompt": "🎁 *Afegir una altra targeta regal (mateixa taula)*\n\nIndica el codi de la següent targeta regal:",
         "menuTradNewTablePrompt": "🎁 *Nova reserva amb Targeta Regal (altra taula)*\n\nIndica el codi de la targeta regal per a la nova reserva:",
-        "menuTradMaxTableCardsNotice": "📌 *Hass assolit el límit màxim per taula (6 comensals / 3 targetes regal).* Procedim amb les dades de la teva reserva."
+        "menuTradMaxTableCardsNotice": "📌 *Hass assolit el límit màxim per taula (6 comensals / 3 targetes regal).* Procedim amb les dades de la teva reserva.",
+        "nacSkipTitle": "❌ Ometre País",
+        "nacSkipDesc": "No indicar país de procedència",
+        "formLangSkipTitle": "❌ Ometre Idioma",
+        "formLangSkipDesc": "No especificar idioma de contacte"
     },
     "gl": {
         "welcomeMessage": "¡Bienvenido/a a Casa Julián! Será un placer ayudarte. ¿En qué idioma deseas continuar?",
@@ -1915,7 +1951,7 @@ const translations = {
         "nacFr": "🇫🇷 Francia",
         "nacUk": "🇬🇧 Reino Unido",
         "nacUs": "🇺🇸 EE.UU. / USA",
-        "nacUsDesc": "EE.UU. (California, NY, Texas...)",
+        "nacUsDesc": "Estados Unidos / USA",
         "nacDe": "🇩🇪 Alemania",
         "nacIt": "🇮🇹 Italia",
         "nacPt": "🇵🇹 Portugal",
@@ -1977,7 +2013,11 @@ const translations = {
         "btnMtContinuar": "Continuar reserva",
         "menuTradAddSameTablePrompt": "🎁 *Engadir outra tarxeta regalo (mesma mesa)*\n\nIndícanos o código da seguinte tarxeta regalo:",
         "menuTradNewTablePrompt": "🎁 *Nova reserva con Tarxeta Regalo (outra mesa)*\n\nIndícanos o código da tarxeta regalo para a nova reserva:",
-        "menuTradMaxTableCardsNotice": "📌 *Alcanzaches o límite máximo por mesa (6 comensais / 3 tarxetas regalo).* Procedemos cos datos da túa reserva."
+        "menuTradMaxTableCardsNotice": "📌 *Alcanzaches o límite máximo por mesa (6 comensais / 3 tarxetas regalo).* Procedemos cos datos da túa reserva.",
+        "nacSkipTitle": "❌ Omitir País",
+        "nacSkipDesc": "Non indicar país de procedencia",
+        "formLangSkipTitle": "❌ Omitir Idioma",
+        "formLangSkipDesc": "Non especificar lingua de contacto"
     },
     "ru": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2113,7 +2153,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "США / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -2175,7 +2215,11 @@ const translations = {
         "btnMtContinuar": "Продолжить бронь",
         "menuTradAddSameTablePrompt": "🎁 *Добавить карту (тот же стол)*\n\nВведите код следующей подарочной карты:",
         "menuTradNewTablePrompt": "🎁 *Новая бронь карты (другой стол)*\n\nВведите код карты для новой брони:",
-        "menuTradMaxTableCardsNotice": "📌 *Вы достигли лимита на стол (6 гостей / 3 карты).* Переходим к оформлению бронирования."
+        "menuTradMaxTableCardsNotice": "📌 *Вы достигли лимита на стол (6 гостей / 3 карты).* Переходим к оформлению бронирования.",
+        "nacSkipTitle": "❌ Пропустить страну",
+        "nacSkipDesc": "Не указывать страну происхождения",
+        "formLangSkipTitle": "❌ Пропустить язык",
+        "formLangSkipDesc": "Не указывать язык общения"
     },
     "zh": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2311,7 +2355,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "美国 / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -2373,7 +2417,11 @@ const translations = {
         "btnMtContinuar": "继续当前预订",
         "menuTradAddSameTablePrompt": "🎁 *添加礼品卡（同桌）*\n\n请输入下一张礼品卡的代码：",
         "menuTradNewTablePrompt": "🎁 *新礼品卡预订（另一桌）*\n\n请输入新预订的礼品卡代码：",
-        "menuTradMaxTableCardsNotice": "📌 *您已达到每桌上限（6人 / 3张礼品卡）。* 我们将继续完成您的预订信息。"
+        "menuTradMaxTableCardsNotice": "📌 *您已达到每桌上限（6人 / 3张礼品卡）。* 我们将继续完成您的预订信息。",
+        "nacSkipTitle": "❌ 跳过国家",
+        "nacSkipDesc": "不填写来源国家",
+        "formLangSkipTitle": "❌ 跳过语言",
+        "formLangSkipDesc": "不指定联系语言"
     },
     "ja": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2509,7 +2557,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "アメリカ合衆国 / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -2571,7 +2619,11 @@ const translations = {
         "btnMtContinuar": "予約を続ける",
         "menuTradAddSameTablePrompt": "🎁 *ギフトカード追加（同卓）*\n\n次のギフトカードのコードを入力してください：",
         "menuTradNewTablePrompt": "🎁 *新規ギフトカード予約（別卓）*\n\n新しい予約用のギフトカードコードを入力してください：",
-        "menuTradMaxTableCardsNotice": "📌 *1卓あたりの上限（6名様 / ギフトカード3枚）に達しました。* 予約手続きを進めます。"
+        "menuTradMaxTableCardsNotice": "📌 *1卓あたりの上限（6名様 / ギフトカード3枚）に達しました。* 予約手続きを進めます。",
+        "nacSkipTitle": "❌ 国をスキップ",
+        "nacSkipDesc": "出身国を指定しない",
+        "formLangSkipTitle": "❌ 言語をスキップ",
+        "formLangSkipDesc": "連絡言語を指定しない"
     },
     "ar": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2707,7 +2759,7 @@ const translations = {
         "nacFr": "🇫🇷 France",
         "nacUk": "🇬🇧 United Kingdom",
         "nacUs": "🇺🇸 USA / US States",
-        "nacUsDesc": "USA (California, NY, Texas...)",
+        "nacUsDesc": "الولايات المتحدة الأمريكية / USA",
         "nacDe": "🇩🇪 Germany",
         "nacIt": "🇮🇹 Italy",
         "nacPt": "🇵🇹 Portugal",
@@ -2769,7 +2821,11 @@ const translations = {
         "btnMtContinuar": "متابعة الحجز",
         "menuTradAddSameTablePrompt": "🎁 *إضافة بطاقة هدايا أخرى (نفس الطاولة)*\n\nيرجى إدخال رمز بطاقة الهدايا التالية:",
         "menuTradNewTablePrompt": "🎁 *حجز جديد ببطاقة هدايا (طاولة أخرى)*\n\nيرجى إدخال رمز بطاقة الهدايا للحجز الجديد:",
-        "menuTradMaxTableCardsNotice": "📌 *لقد وصلت إلى الحد الأقصى للطاولة (6 ضيوف / 3 بطاقات هدايا).* سنتابع تفاصيل حجزك."
+        "menuTradMaxTableCardsNotice": "📌 *لقد وصلت إلى الحد الأقصى للطاولة (6 ضيوف / 3 بطاقات هدايا).* سنتابع تفاصيل حجزك.",
+        "nacSkipTitle": "❌ تخطي الدولة",
+        "nacSkipDesc": "عدم تحديد بلد المنشأ",
+        "formLangSkipTitle": "❌ تخطي اللغة",
+        "formLangSkipDesc": "عدم تحديد لغة التواصل"
     }
 };
 
