@@ -1544,7 +1544,6 @@ async function sendNationalityList(from, lang) {
                 { id: 'nac_it', title: getTranslation(lang, 'nacIt').slice(0, 24) },
                 { id: 'nac_pt', title: getTranslation(lang, 'nacPt').slice(0, 24) },
                 { id: 'nac_mx', title: getTranslation(lang, 'nacMx').slice(0, 24) },
-                { id: 'nac_jp', title: getTranslation(lang, 'nacJp').slice(0, 24) },
                 { id: 'nac_otro', title: getTranslation(lang, 'nacOtro').slice(0, 24), description: getTranslation(lang, 'nacOtroDesc').slice(0, 72) }
             ]
         }
@@ -1620,12 +1619,12 @@ async function sendFormLanguageList(from, lang, showMore = false) {
             { id: 'form_lang_it', title: 'IT Italiano', description: 'Italiano' },
             { id: 'form_lang_pt', title: 'PT Português', description: 'Português' },
             { id: 'form_lang_nl', title: 'NL Nederlands', description: 'Nederlands' },
-            { id: 'form_lang_ca', title: 'CA Català', description: 'Català' },
-            { id: 'form_lang_more', title: '🌐 Beste batzuk / Otros', description: 'GL, RU, ZH, JA, AR...' }
+            { id: 'form_lang_more', title: '🌐 Beste batzuk / Otros', description: 'CA, GL, RU, ZH, JA...' }
         ];
     } else {
         rows = [
             { id: 'form_lang_skip', title: getTranslation(lang, 'formLangSkipTitle').slice(0, 24), description: getTranslation(lang, 'formLangSkipDesc').slice(0, 72) },
+            { id: 'form_lang_ca', title: 'CA Català', description: 'Català' },
             { id: 'form_lang_gl', title: 'GL Galego', description: 'Galego' },
             { id: 'form_lang_ru', title: 'RU Русский', description: 'Русский' },
             { id: 'form_lang_zh', title: 'ZH 中文', description: '中文' },

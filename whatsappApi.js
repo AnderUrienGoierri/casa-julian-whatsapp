@@ -95,6 +95,13 @@ async function sendInteractiveList(to, bodyText, buttonText, sections) {
         return;
     }
 
+    // Garantizar que ninguna sección supere el límite estricto de 10 filas de WhatsApp Cloud API
+    const sanitizedSections = (sections || []).map(sec => ({
+        ...sec,
+        title: (sec.title || '').slice(0, 24),
+        rows: (sec.rows || []).slice(0, 10)
+    }));
+
     try {
         const response = await axios({
             method: 'POST',
@@ -111,8 +118,8 @@ async function sendInteractiveList(to, bodyText, buttonText, sections) {
                     type: "list",
                     body: { text: bodyText },
                     action: {
-                        button: buttonText,
-                        sections: sections
+                        button: (buttonText || '').slice(0, 20),
+                        sections: sanitizedSections
                     }
                 }
             }
