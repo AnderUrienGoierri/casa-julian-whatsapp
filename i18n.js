@@ -203,7 +203,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Lista de Espera (5/7)*\n\n¿Cuántos niños/niñas habría en la mesa? Selecciona una opción o escribe la cantidad en texto:",
         "btnNinos0": "0 niños/niñas",
         "btnNinos1": "1 niño/niña",
-        "btnNinos2": "3 niños/niñas"
+        "btnNinos2": "2 niños/niñas"
     },
     "eu": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -409,7 +409,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Itxaron-zerrenda (5/7)*\n\nZenbat haur egongo dira mahaian? Aukeratu botoi bat edo idatzi kopurua testuz:",
         "btnNinos0": "0 haur",
         "btnNinos1": "Haur 1",
-        "btnNinos2": "3 haur"
+        "btnNinos2": "2 haur"
     },
     "en": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -615,7 +615,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Waitlist (5/7)*\n\nHow many children will be at the table? Select an option or type the amount:",
         "btnNinos0": "0 children",
         "btnNinos1": "1 child",
-        "btnNinos2": "3 children"
+        "btnNinos2": "2 children"
     },
     "fr": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -821,7 +821,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Liste d'attente (5/7)*\n\nCombien d'enfants seront à table ? Sélectionnez une option ou écrivez la quantité :",
         "btnNinos0": "0 enfant",
         "btnNinos1": "1 enfant",
-        "btnNinos2": "3 enfants"
+        "btnNinos2": "2 enfants"
     },
     "de": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1027,7 +1027,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Warteliste (5/7)*\n\nWie viele Kinder werden am Tisch sein? Wählen Sie eine Option oder geben Sie die Anzahl ein:",
         "btnNinos0": "0 Kinder",
         "btnNinos1": "1 Kind",
-        "btnNinos2": "3 Kinder"
+        "btnNinos2": "2 Kinder"
     },
     "nl": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1233,7 +1233,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Wachtlijst (5/7)*\n\nHoeveel kinderen zullen er aan tafel zitten? Kies een optie of typ het aantal:",
         "btnNinos0": "0 kinderen",
         "btnNinos1": "1 kind",
-        "btnNinos2": "3 kinderen"
+        "btnNinos2": "2 kinderen"
     },
     "it": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1439,7 +1439,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Lista d'attesa (5/7)*\n\nQuanti bambini/e ci saranno al tavolo? Seleziona un'opzione o scrivi la quantità:",
         "btnNinos0": "0 bambini/e",
         "btnNinos1": "1 bambino/a",
-        "btnNinos2": "3 bambini/e"
+        "btnNinos2": "2 bambini/e"
     },
     "pt": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1645,7 +1645,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Lista de Espera (5/7)*\n\nQuantas crianças estarão na mesa? Selecione uma opção ou digite a quantidade:",
         "btnNinos0": "0 crianças",
         "btnNinos1": "1 criança",
-        "btnNinos2": "3 crianças"
+        "btnNinos2": "2 crianças"
     },
     "ca": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -1851,7 +1851,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Llista d'Espera (5/7)*\n\nQuants nens/nes hi hauria a la taula? Selecciona una opció o escriu la quantitat:",
         "btnNinos0": "0 nens/nes",
         "btnNinos1": "1 nen/na",
-        "btnNinos2": "3 nens/nes"
+        "btnNinos2": "2 nens/nes"
     },
     "gl": {
         "welcomeMessage": "¡Bienvenido/a a Casa Julián! Será un placer ayudarte. ¿En qué idioma deseas continuar?",
@@ -2057,7 +2057,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Lista de Espera (5/7)*\n\nCantos nenos/as habería na mesa? Selecciona unha opción ou escribe a cantidade:",
         "btnNinos0": "0 nenos/as",
         "btnNinos1": "1 neno/a",
-        "btnNinos2": "3 nenos/as"
+        "btnNinos2": "2 nenos/as"
     },
     "ru": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2263,7 +2263,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *Лист ожидания (5/7)*\n\nСколько детей будет за столом? Выберите вариант или введите количество:",
         "btnNinos0": "0 детей",
         "btnNinos1": "1 ребенок",
-        "btnNinos2": "3 ребенка"
+        "btnNinos2": "2 ребенка"
     },
     "zh": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2469,7 +2469,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *候补名单 (5/7)*\n\n桌上有多少名儿童？请选择或在文本中输入数量：",
         "btnNinos0": "0名儿童",
         "btnNinos1": "1名儿童",
-        "btnNinos2": "3名儿童"
+        "btnNinos2": "2名儿童"
     },
     "ja": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2675,7 +2675,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *キャンセル待ち (5/7)*\n\n同卓のお子様は何名様ですか？ボタンを選択するか文字で入力してください：",
         "btnNinos0": "0名",
         "btnNinos1": "1名",
-        "btnNinos2": "3名"
+        "btnNinos2": "2名"
     },
     "ar": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2881,7 +2881,7 @@ const translations = {
         "waitlistStep5NinosPrompt": "📝 *قائمة الانتظار (5/7)*\n\nكم عدد الأطفال على الطاولة؟ حدد خيارًا أو اكتب العدد بالنص:",
         "btnNinos0": "0 أطفال",
         "btnNinos1": "طفل واحد",
-        "btnNinos2": "3 أطفال"
+        "btnNinos2": "2 أطفال"
     }
 };
 

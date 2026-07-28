@@ -778,7 +778,7 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_ninos_0':
         case 'btn_ninos_1':
         case 'btn_ninos_2': {
-            const count = buttonId === 'btn_ninos_0' ? '0' : (buttonId === 'btn_ninos_1' ? '1' : '3');
+            const count = buttonId === 'btn_ninos_0' ? '0' : (buttonId === 'btn_ninos_1' ? '1' : '2');
             const state = userStates.get(from) || { data: {} };
             state.data = state.data || {};
             state.data.waitlist = state.data.waitlist || {};
