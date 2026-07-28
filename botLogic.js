@@ -2604,7 +2604,7 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                           `📅 *Iraungitze data:* ${card.fecha_caducidad}\n` +
                           `📌 *Egoera:* ${card.estado || 'AKTIBOA'}\n\n` +
                           `💡 *Mahaia erreserbatu nahi duzu?*\n` +
-                          `Sartu menuan -> *"4. Tradizio Menua"* -> *"Erreserbatu"*.`;
+                          `Sartu menuan -> *"5. Tradizio Menua daukat"* -> *"Erreserbatu"*.`;
                 } else if (lang === 'en') {
                     msg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
                           `✅ *Code:* ${card.codigo}\n` +
@@ -2612,7 +2612,15 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                           `📅 *Expiration Date:* ${card.fecha_caducidad}\n` +
                           `📌 *Status:* ${card.estado || 'ACTIVE'}\n\n` +
                           `💡 *Would you like to book your table?*\n` +
-                          `Go to main menu -> *"4. Tradition Menu"* -> *"Book Table"*.`;
+                          `Go to main menu -> *"5. I have Tradition Menu"* -> *"Book Table"*.`;
+                } else if (lang === 'fr') {
+                    msg = `🎁 *VÉRIFICATION DE CARTE CADEAU*\n\n` +
+                          `✅ *Code :* ${card.codigo}\n` +
+                          `👤 *Titulaire / Acheteur :* ${card.comprador_nombre || 'Non spécifié'}\n` +
+                          `📅 *Date d'expiration :* ${card.fecha_caducidad}\n` +
+                          `📌 *Statut :* ${card.estado || 'ACTIF'}\n\n` +
+                          `💡 *Souhaitez-vous réserver votre table ?*\n` +
+                          `Allez au menu principal -> *"5. J'ai le Menu Tradition"* -> *"Réserver"*.`;
                 } else {
                     msg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
                           `✅ *Código:* ${card.codigo}\n` +
@@ -2620,7 +2628,7 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                           `📅 *Fecha de Caducidad:* ${card.fecha_caducidad}\n` +
                           `📌 *Estado:* ${card.estado || 'ACTIVA'}\n\n` +
                           `💡 *¿Deseas reservar tu mesa con esta tarjeta?*\n` +
-                          `Entra en el menú principal -> *"4. Menú Tradición"* -> *"Reservar"*.`;
+                          `Entra en el menú principal -> *"5. Tengo Menú Tradición"* -> *"Reservar"*.`;
                 }
 
                 await sendMessage(from, msg);
