@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS tarjetas_regalo (
     fecha_compra VARCHAR(20),
     fecha_caducidad VARCHAR(20),
     estado VARCHAR(20) DEFAULT 'ACTIVA',
+    fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

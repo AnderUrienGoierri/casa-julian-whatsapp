@@ -40596,7 +40596,8 @@
       "comprador_telefono": "+34600112233",
       "fecha_compra": "01/01/2026",
       "fecha_caducidad": "31/12/2026",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-002",
@@ -40605,7 +40606,8 @@
       "comprador_telefono": "+34611223344",
       "fecha_compra": "15/01/2026",
       "fecha_caducidad": "15/01/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-003",
@@ -40614,7 +40616,8 @@
       "comprador_telefono": "+34622334455",
       "fecha_compra": "01/02/2026",
       "fecha_caducidad": "01/02/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-004",
@@ -40623,7 +40626,8 @@
       "comprador_telefono": "+34633445566",
       "fecha_compra": "10/02/2026",
       "fecha_caducidad": "10/02/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-005",
@@ -40632,7 +40636,8 @@
       "comprador_telefono": "+34644556677",
       "fecha_compra": "14/02/2026",
       "fecha_caducidad": "14/02/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-006",
@@ -40641,7 +40646,8 @@
       "comprador_telefono": "+34655667788",
       "fecha_compra": "20/02/2026",
       "fecha_caducidad": "20/02/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-007",
@@ -40650,7 +40656,8 @@
       "comprador_telefono": "+34666778899",
       "fecha_compra": "01/03/2026",
       "fecha_caducidad": "01/03/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-008",
@@ -40659,7 +40666,8 @@
       "comprador_telefono": "+34677889900",
       "fecha_compra": "05/03/2026",
       "fecha_caducidad": "05/03/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-009",
@@ -40668,7 +40676,8 @@
       "comprador_telefono": "+33612345678",
       "fecha_compra": "10/03/2026",
       "fecha_caducidad": "10/03/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-010",
@@ -40677,7 +40686,8 @@
       "comprador_telefono": "+447911123456",
       "fecha_compra": "15/03/2026",
       "fecha_caducidad": "15/03/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-011",
@@ -40686,7 +40696,8 @@
       "comprador_telefono": "+34688990011",
       "fecha_compra": "20/03/2026",
       "fecha_caducidad": "20/03/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-012",
@@ -40695,7 +40706,8 @@
       "comprador_telefono": "+34699001122",
       "fecha_compra": "25/03/2026",
       "fecha_caducidad": "25/03/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-013",
@@ -40704,7 +40716,8 @@
       "comprador_telefono": "+34611112233",
       "fecha_compra": "01/04/2026",
       "fecha_caducidad": "01/04/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-014",
@@ -40713,7 +40726,8 @@
       "comprador_telefono": "+34622223344",
       "fecha_compra": "05/04/2026",
       "fecha_caducidad": "05/04/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-015",
@@ -40722,7 +40736,8 @@
       "comprador_telefono": "+34633334455",
       "fecha_compra": "10/04/2026",
       "fecha_caducidad": "10/04/2027",
-      "estado": "NO CONSUMIDA"
+      "estado": "NO CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-016",
@@ -40731,7 +40746,8 @@
       "comprador_telefono": "+34644445566",
       "fecha_compra": "12/04/2026",
       "fecha_caducidad": "12/04/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-017",
@@ -40740,7 +40756,8 @@
       "comprador_telefono": "+34655556677",
       "fecha_compra": "15/04/2026",
       "fecha_caducidad": "15/04/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-018",
@@ -40749,7 +40766,8 @@
       "comprador_telefono": "+34666667788",
       "fecha_compra": "18/04/2026",
       "fecha_caducidad": "18/04/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-019",
@@ -40758,7 +40776,8 @@
       "comprador_telefono": "+34677778899",
       "fecha_compra": "20/04/2026",
       "fecha_caducidad": "20/04/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-020",
@@ -40767,7 +40786,8 @@
       "comprador_telefono": "+34688889900",
       "fecha_compra": "22/04/2026",
       "fecha_caducidad": "22/04/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-021",
@@ -40776,7 +40796,8 @@
       "comprador_telefono": "+34699990011",
       "fecha_compra": "25/04/2026",
       "fecha_caducidad": "25/04/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-022",
@@ -40785,7 +40806,8 @@
       "comprador_telefono": "+34610001122",
       "fecha_compra": "28/04/2026",
       "fecha_caducidad": "28/04/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-023",
@@ -40794,7 +40816,8 @@
       "comprador_telefono": "+34620002233",
       "fecha_compra": "01/05/2026",
       "fecha_caducidad": "01/05/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-024",
@@ -40803,7 +40826,8 @@
       "comprador_telefono": "+34630003344",
       "fecha_compra": "03/05/2026",
       "fecha_caducidad": "03/05/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-025",
@@ -40812,7 +40836,8 @@
       "comprador_telefono": "+34640004455",
       "fecha_compra": "05/05/2026",
       "fecha_caducidad": "05/05/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-026",
@@ -40821,7 +40846,8 @@
       "comprador_telefono": "+34650005566",
       "fecha_compra": "08/05/2026",
       "fecha_caducidad": "08/05/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-027",
@@ -40830,7 +40856,8 @@
       "comprador_telefono": "+34660006677",
       "fecha_compra": "10/05/2026",
       "fecha_caducidad": "10/05/2027",
-      "estado": "PENDIENTE RESERVA"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-028",
@@ -40839,7 +40866,8 @@
       "comprador_telefono": "+34670007788",
       "fecha_compra": "15/11/2025",
       "fecha_caducidad": "15/11/2026",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-029",
@@ -40848,7 +40876,8 @@
       "comprador_telefono": "+34680008899",
       "fecha_compra": "20/11/2025",
       "fecha_caducidad": "20/11/2026",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-030",
@@ -40857,7 +40886,8 @@
       "comprador_telefono": "+34690009900",
       "fecha_compra": "01/12/2025",
       "fecha_caducidad": "01/12/2026",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-031",
@@ -40866,7 +40896,8 @@
       "comprador_telefono": "+34611122233",
       "fecha_compra": "05/12/2025",
       "fecha_caducidad": "05/12/2026",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-032",
@@ -40875,7 +40906,8 @@
       "comprador_telefono": "+34622233344",
       "fecha_compra": "10/12/2025",
       "fecha_caducidad": "10/12/2026",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-033",
@@ -40884,7 +40916,8 @@
       "comprador_telefono": "+34633344455",
       "fecha_compra": "15/12/2025",
       "fecha_caducidad": "15/12/2026",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-034",
@@ -40893,7 +40926,8 @@
       "comprador_telefono": "+34644455566",
       "fecha_compra": "20/12/2025",
       "fecha_caducidad": "20/12/2026",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-035",
@@ -40902,7 +40936,8 @@
       "comprador_telefono": "+34655566677",
       "fecha_compra": "24/12/2025",
       "fecha_caducidad": "24/12/2026",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-036",
@@ -40911,7 +40946,8 @@
       "comprador_telefono": "+34666677788",
       "fecha_compra": "02/01/2026",
       "fecha_caducidad": "02/01/2027",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-037",
@@ -40920,7 +40956,8 @@
       "comprador_telefono": "+34677788899",
       "fecha_compra": "05/01/2026",
       "fecha_caducidad": "05/01/2027",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-038",
@@ -40929,7 +40966,8 @@
       "comprador_telefono": "+34688899900",
       "fecha_compra": "10/01/2026",
       "fecha_caducidad": "10/01/2027",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-039",
@@ -40938,7 +40976,8 @@
       "comprador_telefono": "+34699900011",
       "fecha_compra": "15/01/2026",
       "fecha_caducidad": "15/01/2027",
-      "estado": "RESERVADA"
+      "estado": "RESERVADA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-040",
@@ -40947,7 +40986,8 @@
       "comprador_telefono": "+34612312312",
       "fecha_compra": "01/06/2025",
       "fecha_caducidad": "01/06/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-041",
@@ -40956,7 +40996,8 @@
       "comprador_telefono": "+34623423423",
       "fecha_compra": "15/06/2025",
       "fecha_caducidad": "15/06/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-042",
@@ -40965,7 +41006,8 @@
       "comprador_telefono": "+34634534534",
       "fecha_compra": "01/07/2025",
       "fecha_caducidad": "01/07/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-043",
@@ -40974,7 +41016,8 @@
       "comprador_telefono": "+34645645645",
       "fecha_compra": "15/07/2025",
       "fecha_caducidad": "15/07/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-044",
@@ -40983,7 +41026,8 @@
       "comprador_telefono": "+34656756756",
       "fecha_compra": "01/08/2025",
       "fecha_caducidad": "01/08/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-045",
@@ -40992,7 +41036,8 @@
       "comprador_telefono": "+34667867867",
       "fecha_compra": "15/08/2025",
       "fecha_caducidad": "15/08/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-046",
@@ -41001,7 +41046,8 @@
       "comprador_telefono": "+34678978978",
       "fecha_compra": "01/09/2025",
       "fecha_caducidad": "01/09/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-047",
@@ -41010,7 +41056,8 @@
       "comprador_telefono": "+34689089089",
       "fecha_compra": "15/09/2025",
       "fecha_caducidad": "15/09/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-048",
@@ -41019,7 +41066,8 @@
       "comprador_telefono": "+34690190190",
       "fecha_compra": "01/10/2025",
       "fecha_caducidad": "01/10/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-049",
@@ -41028,7 +41076,8 @@
       "comprador_telefono": "+34601201201",
       "fecha_compra": "15/10/2025",
       "fecha_caducidad": "15/10/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     },
     {
       "id": "TR-050",
@@ -41037,7 +41086,8 @@
       "comprador_telefono": "+34612301230",
       "fecha_compra": "01/11/2025",
       "fecha_caducidad": "01/11/2026",
-      "estado": "CONSUMIDA"
+      "estado": "CONSUMIDA",
+      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
     }
   ]
 }

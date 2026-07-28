@@ -48,8 +48,10 @@ if (process.env.DATABASE_URL) {
             comprador_telefono VARCHAR(20),
             fecha_compra VARCHAR(20),
             fecha_caducidad VARCHAR(20),
-            estado VARCHAR(20) DEFAULT 'ACTIVA'
+            estado VARCHAR(20) DEFAULT 'ACTIVA',
+            fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
     `).then(() => {
         // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar
         return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas ORDER BY id DESC");
@@ -77,7 +79,7 @@ if (process.env.DATABASE_URL) {
             saveDb(currentDb);
             console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon.`);
         }
-        return pool.query("SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado FROM tarjetas_regalo ORDER BY id ASC");
+        return pool.query("SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado, fecha_ultima_modificacion FROM tarjetas_regalo ORDER BY id ASC");
     }).then(resCards => {
         if (resCards && resCards.rows && resCards.rows.length > 0) {
             const currentDb = loadDb();
@@ -990,7 +992,7 @@ async function getGiftCard(criterio) {
     if (pool) {
         try {
             const res = await pool.query(
-                `SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado 
+                `SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado, fecha_ultima_modificacion 
                  FROM tarjetas_regalo 
                  WHERE UPPER(codigo) = $1 OR UPPER(id) = $1 LIMIT 1`,
                 [search]
@@ -1020,6 +1022,7 @@ async function getGiftCard(criterio) {
 async function updateGiftCardStatus(criterio, nuevoEstado) {
     if (!criterio) return null;
     const search = criterio.toString().trim().toUpperCase();
+    const nowIso = new Date().toISOString();
 
     // 1. Actualizar db.json local
     const db = loadDb();
@@ -1030,6 +1033,7 @@ async function updateGiftCardStatus(criterio, nuevoEstado) {
         );
         if (localCard) {
             localCard.estado = nuevoEstado;
+            localCard.fecha_ultima_modificacion = nowIso;
             saveDb(db);
         }
     }
@@ -1038,10 +1042,10 @@ async function updateGiftCardStatus(criterio, nuevoEstado) {
     if (pool) {
         try {
             await pool.query(
-                `UPDATE tarjetas_regalo SET estado = $1 WHERE UPPER(codigo) = $2 OR UPPER(id) = $2`,
+                `UPDATE tarjetas_regalo SET estado = $1, fecha_ultima_modificacion = CURRENT_TIMESTAMP WHERE UPPER(codigo) = $2 OR UPPER(id) = $2`,
                 [nuevoEstado, search]
             );
-            console.log(`✅ Estado de tarjeta ${search} actualizado a '${nuevoEstado}' en PostgreSQL.`);
+            console.log(`✅ Estado de tarjeta ${search} actualizado a '${nuevoEstado}' con timestamp de modificación en PostgreSQL.`);
         } catch (err) {
             console.error("Error actualizando tarjetas_regalo en PostgreSQL:", err.message);
         }
@@ -1050,6 +1054,7 @@ async function updateGiftCardStatus(criterio, nuevoEstado) {
 
 function createGiftCard(data) {
     const db = loadDb();
+    const nowIso = new Date().toISOString();
     const nuevaTarjeta = {
         id: 'TR-' + Date.now().toString().slice(-6),
         codigo: data.codigo.trim().toUpperCase(),
@@ -1057,7 +1062,8 @@ function createGiftCard(data) {
         comprador_telefono: data.comprador_telefono || '',
         fecha_compra: data.fecha_compra || new Date().toLocaleDateString('es-ES'),
         fecha_caducidad: data.fecha_caducidad,
-        estado: data.estado || 'ACTIVA'
+        estado: data.estado || 'ACTIVA',
+        fecha_ultima_modificacion: nowIso
     };
 
     if (!db.tarjetasRegalo) db.tarjetasRegalo = [];
@@ -1066,8 +1072,8 @@ function createGiftCard(data) {
 
     if (pool) {
         pool.query(
-            `INSERT INTO tarjetas_regalo(id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado)
-             VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT(codigo) DO NOTHING`,
+            `INSERT INTO tarjetas_regalo(id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado, fecha_ultima_modificacion)
+             VALUES($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) ON CONFLICT(codigo) DO NOTHING`,
             [nuevaTarjeta.id, nuevaTarjeta.codigo, nuevaTarjeta.comprador_nombre, nuevaTarjeta.comprador_telefono, nuevaTarjeta.fecha_compra, nuevaTarjeta.fecha_caducidad, nuevaTarjeta.estado]
         ).catch(err => console.error("Error PostgreSQL INSERT tarjetas_regalo:", err.message));
     }
