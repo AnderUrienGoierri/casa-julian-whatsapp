@@ -542,7 +542,7 @@ async function handleButtonResponse(from, buttonId) {
             state.step = 'espera_step5_ninos';
             userStates.set(from, state);
 
-            await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
+            await sendWaitlistNinosPrompt(from, lang);
             break;
         }
 
@@ -772,6 +772,21 @@ async function handleButtonResponse(from, buttonId) {
             if (currentState && (currentState.step === 'espera_step1b2_email' || currentState.step === 'menu_trad_step2b2_email')) {
                 await handleTextMessage(from, 'btn_skip_email');
             }
+            break;
+        }
+
+        case 'btn_ninos_0':
+        case 'btn_ninos_1':
+        case 'btn_ninos_2': {
+            const count = buttonId === 'btn_ninos_0' ? '0' : (buttonId === 'btn_ninos_1' ? '1' : '2+');
+            const state = userStates.get(from) || { data: {} };
+            state.data = state.data || {};
+            state.data.waitlist = state.data.waitlist || {};
+            state.data.waitlist.ninos = count;
+            state.step = 'espera_step6_alergias';
+            state.data.waitlist.selectedAllergies = [];
+            userStates.set(from, state);
+            await sendAllergiesList(from, lang, 'waitlistStep6Alergias', []);
             break;
         }
 
@@ -1011,6 +1026,19 @@ async function handleButtonResponse(from, buttonId) {
         default:
             await sendLanguageMenu(from, 1);
     }
+}
+
+/**
+ * Envía la pregunta de niños en Lista de Espera con botones interactivos (0 niños, 1 niño, 2 o más niños).
+ */
+async function sendWaitlistNinosPrompt(from, lang) {
+    const promptBody = getTranslation(lang, 'waitlistStep5NinosPrompt');
+    const buttons = [
+        { id: 'btn_ninos_0', title: getTranslation(lang, 'btnNinos0').slice(0, 20) },
+        { id: 'btn_ninos_1', title: getTranslation(lang, 'btnNinos1').slice(0, 20) },
+        { id: 'btn_ninos_2', title: getTranslation(lang, 'btnNinos2').slice(0, 20) }
+    ];
+    await sendInteractiveButtons(from, promptBody, buttons);
 }
 
 /**
@@ -1301,7 +1329,7 @@ async function handleWaitlistDaySelection(from, listId, lang) {
         state.data.waitlist.dias = 'Sin preferencia';
         state.step = 'espera_step5_ninos';
         userStates.set(from, state);
-        await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
+        await sendWaitlistNinosPrompt(from, lang);
         return;
     }
 
@@ -1310,7 +1338,7 @@ async function handleWaitlistDaySelection(from, listId, lang) {
         state.data.waitlist.dias = daysFormatted || 'Sin preferencia';
         state.step = 'espera_step5_ninos';
         userStates.set(from, state);
-        await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
+        await sendWaitlistNinosPrompt(from, lang);
         return;
     }
 
@@ -1328,7 +1356,7 @@ async function handleWaitlistDaySelection(from, listId, lang) {
         state.data.waitlist.dias = daysFormatted;
         state.step = 'espera_step5_ninos';
         userStates.set(from, state);
-        await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
+        await sendWaitlistNinosPrompt(from, lang);
     } else {
         await sendWaitlistDaysList(from, lang);
     }
@@ -1890,13 +1918,19 @@ async function handleTextMessage(from, text) {
                 currentState.data.waitlist.dias = `${d1}, ${d2}, ${cleanDay}`;
                 currentState.step = 'espera_step5_ninos';
                 userStates.set(from, currentState);
-                await sendMessage(from, getTranslation(lang, 'waitlistStep5Ninos'));
+                await sendWaitlistNinosPrompt(from, lang);
             }
             break;
         }
 
         case 'espera_step5_ninos': {
-            currentState.data.waitlist.ninos = text;
+            currentState.data.waitlist = currentState.data.waitlist || {};
+            const cleanText = text.trim();
+            if (['no', 'ninguno', 'ninguna', '0', 'ez', 'nada', 'none'].includes(cleanText.toLowerCase())) {
+                currentState.data.waitlist.ninos = '0';
+            } else {
+                currentState.data.waitlist.ninos = cleanText;
+            }
             currentState.step = 'espera_step6_alergias';
             currentState.data.waitlist.selectedAllergies = [];
             userStates.set(from, currentState);

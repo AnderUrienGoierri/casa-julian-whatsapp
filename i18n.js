@@ -199,7 +199,11 @@ const translations = {
         "nacSkipTitle": "❌ Omitir País",
         "nacSkipDesc": "No indicar país de procedencia",
         "formLangSkipTitle": "❌ Omitir Idioma",
-        "formLangSkipDesc": "No especificar idioma de contacto"
+        "formLangSkipDesc": "No especificar idioma de contacto",
+        "waitlistStep5NinosPrompt": "📝 *Lista de Espera (5/7)*\n\n¿Cuántos niños habría en la mesa? Selecciona una opción o escribe la cantidad en texto:",
+        "btnNinos0": "0 niños",
+        "btnNinos1": "1 niño",
+        "btnNinos2": "2 o más niños"
     },
     "eu": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -401,7 +405,11 @@ const translations = {
         "nacSkipTitle": "❌ Herrialdea utzi",
         "nacSkipDesc": "Ez zehaztu jatorrizko herrialdea",
         "formLangSkipTitle": "❌ Hizkuntza utzi",
-        "formLangSkipDesc": "Ez zehaztu harreman-hizkuntza"
+        "formLangSkipDesc": "Ez zehaztu harreman-hizkuntza",
+        "waitlistStep5NinosPrompt": "📝 *Itxaron-zerrenda (5/7)*\n\nZenbat haur egongo dira mahaian? Aukeratu botoi bat edo idatzi kopurua testuz:",
+        "btnNinos0": "0 haur",
+        "btnNinos1": "Haur 1",
+        "btnNinos2": "2 edo gehiago"
     },
     "en": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -603,7 +611,11 @@ const translations = {
         "nacSkipTitle": "❌ Skip Country",
         "nacSkipDesc": "Do not specify country of origin",
         "formLangSkipTitle": "❌ Skip Language",
-        "formLangSkipDesc": "Do not specify contact language"
+        "formLangSkipDesc": "Do not specify contact language",
+        "waitlistStep5NinosPrompt": "📝 *Waitlist (5/7)*\n\nHow many children will be at the table? Select an option or type the amount:",
+        "btnNinos0": "0 children",
+        "btnNinos1": "1 child",
+        "btnNinos2": "2+ children"
     },
     "fr": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -805,7 +817,11 @@ const translations = {
         "nacSkipTitle": "❌ Ignorer le pays",
         "nacSkipDesc": "Ne pas indiquer le pays d'origine",
         "formLangSkipTitle": "❌ Ignorer la langue",
-        "formLangSkipDesc": "Ne pas indiquer la langue de contact"
+        "formLangSkipDesc": "Ne pas indiquer la langue de contact",
+        "waitlistStep5NinosPrompt": "📝 *Liste d'attente (5/7)*\n\nCombien d'enfants seront à table ? Sélectionnez une option ou écrivez la quantité :",
+        "btnNinos0": "0 enfant",
+        "btnNinos1": "1 enfant",
+        "btnNinos2": "2 enfants ou +"
     },
     "de": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1007,7 +1023,11 @@ const translations = {
         "nacSkipTitle": "❌ Land überspringen",
         "nacSkipDesc": "Herkunftsland nicht angeben",
         "formLangSkipTitle": "❌ Sprache überspringen",
-        "formLangSkipDesc": "Kontaktsprache nicht angeben"
+        "formLangSkipDesc": "Kontaktsprache nicht angeben",
+        "waitlistStep5NinosPrompt": "📝 *Warteliste (5/7)*\n\nWie viele Kinder werden am Tisch sein? Wählen Sie eine Option oder geben Sie die Anzahl ein:",
+        "btnNinos0": "0 Kinder",
+        "btnNinos1": "1 Kind",
+        "btnNinos2": "2 oder mehr"
     },
     "nl": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1209,7 +1229,11 @@ const translations = {
         "nacSkipTitle": "❌ Land overslaan",
         "nacSkipDesc": "Land van herkomst niet opgeven",
         "formLangSkipTitle": "❌ Taal overslaan",
-        "formLangSkipDesc": "Contacttaal niet opgeven"
+        "formLangSkipDesc": "Contacttaal niet opgeven",
+        "waitlistStep5NinosPrompt": "📝 *Wachtlijst (5/7)*\n\nHoeveel kinderen zullen er aan tafel zitten? Kies een optie of typ het aantal:",
+        "btnNinos0": "0 kinderen",
+        "btnNinos1": "1 kind",
+        "btnNinos2": "2 of meer"
     },
     "it": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1411,7 +1435,11 @@ const translations = {
         "nacSkipTitle": "❌ Salta paese",
         "nacSkipDesc": "Non indicare il paese di origine",
         "formLangSkipTitle": "❌ Salta lingua",
-        "formLangSkipDesc": "Non indicare la lingua di contatto"
+        "formLangSkipDesc": "Non indicare la lingua di contatto",
+        "waitlistStep5NinosPrompt": "📝 *Lista d'attesa (5/7)*\n\nQuanti bambini ci saranno al tavolo? Seleziona un'opzione o scrivi la quantità:",
+        "btnNinos0": "0 bambini",
+        "btnNinos1": "1 bambino",
+        "btnNinos2": "2 o più"
     },
     "pt": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -1613,7 +1641,11 @@ const translations = {
         "nacSkipTitle": "❌ Omitir País",
         "nacSkipDesc": "Não indicar país de origem",
         "formLangSkipTitle": "❌ Omitir Idioma",
-        "formLangSkipDesc": "Não especificar idioma de contacto"
+        "formLangSkipDesc": "Não especificar idioma de contacto",
+        "waitlistStep5NinosPrompt": "📝 *Lista de Espera (5/7)*\n\nQuantas crianças estarão na mesa? Selecione uma opção ou digite a quantidade:",
+        "btnNinos0": "0 crianças",
+        "btnNinos1": "1 criança",
+        "btnNinos2": "2 ou mais"
     },
     "ca": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -1815,7 +1847,11 @@ const translations = {
         "nacSkipTitle": "❌ Ometre País",
         "nacSkipDesc": "No indicar país de procedència",
         "formLangSkipTitle": "❌ Ometre Idioma",
-        "formLangSkipDesc": "No especificar idioma de contacte"
+        "formLangSkipDesc": "No especificar idioma de contacte",
+        "waitlistStep5NinosPrompt": "📝 *Llista d'Espera (5/7)*\n\nQuants nens hi hauria a la taula? Selecciona una opció o escriu la quantitat:",
+        "btnNinos0": "0 nens",
+        "btnNinos1": "1 nen",
+        "btnNinos2": "2 o més nens"
     },
     "gl": {
         "welcomeMessage": "¡Bienvenido/a a Casa Julián! Será un placer ayudarte. ¿En qué idioma deseas continuar?",
@@ -2017,7 +2053,11 @@ const translations = {
         "nacSkipTitle": "❌ Omitir País",
         "nacSkipDesc": "Non indicar país de procedencia",
         "formLangSkipTitle": "❌ Omitir Idioma",
-        "formLangSkipDesc": "Non especificar lingua de contacto"
+        "formLangSkipDesc": "Non especificar lingua de contacto",
+        "waitlistStep5NinosPrompt": "📝 *Lista de Espera (5/7)*\n\nCantos nenos habería na mesa? Selecciona unha opción ou escribe a cantidade:",
+        "btnNinos0": "0 nenos",
+        "btnNinos1": "1 neno",
+        "btnNinos2": "2 ou máis"
     },
     "ru": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2219,7 +2259,11 @@ const translations = {
         "nacSkipTitle": "❌ Пропустить страну",
         "nacSkipDesc": "Не указывать страну происхождения",
         "formLangSkipTitle": "❌ Пропустить язык",
-        "formLangSkipDesc": "Не указывать язык общения"
+        "formLangSkipDesc": "Не указывать язык общения",
+        "waitlistStep5NinosPrompt": "📝 *Лист ожидания (5/7)*\n\nСколько детей будет за столом? Выберите вариант или введите количество:",
+        "btnNinos0": "0 детей",
+        "btnNinos1": "1 ребенок",
+        "btnNinos2": "2 или более"
     },
     "zh": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2421,7 +2465,11 @@ const translations = {
         "nacSkipTitle": "❌ 跳过国家",
         "nacSkipDesc": "不填写来源国家",
         "formLangSkipTitle": "❌ 跳过语言",
-        "formLangSkipDesc": "不指定联系语言"
+        "formLangSkipDesc": "不指定联系语言",
+        "waitlistStep5NinosPrompt": "📝 *候补名单 (5/7)*\n\n桌上有多少名儿童？请选择或在文本中输入数量：",
+        "btnNinos0": "0名儿童",
+        "btnNinos1": "1名儿童",
+        "btnNinos2": "2名或以上"
     },
     "ja": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2623,7 +2671,11 @@ const translations = {
         "nacSkipTitle": "❌ 国をスキップ",
         "nacSkipDesc": "出身国を指定しない",
         "formLangSkipTitle": "❌ 言語をスキップ",
-        "formLangSkipDesc": "連絡言語を指定しない"
+        "formLangSkipDesc": "連絡言語を指定しない",
+        "waitlistStep5NinosPrompt": "📝 *キャンセル待ち (5/7)*\n\n同卓のお子様は何名様ですか？ボタンを選択するか文字で入力してください：",
+        "btnNinos0": "0名",
+        "btnNinos1": "1名",
+        "btnNinos2": "2名以上"
     },
     "ar": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -2825,7 +2877,11 @@ const translations = {
         "nacSkipTitle": "❌ تخطي الدولة",
         "nacSkipDesc": "عدم تحديد بلد المنشأ",
         "formLangSkipTitle": "❌ تخطي اللغة",
-        "formLangSkipDesc": "عدم تحديد لغة التواصل"
+        "formLangSkipDesc": "عدم تحديد لغة التواصل",
+        "waitlistStep5NinosPrompt": "📝 *قائمة الانتظار (5/7)*\n\nكم عدد الأطفال على الطاولة؟ حدد خيارًا أو اكتب العدد بالنص:",
+        "btnNinos0": "0 أطفال",
+        "btnNinos1": "طفل واحد",
+        "btnNinos2": "2 أو أكثر"
     }
 };
 
