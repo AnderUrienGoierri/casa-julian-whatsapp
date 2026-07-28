@@ -1851,7 +1851,18 @@ async function handleTextMessage(from, text) {
         }
 
         case 'espera_step2_comensales': {
-            currentState.data.waitlist.comensales = text;
+            currentState.data.waitlist = currentState.data.waitlist || {};
+            const cleanText = text.trim();
+            const numComensales = parseInt(cleanText, 10);
+
+            if (isNaN(numComensales) || numComensales < 1 || numComensales > 6) {
+                const errMsg = getTranslation(lang, 'maxComensalesErrorMsg');
+                await sendMessage(from, errMsg);
+                await sendMessage(from, getTranslation(lang, 'waitlistStep2Comensales'));
+                break;
+            }
+
+            currentState.data.waitlist.comensales = numComensales;
             currentState.step = 'espera_step3_tipo';
             userStates.set(from, currentState);
 
