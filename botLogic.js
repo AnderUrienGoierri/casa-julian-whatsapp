@@ -9,10 +9,74 @@ const {
 const db = require('./database');
 const { sendInternalStaffAlertInSpanish } = require('./notifications');
 const { getTranslation } = require('./i18n');
+const path = require('path');
+const fs = require('fs');
 
 // Mapas en memoria para rastrear estado e idioma de los usuarios por teléfono
 const userStates = new Map();
 const userLanguages = new Map();
+
+const statesFilePath = path.join(__dirname, 'user_states.json');
+
+function loadPersistentStates() {
+    try {
+        if (fs.existsSync(statesFilePath)) {
+            const raw = fs.readFileSync(statesFilePath, 'utf8');
+            const data = JSON.parse(raw);
+            if (data.states) {
+                Object.keys(data.states).forEach(k => userStates.set(k, data.states[k]));
+            }
+            if (data.languages) {
+                Object.keys(data.languages).forEach(k => userLanguages.set(k, data.languages[k]));
+            }
+            console.log(`✅ Cargados ${userStates.size} estados de usuario de persistencia.`);
+        }
+    } catch (err) {
+        console.error("⚠️ Error cargando estados persistentes:", err.message);
+    }
+}
+
+let isSavingState = false;
+function savePersistentStates() {
+    if (isSavingState) return;
+    isSavingState = true;
+    try {
+        const objStates = {};
+        const objLangs = {};
+        userStates.forEach((val, key) => { objStates[key] = val; });
+        userLanguages.forEach((val, key) => { objLangs[key] = val; });
+        fs.writeFileSync(statesFilePath, JSON.stringify({ states: objStates, languages: objLangs }, null, 2), 'utf8');
+    } catch (err) {
+        console.error("⚠️ Error guardando estados persistentes:", err.message);
+    } finally {
+        isSavingState = false;
+    }
+}
+
+loadPersistentStates();
+
+// Auto-persistencia en disco tras cada modificación
+const rawStateSet = userStates.set.bind(userStates);
+const rawStateDelete = userStates.delete.bind(userStates);
+const rawLangSet = userLanguages.set.bind(userLanguages);
+
+userStates.set = function(key, value) {
+    const res = rawStateSet(key, value);
+    savePersistentStates();
+    return res;
+};
+
+userStates.delete = function(key) {
+    const res = rawStateDelete(key);
+    savePersistentStates();
+    return res;
+};
+
+userLanguages.set = function(key, value) {
+    const res = rawLangSet(key, value);
+    savePersistentStates();
+    return res;
+};
 
 /**
  * Valida que un string sea un email válido.
@@ -1652,8 +1716,15 @@ async function handleTextMessage(from, text) {
     const currentState = userStates.get(from);
 
     if (!currentState || currentState.step === 'select_language') {
-        await sendLanguageMenu(from, 1);
-        return;
+        const knownLang = userLanguages.get(from);
+        if (knownLang && !['hola', 'kaixo', 'hello', 'hi', 'start', 'menu', 'menú'].includes(cleanText)) {
+            userStates.set(from, { step: 'main_menu', data: {} });
+            await sendMainMenu(from);
+            return;
+        } else {
+            await sendLanguageMenu(from, 1);
+            return;
+        }
     }
 
     switch (currentState.step) {
