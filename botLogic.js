@@ -358,7 +358,7 @@ async function sendGiftCardOptions(from, lang) {
     } else {
         promptBody = `💳 *Menú Tradición (Tarjeta Regalo)*\n\n¿Qué gestión deseas realizar?`;
         btnRes = `📅 Reservar`;
-        btnCad = `⏳ Ver fecha caducidad`;
+        btnCad = `⏳ Fecha caducidad`;
     }
 
     const buttons = [
@@ -646,7 +646,7 @@ async function handleButtonResponse(from, buttonId) {
             } else {
                 promptBody = `💳 *Menú Tradición (Tarjeta Regalo)*\n\n¿Qué gestión deseas realizar?`;
                 btnRes = `📅 Reservar`;
-                btnCad = `⏳ Ver fecha caducidad`;
+                btnCad = `⏳ Fecha caducidad`;
             }
 
             const buttons = [
@@ -2285,7 +2285,7 @@ async function handleTextMessage(from, text) {
                     } else {
                         gestionPrompt = `💳 *¿Qué gestión deseas realizar?*`;
                         btnResTitle = `📅 Reservar`;
-                        btnCadTitle = `⏳ Ver fecha caducidad`;
+                        btnCadTitle = `⏳ Fecha caducidad`;
                     }
 
                     const gestionButtons = [
