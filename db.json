@@ -8362,7 +8362,7 @@
       "fecha": "13/10/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "PENDIENTE CANCELACION",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -11404,7 +11404,7 @@
       "fecha": "03/10/2026",
       "hora": "20:30",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "PENDIENTE MODIFICACION",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34120,7 +34120,7 @@
       "fecha": "02/08/2026",
       "hora": "15:15",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34138,7 +34138,7 @@
       "fecha": "02/08/2026",
       "hora": "15:15",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34156,7 +34156,7 @@
       "fecha": "02/08/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34174,7 +34174,7 @@
       "fecha": "02/08/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34192,7 +34192,7 @@
       "fecha": "02/08/2026",
       "hora": "15:15",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34210,7 +34210,7 @@
       "fecha": "02/08/2026",
       "hora": "15:15",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34228,7 +34228,7 @@
       "fecha": "02/08/2026",
       "hora": "14:00",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34246,7 +34246,7 @@
       "fecha": "02/08/2026",
       "hora": "12:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34264,7 +34264,7 @@
       "fecha": "02/08/2026",
       "hora": "13:30",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34282,7 +34282,7 @@
       "fecha": "02/08/2026",
       "hora": "13:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34300,7 +34300,7 @@
       "fecha": "02/08/2026",
       "hora": "13:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34318,7 +34318,7 @@
       "fecha": "02/08/2026",
       "hora": "14:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34336,7 +34336,7 @@
       "fecha": "02/08/2026",
       "hora": "14:00",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34354,7 +34354,7 @@
       "fecha": "02/08/2026",
       "hora": "14:00",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34372,7 +34372,7 @@
       "fecha": "02/08/2026",
       "hora": "12:30",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34390,7 +34390,7 @@
       "fecha": "02/08/2026",
       "hora": "13:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34408,7 +34408,7 @@
       "fecha": "01/08/2026",
       "hora": "21:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34426,7 +34426,7 @@
       "fecha": "01/08/2026",
       "hora": "21:30",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34444,7 +34444,7 @@
       "fecha": "01/08/2026",
       "hora": "20:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34462,7 +34462,7 @@
       "fecha": "01/08/2026",
       "hora": "20:00",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34480,7 +34480,7 @@
       "fecha": "01/08/2026",
       "hora": "20:30",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34498,7 +34498,7 @@
       "fecha": "01/08/2026",
       "hora": "20:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34516,7 +34516,7 @@
       "fecha": "01/08/2026",
       "hora": "20:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34534,7 +34534,7 @@
       "fecha": "01/08/2026",
       "hora": "20:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34552,7 +34552,7 @@
       "fecha": "01/08/2026",
       "hora": "21:30",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34570,7 +34570,7 @@
       "fecha": "01/08/2026",
       "hora": "21:00",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34588,7 +34588,7 @@
       "fecha": "01/08/2026",
       "hora": "21:30",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34606,7 +34606,7 @@
       "fecha": "01/08/2026",
       "hora": "20:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34624,7 +34624,7 @@
       "fecha": "01/08/2026",
       "hora": "21:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34642,7 +34642,7 @@
       "fecha": "01/08/2026",
       "hora": "20:30",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34660,7 +34660,7 @@
       "fecha": "01/08/2026",
       "hora": "20:00",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34678,7 +34678,7 @@
       "fecha": "01/08/2026",
       "hora": "15:15",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34696,7 +34696,7 @@
       "fecha": "01/08/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34714,7 +34714,7 @@
       "fecha": "01/08/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34732,7 +34732,7 @@
       "fecha": "01/08/2026",
       "hora": "15:15",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34750,7 +34750,7 @@
       "fecha": "01/08/2026",
       "hora": "15:15",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34768,7 +34768,7 @@
       "fecha": "01/08/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34786,7 +34786,7 @@
       "fecha": "01/08/2026",
       "hora": "13:00",
       "comensales": 1,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34804,7 +34804,7 @@
       "fecha": "01/08/2026",
       "hora": "14:00",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34822,7 +34822,7 @@
       "fecha": "01/08/2026",
       "hora": "13:00",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34840,7 +34840,7 @@
       "fecha": "01/08/2026",
       "hora": "13:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34858,7 +34858,7 @@
       "fecha": "01/08/2026",
       "hora": "13:30",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34876,7 +34876,7 @@
       "fecha": "01/08/2026",
       "hora": "13:30",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34894,7 +34894,7 @@
       "fecha": "01/08/2026",
       "hora": "13:00",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34912,7 +34912,7 @@
       "fecha": "01/08/2026",
       "hora": "14:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34930,7 +34930,7 @@
       "fecha": "01/08/2026",
       "hora": "12:30",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34948,7 +34948,7 @@
       "fecha": "01/08/2026",
       "hora": "13:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34966,7 +34966,7 @@
       "fecha": "01/08/2026",
       "hora": "14:00",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -34984,7 +34984,7 @@
       "fecha": "01/08/2026",
       "hora": "14:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35002,7 +35002,7 @@
       "fecha": "31/07/2026",
       "hora": "20:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35020,7 +35020,7 @@
       "fecha": "31/07/2026",
       "hora": "20:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35038,7 +35038,7 @@
       "fecha": "31/07/2026",
       "hora": "20:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35056,7 +35056,7 @@
       "fecha": "31/07/2026",
       "hora": "21:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35074,7 +35074,7 @@
       "fecha": "31/07/2026",
       "hora": "21:00",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35092,7 +35092,7 @@
       "fecha": "31/07/2026",
       "hora": "21:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35110,7 +35110,7 @@
       "fecha": "31/07/2026",
       "hora": "20:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35128,7 +35128,7 @@
       "fecha": "31/07/2026",
       "hora": "20:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35146,7 +35146,7 @@
       "fecha": "31/07/2026",
       "hora": "20:30",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35164,7 +35164,7 @@
       "fecha": "31/07/2026",
       "hora": "20:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35182,7 +35182,7 @@
       "fecha": "31/07/2026",
       "hora": "21:30",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35200,7 +35200,7 @@
       "fecha": "31/07/2026",
       "hora": "21:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35218,7 +35218,7 @@
       "fecha": "31/07/2026",
       "hora": "20:30",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35236,7 +35236,7 @@
       "fecha": "31/07/2026",
       "hora": "20:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35254,7 +35254,7 @@
       "fecha": "31/07/2026",
       "hora": "20:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35272,7 +35272,7 @@
       "fecha": "31/07/2026",
       "hora": "20:00",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35290,7 +35290,7 @@
       "fecha": "31/07/2026",
       "hora": "15:15",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35308,7 +35308,7 @@
       "fecha": "31/07/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35326,7 +35326,7 @@
       "fecha": "31/07/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35344,7 +35344,7 @@
       "fecha": "31/07/2026",
       "hora": "15:15",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35362,7 +35362,7 @@
       "fecha": "31/07/2026",
       "hora": "15:15",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35380,7 +35380,7 @@
       "fecha": "31/07/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35398,7 +35398,7 @@
       "fecha": "31/07/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35416,7 +35416,7 @@
       "fecha": "31/07/2026",
       "hora": "14:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35434,7 +35434,7 @@
       "fecha": "31/07/2026",
       "hora": "13:30",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35452,7 +35452,7 @@
       "fecha": "31/07/2026",
       "hora": "13:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35470,7 +35470,7 @@
       "fecha": "31/07/2026",
       "hora": "13:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35488,7 +35488,7 @@
       "fecha": "31/07/2026",
       "hora": "14:00",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35506,7 +35506,7 @@
       "fecha": "31/07/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35524,7 +35524,7 @@
       "fecha": "31/07/2026",
       "hora": "13:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35542,7 +35542,7 @@
       "fecha": "31/07/2026",
       "hora": "14:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35560,7 +35560,7 @@
       "fecha": "31/07/2026",
       "hora": "12:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35578,7 +35578,7 @@
       "fecha": "31/07/2026",
       "hora": "13:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35596,7 +35596,7 @@
       "fecha": "30/07/2026",
       "hora": "15:15",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35614,7 +35614,7 @@
       "fecha": "30/07/2026",
       "hora": "15:15",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35632,7 +35632,7 @@
       "fecha": "30/07/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35650,7 +35650,7 @@
       "fecha": "30/07/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35668,7 +35668,7 @@
       "fecha": "30/07/2026",
       "hora": "15:15",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35686,7 +35686,7 @@
       "fecha": "30/07/2026",
       "hora": "14:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35704,7 +35704,7 @@
       "fecha": "30/07/2026",
       "hora": "13:00",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35722,7 +35722,7 @@
       "fecha": "30/07/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35740,7 +35740,7 @@
       "fecha": "30/07/2026",
       "hora": "14:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35758,7 +35758,7 @@
       "fecha": "30/07/2026",
       "hora": "12:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35776,7 +35776,7 @@
       "fecha": "30/07/2026",
       "hora": "12:30",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35794,7 +35794,7 @@
       "fecha": "30/07/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35812,7 +35812,7 @@
       "fecha": "30/07/2026",
       "hora": "14:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35830,7 +35830,7 @@
       "fecha": "30/07/2026",
       "hora": "14:00",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35848,7 +35848,7 @@
       "fecha": "30/07/2026",
       "hora": "14:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35866,7 +35866,7 @@
       "fecha": "30/07/2026",
       "hora": "14:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35884,7 +35884,7 @@
       "fecha": "29/07/2026",
       "hora": "15:15",
       "comensales": 1,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35902,7 +35902,7 @@
       "fecha": "29/07/2026",
       "hora": "15:15",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35920,7 +35920,7 @@
       "fecha": "29/07/2026",
       "hora": "15:15",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35938,7 +35938,7 @@
       "fecha": "29/07/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35956,7 +35956,7 @@
       "fecha": "29/07/2026",
       "hora": "15:15",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35974,7 +35974,7 @@
       "fecha": "29/07/2026",
       "hora": "15:15",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -35992,7 +35992,7 @@
       "fecha": "29/07/2026",
       "hora": "13:00",
       "comensales": 5,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36010,7 +36010,7 @@
       "fecha": "29/07/2026",
       "hora": "14:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36028,7 +36028,7 @@
       "fecha": "29/07/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36046,7 +36046,7 @@
       "fecha": "29/07/2026",
       "hora": "12:30",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36064,7 +36064,7 @@
       "fecha": "29/07/2026",
       "hora": "12:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36082,7 +36082,7 @@
       "fecha": "29/07/2026",
       "hora": "14:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36100,7 +36100,7 @@
       "fecha": "29/07/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36118,7 +36118,7 @@
       "fecha": "29/07/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36136,7 +36136,7 @@
       "fecha": "29/07/2026",
       "hora": "13:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36154,7 +36154,7 @@
       "fecha": "29/07/2026",
       "hora": "13:30",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36172,7 +36172,7 @@
       "fecha": "29/07/2026",
       "hora": "13:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36190,7 +36190,7 @@
       "fecha": "29/07/2026",
       "hora": "13:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36208,7 +36208,7 @@
       "fecha": "29/07/2026",
       "hora": "13:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36226,7 +36226,7 @@
       "fecha": "29/07/2026",
       "hora": "13:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36244,7 +36244,7 @@
       "fecha": "28/07/2026",
       "hora": "15:15",
       "comensales": 1,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36262,7 +36262,7 @@
       "fecha": "28/07/2026",
       "hora": "15:15",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36280,7 +36280,7 @@
       "fecha": "28/07/2026",
       "hora": "15:15",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ar",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36298,7 +36298,7 @@
       "fecha": "28/07/2026",
       "hora": "15:15",
       "comensales": 6,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36316,7 +36316,7 @@
       "fecha": "28/07/2026",
       "hora": "15:15",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36334,7 +36334,7 @@
       "fecha": "28/07/2026",
       "hora": "14:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "fr",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36352,7 +36352,7 @@
       "fecha": "28/07/2026",
       "hora": "13:30",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36370,7 +36370,7 @@
       "fecha": "28/07/2026",
       "hora": "13:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36388,7 +36388,7 @@
       "fecha": "28/07/2026",
       "hora": "12:30",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ja",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36406,7 +36406,7 @@
       "fecha": "28/07/2026",
       "hora": "13:00",
       "comensales": 4,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36424,7 +36424,7 @@
       "fecha": "28/07/2026",
       "hora": "14:00",
       "comensales": 3,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "eu",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36442,7 +36442,7 @@
       "fecha": "28/07/2026",
       "hora": "14:00",
       "comensales": 2,
-      "estado": "CONFIRMADA",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "es",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36460,7 +36460,7 @@
       "fecha": "28/07/2026",
       "hora": "13:30",
       "comensales": 6,
-      "estado": "PENDIENTE CANCELACION",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "zh",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36478,7 +36478,7 @@
       "fecha": "28/07/2026",
       "hora": "13:00",
       "comensales": 6,
-      "estado": "PENDIENTE CANCELACION",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "en",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36496,7 +36496,7 @@
       "fecha": "28/07/2026",
       "hora": "13:30",
       "comensales": 4,
-      "estado": "PENDIENTE CANCELACION",
+      "estado": "SERVICIO FINALIZADO",
       "idioma": "ru",
       "dias_preferencia": "Sin preferencia",
       "tipo_reserva": "online",
@@ -36504,6 +36504,24 @@
       "alergias": "NO",
       "tipo_servicio": "Comida",
       "tarjeta_regalo": null
+    },
+    {
+      "id": "RES-20260728-051173",
+      "nombre": "Ander AAA UUU",
+      "telefono": "34664037707",
+      "dni": "12345678H",
+      "email": "anu@gmail.com",
+      "fecha": "",
+      "hora": "20:30",
+      "comensales": 2,
+      "estado": "PENDIENTE CONFIRMACION",
+      "idioma": "eu",
+      "dias_preferencia": "Viernes",
+      "tipo_reserva": "tarjeta_regalo",
+      "nacionalidad": "US",
+      "alergias": "NO",
+      "tipo_servicio": "Cena",
+      "tarjeta_regalo": "MT-2026-005"
     },
     {
       "id": "RES-20260726-1127",
@@ -38805,7 +38823,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.373Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260723-1032",
@@ -38819,7 +38838,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260723-1041",
@@ -38833,7 +38853,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260724-1054",
@@ -38847,7 +38868,8 @@
       "idioma": "ar",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260724-1063",
@@ -38861,7 +38883,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260724-1080",
@@ -38875,7 +38898,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260725-1092",
@@ -38889,7 +38913,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260725-1100",
@@ -38903,7 +38928,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260725-1120",
@@ -38917,7 +38943,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260726-1132",
@@ -38931,7 +38958,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260726-1138",
@@ -38945,7 +38973,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260728-1150",
@@ -38959,7 +38988,8 @@
       "idioma": "en",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260728-1156",
@@ -38973,7 +39003,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260729-1171",
@@ -38987,7 +39018,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260729-1178",
@@ -39001,7 +39033,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260730-1195",
@@ -39015,7 +39048,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260731-1207",
@@ -39029,7 +39063,8 @@
       "idioma": "zh",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260731-1214",
@@ -39043,7 +39078,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260731-1231",
@@ -39057,7 +39093,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260801-1244",
@@ -39071,7 +39108,8 @@
       "idioma": "ar",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260801-1251",
@@ -39085,7 +39123,8 @@
       "idioma": "en",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260801-1267",
@@ -39099,7 +39138,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260802-1278",
@@ -39113,7 +39153,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260802-1285",
@@ -39127,7 +39168,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260804-1298",
@@ -39141,7 +39183,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260805-1318",
@@ -39155,7 +39198,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260805-1324",
@@ -39169,7 +39213,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.374Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260806-1335",
@@ -39183,7 +39228,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260806-1341",
@@ -39197,7 +39243,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260807-1350",
@@ -39211,7 +39258,8 @@
       "idioma": "en",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260807-1358",
@@ -39225,7 +39273,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260807-1376",
@@ -39239,7 +39288,8 @@
       "idioma": "en",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260808-1395",
@@ -39253,7 +39303,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260809-1428",
@@ -39267,7 +39318,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260809-1434",
@@ -39281,7 +39333,8 @@
       "idioma": "en",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260812-1469",
@@ -39295,7 +39348,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260813-1485",
@@ -39309,7 +39363,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260814-1503",
@@ -39323,7 +39378,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260814-1520",
@@ -39337,7 +39393,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260815-1535",
@@ -39351,7 +39408,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260818-1597",
@@ -39365,7 +39423,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260818-1605",
@@ -39379,7 +39438,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260819-1622",
@@ -39393,7 +39453,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260820-1634",
@@ -39407,7 +39468,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260820-1642",
@@ -39421,7 +39483,8 @@
       "idioma": "ar",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260821-1660",
@@ -39435,7 +39498,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260821-1678",
@@ -39449,7 +39513,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.375Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260822-1691",
@@ -39463,7 +39528,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260822-1698",
@@ -39477,7 +39543,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260822-1715",
@@ -39491,7 +39558,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260825-1748",
@@ -39505,7 +39573,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260826-1771",
@@ -39519,7 +39588,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260828-1823",
@@ -39533,7 +39603,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260829-1837",
@@ -39547,7 +39618,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260901-1893",
@@ -39561,7 +39633,8 @@
       "idioma": "zh",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260902-1915",
@@ -39575,7 +39648,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260902-1924",
@@ -39589,7 +39663,8 @@
       "idioma": "ar",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260903-1937",
@@ -39603,7 +39678,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260904-1958",
@@ -39617,7 +39693,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260904-1966",
@@ -39631,7 +39708,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260904-1985",
@@ -39645,7 +39723,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260905-1999",
@@ -39659,7 +39738,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.376Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260905-2024",
@@ -39673,7 +39753,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260906-2036",
@@ -39687,7 +39768,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260906-2043",
@@ -39701,7 +39783,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260908-2060",
@@ -39715,7 +39798,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260909-2072",
@@ -39729,7 +39813,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260909-2081",
@@ -39743,7 +39828,8 @@
       "idioma": "ar",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260910-2094",
@@ -39757,7 +39843,8 @@
       "idioma": "zh",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260910-2101",
@@ -39771,7 +39858,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260911-2118",
@@ -39785,7 +39873,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260912-2156",
@@ -39799,7 +39888,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260912-2176",
@@ -39813,7 +39903,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260916-2226",
@@ -39827,7 +39918,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260916-2233",
@@ -39841,7 +39933,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260917-2246",
@@ -39855,7 +39948,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260918-2269",
@@ -39869,7 +39963,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260918-2285",
@@ -39883,7 +39978,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260919-2300",
@@ -39897,7 +39993,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260919-2325",
@@ -39911,7 +40008,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260920-2338",
@@ -39925,7 +40023,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260920-2346",
@@ -39939,7 +40038,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260922-2358",
@@ -39953,7 +40053,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260923-2374",
@@ -39967,7 +40068,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260924-2394",
@@ -39981,7 +40083,8 @@
       "idioma": "zh",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260924-2401",
@@ -39995,7 +40098,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260925-2413",
@@ -40009,7 +40113,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260925-2436",
@@ -40023,7 +40128,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260926-2448",
@@ -40037,7 +40143,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260926-2475",
@@ -40051,7 +40158,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260927-2487",
@@ -40065,7 +40173,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260927-2494",
@@ -40079,7 +40188,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260929-2508",
@@ -40093,7 +40203,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260929-2514",
@@ -40107,7 +40218,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20260930-2525",
@@ -40121,7 +40233,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261001-2550",
@@ -40135,7 +40248,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.377Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261002-2562",
@@ -40149,7 +40263,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261002-2569",
@@ -40163,7 +40278,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261002-2589",
@@ -40177,7 +40293,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261003-2601",
@@ -40191,7 +40308,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261004-2638",
@@ -40205,7 +40323,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261004-2645",
@@ -40219,7 +40338,8 @@
       "idioma": "zh",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261006-2658",
@@ -40233,7 +40353,8 @@
       "idioma": "ru",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261007-2676",
@@ -40247,7 +40368,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261007-2683",
@@ -40261,7 +40383,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261009-2717",
@@ -40275,7 +40398,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261011-2796",
@@ -40289,7 +40413,8 @@
       "idioma": "zh",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261013-2809",
@@ -40303,7 +40428,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261013-2816",
@@ -40317,7 +40443,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261015-2848",
@@ -40331,7 +40458,8 @@
       "idioma": "zh",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261016-2868",
@@ -40345,7 +40473,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261016-2875",
@@ -40359,7 +40488,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261016-2892",
@@ -40373,7 +40503,8 @@
       "idioma": "es",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261017-2911",
@@ -40387,7 +40518,8 @@
       "idioma": "zh",
       "fechaRegistro": "2026-07-21T23:29:01.378Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261018-2943",
@@ -40401,7 +40533,8 @@
       "idioma": "en",
       "fechaRegistro": "2026-07-21T23:29:01.379Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261018-2949",
@@ -40415,7 +40548,8 @@
       "idioma": "ja",
       "fechaRegistro": "2026-07-21T23:29:01.379Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261021-2984",
@@ -40429,7 +40563,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.379Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261023-3014",
@@ -40443,7 +40578,8 @@
       "idioma": "ar",
       "fechaRegistro": "2026-07-21T23:29:01.379Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261024-3051",
@@ -40457,7 +40593,8 @@
       "idioma": "ar",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261025-3097",
@@ -40471,7 +40608,8 @@
       "idioma": "ar",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261027-3117",
@@ -40485,7 +40623,8 @@
       "idioma": "fr",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261028-3130",
@@ -40499,7 +40638,8 @@
       "idioma": "en",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261028-3136",
@@ -40513,7 +40653,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261029-3154",
@@ -40527,7 +40668,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261030-3167",
@@ -40541,7 +40683,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261030-3191",
@@ -40555,7 +40698,8 @@
       "idioma": "en",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-20261031-3202",
@@ -40569,7 +40713,8 @@
       "idioma": "eu",
       "fechaRegistro": "2026-07-21T23:29:01.380Z",
       "nacionalidad": "ES",
-      "alergias": "NO"
+      "alergias": "NO",
+      "estado": "Confirmada"
     },
     {
       "id": "ESP-942945",
@@ -40583,7 +40728,7 @@
       "comensales": 4,
       "ninos": "0",
       "alergias": "NO",
-      "estado": "Pendiente confirmar",
+      "estado": "Confirmada",
       "idioma": "eu",
       "fechaRegistro": "2026-07-23T21:25:42.945Z"
     }
@@ -40636,8 +40781,8 @@
       "comprador_telefono": "+34644556677",
       "fecha_compra": "14/02/2026",
       "fecha_caducidad": "14/02/2027",
-      "estado": "NO CONSUMIDA",
-      "fecha_ultima_modificacion": "2026-07-28T00:06:46.256Z"
+      "estado": "PENDIENTE RESERVA",
+      "fecha_ultima_modificacion": "2026-07-28T00:20:56.572Z"
     },
     {
       "id": "TR-006",

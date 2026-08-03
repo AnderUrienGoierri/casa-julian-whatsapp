@@ -901,22 +901,35 @@ function findExistingWaitlistEntry(telefono, nombre) {
     const waitlist = db.listaEspera || [];
 
     const normPhone = (telefono || '').trim().replace(/\D/g, '');
-    const normName = (nombre || '').trim().toLowerCase();
+    const normName = normalizeText(nombre || '');
 
     if (!normPhone && !normName) return null;
 
+    const inactiveStates = ['CANCELADA', 'CANCELADO', 'ATENDIDA', 'ATENDIDO', 'EXPIRADA', 'EXPIRADO', 'RESERVA ASIGNADA'];
+
     return waitlist.find(entry => {
-        if (!entry.estado || ['Cancelada', 'Atendida', 'Expirada'].includes(entry.estado)) {
+        const estadoUpper = (entry.estado || '').trim().toUpperCase();
+        if (inactiveStates.includes(estadoUpper)) {
             return false;
         }
 
         const entryPhone = (entry.telefono || '').trim().replace(/\D/g, '');
-        const entryName = (entry.nombre || '').trim().toLowerCase();
+        const entryName = normalizeText(entry.nombre || '');
 
-        const samePhone = normPhone && entryPhone && (entryPhone.endsWith(normPhone.slice(-9)) || normPhone.endsWith(entryPhone.slice(-9)));
-        const sameName = normName && entryName && (entryName.includes(normName) || normName.includes(entryName));
+        const samePhone = normPhone.length >= 7 && entryPhone.length >= 7 && (
+            entryPhone.endsWith(normPhone.slice(-9)) || normPhone.endsWith(entryPhone.slice(-9))
+        );
 
-        return samePhone && sameName;
+        const nameWords = normName.split(/\s+/).filter(w => w.length >= 2);
+        const entryWords = entryName.split(/\s+/).filter(w => w.length >= 2);
+
+        const sameName = normName.length >= 3 && entryName.length >= 3 && (
+            entryName.includes(normName) ||
+            normName.includes(entryName) ||
+            (nameWords.length > 0 && entryWords.length > 0 && nameWords.filter(w => entryWords.includes(w)).length >= 2)
+        );
+
+        return samePhone || sameName;
     });
 }
 
