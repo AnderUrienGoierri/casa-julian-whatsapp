@@ -16,6 +16,7 @@ yarn-error.log*
 db.json
 *.db
 *.sqlite
+database.js
 
 # WhatsApp Baileys Authentication & Session Credentials
 auth_info_baileys/
@@ -43,3 +44,4 @@ tmp/
 # Internal documents with private data
 documentacion/
 plan_contrato_por_horas/
+costes_plataformas_produccion/

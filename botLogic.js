@@ -1784,6 +1784,7 @@ async function sendFaqMenu(from, lang) {
         {
             title: "Otras Cuestiones",
             rows: [
+                { id: "faq_12", title: getTranslation(lang, 'faq12Title').slice(0, 24), description: getTranslation(lang, 'faq12Desc').slice(0, 72) },
                 { id: "faq_1", title: getTranslation(lang, 'faq1Title').slice(0, 24), description: getTranslation(lang, 'faq1Desc').slice(0, 72) },
                 { id: "faq_2", title: getTranslation(lang, 'faq2Title').slice(0, 24), description: getTranslation(lang, 'faq2Desc').slice(0, 72) },
                 { id: "faq_3", title: getTranslation(lang, 'faq3Title').slice(0, 24), description: getTranslation(lang, 'faq3Desc').slice(0, 72) },
@@ -1792,8 +1793,7 @@ async function sendFaqMenu(from, lang) {
                 { id: "faq_6", title: getTranslation(lang, 'faq6Title').slice(0, 24), description: getTranslation(lang, 'faq6Desc').slice(0, 72) },
                 { id: "faq_7", title: getTranslation(lang, 'faq7Title').slice(0, 24), description: getTranslation(lang, 'faq7Desc').slice(0, 72) },
                 { id: "faq_8", title: getTranslation(lang, 'faq8Title').slice(0, 24), description: getTranslation(lang, 'faq8Desc').slice(0, 72) },
-                { id: "faq_9", title: getTranslation(lang, 'faq9Title').slice(0, 24), description: getTranslation(lang, 'faq9Desc').slice(0, 72) },
-                { id: "faq_10", title: getTranslation(lang, 'faq10Title').slice(0, 24), description: getTranslation(lang, 'faq10Desc').slice(0, 72) }
+                { id: "faq_9", title: getTranslation(lang, 'faq9Title').slice(0, 24), description: getTranslation(lang, 'faq9Desc').slice(0, 72) }
             ]
         }
     ];
@@ -1932,17 +1932,6 @@ async function handleFaqSelection(from, faqId, lang) {
     const responseMsg = getTranslation(lang, msgKey);
 
     if (responseMsg) {
-        if (faqNum === '1' || faqNum === '2') {
-            const baseUrl = process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
-            const imageUrl = `${baseUrl}/public/casa_julian_erretegia.jpg`;
-            const imageCaption = "Asador Casa Julián (Tolosa) - Santa Clara Kalea, 6";
-            
-            try {
-                await sendImageMessage(from, imageUrl, imageCaption);
-            } catch (imgErr) {
-                console.error("⚠️ Error enviando imagen de horarios:", imgErr.message);
-            }
-        }
         await sendMessage(from, responseMsg);
     }
     
