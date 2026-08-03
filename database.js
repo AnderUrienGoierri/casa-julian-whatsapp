@@ -853,6 +853,30 @@ function findActiveReservation(queryText, fromNumber) {
 
 const findReservationForCancellation = findActiveReservation;
 
+function findExistingWaitlistEntry(telefono, nombre) {
+    const db = loadDb();
+    const waitlist = db.listaEspera || [];
+
+    const normPhone = (telefono || '').trim().replace(/\D/g, '');
+    const normName = (nombre || '').trim().toLowerCase();
+
+    if (!normPhone && !normName) return null;
+
+    return waitlist.find(entry => {
+        if (!entry.estado || ['Cancelada', 'Atendida', 'Expirada'].includes(entry.estado)) {
+            return false;
+        }
+
+        const entryPhone = (entry.telefono || '').trim().replace(/\D/g, '');
+        const entryName = (entry.nombre || '').trim().toLowerCase();
+
+        const samePhone = normPhone && entryPhone && (entryPhone.endsWith(normPhone.slice(-9)) || normPhone.endsWith(entryPhone.slice(-9)));
+        const sameName = normName && entryName && (entryName.includes(normName) || normName.includes(entryName));
+
+        return samePhone && sameName;
+    });
+}
+
 // -------------------------------------------------------------
 // OPERACIONES DE LISTA DE ESPERA
 // -------------------------------------------------------------
@@ -1113,6 +1137,7 @@ module.exports = {
     confirmReservation,
     cancelReservation,
     addToWaitlist,
+    findExistingWaitlistEntry,
     getWaitlistPosition,
     getFirstWaitlistForSlot,
     removeFromWaitlist,
