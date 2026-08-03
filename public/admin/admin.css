@@ -319,10 +319,10 @@ button {
     border-radius: 12px;
     padding: 16px 20px;
     border-left: 4px solid var(--accent-gold);
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .flow-node-title {
@@ -342,6 +342,35 @@ button {
     border-radius: 6px;
     font-size: 0.75rem;
     color: var(--text-muted);
+}
+
+.key-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.key-jump-badge {
+    cursor: pointer;
+    background: rgba(217, 119, 6, 0.18);
+    color: #f59e0b;
+    border: 1px solid rgba(217, 119, 6, 0.35);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-family: monospace;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+.key-jump-badge:hover {
+    background: rgba(217, 119, 6, 0.4);
+    color: #ffffff;
+    border-color: var(--accent-gold);
+    transform: translateY(-1px);
 }
 
 /* EDITOR DE TEXTOS & FILTROS */

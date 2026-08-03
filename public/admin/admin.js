@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let keysBadges = '';
             uc.keys.forEach(k => {
-                keysBadges += `<span class="key-jump-badge" data-key="${k}" style="cursor:pointer; background:rgba(217, 119, 6, 0.2); color:#d97706; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-family:monospace; margin-right:4px;">${k}</span>`;
+                keysBadges += `<span class="key-jump-badge" data-key="${k}" title="Haz clic para editar ${k}">${k}</span>`;
             });
 
             nodeDiv.innerHTML = `
@@ -144,14 +144,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${uc.title}
                     </div>
                 </div>
-                <div style="font-size:0.85rem; color:#e9edef; background:#181b22; padding:8px 12px; border-radius:6px; width:100%; border-left:3px solid var(--accent-blue);">
+                <div style="font-size:0.85rem; color:#e9edef; background:#181b22; padding:8px 12px; border-radius:6px; width:100%; border-left:3px solid var(--accent-blue); box-sizing:border-box;">
                     🤖 <strong>Acción del Chatbot:</strong> ${uc.botAction}
                 </div>
-                <div style="font-size:0.85rem; color:#e9edef; background:#181b22; padding:8px 12px; border-radius:6px; width:100%; border-left:3px solid var(--accent-green);">
+                <div style="font-size:0.85rem; color:#e9edef; background:#181b22; padding:8px 12px; border-radius:6px; width:100%; border-left:3px solid var(--accent-green); box-sizing:border-box;">
                     👤 <strong>Respuesta Esperada del Cliente / Interacción:</strong> ${uc.expectedCustomerInput}
                 </div>
-                <div style="margin-top:4px;">
-                    <span style="font-size:0.75rem; color:var(--text-muted);">Mensajes configurables:</span> ${keysBadges}
+                <div style="margin-top:6px; display:flex; flex-direction:column; gap:6px; width:100%; box-sizing:border-box;">
+                    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Mensajes configurables (${uc.keys.length}):</span>
+                    <div class="key-badges-container">
+                        ${keysBadges}
+                    </div>
                 </div>
             `;
 
