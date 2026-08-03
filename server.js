@@ -18,6 +18,12 @@ app.get('/', (req, res) => {
     res.send('🔥 Asador Casa Julian - Servidor de WhatsApp Bot 24/7 Activo');
 });
 
+// Endpoint de versión para verificar qué código está desplegado
+const DEPLOY_VERSION = 'v2026-08-03-B';
+app.get('/version', (req, res) => {
+    res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
+});
+
 // Endpoint de diagnóstico directo para probar el envío de emails desde Render
 app.get('/test-email', async (req, res) => {
     const { sendInternalStaffAlertInSpanish } = require('./notifications');
