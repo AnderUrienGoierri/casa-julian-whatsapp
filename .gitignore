@@ -1,3 +1,45 @@
+# Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment Variables & Credentials
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Local Database Files (Contains Sensitive Customer Personal Data)
+db.json
+*.db
+*.sqlite
+
+# WhatsApp Baileys Authentication & Session Credentials
+auth_info_baileys/
+baileys_auth_info/
+session/
+sessions/
+*.session
+
+# Logs & Diagnostics
 *.log
+logs/
+
+# Operating System / IDE Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporary / Scratch Files
+scratch/
+temp/
+tmp/
+.tempmediaStorage/
+
+# Internal documents with private data
+documentacion/
+plan_contrato_por_horas/
