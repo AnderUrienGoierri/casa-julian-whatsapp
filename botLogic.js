@@ -522,29 +522,61 @@ async function handleButtonResponse(from, buttonId) {
             const cardCode = card ? card.codigo : 'MT-2026';
             const cardExpiry = card ? (card.fecha_caducidad || '31/12/2026') : '31/12/2026';
             const cardStatus = card ? (card.estado || 'ACTIVA') : 'ACTIVA';
+            const cardComprador = card ? (card.comprador_nombre || 'No especificado') : 'No especificado';
 
             let cadMsg = '';
             if (lang === 'eu') {
-                cadMsg = `⏳ *OPARI-TXARTELAREN IRAUNGITZE DATA*\n\n` +
+                cadMsg = `🎁 *OPARI-TXARTELAREN EGIAZTAPENA*\n\n` +
                          `✅ *Kodea:* ${cardCode}\n` +
-                         `📅 *Iraungitze Data:* ${cardExpiry}\n` +
-                         `📌 *Egoera:* ${cardStatus}\n\n` +
-                         `Eskerrik asko Casa Juliánekin harremanetan jartzeagatik!`;
+                         `👤 *Jabea / Emptlea:* ${cardComprador}\n` +
+                         `📅 *Iraungitze data:* ${cardExpiry}\n` +
+                         `📌 *Egoera:* ${cardStatus}`;
             } else if (lang === 'en') {
-                cadMsg = `⏳ *GIFT CARD EXPIRATION DATE*\n\n` +
+                cadMsg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
                          `✅ *Code:* ${cardCode}\n` +
+                         `👤 *Holder / Buyer:* ${cardComprador}\n` +
                          `📅 *Expiration Date:* ${cardExpiry}\n` +
-                         `📌 *Status:* ${cardStatus}\n\n` +
-                         `Thank you for contacting Casa Julián!`;
+                         `📌 *Status:* ${cardStatus}`;
             } else {
-                cadMsg = `⏳ *FECHA DE CADUCIDAD DE TARJETA REGALO*\n\n` +
+                cadMsg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
                          `✅ *Código:* ${cardCode}\n` +
+                         `👤 *Titular / Comprador:* ${cardComprador}\n` +
                          `📅 *Fecha de Caducidad:* ${cardExpiry}\n` +
-                         `📌 *Estado:* ${cardStatus}\n\n` +
-                         `¡Muchas gracias por contactar con Casa Julián!`;
+                         `📌 *Estado:* ${cardStatus}`;
             }
 
             await sendMessage(from, cadMsg);
+
+            state.step = 'menu_trad_after_caducidad_options';
+            userStates.set(from, state);
+
+            let promptBody = '';
+            let btnRes = '';
+            let btnExit = '';
+
+            if (lang === 'eu') {
+                promptBody = `¿Erreserba egin nahi duzu txartel honekin edo menura itzuli?`;
+                btnRes = `📅 Erreserbatu`;
+                btnExit = `🏠 Menura itzuli`;
+            } else if (lang === 'en') {
+                promptBody = `Would you like to book a table with this card or return to the main menu?`;
+                btnRes = `📅 Book Table`;
+                btnExit = `🏠 Main Menu`;
+            } else {
+                promptBody = `¿Deseas reservar tu mesa con esta tarjeta o volver al menú principal?`;
+                btnRes = `📅 Reservar`;
+                btnExit = `🏠 Salir al menú`;
+            }
+
+            const buttons = [
+                { id: 'btn_card_gestion_reservar', title: btnRes.slice(0, 20) },
+                { id: 'btn_salir_menu', title: btnExit.slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'btn_salir_menu': {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
             await showLocationOrMainMenu(from);
@@ -3149,38 +3181,62 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
                           `✅ *Kodea:* ${card.codigo}\n` +
                           `👤 *Jabea / Emptlea:* ${card.comprador_nombre || 'Zehaztu gabea'}\n` +
                           `📅 *Iraungitze data:* ${card.fecha_caducidad}\n` +
-                          `📌 *Egoera:* ${card.estado || 'AKTIBOA'}\n\n` +
-                          `💡 *Mahaia erreserbatu nahi duzu?*\n` +
-                          `Sartu menuan -> *"5. Tradizio Menua daukat"* -> *"Erreserbatu"*.`;
+                          `📌 *Egoera:* ${card.estado || 'AKTIBOA'}`;
                 } else if (lang === 'en') {
                     msg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
                           `✅ *Code:* ${card.codigo}\n` +
                           `👤 *Holder / Buyer:* ${card.comprador_nombre || 'Not specified'}\n` +
                           `📅 *Expiration Date:* ${card.fecha_caducidad}\n` +
-                          `📌 *Status:* ${card.estado || 'ACTIVE'}\n\n` +
-                          `💡 *Would you like to book your table?*\n` +
-                          `Go to main menu -> *"5. I have Tradition Menu"* -> *"Book Table"*.`;
+                          `📌 *Status:* ${card.estado || 'ACTIVE'}`;
                 } else if (lang === 'fr') {
                     msg = `🎁 *VÉRIFICATION DE CARTE CADEAU*\n\n` +
                           `✅ *Code :* ${card.codigo}\n` +
                           `👤 *Titulaire / Acheteur :* ${card.comprador_nombre || 'Non spécifié'}\n` +
                           `📅 *Date d'expiration :* ${card.fecha_caducidad}\n` +
-                          `📌 *Statut :* ${card.estado || 'ACTIF'}\n\n` +
-                          `💡 *Souhaitez-vous réserver votre table ?*\n` +
-                          `Allez au menu principal -> *"5. J'ai le Menu Tradition"* -> *"Réserver"*.`;
+                          `📌 *Statut :* ${card.estado || 'ACTIF'}`;
                 } else {
                     msg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
                           `✅ *Código:* ${card.codigo}\n` +
                           `👤 *Titular / Comprador:* ${card.comprador_nombre || 'No especificado'}\n` +
                           `📅 *Fecha de Caducidad:* ${card.fecha_caducidad}\n` +
-                          `📌 *Estado:* ${card.estado || 'ACTIVA'}\n\n` +
-                          `💡 *¿Deseas reservar tu mesa con esta tarjeta?*\n` +
-                          `Entra en el menú principal -> *"5. Tengo Menú Tradición"* -> *"Reservar"*.`;
+                          `📌 *Estado:* ${card.estado || 'ACTIVA'}`;
                 }
 
                 await sendMessage(from, msg);
-                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                await showLocationOrMainMenu(from);
+
+                const currentState = userStates.get(from) || { data: {} };
+                currentState.data = currentState.data || {};
+                currentState.data.menuTrad = currentState.data.menuTrad || {};
+                currentState.data.menuTrad.card = card;
+                currentState.data.menuTrad.cards = [card];
+                currentState.data.menuTrad.tarjeta = card.codigo;
+                currentState.data.menuTrad.comensales = 2;
+                currentState.step = 'menu_trad_after_caducidad_options';
+                userStates.set(from, currentState);
+
+                let promptBody = '';
+                let btnRes = '';
+                let btnExit = '';
+
+                if (lang === 'eu') {
+                    promptBody = `¿Erreserba egin nahi duzu txartel honekin edo menura itzuli?`;
+                    btnRes = `📅 Erreserbatu`;
+                    btnExit = `🏠 Menura itzuli`;
+                } else if (lang === 'en') {
+                    promptBody = `Would you like to book a table with this card or return to the main menu?`;
+                    btnRes = `📅 Book Table`;
+                    btnExit = `🏠 Main Menu`;
+                } else {
+                    promptBody = `¿Deseas reservar tu mesa con esta tarjeta o volver al menú principal?`;
+                    btnRes = `📅 Reservar`;
+                    btnExit = `🏠 Salir al menú`;
+                }
+
+                const buttons = [
+                    { id: 'btn_card_gestion_reservar', title: btnRes.slice(0, 20) },
+                    { id: 'btn_salir_menu', title: btnExit.slice(0, 20) }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
             } else {
                 let notFoundMsg = '';
                 if (lang === 'eu') {
