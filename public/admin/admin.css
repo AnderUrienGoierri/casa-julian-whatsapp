@@ -527,12 +527,48 @@ button {
     padding: 10px 14px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 
 .phone-header-info {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.phone-header-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-sim-test {
+    background: #059669;
+    color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-sim-test:hover {
+    background: #10b981;
+}
+
+.btn-sim-reset {
+    background: #dc2626;
+    color: #ffffff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.btn-sim-reset:hover {
+    background: #ef4444;
 }
 
 .avatar {
@@ -586,6 +622,38 @@ button {
     position: relative;
     margin-bottom: 12px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.user-bubble {
+    background: #005c4b;
+    color: #e9edef;
+    padding: 8px 12px;
+    border-radius: 8px 8px 0 8px;
+    align-self: flex-end;
+    max-width: 85%;
+    font-size: 0.85rem;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    margin-left: auto;
+    margin-bottom: 12px;
+}
+
+.sim-interactive-btn {
+    background: #1f2c34;
+    border: 1px solid #00a884;
+    color: #00a884;
+    text-align: center;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 4px;
+}
+.sim-interactive-btn:hover {
+    background: #00a884;
+    color: #ffffff;
 }
 
 .bubble-time {
@@ -649,10 +717,91 @@ button {
 .sim-input-box {
     flex: 1;
     background: #2a3942;
+    border: none;
     border-radius: 20px;
     padding: 8px 14px;
-    font-size: 0.8rem;
-    color: #8696a0;
+    font-size: 0.85rem;
+    color: #e9edef;
+    outline: none;
+}
+
+.sim-send-btn {
+    background: #00a884;
+    color: #ffffff;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+.sim-send-btn:hover {
+    background: #02c096;
+}
+
+/* PALETA DE COLORES VISUALES PARA ETIQUETAS */
+.badge-header {
+    background: rgba(59, 130, 246, 0.18) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.4) !important;
+}
+.badge-header:hover {
+    background: rgba(59, 130, 246, 0.4) !important;
+    color: #ffffff !important;
+}
+
+.badge-button {
+    background: rgba(16, 185, 129, 0.18) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+}
+.badge-button:hover {
+    background: rgba(16, 185, 129, 0.4) !important;
+    color: #ffffff !important;
+}
+
+.badge-main {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+.badge-main:hover {
+    background: rgba(245, 158, 11, 0.4) !important;
+    color: #ffffff !important;
+}
+
+.badge-reserva {
+    background: rgba(20, 184, 166, 0.18) !important;
+    color: #2dd4bf !important;
+    border: 1px solid rgba(20, 184, 166, 0.4) !important;
+}
+.badge-reserva:hover {
+    background: rgba(20, 184, 166, 0.4) !important;
+    color: #ffffff !important;
+}
+
+.badge-tradicion {
+    background: rgba(249, 115, 22, 0.18) !important;
+    color: #fb923c !important;
+    border: 1px solid rgba(249, 115, 22, 0.4) !important;
+}
+.badge-tradicion:hover {
+    background: rgba(249, 115, 22, 0.4) !important;
+    color: #ffffff !important;
+}
+
+.badge-faq {
+    background: rgba(139, 92, 246, 0.18) !important;
+    color: #c084fc !important;
+    border: 1px solid rgba(139, 92, 246, 0.4) !important;
+}
+.badge-faq:hover {
+    background: rgba(139, 92, 246, 0.4) !important;
+    color: #ffffff !important;
 }
 
 .modal-content {

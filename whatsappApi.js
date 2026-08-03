@@ -7,10 +7,39 @@ require('dotenv').config();
 const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
 
+let simMessageStore = new Map();
+
+function interceptSimMessage(to, payload) {
+    if (to && (to.startsWith('sim_') || to === 'test_admin')) {
+        if (!simMessageStore.has(to)) {
+            simMessageStore.set(to, []);
+        }
+        simMessageStore.get(to).push({
+            id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            timestamp: new Date().toISOString(),
+            ...payload
+        });
+        return true;
+    }
+    return false;
+}
+
+function getSimMessages(to) {
+    return simMessageStore.get(to) || [];
+}
+
+function clearSimMessages(to) {
+    simMessageStore.set(to, []);
+}
+
 /**
  * Envia un mensaje de texto simple.
  */
 async function sendMessage(to, text) {
+    if (interceptSimMessage(to, { type: 'text', text })) {
+        return { success: true, simulated: true };
+    }
+
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
         console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
@@ -41,6 +70,10 @@ async function sendMessage(to, text) {
  * Envía un mensaje con botones interactivos (máximo 3 botones).
  */
 async function sendInteractiveButtons(to, text, buttons) {
+    if (interceptSimMessage(to, { type: 'button', text, buttons })) {
+        return { success: true, simulated: true };
+    }
+
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
         console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
@@ -90,6 +123,10 @@ async function sendInteractiveButtons(to, text, buttons) {
  * Envía un mensaje de Lista Interactiva (permite hasta 10 opciones ordenadas en secciones).
  */
 async function sendInteractiveList(to, bodyText, buttonText, sections) {
+    if (interceptSimMessage(to, { type: 'list', text: bodyText, buttonText, sections })) {
+        return { success: true, simulated: true };
+    }
+
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
         console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
@@ -297,5 +334,7 @@ module.exports = {
     sendInteractiveList,
     sendImageMessage,
     sendVideoMessage,
-    sendStickerMessage
+    sendStickerMessage,
+    getSimMessages,
+    clearSimMessages
 };

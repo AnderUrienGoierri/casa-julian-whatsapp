@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentStructure = null;
     let currentLang = 'es';
     let currentCategoryFilter = 'all';
+    let isTestMode = false;
 
     // ELEMENTOS DOM
     const loginModal = document.getElementById('login-modal');
@@ -15,6 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // TAB BUTTONS
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
+
+    // SIMULADOR DOM
+    const btnStartTest = document.getElementById('btn-start-test');
+    const btnResetTest = document.getElementById('btn-reset-test');
+    const simInputForm = document.getElementById('sim-input-form');
+    const simUserInput = document.getElementById('sim-user-input');
+    const singlePreviewBubble = document.getElementById('single-preview-bubble');
+    const liveChatStream = document.getElementById('live-chat-stream');
+    const whatsappScreen = document.getElementById('whatsapp-screen');
 
     // VERIFICAR AUTENTICACIÓN INICIAL
     if (adminToken) {
@@ -117,6 +127,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // CLASIFICACIÓN DE COLORES POR TIPO DE ETIQUETA
+    function getBadgeColorClass(key) {
+        if (key.startsWith('btn') || key.startsWith('loc') || key.includes('Btn')) return 'badge-button';
+        if (key.startsWith('faq')) return 'badge-faq';
+        if (key.startsWith('menuTrad') || key.startsWith('regalar')) return 'badge-tradicion';
+        if (key.startsWith('waitlist') || key.startsWith('reserva') || key.startsWith('mod') || key.startsWith('cancel')) return 'badge-reserva';
+        if (key.startsWith('welcome') || key.startsWith('mainMenu') || key.startsWith('selectLocation')) return 'badge-header';
+        return 'badge-main';
+    }
+
     // 1. RENDERIZAR CASOS DE USO Y FLUJO SECUENCIAL (TAB 1)
     function renderUseCasesFlow() {
         const container = document.getElementById('flow-tree-container');
@@ -134,7 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let keysBadges = '';
             uc.keys.forEach(k => {
-                keysBadges += `<span class="key-jump-badge" data-key="${k}" title="Haz clic para editar ${k}">${k}</span>`;
+                const colorClass = getBadgeColorClass(k);
+                keysBadges += `<span class="key-jump-badge ${colorClass}" data-key="${k}" title="Editar ${k}">${k}</span>`;
             });
 
             nodeDiv.innerHTML = `
@@ -192,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const staticVal = langTexts[key];
             const currentVal = dynamicLangTexts[key] !== undefined ? dynamicLangTexts[key] : staticVal;
             const category = categoryMap[key] || 'main';
+            const colorClass = getBadgeColorClass(key);
 
             const card = document.createElement('div');
             card.className = 'text-card';
@@ -200,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             card.innerHTML = `
                 <div class="text-card-header">
-                    <span class="key-title">${key}</span>
+                    <span class="key-title ${colorClass}" style="padding:2px 6px; border-radius:4px;">${key}</span>
                     <span class="flow-badge">${category.toUpperCase()}</span>
                 </div>
                 <textarea data-key="${key}">${currentVal}</textarea>
@@ -214,11 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
             textarea.addEventListener('input', (e) => {
                 const val = e.target.value;
                 card.querySelector('.char-counter').textContent = `${val.length} caracteres`;
-                updateLiveSimulator(key, val);
+                if (!isTestMode) updateLiveSimulator(key, val);
             });
 
             textarea.addEventListener('focus', () => {
-                updateLiveSimulator(key, textarea.value);
+                if (!isTestMode) updateLiveSimulator(key, textarea.value);
             });
 
             card.querySelector('.btn-save-text').addEventListener('click', () => {
@@ -359,42 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // MODAL AÑADIR DISH
-    const addDishBtn = document.getElementById('add-dish-btn');
-    const dishModal = document.getElementById('dish-modal');
-    const closeDishModal = document.getElementById('close-dish-modal');
-    const saveDishBtn = document.getElementById('save-dish-btn');
-
-    if (addDishBtn) addDishBtn.addEventListener('click', () => dishModal.style.display = 'flex');
-    if (closeDishModal) closeDishModal.addEventListener('click', () => dishModal.style.display = 'none');
-
-    if (saveDishBtn) {
-        saveDishBtn.addEventListener('click', () => {
-            const cat = document.getElementById('dish-cat-input').value;
-            const name = document.getElementById('dish-name-input').value;
-            const price = parseFloat(document.getElementById('dish-price-input').value) || 0;
-            const unit = document.getElementById('dish-unit-input').value || '€';
-
-            if (!name) {
-                alert('Por favor introduce el nombre del plato.');
-                return;
-            }
-
-            currentStructure.menuItems.push({
-                id: currentStructure.menuItems.length + 1,
-                category: cat,
-                name: name,
-                price: price,
-                currency: unit,
-                sort_order: currentStructure.menuItems.length + 1
-            });
-
-            renderMenuTable();
-            dishModal.style.display = 'none';
-        });
-    }
-
-    // 4. RENDERIZAR PREGUNTAS FRECUENTES CORREGIDAS (TAB 4)
+    // 4. RENDERIZAR PREGUNTAS FRECUENTES (TAB 4)
     function renderFaqsList() {
         const container = document.getElementById('faqs-list-container');
         if (!container || !currentStructure) return;
@@ -404,7 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = '';
 
-        // Mapeo exacto de las 10 FAQs en el orden real de Casa Julián
         const faqListDef = [
             { num: 1, titleKey: 'faq12Title', descKey: 'faq12Desc', msgKey: 'faq12Msg' },
             { num: 2, titleKey: 'faq1Title', descKey: 'faq1Desc', msgKey: 'faq1Msg' },
@@ -426,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'text-card';
             card.innerHTML = `
                 <div class="text-card-header">
-                    <span class="key-title">FAQ ${faqItem.num}: ${titleVal}</span>
+                    <span class="key-title badge-faq" style="padding:2px 6px; border-radius:4px;">FAQ ${faqItem.num}: ${titleVal}</span>
                 </div>
                 <label style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px;">Título de opción:</label>
                 <input type="text" value="${titleVal}" class="faq-title-input" style="margin-bottom:12px;">
@@ -449,8 +435,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 5. SIMULADOR EN TIEMPO REAL WHATSAPP
+    // 5. PREVISUALIZACIÓN ESTÁTICA WHATSAPP
     function updateLiveSimulator(key, customText = null) {
+        if (isTestMode) return;
+
         const simBody = document.getElementById('sim-body');
         const simButtons = document.getElementById('sim-buttons');
         const simListTrigger = document.getElementById('sim-list-trigger');
@@ -502,5 +490,145 @@ document.addEventListener('DOMContentLoaded', () => {
                 metaAlertList.appendChild(li);
             });
         }
+    }
+
+    // 6. MODALIDAD TEST INTERACTIVO EN VIVO
+    if (btnStartTest) {
+        btnStartTest.addEventListener('click', () => {
+            startInteractiveTest();
+        });
+    }
+
+    if (btnResetTest) {
+        btnResetTest.addEventListener('click', () => {
+            resetInteractiveTest();
+        });
+    }
+
+    if (simInputForm) {
+        simInputForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const val = simUserInput.value.trim();
+            if (!val) return;
+
+            simUserInput.value = '';
+            if (!isTestMode) {
+                isTestMode = true;
+                singlePreviewBubble.style.display = 'none';
+                liveChatStream.style.display = 'flex';
+            }
+
+            appendUserBubble(val);
+            await sendSimPayload({ text: val });
+        });
+    }
+
+    async function startInteractiveTest() {
+        isTestMode = true;
+        singlePreviewBubble.style.display = 'none';
+        liveChatStream.style.display = 'flex';
+        liveChatStream.innerHTML = '';
+
+        await sendSimPayload({ action: 'reset' });
+    }
+
+    function resetInteractiveTest() {
+        isTestMode = false;
+        singlePreviewBubble.style.display = 'block';
+        liveChatStream.style.display = 'none';
+        liveChatStream.innerHTML = '';
+        simUserInput.value = '';
+        updateLiveSimulator('welcomeMessage');
+    }
+
+    async function sendSimPayload(payload) {
+        try {
+            const res = await fetch('/api/admin/simulate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': adminToken
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (data.success && Array.isArray(data.messages)) {
+                renderLiveChatMessages(data.messages);
+            }
+        } catch (err) {
+            console.error('Error en simulación interactiva:', err);
+        }
+    }
+
+    function appendUserBubble(text) {
+        const userDiv = document.createElement('div');
+        userDiv.className = 'user-bubble';
+        userDiv.textContent = text;
+        liveChatStream.appendChild(userDiv);
+        scrollSimToBottom();
+    }
+
+    function renderLiveChatMessages(messages) {
+        liveChatStream.innerHTML = '';
+        messages.forEach(msg => {
+            if (msg.type === 'text') {
+                const b = document.createElement('div');
+                b.className = 'bot-bubble';
+                b.textContent = msg.text;
+                liveChatStream.appendChild(b);
+            } else if (msg.type === 'button') {
+                const b = document.createElement('div');
+                b.className = 'bot-bubble';
+                b.textContent = msg.text;
+
+                if (Array.isArray(msg.buttons)) {
+                    const btnsDiv = document.createElement('div');
+                    btnsDiv.className = 'sim-buttons';
+                    msg.buttons.forEach(btn => {
+                        const btnEl = document.createElement('div');
+                        btnEl.className = 'sim-interactive-btn';
+                        btnEl.textContent = btn.title || btn.id;
+                        btnEl.addEventListener('click', async () => {
+                            appendUserBubble(btn.title || btn.id);
+                            await sendSimPayload({ buttonId: btn.id });
+                        });
+                        btnsDiv.appendChild(btnEl);
+                    });
+                    b.appendChild(btnsDiv);
+                }
+                liveChatStream.appendChild(b);
+            } else if (msg.type === 'list') {
+                const b = document.createElement('div');
+                b.className = 'bot-bubble';
+                b.textContent = msg.text;
+
+                if (Array.isArray(msg.sections)) {
+                    msg.sections.forEach(sec => {
+                        if (Array.isArray(sec.rows)) {
+                            sec.rows.forEach(row => {
+                                const rowEl = document.createElement('div');
+                                rowEl.className = 'sim-interactive-btn';
+                                rowEl.textContent = `${row.title} - ${row.description || ''}`;
+                                rowEl.addEventListener('click', async () => {
+                                    appendUserBubble(row.title);
+                                    await sendSimPayload({ listId: row.id });
+                                });
+                                b.appendChild(rowEl);
+                            });
+                        }
+                    });
+                }
+                liveChatStream.appendChild(b);
+            }
+        });
+
+        scrollSimToBottom();
+    }
+
+    function scrollSimToBottom() {
+        setTimeout(() => {
+            whatsappScreen.scrollTop = whatsappScreen.scrollHeight;
+        }, 50);
     }
 });

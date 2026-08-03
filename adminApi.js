@@ -292,4 +292,39 @@ router.post('/update-menu', requireAdminAuth, async (req, res) => {
     }
 });
 
+// 5. Endpoint de Simulación Interactiva en Vivo
+router.post('/simulate', requireAdminAuth, async (req, res) => {
+    const { action, text, buttonId, listId } = req.body || {};
+    const simUserPhone = 'sim_test_admin';
+
+    try {
+        if (action === 'reset') {
+            clearSimMessages(simUserPhone);
+            const { userStates, userLanguages, userLocations, handleUserMessage: processSimMessage } = require('./botLogic');
+            if (userStates) userStates.delete(simUserPhone);
+            if (userLanguages) userLanguages.delete(simUserPhone);
+            if (userLocations) userLocations.delete(simUserPhone);
+
+            await processSimMessage(simUserPhone, 'hola', 'text');
+            const messages = getSimMessages(simUserPhone);
+            return res.json({ success: true, messages });
+        }
+
+        const { handleUserMessage: processSimMessage } = require('./botLogic');
+        if (buttonId) {
+            await processSimMessage(simUserPhone, buttonId, 'interactive', { type: 'button', id: buttonId });
+        } else if (listId) {
+            await processSimMessage(simUserPhone, listId, 'interactive', { type: 'list', id: listId });
+        } else if (text) {
+            await processSimMessage(simUserPhone, text, 'text');
+        }
+
+        const messages = getSimMessages(simUserPhone);
+        return res.json({ success: true, messages });
+    } catch (e) {
+        console.error("Error en simulación interactiva:", e);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 module.exports = router;

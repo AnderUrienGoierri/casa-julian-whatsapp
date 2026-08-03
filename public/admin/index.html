@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260804-C">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260804-D">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -177,15 +177,19 @@
                                     <span class="phone-verified">Cuenta Oficial ✅</span>
                                 </div>
                             </div>
+                            <div class="phone-header-actions">
+                                <button id="btn-start-test" class="btn-sim-test" title="Iniciar simulación de chat real">🧪 Test</button>
+                                <button id="btn-reset-test" class="btn-sim-reset" title="Resetear simulación">🔄 Reset</button>
+                            </div>
                         </div>
                         <div class="phone-screen" id="whatsapp-screen">
-                            <div class="whatsapp-chat">
+                            <div class="whatsapp-chat" id="sim-chat-container">
                                 <div class="chat-date">HOY</div>
                                 
-                                <!-- Mensaje interactivo del bot en la simulación -->
-                                <div class="chat-bubble bot-bubble">
+                                <!-- Mensaje interactivo del bot en previsualización estática -->
+                                <div class="chat-bubble bot-bubble" id="single-preview-bubble">
                                     <div class="bubble-header" id="sim-header" style="display: none;"></div>
-                                    <div class="bubble-body" id="sim-body">Selecciona una opción del editor o escribe en el panel izquierdo para ver la simulación en tiempo real.</div>
+                                    <div class="bubble-body" id="sim-body">Selecciona una opción del editor para previsualizar o pulsa 🧪 Test para simular la conversación real.</div>
                                     
                                     <!-- Botones interactivos simulados -->
                                     <div class="sim-buttons" id="sim-buttons"></div>
@@ -197,6 +201,9 @@
                                     <div class="bubble-time">19:45 ✓✓</div>
                                 </div>
 
+                                <!-- Stream de conversación interactiva en vivo -->
+                                <div id="live-chat-stream" style="display: none; flex-direction: column; gap: 10px; width: 100%;"></div>
+
                                 <!-- Alertas de límites de Meta -->
                                 <div id="meta-limits-alert" class="meta-alert-box" style="display: none;">
                                     ⚠️ <strong>Alerta Meta API:</strong>
@@ -205,8 +212,10 @@
                             </div>
                         </div>
                         <div class="phone-footer">
-                            <div class="sim-input-box">Escribe un mensaje...</div>
-                            <div class="sim-mic">🎙️</div>
+                            <form id="sim-input-form" style="display: flex; width: 100%; gap: 6px; align-items: center; margin:0;">
+                                <input type="text" id="sim-user-input" class="sim-input-box" placeholder="Escribe un mensaje..." autocomplete="off">
+                                <button type="submit" id="sim-send-btn" class="sim-send-btn" title="Enviar mensaje">➔</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -247,6 +256,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260804-C"></script>
+    <script src="/admin/admin.js?v=20260804-D"></script>
 </body>
 </html>
