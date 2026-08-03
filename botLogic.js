@@ -499,10 +499,42 @@ async function handleButtonResponse(from, buttonId) {
             break;
 
         case 'waitlist_init_si':
-        case 'waitlist_menu_si':
+        case 'waitlist_menu_si': {
+            userStates.set(from, { step: 'menu_tradicion_opciones', data: {} });
+            let promptBody = '';
+            let btnRes = '';
+            let btnCad = '';
+
+            if (lang === 'eu') {
+                promptBody = `💳 *Tradizio Menua (Opari Txartela)*\n\nZer kudeaketa egin nahi duzu?`;
+                btnRes = `📅 Erreserbatu`;
+                btnCad = `⏳ Iraungipena ikusi`;
+            } else if (lang === 'en') {
+                promptBody = `💳 *Tradition Menu (Gift Card)*\n\nWhat would you like to do?`;
+                btnRes = `📅 Book`;
+                btnCad = `⏳ Check Expiration`;
+            } else {
+                promptBody = `💳 *Menú Tradición (Tarjeta Regalo)*\n\n¿Qué gestión deseas realizar?`;
+                btnRes = `📅 Reservar`;
+                btnCad = `⏳ Ver fecha caducidad`;
+            }
+
+            const buttons = [
+                { id: 'menu_tradicion_reservar', title: btnRes.slice(0, 20) },
+                { id: 'menu_tradicion_caducidad', title: btnCad.slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
         case 'menu_tradicion_reservar':
             userStates.set(from, { step: 'menu_trad_step1_tarjeta', data: { menuTrad: { comensales: 2 } } });
             await sendMessage(from, getTranslation(lang, 'menuTradStep1Tarjeta'));
+            break;
+
+        case 'menu_tradicion_caducidad':
+            userStates.set(from, { step: 'menu_tradicion_formulario_caducidad', data: {} });
+            await sendMessage(from, getTranslation(lang, 'menuTradicionCaducidadPrompt'));
             break;
 
         case 'waitlist_init_no':

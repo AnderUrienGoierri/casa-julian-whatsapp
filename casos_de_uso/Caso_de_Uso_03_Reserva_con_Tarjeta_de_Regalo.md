@@ -7,18 +7,30 @@ Este flujo permite a los clientes que poseen un código de Tarjeta de Regalo (Me
 
 ## 🔄 Flujo Paso a Paso Detallado
 
-### Paso 1: Inicio de Reserva con Tarjeta Regalo
-* **Mensaje del Cliente:**
+### Paso 1: Selección de Tarjeta Regalo y Elección de Gestión
+* **Acción del Cliente:**
   > Selecciona la opción `1. Hacer una reserva` y pulsa el botón **`[ 💳 Sí, tengo una ]`**.
 
-* **Respuesta del Chatbot:**
-  > 💳 **Reserva con Tarjeta de Regalo (Menú Tradición)**
+* **Respuesta del Chatbot (Menú Interactivo):**
+  > 💳 **Tarjeta de Regalo (Menú Tradición)**
   >
-  > Por favor, indícanos el **código impreso en tu tarjeta regalo** (ejemplo: *TRAD-123456*):
+  > ¿Qué gestión deseas realizar?
+  >
+  > [ 📅 Reservar ]   [ ⏳ Ver fecha caducidad ]
+
+* **Si pulsa `[ 📅 Reservar ]`:**
+  > 🎁 **Menú Tradición (1/7)**
+  >
+  > Indícanos el número de tu tarjeta regalo:
+
+* **Si pulsa `[ ⏳ Ver fecha caducidad ]`:**
+  > ⏳ **Consulta de Caducidad**
+  >
+  > Por favor, indícanos tu nombre y el número de tu tarjeta regalo para consultar la fecha de caducidad:
 
 ---
 
-### Paso 2: Validación del Código de Tarjeta
+### Paso 2: Validación del Código de Tarjeta (al Reservar)
 * **Mensaje del Cliente:**
   > `TRAD-982341`
 
