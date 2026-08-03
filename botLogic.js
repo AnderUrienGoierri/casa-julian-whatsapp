@@ -1176,10 +1176,31 @@ async function handleButtonResponse(from, buttonId) {
 
             if (pending) {
                 try {
+                    let customSuccessMsg = null;
+
                     if (pending.isModification && pending.reservationId) {
                         await db.updateReservationStatus(pending.reservationId, 'PENDIENTE MODIFICACION');
                     } else if (pending.isCancellation && pending.reservationId) {
-                        await db.updateReservationStatus(pending.reservationId, 'PENDIENTE CANCELACION');
+                        const existingRes = db.getReservationById(pending.reservationId);
+                        const currentStatus = (pending.initialStatus || existingRes?.estado || '').trim().toUpperCase();
+                        const isPendingRes = currentStatus.includes('PENDIENTE CONFIRM') || currentStatus === 'PENDIENTE';
+
+                        if (isPendingRes) {
+                            // Al estar en estado PENDIENTE CONFIRMACIÓN, se pasa directamente a CANCELADA
+                            await db.updateReservationStatus(pending.reservationId, 'CANCELADA');
+
+                            if (lang === 'eu') {
+                                customSuccessMsg = `✅ *Zure erreserba bertan behera utzi da.* (Oraindik berretsi gabe zegoenez, zuzenean baliogabetu da).`;
+                            } else if (lang === 'en') {
+                                customSuccessMsg = `✅ *Your reservation has been cancelled successfully.* (Since it was pending confirmation, it has been cancelled directly).`;
+                            } else if (lang === 'fr') {
+                                customSuccessMsg = `✅ *Votre réservation a été annulée avec succès.* (Étant en attente de confirmation, elle a été annulée directement).`;
+                            } else {
+                                customSuccessMsg = `✅ *Tu reserva ha sido cancelada correctamente.* Al estar pendiente de confirmación, la cancelación ha sido ejecutada de forma inmediata.`;
+                            }
+                        } else {
+                            await db.updateReservationStatus(pending.reservationId, 'PENDIENTE CANCELACION');
+                        }
                     } else if (pending.tarjetaCodigo) {
                         const codes = pending.tarjetaCodigo.split(',').map(c => c.trim()).filter(Boolean);
                         for (const code of codes) {
@@ -1188,7 +1209,8 @@ async function handleButtonResponse(from, buttonId) {
                     }
 
                     // 1. Responder al cliente con los mensajes de revisión y agradecimiento
-                    await sendMessage(from, getTranslation(lang, pending.successMsgKey || 'modSuccessMsg'));
+                    const finalMsg = customSuccessMsg || getTranslation(lang, pending.successMsgKey || 'modSuccessMsg');
+                    await sendMessage(from, finalMsg);
                     await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
                     
                     // 2. Re-desplegar la selección de ubicación de restaurante
@@ -2560,10 +2582,16 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
     const totalFee = comensales * 45;
     const hoursFormatted = Math.max(0, Math.floor(hoursLeft));
 
+    const resStatus = (reservaFound.estado || '').trim().toUpperCase();
+    const isPendingRes = resStatus.includes('PENDIENTE CONFIRM') || resStatus === 'PENDIENTE';
+
     let noteText = '';
 
     if (lang === 'eu') {
-        if (isLessThan24h) {
+        if (isPendingRes) {
+            noteText = `⚡ *ZUZENEKO BALIOGABETZEA (BERRETSI GABEKO ERRESERBA)*\n` +
+                       `Erreserba oraindik berretsi gabe dagoenez, "Bai, bidali" sakatzean zuzenean bertan behera utziko da. Ez du jatetxearen onespenik behar.`;
+        } else if (isLessThan24h) {
             noteText = `🚨 *KONTUZ - 24H BAINO GUTXIAGOKO EZEZTAPEN KARGUA!*\n` +
                        `Zerbitzurako 24 ordu baino gutxiago falta dira (${hoursFormatted}h). Jatetxearen politikaren arabera, ezeztapen honek *45 €-ko kargua du mahaikide bakoitzeko* (Guztira: ${comensales} × 45 € = *${totalFee} €*). Ezeztapenak harrerako taldearen eskuzko berrespena behar du.`;
         } else {
@@ -2580,7 +2608,10 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                `❌ *Eskaera:* ERRESERBA EZEZTATZEA\n` +
                `${noteText}`;
     } else if (lang === 'en') {
-        if (isLessThan24h) {
+        if (isPendingRes) {
+            noteText = `⚡ *DIRECT CANCELLATION (UNCONFIRMED RESERVATION)*\n` +
+                       `Since this reservation is pending confirmation, clicking "Yes, send" will cancel it immediately. No restaurant review required.`;
+        } else if (isLessThan24h) {
             noteText = `🚨 *ATTENTION - CANCELLATION FEE APPLIES (LESS THAN 24H)!*\n` +
                        `There are less than 24 hours remaining until service (${hoursFormatted}h). According to restaurant policy, this cancellation incurs a fee of *€45 per guest* (Total: ${comensales} × €45 = *€${totalFee}*). Requires manual confirmation from management.`;
         } else {
@@ -2597,7 +2628,10 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                `❌ *Request:* RESERVATION CANCELLATION\n` +
                `${noteText}`;
     } else if (lang === 'fr') {
-        if (isLessThan24h) {
+        if (isPendingRes) {
+            noteText = `⚡ *ANNULATION DIRECTE (RÉSERVATION NON CONFIRMÉE)*\n` +
+                       `Cette réservation étant en attente de confirmation, cliquer sur "Oui, envoyer" l'annulera immédiatement sans validation du restaurant.`;
+        } else if (isLessThan24h) {
             noteText = `🚨 *ATTENTION - FRAIS D'ANNULATION EN MOINS DE 24H !*\n` +
                        `Il reste moins de 24 heures avant le service (${hoursFormatted}h). Selon la politique du restaurant, cette annulation entraîne des frais de *45 € par couvert* (Total : ${comensales} × 45 € = *${totalFee} €*). Nécessite une confirmation manuelle de l'équipe.`;
         } else {
@@ -2614,7 +2648,10 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                `❌ *Demande:* ANNULATION DE RÉSERVATION\n` +
                `${noteText}`;
     } else {
-        if (isLessThan24h) {
+        if (isPendingRes) {
+            noteText = `⚡ *CANCELACIÓN DIRECTA E INMEDIATA (RESERVA PENDIENTE DE CONFIRMACIÓN)*\n` +
+                       `Al estar la reserva pendiente de confirmación, al pulsar "Sí, enviar" la reserva quedará cancelada de forma inmediata en el sistema sin requerir confirmación manual del restaurante.`;
+        } else if (isLessThan24h) {
             noteText = `🚨 *¡ATENCIÓN - CARGO POR CANCELACIÓN EN MENOS DE 24H!*\n` +
                        `Faltan menos de 24 horas para el día del servicio (${hoursFormatted}h). Según la política del restaurante, esta cancelación conlleva un cargo de *45 € por comensal* (Total: ${comensales} × 45 € = *${totalFee} €*). La cancelación requiere confirmación manual por parte del equipo de recepción.`;
         } else {
@@ -2741,6 +2778,7 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
     await requestUserConfirmation(from, lang, {
         tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
         reservationId: reservaFound.id,
+        initialStatus: reservaFound.estado,
         isCancellation: true,
         detalleMod: detalleCancelacion,
         nombreCliente: reservaFound.nombre,

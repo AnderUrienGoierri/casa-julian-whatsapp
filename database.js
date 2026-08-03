@@ -671,24 +671,27 @@ function cancelReservation(id) {
     return null;
 }
 
-function updateReservationStatus(id, nuevoEstado) {
+async function updateReservationStatus(id, nuevoEstado) {
     const db = loadDb();
     const index = db.reservas.findIndex(r => r.id === id);
 
     if (index !== -1) {
         db.reservas[index].estado = nuevoEstado;
         saveDb(db);
+    }
 
-        if (pool) {
-            pool.query(
+    if (pool) {
+        try {
+            await pool.query(
                 `UPDATE reservas SET estado = $1 WHERE id = $2`,
                 [nuevoEstado, id]
-            ).catch(err => console.error("❌ Error PostgreSQL UPDATE estado reserva:", err.message));
+            );
+        } catch (err) {
+            console.error("❌ Error PostgreSQL UPDATE estado reserva:", err.message);
         }
-
-        return db.reservas[index];
     }
-    return null;
+
+    return index !== -1 ? db.reservas[index] : null;
 }
 
 function normalizePhone(phone) {
