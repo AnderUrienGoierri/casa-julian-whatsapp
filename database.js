@@ -752,7 +752,8 @@ function findActiveReservation(queryText, fromNumber) {
         // Nota: teléfono explícito, DNI o email son verificadores fuertes por sí solos.
         // Nombre solo requiere un segundo factor.
 
-        const isModifiable = res.estado === 'CONFIRMADA';
+        const validStatuses = ['CONFIRMADA', 'CONFIRMADO', 'PENDIENTE CONFIRMACION', 'PENDIENTE CONFIRMACIÓN', 'PENDIENTE CONFIRMAR', 'PENDIENTE'];
+        const isModifiable = validStatuses.includes((res.estado || '').trim().toUpperCase());
 
         return {
             reservation: res,
@@ -765,7 +766,8 @@ function findActiveReservation(queryText, fromNumber) {
 
     const pickBestMatch = (candidates) => {
         if (!candidates || candidates.length === 0) return null;
-        const active = candidates.find(r => r.estado === 'CONFIRMADA');
+        const validStatuses = ['CONFIRMADA', 'CONFIRMADO', 'PENDIENTE CONFIRMACION', 'PENDIENTE CONFIRMACIÓN', 'PENDIENTE CONFIRMAR', 'PENDIENTE'];
+        const active = candidates.find(r => validStatuses.includes((r.estado || '').trim().toUpperCase()));
         return active || candidates[0];
     };
 
@@ -909,12 +911,13 @@ function findReservationByNameAndPhone(telefono, nombre) {
 
     if (candidates.length === 0) return null;
 
-    const active = candidates.find(r => r.estado === 'CONFIRMADA') || candidates[0];
+    const validStatuses = ['CONFIRMADA', 'CONFIRMADO', 'PENDIENTE CONFIRMACION', 'PENDIENTE CONFIRMACIÓN', 'PENDIENTE CONFIRMAR', 'PENDIENTE'];
+    const active = candidates.find(r => validStatuses.includes((r.estado || '').trim().toUpperCase())) || candidates[0];
 
     return {
         reservation: active,
         verified: true,
-        isModifiable: active.estado === 'CONFIRMADA',
+        isModifiable: validStatuses.includes((active.estado || '').trim().toUpperCase()),
         statusReason: active.estado
     };
 }
