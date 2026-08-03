@@ -138,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderMenuTable();
                 renderFaqsList();
                 renderCustomRulesTable();
+                renderDraftChangesTable();
                 updateLiveSimulator('welcomeMessage');
             }
         } catch (err) {
@@ -231,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = '';
         
-        // Unir llaves estáticas y llaves dinámicas
         const allKeys = [...new Set([...Object.keys(langTexts), ...Object.keys(dynamicLangTexts)])];
 
         allKeys.forEach(key => {
@@ -359,6 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success) {
                 if (!currentStructure.disabledKeys) currentStructure.disabledKeys = {};
                 currentStructure.disabledKeys[key] = isDisabled;
+                
+                // Recargar estructura para actualizar borrador
+                await reloadStructureData();
                 renderTextsGrid();
                 renderUseCasesFlow();
             } else {
@@ -385,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentStructure.dynamicTexts && currentStructure.dynamicTexts[currentLang]) {
                     delete currentStructure.dynamicTexts[currentLang][key];
                 }
+                await reloadStructureData();
                 renderTextsGrid();
             } else {
                 alert(`Error al eliminar: ${data.error}`);
@@ -446,6 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentStructure.dynamicTexts[currentLang] = {};
                 }
                 currentStructure.dynamicTexts[currentLang][key] = text;
+                await reloadStructureData();
                 alert(`✅ Guardado correctamente para [${currentLang.toUpperCase()}]: ${key}`);
             } else {
                 alert(`❌ Error guardando texto: ${data.error}`);
@@ -511,8 +516,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
                 if (data.success) {
                     currentStructure.menuItems = items;
-                    alert('✅ Carta y precios guardados correctamente. Ficha "Ver carta" actualizada de inmediato.');
-                    initDashboard();
+                    await reloadStructureData();
+                    alert('✅ Carta y precios guardados correctamente.');
                 } else {
                     alert(`❌ Error al guardar carta: ${data.error}`);
                 }
@@ -639,14 +644,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const data = await res.json();
                 if (data.success && data.rule) {
-                    if (!currentStructure.customRules) currentStructure.customRules = [];
-                    const idx = currentStructure.customRules.findIndex(r => r.id === data.rule.id);
-                    if (idx >= 0) currentStructure.customRules[idx] = data.rule;
-                    else currentStructure.customRules.push(data.rule);
-
                     ruleIdInput.value = '';
                     ruleKeywordInput.value = '';
                     ruleResponseInput.value = '';
+                    await reloadStructureData();
                     renderCustomRulesTable();
                     alert(`✅ Regla automática guardada para la palabra clave "${keyword}".`);
                 } else {
@@ -670,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await res.json();
             if (data.success) {
-                currentStructure.customRules = (currentStructure.customRules || []).filter(r => r.id !== id);
+                await reloadStructureData();
                 renderCustomRulesTable();
             } else {
                 alert(`Error al eliminar regla: ${data.error}`);
@@ -680,7 +681,154 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 6. PREVISUALIZACIÓN ESTÁTICA WHATSAPP
+    // 6. RENDERIZAR TABLA DE CAMBIOS EN BORRADOR & PUBLICACIÓN A PRODUCCIÓN (TAB 6)
+    function renderDraftChangesTable() {
+        const draftBody = document.getElementById('draft-changes-body');
+        const draftBadge = document.getElementById('draft-count-badge');
+        const pendingCountEl = document.getElementById('pending-changes-count');
+        const lastPublishDateEl = document.getElementById('last-publish-date');
+        
+        if (!currentStructure) return;
+
+        const drafts = currentStructure.draftChanges || [];
+        
+        if (draftBadge) {
+            if (drafts.length > 0) {
+                draftBadge.textContent = drafts.length;
+                draftBadge.style.display = 'inline-block';
+            } else {
+                draftBadge.style.display = 'none';
+            }
+        }
+
+        if (pendingCountEl) pendingCountEl.textContent = drafts.length;
+
+        if (lastPublishDateEl && currentStructure.lastPublishTimestamp) {
+            const d = new Date(currentStructure.lastPublishTimestamp);
+            lastPublishDateEl.textContent = d.toLocaleString();
+        }
+
+        if (!draftBody) return;
+        draftBody.innerHTML = '';
+
+        if (drafts.length === 0) {
+            draftBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align:center; color:var(--text-muted); padding:20px;">
+                        ✅ No hay modificaciones pendientes en el borrador. Todos los cambios están publicados en producción.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        drafts.forEach((draft, idx) => {
+            const tr = document.createElement('tr');
+            const dateStr = draft.createdAt ? new Date(draft.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
+            
+            tr.innerHTML = `
+                <td style="font-weight:600; color:var(--text-muted);">${idx + 1}</td>
+                <td><span class="status-badge badge-on" style="background:rgba(59, 130, 246, 0.2); color:#60a5fa; border:1px solid rgba(59, 130, 246, 0.4);">${draft.changeType}</span></td>
+                <td style="font-weight:600; color:var(--accent-gold); font-family:monospace;">${draft.sequenceLocation}</td>
+                <td style="font-size:0.85rem; color:#e9edef;">${draft.details}</td>
+                <td style="font-size:0.8rem; color:var(--text-muted);">${dateStr}</td>
+                <td>
+                    <button class="btn-danger btn-discard-single" data-id="${draft.id}" style="padding:4px 8px; font-size:0.75rem;">🗑️ Descartar</button>
+                </td>
+            `;
+
+            tr.querySelector('.btn-discard-single').addEventListener('click', async () => {
+                await discardDraft(draft.id);
+            });
+
+            draftBody.appendChild(tr);
+        });
+    }
+
+    // BOTÓN: SUBIR A PRODUCCIÓN
+    const publishBtn = document.getElementById('publish-to-prod-btn');
+    if (publishBtn) {
+        publishBtn.addEventListener('click', async () => {
+            const drafts = currentStructure ? (currentStructure.draftChanges || []) : [];
+            const count = drafts.length;
+
+            const confirmMsg = count > 0
+                ? `🚀 ¿Confirmas SUBIR ${count} MODIFICACIONES A PRODUCCIÓN?\n\nLos usuarios reales de WhatsApp en vivo comenzarán a interactuar con los nuevos textos y reglas de inmediato.`
+                : `🚀 ¿Deseas verificar la versión de producción actual?\n\nNo hay cambios pendientes en borrador.`;
+
+            if (confirm(confirmMsg)) {
+                try {
+                    const res = await fetch('/api/admin/publish', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-token': adminToken
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        if (currentStructure) {
+                            currentStructure.draftChanges = [];
+                            currentStructure.lastPublishTimestamp = data.timestamp;
+                        }
+                        renderDraftChangesTable();
+                        renderUseCasesFlow();
+                        alert(`🎉 ${data.message}`);
+                    } else {
+                        alert(`❌ Error al subir a producción: ${data.error}`);
+                    }
+                } catch (err) {
+                    alert('❌ Error de conexión al subir a producción.');
+                }
+            }
+        });
+    }
+
+    // BOTÓN: DESCARTAR TODOS LOS CAMBIOS
+    const discardAllBtn = document.getElementById('discard-all-drafts-btn');
+    if (discardAllBtn) {
+        discardAllBtn.addEventListener('click', async () => {
+            if (confirm('⚠️ ¿Estás seguro de descartar TODOS los cambios pendientes del borrador? Esta acción restablecerá el estado.')) {
+                await discardDraft(null, true);
+            }
+        });
+    }
+
+    async function discardDraft(draftId, all = false) {
+        try {
+            const res = await fetch('/api/admin/discard-draft', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': adminToken
+                },
+                body: JSON.stringify({ draftId, all })
+            });
+            const data = await res.json();
+            if (data.success) {
+                await reloadStructureData();
+            }
+        } catch (err) {
+            console.error('Error descartando borrador:', err);
+        }
+    }
+
+    async function reloadStructureData() {
+        try {
+            const res = await fetch('/api/admin/structure', {
+                headers: { 'x-admin-token': adminToken }
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentStructure = data;
+                renderDraftChangesTable();
+            }
+        } catch (e) {
+            console.error('Error recargando estructura:', e);
+        }
+    }
+
+    // 7. PREVISUALIZACIÓN ESTÁTICA WHATSAPP
     function updateLiveSimulator(key, customText = null) {
         if (isTestMode) return;
 
@@ -737,7 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 7. MODALIDAD TEST INTERACTIVO EN VIVO
+    // 8. MODALIDAD TEST INTERACTIVO EN VIVO
     if (btnStartTest) {
         btnStartTest.addEventListener('click', () => {
             startInteractiveTest();

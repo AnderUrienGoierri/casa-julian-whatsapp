@@ -85,6 +85,15 @@ if (process.env.DATABASE_URL) {
             is_active BOOLEAN DEFAULT TRUE,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS bot_draft_changes (
+            id VARCHAR(100) PRIMARY KEY,
+            change_type VARCHAR(50) NOT NULL,
+            sequence_location VARCHAR(100) NOT NULL,
+            details TEXT NOT NULL,
+            payload JSONB NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
     `).then(() => {
         // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar
         return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas ORDER BY id DESC");
@@ -1459,6 +1468,79 @@ async function deleteCustomRule(ruleId) {
     return true;
 }
 
+function getDraftChanges() {
+    const db = loadDb();
+    return db.draftChanges || [];
+}
+
+async function addDraftChange(changeObj) {
+    const db = loadDb();
+    if (!db.draftChanges) db.draftChanges = [];
+    
+    const draftId = 'draft_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    const newChange = {
+        id: draftId,
+        changeType: changeObj.changeType || 'Edición de Texto',
+        sequenceLocation: changeObj.sequenceLocation || 'General',
+        details: changeObj.details || 'Cambio sin descripción',
+        payload: changeObj.payload || {},
+        createdAt: new Date().toISOString()
+    };
+
+    db.draftChanges.unshift(newChange);
+    saveDb(db);
+
+    if (pool) {
+        try {
+            await pool.query(
+                `INSERT INTO bot_draft_changes (id, change_type, sequence_location, details, payload, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [newChange.id, newChange.changeType, newChange.sequenceLocation, newChange.details, JSON.stringify(newChange.payload), newChange.createdAt]
+            );
+        } catch (err) {
+            console.error("❌ Error PostgreSQL addDraftChange:", err.message);
+        }
+    }
+    return newChange;
+}
+
+async function discardDraftChange(draftId) {
+    const db = loadDb();
+    if (db.draftChanges) {
+        db.draftChanges = db.draftChanges.filter(d => d.id !== draftId);
+        saveDb(db);
+    }
+    if (pool) {
+        try {
+            await pool.query('DELETE FROM bot_draft_changes WHERE id = $1', [draftId]);
+        } catch (err) {
+            console.error("❌ Error PostgreSQL discardDraftChange:", err.message);
+        }
+    }
+    return true;
+}
+
+async function clearAllDraftChanges() {
+    const db = loadDb();
+    db.draftChanges = [];
+    db.lastPublishTimestamp = new Date().toISOString();
+    saveDb(db);
+
+    if (pool) {
+        try {
+            await pool.query('DELETE FROM bot_draft_changes');
+        } catch (err) {
+            console.error("❌ Error PostgreSQL clearAllDraftChanges:", err.message);
+        }
+    }
+    return true;
+}
+
+function getLastPublishTimestamp() {
+    const db = loadDb();
+    return db.lastPublishTimestamp || null;
+}
+
 module.exports = {
     checkAvailability,
     getAvailableTimeSlotsForDate,
@@ -1498,6 +1580,11 @@ module.exports = {
     getCustomRules,
     saveCustomRule,
     deleteCustomRule,
+    getDraftChanges,
+    addDraftChange,
+    discardDraftChange,
+    clearAllDraftChanges,
+    getLastPublishTimestamp,
     SHIFT_CAPACITIES,
     SCHEDULE_BY_DAY
 };

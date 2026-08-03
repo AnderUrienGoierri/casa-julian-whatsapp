@@ -235,9 +235,11 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             }
         ];
 
-        const { getDisabledKeys, getCustomRules } = require('./database');
+        const { getDisabledKeys, getCustomRules, getDraftChanges, getLastPublishTimestamp } = require('./database');
         const disabledKeys = getDisabledKeys();
         const customRules = getCustomRules();
+        const draftChanges = getDraftChanges();
+        const lastPublishTimestamp = getLastPublishTimestamp();
 
         return res.json({
             success: true,
@@ -249,7 +251,9 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             dynamicTexts,
             menuItems,
             disabledKeys,
-            customRules
+            customRules,
+            draftChanges,
+            lastPublishTimestamp
         });
     } catch (e) {
         return res.status(500).json({ error: e.message });
@@ -263,7 +267,16 @@ router.post('/update-text', requireAdminAuth, async (req, res) => {
         return res.status(400).json({ error: 'Parámetros lang, key y text requeridos.' });
     }
     try {
+        const { saveDynamicText, addDraftChange } = require('./database');
         await saveDynamicText(lang, key, text, category || 'general');
+
+        await addDraftChange({
+            changeType: 'Edición de Texto',
+            sequenceLocation: `Clave: ${key} [${lang.toUpperCase()}]`,
+            details: `Modificado texto de la clave "${key}" (${text.length} caracteres).`,
+            payload: { type: 'text', lang, key, text }
+        });
+
         return res.json({ success: true, lang, key, text });
     } catch (e) {
         return res.status(500).json({ error: e.message });
@@ -277,6 +290,7 @@ router.post('/update-menu', requireAdminAuth, async (req, res) => {
         return res.status(400).json({ error: 'El parámetro items debe ser una lista de platos.' });
     }
     try {
+        const { saveMenuItems, saveDynamicText, addDraftChange } = require('./database');
         await saveMenuItems(items);
 
         // Regenerar automáticamente el texto de la carta en faq12Msg (Ver carta) para español
@@ -292,6 +306,13 @@ router.post('/update-menu', requireAdminAuth, async (req, res) => {
         });
 
         await saveDynamicText('es', 'faq12Msg', cartaTxt.trim(), 'carta');
+
+        await addDraftChange({
+            changeType: 'Carta & Precios',
+            sequenceLocation: 'Paso 5 / Carta',
+            details: `Modificados precios y platos de la carta (${items.length} platos en total).`,
+            payload: { type: 'menu', count: items.length }
+        });
 
         return res.json({ success: true, items, generatedCartaText: cartaTxt });
     } catch (e) {
@@ -339,8 +360,16 @@ router.post('/toggle-key-status', requireAdminAuth, async (req, res) => {
     const { key, isDisabled } = req.body || {};
     if (!key) return res.status(400).json({ error: 'Parámetro key requerido.' });
     try {
-        const { toggleDisabledKey } = require('./database');
+        const { toggleDisabledKey, addDraftChange } = require('./database');
         const disabledKeys = await toggleDisabledKey(key, isDisabled);
+
+        await addDraftChange({
+            changeType: isDisabled ? 'Silenciar Mensaje' : 'Activar Mensaje',
+            sequenceLocation: `Clave: ${key}`,
+            details: isDisabled ? `Ocultado/Silenciado mensaje de la clave "${key}".` : `Activado mensaje de la clave "${key}".`,
+            payload: { type: 'toggle', key, isDisabled }
+        });
+
         return res.json({ success: true, key, isDisabled, disabledKeys });
     } catch (e) {
         return res.status(500).json({ error: e.message });
@@ -352,8 +381,16 @@ router.post('/delete-custom-key', requireAdminAuth, async (req, res) => {
     const { lang, key } = req.body || {};
     if (!lang || !key) return res.status(400).json({ error: 'Parámetros lang y key requeridos.' });
     try {
-        const { deleteCustomTextKey } = require('./database');
+        const { deleteCustomTextKey, addDraftChange } = require('./database');
         await deleteCustomTextKey(lang, key);
+
+        await addDraftChange({
+            changeType: 'Eliminar Clave',
+            sequenceLocation: `Clave: ${key} [${lang.toUpperCase()}]`,
+            details: `Eliminada clave personalizada "${key}".`,
+            payload: { type: 'delete', key }
+        });
+
         return res.json({ success: true, lang, key });
     } catch (e) {
         return res.status(500).json({ error: e.message });
@@ -367,8 +404,16 @@ router.post('/update-custom-rule', requireAdminAuth, async (req, res) => {
         return res.status(400).json({ error: 'Parámetros keyword y responseText requeridos.' });
     }
     try {
-        const { saveCustomRule } = require('./database');
+        const { saveCustomRule, addDraftChange } = require('./database');
         const rule = await saveCustomRule({ id, keyword, responseText, category, isActive });
+
+        await addDraftChange({
+            changeType: 'Regla por Palabra Clave',
+            sequenceLocation: `Palabra Clave: "${keyword}"`,
+            details: `Configurada respuesta automática para cuando el cliente escriba "${keyword}".`,
+            payload: { type: 'rule', keyword }
+        });
+
         return res.json({ success: true, rule });
     } catch (e) {
         return res.status(500).json({ error: e.message });
@@ -380,9 +425,49 @@ router.post('/delete-custom-rule', requireAdminAuth, async (req, res) => {
     const { id } = req.body || {};
     if (!id) return res.status(400).json({ error: 'Parámetro id requerido.' });
     try {
-        const { deleteCustomRule } = require('./database');
+        const { deleteCustomRule, addDraftChange } = require('./database');
         await deleteCustomRule(id);
+
+        await addDraftChange({
+            changeType: 'Eliminar Regla Palabra Clave',
+            sequenceLocation: `ID Regla: ${id}`,
+            details: `Eliminada regla por palabra clave ID "${id}".`,
+            payload: { type: 'delete_rule', id }
+        });
+
         return res.json({ success: true, id });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 10. Descartar cambios borrador
+router.post('/discard-draft', requireAdminAuth, async (req, res) => {
+    const { draftId, all } = req.body || {};
+    try {
+        const { discardDraftChange, clearAllDraftChanges } = require('./database');
+        if (all) {
+            await clearAllDraftChanges();
+        } else if (draftId) {
+            await discardDraftChange(draftId);
+        }
+        return res.json({ success: true });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 11. SUBIR A PRODUCCIÓN (Publicar todos los cambios borrador)
+router.post('/publish', requireAdminAuth, async (req, res) => {
+    try {
+        const { clearAllDraftChanges } = require('./database');
+        await clearAllDraftChanges();
+        const publishTimestamp = new Date().toISOString();
+        return res.json({
+            success: true,
+            timestamp: publishTimestamp,
+            message: '¡Cambios subidos a producción correctamente! El chatbot en vivo en WhatsApp reflejará las modificaciones de inmediato.'
+        });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
