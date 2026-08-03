@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 currentStructure = data;
-                renderFlowTree();
+                renderUseCasesFlow();
                 renderTextsGrid();
                 renderMenuTable();
                 renderFaqsList();
@@ -117,54 +117,88 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 1. RENDERIZAR ÁRBOL DE FLUJOS (TAB 1)
-    function renderFlowTree() {
+    // 1. RENDERIZAR CASOS DE USO Y FLUJO SECUENCIAL (TAB 1)
+    function renderUseCasesFlow() {
         const container = document.getElementById('flow-tree-container');
         if (!container || !currentStructure) return;
 
         container.innerHTML = '';
-        currentStructure.flowTree.forEach(node => {
+        const useCases = currentStructure.useCases || [];
+
+        useCases.forEach(uc => {
             const nodeDiv = document.createElement('div');
             nodeDiv.className = 'flow-node';
-            nodeDiv.innerHTML = `
-                <div>
-                    <div class="flow-node-title">${node.title}</div>
-                    <div class="flow-node-desc">${node.description}</div>
-                </div>
-                <div class="flow-badge">Clave: ${node.messageKey || 'Sistema'}</div>
-            `;
-            nodeDiv.addEventListener('click', () => {
-                // Cambiar a pestaña de textos y filtrar por la clave
-                document.querySelector('[data-tab="tab-texts"]').click();
-                if (node.messageKey) {
-                    updateLiveSimulator(node.messageKey);
-                }
+            nodeDiv.style.flexDirection = 'column';
+            nodeDiv.style.alignItems = 'flex-start';
+            nodeDiv.style.gap = '8px';
+
+            let keysBadges = '';
+            uc.keys.forEach(k => {
+                keysBadges += `<span class="key-jump-badge" data-key="${k}" style="cursor:pointer; background:rgba(217, 119, 6, 0.2); color:#d97706; padding:2px 8px; border-radius:4px; font-size:0.75rem; font-family:monospace; margin-right:4px;">${k}</span>`;
             });
+
+            nodeDiv.innerHTML = `
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                    <div class="flow-node-title" style="color:var(--accent-gold); font-weight:700;">
+                        <span class="flow-badge" style="background:var(--accent-gold); color:#fff; font-weight:bold; margin-right:8px;">Paso ${uc.order}</span>
+                        ${uc.title}
+                    </div>
+                </div>
+                <div style="font-size:0.85rem; color:#e9edef; background:#181b22; padding:8px 12px; border-radius:6px; width:100%; border-left:3px solid var(--accent-blue);">
+                    🤖 <strong>Acción del Chatbot:</strong> ${uc.botAction}
+                </div>
+                <div style="font-size:0.85rem; color:#e9edef; background:#181b22; padding:8px 12px; border-radius:6px; width:100%; border-left:3px solid var(--accent-green);">
+                    👤 <strong>Respuesta Esperada del Cliente / Interacción:</strong> ${uc.expectedCustomerInput}
+                </div>
+                <div style="margin-top:4px;">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Mensajes configurables:</span> ${keysBadges}
+                </div>
+            `;
+
+            nodeDiv.querySelectorAll('.key-jump-badge').forEach(badge => {
+                badge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const targetKey = badge.getAttribute('data-key');
+                    document.querySelector('[data-tab="tab-texts"]').click();
+                    const targetCard = document.getElementById(`text-card-${targetKey}`);
+                    if (targetCard) {
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        targetCard.style.border = '2px solid var(--accent-gold)';
+                        setTimeout(() => targetCard.style.border = '1px solid var(--border-color)', 2500);
+                        updateLiveSimulator(targetKey);
+                    }
+                });
+            });
+
             container.appendChild(nodeDiv);
         });
     }
 
-    // 2. RENDERIZAR GRID DE TEXTOS (TAB 2)
+    // 2. RENDERIZAR GRID DE TEXTOS Y FILTRAR POR CATEGORÍA (TAB 2)
     function renderTextsGrid() {
         const container = document.getElementById('texts-list-container');
         if (!container || !currentStructure) return;
 
         const langTexts = currentStructure.staticTranslations[currentLang] || {};
         const dynamicLangTexts = (currentStructure.dynamicTexts && currentStructure.dynamicTexts[currentLang]) || {};
+        const categoryMap = currentStructure.categoryMap || {};
 
         container.innerHTML = '';
         
         Object.keys(langTexts).forEach(key => {
             const staticVal = langTexts[key];
             const currentVal = dynamicLangTexts[key] !== undefined ? dynamicLangTexts[key] : staticVal;
+            const category = categoryMap[key] || 'main';
 
             const card = document.createElement('div');
             card.className = 'text-card';
             card.id = `text-card-${key}`;
+            card.setAttribute('data-category', category);
 
             card.innerHTML = `
                 <div class="text-card-header">
                     <span class="key-title">${key}</span>
+                    <span class="flow-badge">${category.toUpperCase()}</span>
                 </div>
                 <textarea data-key="${key}">${currentVal}</textarea>
                 <div class="text-card-footer">
@@ -190,26 +224,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
             container.appendChild(card);
         });
+
+        filterTexts();
     }
 
-    // BUSCADOR Y FILTROS DE TEXTO
-    const searchInput = document.getElementById('search-text-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            document.querySelectorAll('.text-card').forEach(card => {
-                const key = card.id.replace('text-card-', '').toLowerCase();
-                const txt = card.querySelector('textarea').value.toLowerCase();
-                if (key.includes(query) || txt.includes(query)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+    // FILTRO DE CATEGORÍAS (Filtros Menú Principal, Reservas, Menú Tradición, FAQs)
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentCategoryFilter = chip.getAttribute('data-cat');
+            filterTexts();
+        });
+    });
+
+    function filterTexts() {
+        const query = (document.getElementById('search-text-input')?.value || '').toLowerCase();
+        
+        document.querySelectorAll('.text-card').forEach(card => {
+            const key = card.id.replace('text-card-', '').toLowerCase();
+            const txt = card.querySelector('textarea').value.toLowerCase();
+            const cardCat = card.getAttribute('data-category');
+
+            const matchesCategory = (currentCategoryFilter === 'all' || cardCat === currentCategoryFilter);
+            const matchesSearch = (key.includes(query) || txt.includes(query));
+
+            if (matchesCategory && matchesSearch) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
         });
     }
 
-    // GUARDAR TEXTO EN SERVIDORES
+    const searchInput = document.getElementById('search-text-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTexts);
+    }
+
+    // GUARDAR TEXTO EN SERVIDOR
     async function saveText(key, text) {
         try {
             const res = await fetch('/api/admin/update-text', {
@@ -338,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. RENDERIZAR PREGUNTAS FRECUENTES (TAB 4)
+    // 4. RENDERIZAR PREGUNTAS FRECUENTES CORREGIDAS (TAB 4)
     function renderFaqsList() {
         const container = document.getElementById('faqs-list-container');
         if (!container || !currentStructure) return;
@@ -348,25 +401,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = '';
 
-        for (let i = 1; i <= 10; i++) {
-            const titleKey = i === 1 ? 'faq12Title' : (i === 2 ? 'faq1Title' : (i === 3 ? 'faq2Title' : `faq${i-1}Title`));
-            const msgKey = i === 1 ? 'faq12Msg' : (i === 2 ? 'faq1Msg' : (i === 3 ? 'faq2Msg' : `faq${i-1}Msg`));
+        // Mapeo exacto de las 10 FAQs en el orden real de Casa Julián
+        const faqListDef = [
+            { num: 1, titleKey: 'faq12Title', descKey: 'faq12Desc', msgKey: 'faq12Msg' },
+            { num: 2, titleKey: 'faq1Title', descKey: 'faq1Desc', msgKey: 'faq1Msg' },
+            { num: 3, titleKey: 'faq2Title', descKey: 'faq2Desc', msgKey: 'faq2Msg' },
+            { num: 4, titleKey: 'faq3Title', descKey: 'faq3Desc', msgKey: 'faq3Msg' },
+            { num: 5, titleKey: 'faq4Title', descKey: 'faq4Desc', msgKey: 'faq4Msg' },
+            { num: 6, titleKey: 'faq5Title', descKey: 'faq5Desc', msgKey: 'faq5Msg' },
+            { num: 7, titleKey: 'faq6Title', descKey: 'faq6Desc', msgKey: 'faq6Msg' },
+            { num: 8, titleKey: 'faq7Title', descKey: 'faq7Desc', msgKey: 'faq7Msg' },
+            { num: 9, titleKey: 'faq8Title', descKey: 'faq8Desc', msgKey: 'faq8Msg' },
+            { num: 10, titleKey: 'faq9Title', descKey: 'faq9Desc', msgKey: 'faq9Msg' }
+        ];
 
-            const titleVal = dynamicLangTexts[titleKey] || langTexts[titleKey] || `Opción ${i}`;
-            const msgVal = dynamicLangTexts[msgKey] || langTexts[msgKey] || '';
+        faqListDef.forEach(faqItem => {
+            const titleVal = dynamicLangTexts[faqItem.titleKey] || langTexts[faqItem.titleKey] || `Opción ${faqItem.num}`;
+            const msgVal = dynamicLangTexts[faqItem.msgKey] || langTexts[faqItem.msgKey] || '';
 
             const card = document.createElement('div');
             card.className = 'text-card';
             card.innerHTML = `
                 <div class="text-card-header">
-                    <span class="key-title">FAQ ${i}: ${titleVal}</span>
+                    <span class="key-title">FAQ ${faqItem.num}: ${titleVal}</span>
                 </div>
                 <label style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px;">Título de opción:</label>
                 <input type="text" value="${titleVal}" class="faq-title-input" style="margin-bottom:12px;">
                 <label style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px;">Mensaje de respuesta:</label>
-                <textarea class="faq-msg-input" style="height:100px;">${msgVal}</textarea>
+                <textarea class="faq-msg-input" style="height:110px;">${msgVal}</textarea>
                 <div class="text-card-footer" style="margin-top:10px;">
-                    <button class="btn-primary btn-save-faq" data-title-key="${titleKey}" data-msg-key="${msgKey}">💾 Guardar FAQ ${i}</button>
+                    <button class="btn-primary btn-save-faq">💾 Guardar FAQ ${faqItem.num}</button>
                 </div>
             `;
 
@@ -374,12 +438,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newTitle = card.querySelector('.faq-title-input').value;
                 const newMsg = card.querySelector('.faq-msg-input').value;
 
-                await saveText(titleKey, newTitle);
-                await saveText(msgKey, newMsg);
+                await saveText(faqItem.titleKey, newTitle);
+                await saveText(faqItem.msgKey, newMsg);
             });
 
             container.appendChild(card);
-        }
+        });
     }
 
     // 5. SIMULADOR EN TIEMPO REAL WHATSAPP
@@ -406,7 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const alerts = [];
 
-        // Si la clave tiene botones o lista interactiva asociada
         if (key === 'welcomeMessage') {
             simListTrigger.style.display = 'block';
             document.getElementById('sim-list-btn-text').textContent = '🌐 Seleccionar Idioma';
