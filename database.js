@@ -92,6 +92,39 @@ if (process.env.DATABASE_URL) {
     console.log("🗄️ Modo Base de Datos: Almacenamiento Local (db.json).");
 }
 
+const defaultData = {
+    capacidadMaximaPorTurno: 20,
+    reservas: [],
+    listaEspera: [],
+    tarjetasRegalo: [
+        { id: 'TR-001', codigo: 'MT-2026-001', comprador_nombre: 'Juan Pérez', comprador_telefono: '+34600112233', fecha_compra: '01/01/2026', fecha_caducidad: '31/12/2026', estado: 'ACTIVA' },
+        { id: 'TR-002', codigo: 'MT-2026-002', comprador_nombre: 'María López', comprador_telefono: '+34611223344', fecha_compra: '15/02/2026', fecha_caducidad: '15/10/2026', estado: 'ACTIVA' },
+        { id: 'TR-003', codigo: '12345', comprador_nombre: 'Cliente Prueba', comprador_telefono: '+34622334455', fecha_compra: '01/03/2026', fecha_caducidad: '30/11/2026', estado: 'ACTIVA' }
+    ]
+};
+
+function loadDb() {
+    try {
+        if (!fs.existsSync(DB_PATH)) {
+            saveDb(defaultData);
+            return defaultData;
+        }
+        const data = fs.readFileSync(DB_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error("Error al cargar la base de datos local:", error);
+        return defaultData;
+    }
+}
+
+function saveDb(data) {
+    try {
+        fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error("Error al guardar la base de datos local:", error);
+    }
+}
+
 function autoUpdateReservationStatuses() {
     const db = loadDb();
     if (!db.reservas || db.reservas.length === 0) return;
@@ -167,38 +200,6 @@ function autoUpdateReservationStatuses() {
 autoUpdateReservationStatuses();
 setInterval(autoUpdateReservationStatuses, 5 * 60 * 1000);
 
-const defaultData = {
-    capacidadMaximaPorTurno: 20,
-    reservas: [],
-    listaEspera: [],
-    tarjetasRegalo: [
-        { id: 'TR-001', codigo: 'MT-2026-001', comprador_nombre: 'Juan Pérez', comprador_telefono: '+34600112233', fecha_compra: '01/01/2026', fecha_caducidad: '31/12/2026', estado: 'ACTIVA' },
-        { id: 'TR-002', codigo: 'MT-2026-002', comprador_nombre: 'María López', comprador_telefono: '+34611223344', fecha_compra: '15/02/2026', fecha_caducidad: '15/10/2026', estado: 'ACTIVA' },
-        { id: 'TR-003', codigo: '12345', comprador_nombre: 'Cliente Prueba', comprador_telefono: '+34622334455', fecha_compra: '01/03/2026', fecha_caducidad: '30/11/2026', estado: 'ACTIVA' }
-    ]
-};
-
-function loadDb() {
-    try {
-        if (!fs.existsSync(DB_PATH)) {
-            saveDb(defaultData);
-            return defaultData;
-        }
-        const data = fs.readFileSync(DB_PATH, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error("Error al cargar la base de datos local:", error);
-        return defaultData;
-    }
-}
-
-function saveDb(data) {
-    try {
-        fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error("Error al guardar la base de datos local:", error);
-    }
-}
 
 // -------------------------------------------------------------
 // CONFIGURACIÓN DE HORARIOS Y CAPACIDADES SEGÚN REALIDAD CASA JULIAN
