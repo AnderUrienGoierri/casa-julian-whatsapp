@@ -52,6 +52,25 @@ if (process.env.DATABASE_URL) {
             fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+
+        CREATE TABLE IF NOT EXISTS bot_texts (
+            id SERIAL PRIMARY KEY,
+            lang VARCHAR(10) NOT NULL,
+            key_name VARCHAR(100) NOT NULL,
+            text_value TEXT NOT NULL,
+            category VARCHAR(50) DEFAULT 'general',
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(lang, key_name)
+        );
+
+        CREATE TABLE IF NOT EXISTS menu_items (
+            id SERIAL PRIMARY KEY,
+            category VARCHAR(100) NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            price NUMERIC(10,2) NOT NULL,
+            currency VARCHAR(20) DEFAULT '€',
+            sort_order INT DEFAULT 0
+        );
     `).then(() => {
         // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar
         return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas ORDER BY id DESC");
@@ -86,6 +105,34 @@ if (process.env.DATABASE_URL) {
             currentDb.tarjetasRegalo = resCards.rows;
             saveDb(currentDb);
             console.log(`✅ Sincronizadas ${resCards.rows.length} tarjetas de regalo desde PostgreSQL Neon.`);
+        }
+        return pool.query("SELECT lang, key_name, text_value FROM bot_texts");
+    }).then(resTexts => {
+        if (resTexts && resTexts.rows && resTexts.rows.length > 0) {
+            const currentDb = loadDb();
+            if (!currentDb.dynamicTexts) currentDb.dynamicTexts = {};
+            resTexts.rows.forEach(r => {
+                if (!currentDb.dynamicTexts[r.lang]) currentDb.dynamicTexts[r.lang] = {};
+                currentDb.dynamicTexts[r.lang][r.key_name] = r.text_value;
+            });
+            saveDb(currentDb);
+            cachedDynamicTexts = currentDb.dynamicTexts;
+            console.log(`✅ Sincronizados ${resTexts.rows.length} textos dinámicos desde PostgreSQL Neon.`);
+        }
+        return pool.query("SELECT id, category, name, price, currency, sort_order FROM menu_items ORDER BY sort_order ASC");
+    }).then(resMenu => {
+        if (resMenu && resMenu.rows && resMenu.rows.length > 0) {
+            const currentDb = loadDb();
+            currentDb.menuItems = resMenu.rows.map(r => ({
+                id: r.id,
+                category: r.category,
+                name: r.name,
+                price: parseFloat(r.price),
+                currency: r.currency || '€',
+                sort_order: r.sort_order
+            }));
+            saveDb(currentDb);
+            console.log(`✅ Sincronizados ${resMenu.rows.length} platos de carta desde PostgreSQL Neon.`);
         }
     }).catch(err => console.error("Error en inicialización/sincronización de PostgreSQL:", err.message));
 } else {
@@ -1216,6 +1263,86 @@ function createGiftCard(data) {
     return nuevaTarjeta;
 }
 
+// ----------------------------------------------------
+// DYNAMIC CMS & BOT TEXTS PERSISTENCE
+// ----------------------------------------------------
+let cachedDynamicTexts = null;
+
+function getDynamicTexts() {
+    if (!cachedDynamicTexts) {
+        const db = loadDb();
+        cachedDynamicTexts = db.dynamicTexts || {};
+    }
+    return cachedDynamicTexts;
+}
+
+async function saveDynamicText(lang, key_name, text_value, category = 'general') {
+    const db = loadDb();
+    if (!db.dynamicTexts) db.dynamicTexts = {};
+    if (!db.dynamicTexts[lang]) db.dynamicTexts[lang] = {};
+    db.dynamicTexts[lang][key_name] = text_value;
+    saveDb(db);
+    cachedDynamicTexts = db.dynamicTexts;
+
+    if (pool) {
+        try {
+            await pool.query(
+                `INSERT INTO bot_texts (lang, key_name, text_value, category, updated_at)
+                 VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+                 ON CONFLICT (lang, key_name) DO UPDATE SET text_value = EXCLUDED.text_value, updated_at = CURRENT_TIMESTAMP`,
+                [lang, key_name, text_value, category]
+            );
+        } catch (err) {
+            console.error("❌ Error PostgreSQL saveDynamicText:", err.message);
+        }
+    }
+    return true;
+}
+
+function getMenuItems() {
+    const db = loadDb();
+    if (!db.menuItems || db.menuItems.length === 0) {
+        db.menuItems = [
+            { id: 1, category: 'ENTRANTES Y CHARCUTERÍA', name: 'Jamón Ibérico', price: 32, currency: '€', sort_order: 1 },
+            { id: 2, category: 'ENTRANTES Y CHARCUTERÍA', name: 'Cecina', price: 36, currency: '€', sort_order: 2 },
+            { id: 3, category: 'ENTRANTES Y CHARCUTERÍA', name: 'Charcutería', price: 34, currency: '€', sort_order: 3 },
+            { id: 4, category: 'ENTRANTES Y CHARCUTERÍA', name: 'Txuleta Tartar', price: 32, currency: '€', sort_order: 4 },
+            { id: 5, category: 'VERDURAS Y ENTRANTES CALIENTES', name: 'Puerro', price: 18, currency: '€', sort_order: 5 },
+            { id: 6, category: 'VERDURAS Y ENTRANTES CALIENTES', name: 'Espárrago', price: 18, currency: '€', sort_order: 6 },
+            { id: 7, category: 'VERDURAS Y ENTRANTES CALIENTES', name: 'Pimientos del Piquillo', price: 18, currency: '€', sort_order: 7 },
+            { id: 8, category: 'VERDURAS Y ENTRANTES CALIENTES', name: 'Ensalada', price: 4, currency: '€', sort_order: 8 },
+            { id: 9, category: 'NUESTRA ESPECIALIDAD', name: 'Txuleta', price: 100, currency: '€ / kg', sort_order: 9 },
+            { id: 10, category: 'POSTRES', name: 'Flan', price: 9, currency: '€', sort_order: 10 },
+            { id: 11, category: 'POSTRES', name: 'Tarta de Queso', price: 10, currency: '€', sort_order: 11 },
+            { id: 12, category: 'POSTRES', name: 'Fresa', price: 8, currency: '€', sort_order: 12 }
+        ];
+        saveDb(db);
+    }
+    return db.menuItems;
+}
+
+async function saveMenuItems(items) {
+    const db = loadDb();
+    db.menuItems = items;
+    saveDb(db);
+
+    if (pool) {
+        try {
+            await pool.query('DELETE FROM menu_items');
+            for (const item of items) {
+                await pool.query(
+                    `INSERT INTO menu_items (id, category, name, price, currency, sort_order)
+                     VALUES ($1, $2, $3, $4, $5, $6)`,
+                    [item.id || null, item.category, item.name, item.price, item.currency || '€', item.sort_order || 0]
+                );
+            }
+        } catch (err) {
+            console.error("❌ Error PostgreSQL saveMenuItems:", err.message);
+        }
+    }
+    return db.menuItems;
+}
+
 module.exports = {
     checkAvailability,
     getAvailableTimeSlotsForDate,
@@ -1245,6 +1372,10 @@ module.exports = {
     getGiftCard,
     updateGiftCardStatus,
     createGiftCard,
+    getDynamicTexts,
+    saveDynamicText,
+    getMenuItems,
+    saveMenuItems,
     SHIFT_CAPACITIES,
     SCHEDULE_BY_DAY
 };

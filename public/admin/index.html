@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
+    <link rel="stylesheet" href="/admin/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-mode">
+
+    <!-- Pantalla de Login -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="login-box">
+            <div class="login-header">
+                <span class="restaurant-badge">🥩 Asador Casa Julián de Tolosa</span>
+                <h2>Panel de Administración Interno</h2>
+                <p>Acceso restringido para gestión del Chatbot de WhatsApp</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-password">Contraseña de Administrador:</label>
+                    <input type="password" id="admin-password" placeholder="Introduce la contraseña..." required autocomplete="current-password">
+                </div>
+                <div id="login-error" class="error-msg" style="display: none;"></div>
+                <button type="submit" class="btn-primary full-width">🔐 Iniciar Sesión</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Aplicación Principal -->
+    <div id="app-container" style="display: none;">
+        <!-- Header Principal -->
+        <header class="main-header">
+            <div class="header-left">
+                <div class="logo-area">
+                    <span class="logo-icon">🔥</span>
+                    <div>
+                        <h1>Casa Julián de Tolosa</h1>
+                        <span class="subtitle">CMS & Editor Visual del Chatbot</span>
+                    </div>
+                </div>
+                <span class="status-pill online"><span class="dot"></span> Bot Activo 24/7</span>
+            </div>
+            <div class="header-right">
+                <div class="lang-selector-header">
+                    <label for="current-lang-select">🌐 Idioma de Edición:</label>
+                    <select id="current-lang-select" class="custom-select">
+                        <option value="es">Español 🇪🇸</option>
+                        <option value="eu">Euskara</option>
+                        <option value="en">English 🇬🇧</option>
+                        <option value="fr">Français 🇫🇷</option>
+                        <option value="de">Deutsch 🇩🇪</option>
+                        <option value="it">Italiano 🇮🇹</option>
+                        <option value="pt">Português 🇵🇹</option>
+                        <option value="nl">Nederlands 🇳🇱</option>
+                        <option value="pl">Polski 🇵🇱</option>
+                        <option value="ro">Română 🇷🇴</option>
+                        <option value="ko">한국어 🇰🇷</option>
+                        <option value="zh">中文 🇨🇳</option>
+                        <option value="ja">日本語 🇯🇵</option>
+                        <option value="ar">العربية 🇸🇦</option>
+                    </select>
+                </div>
+                <button id="logout-btn" class="btn-secondary">🔒 Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <!-- Navegación por Pestañas -->
+        <nav class="tabs-nav">
+            <button class="tab-btn active" data-tab="tab-flow">🌳 Estructura & Árbol de Flujos</button>
+            <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes & Textos</button>
+            <button class="tab-btn" data-tab="tab-menu">📜 Carta & Precios</button>
+            <button class="tab-btn" data-tab="tab-faqs">❓ Preguntas Frecuentes (FAQs)</button>
+        </nav>
+
+        <!-- Contenedor Principal (Workspace + Simulador Móvil) -->
+        <main class="main-layout">
+            
+            <!-- Panel Izquierdo: Editor de Contenidos -->
+            <section class="editor-section">
+                
+                <!-- Pestaña 1: Árbol de Flujos -->
+                <div id="tab-flow" class="tab-content active">
+                    <div class="section-header">
+                        <h2>🌳 Árbol Estructural de Conversación</h2>
+                        <p>Visualiza el flujo completo paso a paso según lo que escribe el cliente.</p>
+                    </div>
+                    <div id="flow-tree-container" class="flow-tree">
+                        <!-- Se genera dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Pestaña 2: Editor de Mensajes y Textos -->
+                <div id="tab-texts" class="tab-content">
+                    <div class="section-header">
+                        <h2>📝 Editor de Mensajes y Traducciones</h2>
+                        <p>Modifica cualquier respuesta automática del chatbot en tiempo real.</p>
+                    </div>
+
+                    <div class="toolbar">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="search-text-input" placeholder="Buscar por clave o contenido de texto...">
+                        </div>
+                        <div class="category-filters" id="category-filters">
+                            <button class="filter-chip active" data-cat="all">Todos</button>
+                            <button class="filter-chip" data-cat="main">Menú Principal</button>
+                            <button class="filter-chip" data-cat="reserva">Reservas</button>
+                            <button class="filter-chip" data-cat="tradicion">Menú Tradición</button>
+                            <button class="filter-chip" data-cat="faq">Preguntas Frecuentes</button>
+                        </div>
+                    </div>
+
+                    <div id="texts-list-container" class="texts-grid">
+                        <!-- Lista de llaves de texto cargada dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Pestaña 3: Carta y Precios -->
+                <div id="tab-menu" class="tab-content">
+                    <div class="section-header align-between">
+                        <div>
+                            <h2>📜 Carta y Lista de Precios</h2>
+                            <p>Modifica precios o añade platos. La ficha del menú ("Ver carta") se actualizará automáticamente.</p>
+                        </div>
+                        <button id="add-dish-btn" class="btn-primary">+ Añadir Nuevo Plato</button>
+                    </div>
+
+                    <div class="table-card">
+                        <table class="data-table" id="menu-table">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Nombre del Plato</th>
+                                    <th>Precio</th>
+                                    <th>Moneda / Unidad</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="menu-items-body">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-actions">
+                        <button id="save-menu-btn" class="btn-success">💾 Guardar Cambios en la Carta</button>
+                    </div>
+                </div>
+
+                <!-- Pestaña 4: Preguntas Frecuentes -->
+                <div id="tab-faqs" class="tab-content">
+                    <div class="section-header">
+                        <h2>❓ Preguntas Frecuentes ("5. Otras cuestiones")</h2>
+                        <p>Revisa y edita las 10 opciones principales del desplegable de consultas frecuentes.</p>
+                    </div>
+                    <div id="faqs-list-container" class="faqs-container">
+                        <!-- FAQ cards cargadas dinámicamente -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Panel Derecho: Simulador en Tiempo Real de WhatsApp -->
+            <aside class="simulator-section">
+                <div class="simulator-sticky">
+                    <div class="phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-header">
+                            <div class="phone-header-info">
+                                <div class="avatar">🥩</div>
+                                <div>
+                                    <span class="phone-name">Casa Julián Tolosa</span>
+                                    <span class="phone-verified">Cuenta Oficial ✅</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="phone-screen" id="whatsapp-screen">
+                            <div class="whatsapp-chat">
+                                <div class="chat-date">HOY</div>
+                                
+                                <!-- Mensaje interactivo del bot en la simulación -->
+                                <div class="chat-bubble bot-bubble">
+                                    <div class="bubble-header" id="sim-header" style="display: none;"></div>
+                                    <div class="bubble-body" id="sim-body">Selecciona una opción del editor o escribe en el panel izquierdo para ver la simulación en tiempo real.</div>
+                                    
+                                    <!-- Botones interactivos simulados -->
+                                    <div class="sim-buttons" id="sim-buttons"></div>
+                                    
+                                    <!-- Lista interactiva simulada -->
+                                    <div class="sim-list-trigger" id="sim-list-trigger" style="display: none;">
+                                        <span id="sim-list-btn-text">📋 Ver Opciones</span>
+                                    </div>
+                                    <div class="bubble-time">19:45 ✓✓</div>
+                                </div>
+
+                                <!-- Alertas de límites de Meta -->
+                                <div id="meta-limits-alert" class="meta-alert-box" style="display: none;">
+                                    ⚠️ <strong>Alerta Meta API:</strong>
+                                    <ul id="meta-alert-list"></ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="phone-footer">
+                            <div class="sim-input-box">Escribe un mensaje...</div>
+                            <div class="sim-mic">🎙️</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+        </main>
+    </div>
+
+    <!-- Modal para Añadir Nuevo Plato -->
+    <div id="dish-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3>🍽️ Añadir Plato a la Carta</h3>
+            <div class="form-group">
+                <label>Categoría:</label>
+                <select id="dish-cat-input" class="custom-select">
+                    <option value="ENTRANTES Y CHARCUTERÍA">ENTRANTES Y CHARCUTERÍA</option>
+                    <option value="VERDURAS Y ENTRANTES CALIENTES">VERDURAS Y ENTRANTES CALIENTES</option>
+                    <option value="NUESTRA ESPECIALIDAD">NUESTRA ESPECIALIDAD</option>
+                    <option value="POSTRES">POSTRES</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nombre del Plato:</label>
+                <input type="text" id="dish-name-input" placeholder="Ej. Cecina de Buey">
+            </div>
+            <div class="form-group">
+                <label>Precio (€):</label>
+                <input type="number" step="0.5" id="dish-price-input" placeholder="Ej. 36">
+            </div>
+            <div class="form-group">
+                <label>Unidad / Moneda:</label>
+                <input type="text" id="dish-unit-input" value="€">
+            </div>
+            <div class="modal-actions">
+                <button id="close-dish-modal" class="btn-secondary">Cancelar</button>
+                <button id="save-dish-btn" class="btn-primary">Añadir Plato</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/admin.js"></script>
+</body>
+</html>

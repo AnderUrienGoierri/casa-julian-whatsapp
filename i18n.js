@@ -2995,6 +2995,20 @@ const translations = {
 
 function getTranslation(lang, key) {
     const langCode = translations[lang] ? lang : 'es';
+
+    try {
+        const { getDynamicTexts } = require('./database');
+        const dynamicTexts = getDynamicTexts();
+        if (dynamicTexts && dynamicTexts[langCode] && dynamicTexts[langCode][key] !== undefined && dynamicTexts[langCode][key] !== null) {
+            return dynamicTexts[langCode][key];
+        }
+        if (dynamicTexts && dynamicTexts['es'] && dynamicTexts['es'][key] !== undefined && dynamicTexts['es'][key] !== null) {
+            return dynamicTexts['es'][key];
+        }
+    } catch (e) {
+        // Fallback to static if db not initialized
+    }
+
     if (translations[langCode] && translations[langCode][key] !== undefined) {
         return translations[langCode][key];
     }

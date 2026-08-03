@@ -12,6 +12,11 @@ app.use(express.json());
 app.use('/public', express.static(path.join(__dirname, 'media')));
 app.use('/media', express.static(path.join(__dirname, 'media')));
 app.use('/documentacion', express.static(path.join(__dirname, 'documentacion')));
+app.use('/admin', express.static(path.join(__dirname, 'public', 'admin')));
+
+// API de Administración Interna
+const adminApiRouter = require('./adminApi');
+app.use('/api/admin', adminApiRouter);
 
 // Endpoint de salud raíz para Render.com
 app.get('/', (req, res) => {
