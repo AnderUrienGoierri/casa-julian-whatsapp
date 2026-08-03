@@ -449,6 +449,15 @@ async function handleButtonResponse(from, buttonId) {
             await sendMainMenu(from);
             break;
 
+        case 'btn_go_modificacion':
+            userStates.set(from, { step: 'modificacion_datos_actuales', data: {} });
+            await sendMessage(from, getTranslation(lang, 'modCancelDataPrompt'));
+            break;
+
+        case 'btn_volver_menu':
+            await showLocationOrMainMenu(from);
+            break;
+
         case 'btn_reserva_con_tarjeta':
         case 'waitlist_init_si':
         case 'waitlist_menu_si':
@@ -1932,6 +1941,17 @@ async function handleFaqSelection(from, faqId, lang) {
     const responseMsg = getTranslation(lang, msgKey);
 
     if (responseMsg) {
+        if (faqNum === '6') { // Option 6: Reducción comensales
+            const modBtnTitle = (lang === 'eu' ? 'Erreserba aldatu' : (lang === 'en' ? 'Modify booking' : 'Modificar reserva'));
+            const menuBtnTitle = (lang === 'eu' ? 'Menura itzuli' : (lang === 'en' ? 'Exit to menu' : 'Salir al menú'));
+
+            const buttons = [
+                { id: 'btn_go_modificacion', title: modBtnTitle.slice(0, 20) },
+                { id: 'btn_volver_menu', title: menuBtnTitle.slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, responseMsg, buttons);
+            return;
+        }
         await sendMessage(from, responseMsg);
     }
     
