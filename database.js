@@ -853,6 +853,29 @@ function findActiveReservation(queryText, fromNumber) {
 
 const findReservationForCancellation = findActiveReservation;
 
+function isStrictNameMatch(queryName, targetName) {
+    const normQuery = normalizeText(queryName || '');
+    const normTarget = normalizeText(targetName || '');
+
+    if (!normQuery || !normTarget) return false;
+
+    if (normTarget.includes(normQuery) || normQuery.includes(normTarget)) {
+        return true;
+    }
+
+    const queryWords = normQuery.split(/\s+/).filter(w => w.length >= 2);
+    const targetWords = normTarget.split(/\s+/).filter(w => w.length >= 2);
+
+    if (queryWords.length === 0 || targetWords.length === 0) return false;
+
+    if (queryWords.length >= 2) {
+        const matchesCount = queryWords.filter(qw => targetWords.some(tw => tw.includes(qw) || qw.includes(tw))).length;
+        return matchesCount >= 2;
+    }
+
+    return targetWords.some(tw => tw === queryWords[0]);
+}
+
 function findReservationByNameAndPhone(telefono, nombre) {
     const dbData = loadDb();
     const allReservations = dbData.reservas || [];
@@ -860,7 +883,7 @@ function findReservationByNameAndPhone(telefono, nombre) {
     const normPhone = normalizePhone(telefono || '');
     const normName = normalizeText(nombre || '');
 
-    if (!normPhone && !normName) return null;
+    if (!normPhone || !normName) return null;
 
     const candidates = allReservations.filter(r => {
         const estadoUpper = (r.estado || '').toUpperCase();
@@ -870,16 +893,11 @@ function findReservationByNameAndPhone(telefono, nombre) {
         const resPhone = normalizePhone(r.telefono || '');
         const resName = normalizeText(r.nombre || '');
 
-        const phoneMatch = normPhone && resPhone && (resPhone.includes(normPhone.slice(-9)) || normPhone.includes(resPhone.slice(-9)));
-
-        const nameWords = normName.split(/\s+/).filter(w => w.length >= 2);
-        const resWords = resName.split(/\s+/).filter(w => w.length >= 2);
-
-        const nameMatch = normName && resName && (
-            resName.includes(normName) ||
-            normName.includes(resName) ||
-            (nameWords.length > 0 && nameWords.some(w => resWords.includes(w)))
+        const phoneMatch = normPhone && resPhone && (
+            resPhone.endsWith(normPhone.slice(-9)) || normPhone.endsWith(resPhone.slice(-9))
         );
+
+        const nameMatch = isStrictNameMatch(normName, resName);
 
         return phoneMatch && nameMatch;
     });
