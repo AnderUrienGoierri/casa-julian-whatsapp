@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getTranslation, translations } = require('./i18n');
 const { getDynamicTexts, saveDynamicText, getMenuItems, saveMenuItems } = require('./database');
+const { getSimMessages, clearSimMessages } = require('./whatsappApi');
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'julian2026';
 // Token estático basado en hash simple de contraseña
