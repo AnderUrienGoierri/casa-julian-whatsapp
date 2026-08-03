@@ -295,6 +295,19 @@ async function sendLanguageMenu(from, page = 1) {
 }
 
 /**
+ * Muestra el menú de ubicación si el cliente aún no ha elegido ubicación,
+ * o envía directamente el Menú Principal si ya eligió País Vasco (Tolosa).
+ */
+async function showLocationOrMainMenu(from) {
+    const userLoc = userLocations.get(from);
+    if (userLoc === 'pais_vasco') {
+        await sendMainMenu(from);
+    } else {
+        await sendLocationMenu(from);
+    }
+}
+
+/**
  * Pregunta al cliente la ubicación del restaurante de su interés (Madrid vs País Vasco).
  */
 async function sendLocationMenu(from) {
@@ -2009,10 +2022,11 @@ async function handleTextMessage(from, text) {
     const cleanText = text.trim().toLowerCase();
 
     // 1. Interceptador de Saludo / Inicio: Borra cualquier estado o formulario incompleto y empieza el flujo desde cero
-    const isGreeting = ['hola', 'kaixo', 'hello', 'hi', 'bonjour', 'hallo', 'buenos dias', 'buenos días', 'buenas tardes', 'buenas noches', 'egun on', 'arratsalde on', 'gabon', 'start', 'inicio', 'empezar', 'menu', 'menú', 'volver', 'home', 'reiniciar', 'reset'].some(k => cleanText === k || cleanText.startsWith(k + ' '));
+    const isGreeting = ['hola', 'kaixo', 'hello', 'hi', 'bonjour', 'hallo', 'buenos dias', 'buenos días', 'buenas tardes', 'buenas noches', 'egun on', 'arratsalde on', 'gabon', 'start', 'inicio', 'empezar', 'menu', 'menú', 'volver', 'home', 'reiniciar', 'reset', 'saludo'].some(k => cleanText === k || cleanText.startsWith(k + ' '));
 
     if (isGreeting) {
         userStates.delete(from);
+        userLocations.delete(from);
         await sendLanguageMenu(from, 1);
         return;
     }
@@ -2022,6 +2036,7 @@ async function handleTextMessage(from, text) {
 
     if (isFarewell) {
         userStates.delete(from);
+        userLocations.delete(from);
         await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
         return;
     }
@@ -2029,6 +2044,8 @@ async function handleTextMessage(from, text) {
     const currentState = userStates.get(from);
 
     if (!currentState || currentState.step === 'select_language') {
+        userStates.delete(from);
+        userLocations.delete(from);
         await sendLanguageMenu(from, 1);
         return;
     }

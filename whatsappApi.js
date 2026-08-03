@@ -171,6 +171,10 @@ async function sendInteractiveList(to, bodyText, buttonText, sections) {
  * Envía una imagen por WhatsApp a través de un enlace URL público.
  */
 async function sendImageMessage(to, imageUrl, caption = '') {
+    if (interceptSimMessage(to, { type: 'image', imageUrl, caption })) {
+        return { success: true, simulated: true };
+    }
+
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
         console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
@@ -262,6 +266,10 @@ async function uploadStickerToMeta(filePath) {
  * Si la llamada con el ID cacheado falla, reintenta automáticamente una subida fresca.
  */
 async function sendStickerMessage(to, stickerFilePath) {
+    if (interceptSimMessage(to, { type: 'sticker', stickerFilePath })) {
+        return { success: true, simulated: true };
+    }
+
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
         console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
