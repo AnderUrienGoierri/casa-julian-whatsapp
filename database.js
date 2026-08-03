@@ -859,7 +859,7 @@ function isStrictNameMatch(queryName, targetName) {
 
     if (!normQuery || !normTarget) return false;
 
-    if (normTarget.includes(normQuery) || normQuery.includes(normTarget)) {
+    if (normTarget === normQuery || normTarget.includes(normQuery)) {
         return true;
     }
 
@@ -870,7 +870,7 @@ function isStrictNameMatch(queryName, targetName) {
 
     if (queryWords.length >= 2) {
         const matchesCount = queryWords.filter(qw => targetWords.some(tw => tw.includes(qw) || qw.includes(tw))).length;
-        return matchesCount >= 2;
+        return matchesCount === queryWords.length;
     }
 
     return targetWords.some(tw => tw === queryWords[0]);
@@ -912,6 +912,33 @@ function findReservationByNameAndPhone(telefono, nombre) {
         isModifiable: active.estado === 'CONFIRMADA',
         statusReason: active.estado
     };
+}
+
+function findActiveReservationsByName(nombre) {
+    const dbData = loadDb();
+    const allReservations = dbData.reservas || [];
+    const normName = normalizeText(nombre || '');
+    if (!normName || normName.length < 2) return [];
+
+    return allReservations.filter(r => {
+        const estadoUpper = (r.estado || '').toUpperCase();
+        if (['CANCELADA', 'CANCELADO', 'RECHAZADA'].includes(estadoUpper)) return false;
+        return isStrictNameMatch(normName, r.nombre);
+    });
+}
+
+function findActiveReservationsByPhone(telefono) {
+    const dbData = loadDb();
+    const allReservations = dbData.reservas || [];
+    const normPhone = normalizePhone(telefono || '');
+    if (!normPhone || normPhone.length < 7) return [];
+
+    return allReservations.filter(r => {
+        const estadoUpper = (r.estado || '').toUpperCase();
+        if (['CANCELADA', 'CANCELADO', 'RECHAZADA'].includes(estadoUpper)) return false;
+        const resPhone = normalizePhone(r.telefono || '');
+        return resPhone.endsWith(normPhone.slice(-9)) || normPhone.endsWith(resPhone.slice(-9));
+    });
 }
 
 function findExistingWaitlistEntry(telefono, nombre) {
@@ -1209,6 +1236,8 @@ module.exports = {
     findActiveReservation,
     findReservationForCancellation,
     findReservationByNameAndPhone,
+    findActiveReservationsByName,
+    findActiveReservationsByPhone,
     confirmReservation,
     cancelReservation,
     addToWaitlist,
