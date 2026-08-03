@@ -2269,6 +2269,16 @@ async function handleTextMessage(from, text) {
             break;
         }
 
+        case 'menu_trad_select_gestion': {
+            const clean = text.trim().toLowerCase();
+            if (clean.includes('caducid') || clean.includes('iraungi') || clean.includes('expir') || clean.includes('2')) {
+                await handleButtonResponse(from, 'btn_card_gestion_caducidad');
+            } else {
+                await handleButtonResponse(from, 'btn_card_gestion_reservar');
+            }
+            break;
+        }
+
         case 'menu_trad_more_cards_choice': {
             const maybeCard = await db.getGiftCard(text.trim());
             if (maybeCard) {
