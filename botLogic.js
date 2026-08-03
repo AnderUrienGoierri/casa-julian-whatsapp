@@ -164,6 +164,24 @@ async function processMessage(message) {
 async function handleUserMessage(from, body, type = 'text', interactiveData = null) {
     console.log(`\n📩 MENSAJE RECIBIDO de ${from} [Tipo: ${type}]: "${body}"`);
 
+    // Interceptar reglas dinámicas de palabras clave configuradas por el administrador
+    if (type === 'text' && body) {
+        try {
+            const { getCustomRules } = require('./database');
+            const customRules = getCustomRules();
+            const cleanInput = body.trim().toLowerCase();
+            const matchedRule = customRules.find(r => r.isActive && r.keyword && cleanInput.includes(r.keyword.toLowerCase()));
+            if (matchedRule) {
+                console.log(`🎯 Regla dinámica por palabra clave activada: "${matchedRule.keyword}"`);
+                await sendMessage(from, matchedRule.responseText);
+                await showLocationOrMainMenu(from);
+                return;
+            }
+        } catch (e) {
+            console.error("⚠️ Error evaluando reglas dinámicas de usuario:", e.message);
+        }
+    }
+
     // 1. Interceptar selección de idioma por botón/lista
     if (interactiveData && (interactiveData.type === 'button' || interactiveData.type === 'list')) {
         const buttonId = interactiveData.id;

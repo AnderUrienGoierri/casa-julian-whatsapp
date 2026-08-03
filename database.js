@@ -71,6 +71,20 @@ if (process.env.DATABASE_URL) {
             currency VARCHAR(20) DEFAULT '€',
             sort_order INT DEFAULT 0
         );
+
+        CREATE TABLE IF NOT EXISTS bot_disabled_keys (
+            key_name VARCHAR(100) PRIMARY KEY,
+            is_disabled BOOLEAN DEFAULT TRUE
+        );
+
+        CREATE TABLE IF NOT EXISTS bot_custom_rules (
+            id VARCHAR(100) PRIMARY KEY,
+            keyword VARCHAR(100) NOT NULL,
+            response_text TEXT NOT NULL,
+            category VARCHAR(50) DEFAULT 'general',
+            is_active BOOLEAN DEFAULT TRUE,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
     `).then(() => {
         // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar
         return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas ORDER BY id DESC");
@@ -1343,6 +1357,108 @@ async function saveMenuItems(items) {
     return db.menuItems;
 }
 
+function getDisabledKeys() {
+    const db = loadDb();
+    return db.disabledKeys || {};
+}
+
+async function toggleDisabledKey(key_name, is_disabled) {
+    const db = loadDb();
+    if (!db.disabledKeys) db.disabledKeys = {};
+    db.disabledKeys[key_name] = !!is_disabled;
+    saveDb(db);
+
+    if (pool) {
+        try {
+            await pool.query(
+                `INSERT INTO bot_disabled_keys (key_name, is_disabled)
+                 VALUES ($1, $2)
+                 ON CONFLICT (key_name)
+                 DO UPDATE SET is_disabled = $2`,
+                [key_name, !!is_disabled]
+            );
+        } catch (err) {
+            console.error("❌ Error PostgreSQL toggleDisabledKey:", err.message);
+        }
+    }
+    return db.disabledKeys;
+}
+
+async function deleteCustomTextKey(lang, key_name) {
+    const db = loadDb();
+    if (db.dynamicTexts && db.dynamicTexts[lang]) {
+        delete db.dynamicTexts[lang][key_name];
+        saveDb(db);
+    }
+
+    if (pool) {
+        try {
+            await pool.query('DELETE FROM bot_texts WHERE lang = $1 AND key_name = $2', [lang, key_name]);
+        } catch (err) {
+            console.error("❌ Error PostgreSQL deleteCustomTextKey:", err.message);
+        }
+    }
+    return true;
+}
+
+function getCustomRules() {
+    const db = loadDb();
+    return db.customRules || [];
+}
+
+async function saveCustomRule(rule) {
+    const db = loadDb();
+    if (!db.customRules) db.customRules = [];
+    const ruleId = rule.id || ('rule_' + Date.now());
+    const newRule = {
+        id: ruleId,
+        keyword: (rule.keyword || '').trim().toLowerCase(),
+        responseText: rule.responseText || '',
+        category: rule.category || 'general',
+        isActive: rule.isActive !== undefined ? !!rule.isActive : true
+    };
+
+    const existingIdx = db.customRules.findIndex(r => r.id === ruleId || r.keyword === newRule.keyword);
+    if (existingIdx >= 0) {
+        db.customRules[existingIdx] = newRule;
+    } else {
+        db.customRules.push(newRule);
+    }
+    saveDb(db);
+
+    if (pool) {
+        try {
+            await pool.query(
+                `INSERT INTO bot_custom_rules (id, keyword, response_text, category, is_active)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (id)
+                 DO UPDATE SET keyword = $2, response_text = $3, category = $4, is_active = $5`,
+                [newRule.id, newRule.keyword, newRule.responseText, newRule.category, newRule.isActive]
+            );
+        } catch (err) {
+            console.error("❌ Error PostgreSQL saveCustomRule:", err.message);
+        }
+    }
+    return newRule;
+}
+
+async function deleteCustomRule(ruleId) {
+    const db = loadDb();
+    if (db.customRules) {
+        db.customRules = db.customRules.filter(r => r.id !== ruleId && r.keyword !== ruleId);
+        saveDb(db);
+    }
+
+    if (pool) {
+        try {
+            await pool.query('DELETE FROM bot_custom_rules WHERE id = $1 OR keyword = $1', [ruleId]);
+        } catch (err) {
+            console.error("❌ Error PostgreSQL deleteCustomRule:", err.message);
+        }
+    }
+    return true;
+}
+
 module.exports = {
     checkAvailability,
     getAvailableTimeSlotsForDate,
@@ -1376,6 +1492,12 @@ module.exports = {
     saveDynamicText,
     getMenuItems,
     saveMenuItems,
+    getDisabledKeys,
+    toggleDisabledKey,
+    deleteCustomTextKey,
+    getCustomRules,
+    saveCustomRule,
+    deleteCustomRule,
     SHIFT_CAPACITIES,
     SCHEDULE_BY_DAY
 };

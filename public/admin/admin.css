@@ -819,3 +819,29 @@ button {
     gap: 12px;
     margin-top: 20px;
 }
+
+/* ESTILOS DE ESTADO Y SILENCIADO PARA TARJETAS Y REGLAS */
+.text-card.card-disabled {
+    opacity: 0.65;
+    background: rgba(30, 34, 43, 0.5);
+    border-style: dashed;
+}
+
+.status-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.status-badge.badge-on {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.status-badge.badge-off {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}

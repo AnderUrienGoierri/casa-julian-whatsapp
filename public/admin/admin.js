@@ -26,6 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const liveChatStream = document.getElementById('live-chat-stream');
     const whatsappScreen = document.getElementById('whatsapp-screen');
 
+    // MODAL AÑADIR MENSAJE DOM
+    const addTextBtn = document.getElementById('add-text-btn');
+    const textModal = document.getElementById('text-modal');
+    const closeTextModalBtn = document.getElementById('close-text-modal');
+    const saveNewTextBtn = document.getElementById('save-new-text-btn');
+    const newKeyNameInput = document.getElementById('new-key-name-input');
+    const newKeyCatSelect = document.getElementById('new-key-cat-select');
+    const newKeyTextInput = document.getElementById('new-key-text-input');
+
+    // REGLAS DINÁMICAS POR PALABRA CLAVE DOM
+    const customRuleForm = document.getElementById('custom-rule-form');
+    const ruleIdInput = document.getElementById('rule-id-input');
+    const ruleKeywordInput = document.getElementById('rule-keyword-input');
+    const ruleCatSelect = document.getElementById('rule-cat-select');
+    const ruleResponseInput = document.getElementById('rule-response-input');
+    const customRulesBody = document.getElementById('custom-rules-body');
+
     // VERIFICAR AUTENTICACIÓN INICIAL
     if (adminToken) {
         initDashboard();
@@ -120,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderTextsGrid();
                 renderMenuTable();
                 renderFaqsList();
+                renderCustomRulesTable();
                 updateLiveSimulator('welcomeMessage');
             }
         } catch (err) {
@@ -155,7 +173,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let keysBadges = '';
             uc.keys.forEach(k => {
                 const colorClass = getBadgeColorClass(k);
-                keysBadges += `<span class="key-jump-badge ${colorClass}" data-key="${k}" title="Editar ${k}">${k}</span>`;
+                const isDisabled = !!(currentStructure.disabledKeys && currentStructure.disabledKeys[k]);
+                const statusTag = isDisabled ? `<span style="font-size:0.65rem; color:#f87171; margin-left:2px;">[SILENCIADO]</span>` : '';
+                keysBadges += `<span class="key-jump-badge ${colorClass}" data-key="${k}" title="Editar ${k}">${k}${statusTag}</span>`;
             });
 
             nodeDiv.innerHTML = `
@@ -198,37 +218,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. RENDERIZAR GRID DE TEXTOS Y FILTRAR POR CATEGORÍA (TAB 2)
+    // 2. RENDERIZAR GRID DE TEXTOS CON BOTONES DESACTIVAR / OCULTAR / ELIMINAR (TAB 2)
     function renderTextsGrid() {
         const container = document.getElementById('texts-list-container');
         if (!container || !currentStructure) return;
 
         const langTexts = currentStructure.staticTranslations[currentLang] || {};
+        const staticEsTexts = currentStructure.staticTranslations['es'] || {};
         const dynamicLangTexts = (currentStructure.dynamicTexts && currentStructure.dynamicTexts[currentLang]) || {};
         const categoryMap = currentStructure.categoryMap || {};
+        const disabledKeys = currentStructure.disabledKeys || {};
 
         container.innerHTML = '';
         
-        Object.keys(langTexts).forEach(key => {
-            const staticVal = langTexts[key];
+        // Unir llaves estáticas y llaves dinámicas
+        const allKeys = [...new Set([...Object.keys(langTexts), ...Object.keys(dynamicLangTexts)])];
+
+        allKeys.forEach(key => {
+            const staticVal = langTexts[key] || staticEsTexts[key] || '';
             const currentVal = dynamicLangTexts[key] !== undefined ? dynamicLangTexts[key] : staticVal;
             const category = categoryMap[key] || 'main';
             const colorClass = getBadgeColorClass(key);
+            const isDisabled = !!disabledKeys[key];
+            const isCustomKey = !(key in staticEsTexts);
 
             const card = document.createElement('div');
-            card.className = 'text-card';
+            card.className = `text-card ${isDisabled ? 'card-disabled' : ''}`;
             card.id = `text-card-${key}`;
             card.setAttribute('data-category', category);
 
             card.innerHTML = `
-                <div class="text-card-header">
-                    <span class="key-title ${colorClass}" style="padding:2px 6px; border-radius:4px;">${key}</span>
-                    <span class="flow-badge">${category.toUpperCase()}</span>
+                <div class="text-card-header" style="align-items:center;">
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        <span class="key-title ${colorClass}" style="padding:2px 6px; border-radius:4px;">${key}</span>
+                        <span class="flow-badge">${category.toUpperCase()}</span>
+                        <span class="status-badge ${isDisabled ? 'badge-off' : 'badge-on'}">${isDisabled ? '🔴 SILENCIADO / OCULTO' : '🟢 ACTIVO'}</span>
+                    </div>
                 </div>
                 <textarea data-key="${key}">${currentVal}</textarea>
-                <div class="text-card-footer">
+                <div class="text-card-footer" style="margin-top:8px;">
                     <span class="char-counter">${currentVal.length} caracteres</span>
-                    <button class="btn-primary btn-save-text" data-key="${key}">💾 Guardar</button>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-secondary btn-toggle-status" data-key="${key}" title="${isDisabled ? 'Activar este mensaje en el bot' : 'Ocultar/Silenciar este mensaje en el bot'}">
+                            ${isDisabled ? '👁️ Activar' : '🙈 Ocultar'}
+                        </button>
+                        ${isCustomKey ? `<button class="btn-danger btn-delete-key" data-key="${key}" title="Eliminar clave personalizada">🗑️ Eliminar</button>` : ''}
+                        <button class="btn-primary btn-save-text" data-key="${key}">💾 Guardar</button>
+                    </div>
                 </div>
             `;
 
@@ -243,14 +279,119 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!isTestMode) updateLiveSimulator(key, textarea.value);
             });
 
+            // Guardar texto
             card.querySelector('.btn-save-text').addEventListener('click', () => {
                 saveText(key, textarea.value);
             });
+
+            // Ocultar / Silenciar / Activar clave
+            card.querySelector('.btn-toggle-status').addEventListener('click', async () => {
+                await toggleKeyStatus(key, !isDisabled);
+            });
+
+            // Eliminar clave personalizada
+            const deleteBtn = card.querySelector('.btn-delete-key');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', async () => {
+                    if (confirm(`¿Estás seguro de eliminar el mensaje personalizado "${key}"?`)) {
+                        await deleteCustomKey(key);
+                    }
+                });
+            }
 
             container.appendChild(card);
         });
 
         filterTexts();
+    }
+
+    // MODAL AÑADIR MENSAJE PERSONALIZADO
+    if (addTextBtn) {
+        addTextBtn.addEventListener('click', () => {
+            newKeyNameInput.value = '';
+            newKeyTextInput.value = '';
+            textModal.style.display = 'flex';
+        });
+    }
+
+    if (closeTextModalBtn) {
+        closeTextModalBtn.addEventListener('click', () => {
+            textModal.style.display = 'none';
+        });
+    }
+
+    if (saveNewTextBtn) {
+        saveNewTextBtn.addEventListener('click', async () => {
+            const keyName = newKeyNameInput.value.trim();
+            const cat = newKeyCatSelect.value;
+            const textVal = newKeyTextInput.value.trim();
+
+            if (!keyName) {
+                alert('Por favor, introduce el nombre de la clave del mensaje.');
+                return;
+            }
+            if (!textVal) {
+                alert('Por favor, introduce el texto del mensaje.');
+                return;
+            }
+
+            await saveText(keyName, textVal, cat);
+            if (!currentStructure.categoryMap) currentStructure.categoryMap = {};
+            currentStructure.categoryMap[keyName] = cat;
+            
+            textModal.style.display = 'none';
+            renderTextsGrid();
+        });
+    }
+
+    // ALTERNAR ESTADO OCULTO / ACTIVO DE CLAVE
+    async function toggleKeyStatus(key, isDisabled) {
+        try {
+            const res = await fetch('/api/admin/toggle-key-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': adminToken
+                },
+                body: JSON.stringify({ key, isDisabled })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (!currentStructure.disabledKeys) currentStructure.disabledKeys = {};
+                currentStructure.disabledKeys[key] = isDisabled;
+                renderTextsGrid();
+                renderUseCasesFlow();
+            } else {
+                alert(`Error al modificar estado: ${data.error}`);
+            }
+        } catch (err) {
+            alert('Error de conexión al modificar estado.');
+        }
+    }
+
+    // ELIMINAR CLAVE PERSONALIZADA
+    async function deleteCustomKey(key) {
+        try {
+            const res = await fetch('/api/admin/delete-custom-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': adminToken
+                },
+                body: JSON.stringify({ lang: currentLang, key })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (currentStructure.dynamicTexts && currentStructure.dynamicTexts[currentLang]) {
+                    delete currentStructure.dynamicTexts[currentLang][key];
+                }
+                renderTextsGrid();
+            } else {
+                alert(`Error al eliminar: ${data.error}`);
+            }
+        } catch (err) {
+            alert('Error de conexión al eliminar.');
+        }
     }
 
     // FILTRO DE CATEGORÍAS (Filtros Menú Principal, Reservas, Menú Tradición, FAQs)
@@ -288,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // GUARDAR TEXTO EN SERVIDOR
-    async function saveText(key, text) {
+    async function saveText(key, text, category = 'general') {
         try {
             const res = await fetch('/api/admin/update-text', {
                 method: 'POST',
@@ -296,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'x-admin-token': adminToken
                 },
-                body: JSON.stringify({ lang: currentLang, key, text })
+                body: JSON.stringify({ lang: currentLang, key, text, category })
             });
 
             const data = await res.json();
@@ -435,7 +576,111 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 5. PREVISUALIZACIÓN ESTÁTICA WHATSAPP
+    // 5. RENDERIZAR Y CONFIGURAR REGLAS DINÁMICAS POR PALABRA CLAVE (TAB 5)
+    function renderCustomRulesTable() {
+        if (!customRulesBody || !currentStructure) return;
+        customRulesBody.innerHTML = '';
+        const rules = currentStructure.customRules || [];
+
+        rules.forEach(rule => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight:600; color:var(--accent-gold); font-family:monospace;">"${rule.keyword}"</td>
+                <td><span class="flow-badge">${(rule.category || 'general').toUpperCase()}</span></td>
+                <td style="max-width:260px; word-break:break-word; font-size:0.82rem;">${rule.responseText}</td>
+                <td><span class="status-badge ${rule.isActive ? 'badge-on' : 'badge-off'}">${rule.isActive ? '🟢 ACTIVA' : '🔴 INACTIVA'}</span></td>
+                <td>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-secondary btn-edit-rule" style="padding:4px 8px; font-size:0.75rem;">✏️ Editar</button>
+                        <button class="btn-danger btn-delete-rule" style="padding:4px 8px; font-size:0.75rem;">🗑️ Eliminar</button>
+                    </div>
+                </td>
+            `;
+
+            tr.querySelector('.btn-edit-rule').addEventListener('click', () => {
+                ruleIdInput.value = rule.id;
+                ruleKeywordInput.value = rule.keyword;
+                ruleCatSelect.value = rule.category || 'general';
+                ruleResponseInput.value = rule.responseText;
+                document.querySelector('#custom-rule-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+
+            tr.querySelector('.btn-delete-rule').addEventListener('click', async () => {
+                if (confirm(`¿Estás seguro de eliminar la regla para la palabra clave "${rule.keyword}"?`)) {
+                    await deleteCustomRule(rule.id);
+                }
+            });
+
+            customRulesBody.appendChild(tr);
+        });
+    }
+
+    if (customRuleForm) {
+        customRuleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = ruleIdInput.value;
+            const keyword = ruleKeywordInput.value.trim();
+            const category = ruleCatSelect.value;
+            const responseText = ruleResponseInput.value.trim();
+
+            if (!keyword || !responseText) {
+                alert('Debes indicar la palabra clave y la respuesta automática.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/update-custom-rule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': adminToken
+                    },
+                    body: JSON.stringify({ id, keyword, category, responseText, isActive: true })
+                });
+                const data = await res.json();
+                if (data.success && data.rule) {
+                    if (!currentStructure.customRules) currentStructure.customRules = [];
+                    const idx = currentStructure.customRules.findIndex(r => r.id === data.rule.id);
+                    if (idx >= 0) currentStructure.customRules[idx] = data.rule;
+                    else currentStructure.customRules.push(data.rule);
+
+                    ruleIdInput.value = '';
+                    ruleKeywordInput.value = '';
+                    ruleResponseInput.value = '';
+                    renderCustomRulesTable();
+                    alert(`✅ Regla automática guardada para la palabra clave "${keyword}".`);
+                } else {
+                    alert(`Error guardando regla: ${data.error}`);
+                }
+            } catch (err) {
+                alert('Error de conexión al guardar regla.');
+            }
+        });
+    }
+
+    async function deleteCustomRule(id) {
+        try {
+            const res = await fetch('/api/admin/delete-custom-rule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': adminToken
+                },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentStructure.customRules = (currentStructure.customRules || []).filter(r => r.id !== id);
+                renderCustomRulesTable();
+            } else {
+                alert(`Error al eliminar regla: ${data.error}`);
+            }
+        } catch (err) {
+            alert('Error de conexión al eliminar regla.');
+        }
+    }
+
+    // 6. PREVISUALIZACIÓN ESTÁTICA WHATSAPP
     function updateLiveSimulator(key, customText = null) {
         if (isTestMode) return;
 
@@ -492,7 +737,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 6. MODALIDAD TEST INTERACTIVO EN VIVO
+    // 7. MODALIDAD TEST INTERACTIVO EN VIVO
     if (btnStartTest) {
         btnStartTest.addEventListener('click', () => {
             startInteractiveTest();

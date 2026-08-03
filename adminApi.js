@@ -235,6 +235,10 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             }
         ];
 
+        const { getDisabledKeys, getCustomRules } = require('./database');
+        const disabledKeys = getDisabledKeys();
+        const customRules = getCustomRules();
+
         return res.json({
             success: true,
             flowTree,
@@ -243,7 +247,9 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             languages,
             staticTranslations: translations,
             dynamicTexts,
-            menuItems
+            menuItems,
+            disabledKeys,
+            customRules
         });
     } catch (e) {
         return res.status(500).json({ error: e.message });
@@ -324,6 +330,60 @@ router.post('/simulate', requireAdminAuth, async (req, res) => {
         return res.json({ success: true, messages });
     } catch (e) {
         console.error("Error en simulación interactiva:", e);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 6. Activar / Desactivar (Ocultar / Silenciar) clave de texto
+router.post('/toggle-key-status', requireAdminAuth, async (req, res) => {
+    const { key, isDisabled } = req.body || {};
+    if (!key) return res.status(400).json({ error: 'Parámetro key requerido.' });
+    try {
+        const { toggleDisabledKey } = require('./database');
+        const disabledKeys = await toggleDisabledKey(key, isDisabled);
+        return res.json({ success: true, key, isDisabled, disabledKeys });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 7. Eliminar clave personalizada
+router.post('/delete-custom-key', requireAdminAuth, async (req, res) => {
+    const { lang, key } = req.body || {};
+    if (!lang || !key) return res.status(400).json({ error: 'Parámetros lang y key requeridos.' });
+    try {
+        const { deleteCustomTextKey } = require('./database');
+        await deleteCustomTextKey(lang, key);
+        return res.json({ success: true, lang, key });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 8. Crear / Actualizar regla dinámica por palabra clave
+router.post('/update-custom-rule', requireAdminAuth, async (req, res) => {
+    const { id, keyword, responseText, category, isActive } = req.body || {};
+    if (!keyword || !responseText) {
+        return res.status(400).json({ error: 'Parámetros keyword y responseText requeridos.' });
+    }
+    try {
+        const { saveCustomRule } = require('./database');
+        const rule = await saveCustomRule({ id, keyword, responseText, category, isActive });
+        return res.json({ success: true, rule });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 9. Eliminar regla dinámica por palabra clave
+router.post('/delete-custom-rule', requireAdminAuth, async (req, res) => {
+    const { id } = req.body || {};
+    if (!id) return res.status(400).json({ error: 'Parámetro id requerido.' });
+    try {
+        const { deleteCustomRule } = require('./database');
+        await deleteCustomRule(id);
+        return res.json({ success: true, id });
+    } catch (e) {
         return res.status(500).json({ error: e.message });
     }
 });

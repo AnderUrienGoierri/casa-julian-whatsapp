@@ -74,6 +74,7 @@
             <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes & Textos</button>
             <button class="tab-btn" data-tab="tab-menu">📜 Carta & Precios</button>
             <button class="tab-btn" data-tab="tab-faqs">❓ Preguntas Frecuentes (FAQs)</button>
+            <button class="tab-btn" data-tab="tab-rules">⚙️ Flujo & Respuestas por Palabras Clave</button>
         </nav>
 
         <!-- Contenedor Principal (Workspace + Simulador Móvil) -->
@@ -159,6 +160,60 @@
                     </div>
                     <div id="faqs-list-container" class="faqs-container">
                         <!-- FAQ cards cargadas dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Pestaña 5: Reglas de Flujo y Palabras Clave -->
+                <div id="tab-rules" class="tab-content">
+                    <div class="section-header">
+                        <h2>⚙️ Reglas de Respuestas Automáticas por Palabra Clave</h2>
+                        <p>Configura lo que el chatbot debe responder automáticamente cuando el cliente escriba palabras clave específicas (ej. "parking", "wifi", "alergias", "niños").</p>
+                    </div>
+
+                    <div class="table-card" style="margin-bottom: 20px; padding: 20px;">
+                        <h3 style="margin-top:0; color: var(--accent-gold);">➕ Añadir / Editar Regla por Palabra Clave</h3>
+                        <form id="custom-rule-form" style="display: flex; flex-direction: column; gap: 12px;">
+                            <input type="hidden" id="rule-id-input" value="">
+                            <div style="display: flex; gap: 12px;">
+                                <div style="flex: 1;">
+                                    <label style="font-size:0.8rem; color:var(--text-secondary);">Palabra Clave / Frase del Cliente:</label>
+                                    <input type="text" id="rule-keyword-input" placeholder="ej. wifi, parking, tronas" required style="width: 100%;">
+                                </div>
+                                <div style="width: 200px;">
+                                    <label style="font-size:0.8rem; color:var(--text-secondary);">Categoría:</label>
+                                    <select id="rule-cat-select" class="custom-select" style="width: 100%;">
+                                        <option value="general">General</option>
+                                        <option value="main">Menú Principal</option>
+                                        <option value="reserva">Reservas</option>
+                                        <option value="faq">Preguntas Frecuentes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem; color:var(--text-secondary);">Respuesta Automática del Botbot:</label>
+                                <textarea id="rule-response-input" style="height: 90px; width: 100%;" placeholder="Escribe el texto que responderá el chatbot..." required></textarea>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn-primary">💾 Guardar Regla Automática</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-card">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Palabra Clave</th>
+                                    <th>Categoría</th>
+                                    <th>Respuesta del Chatbot</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="custom-rules-body">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -256,6 +311,34 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260804-D"></script>
+    <!-- Modal para Añadir Nuevo Mensaje Personalizado -->
+    <div id="text-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h3>➕ Añadir Mensaje Personalizado</h3>
+            <div class="form-group">
+                <label>Nombre de la Clave (ej: wifiInfoMsg, parkingInfo):</label>
+                <input type="text" id="new-key-name-input" placeholder="ej: wifiInfoMsg">
+            </div>
+            <div class="form-group">
+                <label>Categoría del Mensaje:</label>
+                <select id="new-key-cat-select" class="custom-select">
+                    <option value="main">Menú Principal</option>
+                    <option value="reserva">Reservas / Lista de Espera</option>
+                    <option value="tradicion">Menú Tradición (Regalo)</option>
+                    <option value="faq">Preguntas Frecuentes (FAQs)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Texto del Mensaje (en el idioma seleccionado):</label>
+                <textarea id="new-key-text-input" style="height: 100px; width: 100%; box-sizing: border-box;" placeholder="Escribe la respuesta del chatbot..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="close-text-modal" class="btn-secondary">Cancelar</button>
+                <button id="save-new-text-btn" class="btn-primary">Guardar Mensaje</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/admin.js?v=20260804-E"></script>
 </body>
 </html>

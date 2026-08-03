@@ -2997,7 +2997,12 @@ function getTranslation(lang, key) {
     const langCode = translations[lang] ? lang : 'es';
 
     try {
-        const { getDynamicTexts } = require('./database');
+        const { getDynamicTexts, getDisabledKeys } = require('./database');
+        const disabledKeys = getDisabledKeys();
+        if (disabledKeys && disabledKeys[key] === true) {
+            return '';
+        }
+
         const dynamicTexts = getDynamicTexts();
         if (dynamicTexts && dynamicTexts[langCode] && dynamicTexts[langCode][key] !== undefined && dynamicTexts[langCode][key] !== null) {
             return dynamicTexts[langCode][key];
