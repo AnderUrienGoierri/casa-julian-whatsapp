@@ -94,6 +94,15 @@ if (process.env.DATABASE_URL) {
             payload JSONB NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS bot_attachments (
+            key_name VARCHAR(100) PRIMARY KEY,
+            media_type VARCHAR(20) NOT NULL,
+            media_url TEXT NOT NULL,
+            caption TEXT,
+            filename VARCHAR(100),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
     `).then(() => {
         // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar
         return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas ORDER BY id DESC");
@@ -1541,6 +1550,65 @@ function getLastPublishTimestamp() {
     return db.lastPublishTimestamp || null;
 }
 
+function getAttachments() {
+    const db = loadDb();
+    return db.attachments || {};
+}
+
+function getAttachment(key_name) {
+    const db = loadDb();
+    return (db.attachments && db.attachments[key_name]) || null;
+}
+
+async function saveAttachment(attachmentObj) {
+    const db = loadDb();
+    if (!db.attachments) db.attachments = {};
+    const { key_name, media_type, media_url, caption, filename } = attachmentObj;
+
+    const attachment = {
+        key_name,
+        mediaType: media_type || 'image',
+        mediaUrl: media_url,
+        caption: caption || '',
+        filename: filename || '',
+        updatedAt: new Date().toISOString()
+    };
+
+    db.attachments[key_name] = attachment;
+    saveDb(db);
+
+    if (pool) {
+        try {
+            await pool.query(
+                `INSERT INTO bot_attachments (key_name, media_type, media_url, caption, filename, updated_at)
+                 VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+                 ON CONFLICT (key_name)
+                 DO UPDATE SET media_type = $2, media_url = $3, caption = $4, filename = $5, updated_at = CURRENT_TIMESTAMP`,
+                [key_name, attachment.mediaType, attachment.mediaUrl, attachment.caption, attachment.filename]
+            );
+        } catch (err) {
+            console.error("❌ Error PostgreSQL saveAttachment:", err.message);
+        }
+    }
+    return attachment;
+}
+
+async function deleteAttachment(key_name) {
+    const db = loadDb();
+    if (db.attachments && db.attachments[key_name]) {
+        delete db.attachments[key_name];
+        saveDb(db);
+    }
+    if (pool) {
+        try {
+            await pool.query('DELETE FROM bot_attachments WHERE key_name = $1', [key_name]);
+        } catch (err) {
+            console.error("❌ Error PostgreSQL deleteAttachment:", err.message);
+        }
+    }
+    return true;
+}
+
 module.exports = {
     checkAvailability,
     getAvailableTimeSlotsForDate,
@@ -1585,6 +1653,10 @@ module.exports = {
     discardDraftChange,
     clearAllDraftChanges,
     getLastPublishTimestamp,
+    getAttachments,
+    getAttachment,
+    saveAttachment,
+    deleteAttachment,
     SHIFT_CAPACITIES,
     SCHEDULE_BY_DAY
 };

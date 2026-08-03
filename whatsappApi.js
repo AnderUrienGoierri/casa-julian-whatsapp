@@ -209,6 +209,10 @@ async function sendImageMessage(to, imageUrl, caption = '') {
  * Si isGif es true, incluye gif_playback: true para autoreproducción en bucle tipo GIF.
  */
 async function sendVideoMessage(to, videoUrl, caption = '') {
+    if (interceptSimMessage(to, { type: 'video', videoUrl, caption })) {
+        return { success: true, simulated: true };
+    }
+
     if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
         console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
@@ -237,6 +241,97 @@ async function sendVideoMessage(to, videoUrl, caption = '') {
         return response.data;
     } catch (error) {
         console.error("Error enviando vídeo/GIF por WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    }
+}
+
+/**
+ * Envía un documento PDF/Word por WhatsApp a través de una URL.
+ */
+async function sendDocumentMessage(to, documentUrl, caption = '', filename = 'documento.pdf') {
+    if (interceptSimMessage(to, { type: 'document', documentUrl, caption, filename })) {
+        return { success: true, simulated: true };
+    }
+
+    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) return;
+
+    try {
+        const response = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                messaging_product: 'whatsapp',
+                to: to,
+                type: 'document',
+                document: {
+                    link: documentUrl,
+                    caption: caption,
+                    filename: filename
+                }
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error enviando documento por WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    }
+}
+
+/**
+ * Envía un mensaje de audio por WhatsApp a través de una URL.
+ */
+async function sendAudioMessage(to, audioUrl) {
+    if (interceptSimMessage(to, { type: 'audio', audioUrl })) {
+        return { success: true, simulated: true };
+    }
+
+    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) return;
+
+    try {
+        const response = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                messaging_product: 'whatsapp',
+                to: to,
+                type: 'audio',
+                audio: {
+                    link: audioUrl
+                }
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error enviando audio por WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    }
+}
+
+/**
+ * Despacha un adjunto multimedia según su tipo ('image', 'video', 'document', 'audio', 'sticker').
+ */
+async function sendMediaAttachment(to, attachment) {
+    if (!attachment || !attachment.mediaUrl) return;
+    const { mediaType, mediaUrl, caption, filename } = attachment;
+
+    switch (mediaType) {
+        case 'image':
+            return await sendImageMessage(to, mediaUrl, caption || '');
+        case 'video':
+            return await sendVideoMessage(to, mediaUrl, caption || '');
+        case 'document':
+            return await sendDocumentMessage(to, mediaUrl, caption || '', filename || 'documento.pdf');
+        case 'audio':
+            return await sendAudioMessage(to, mediaUrl);
+        case 'sticker':
+            return await sendStickerMessage(to, mediaUrl);
+        default:
+            return await sendImageMessage(to, mediaUrl, caption || '');
     }
 }
 
@@ -342,7 +437,10 @@ module.exports = {
     sendInteractiveList,
     sendImageMessage,
     sendVideoMessage,
+    sendDocumentMessage,
+    sendAudioMessage,
     sendStickerMessage,
+    sendMediaAttachment,
     getSimMessages,
     clearSimMessages
 };

@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key.startsWith('menuTrad') || key.startsWith('regalar')) return 'badge-tradicion';
         if (key.startsWith('waitlist') || key.startsWith('reserva') || key.startsWith('mod') || key.startsWith('cancel')) return 'badge-reserva';
         if (key.startsWith('welcome') || key.startsWith('mainMenu') || key.startsWith('selectLocation')) return 'badge-header';
+        if (key.startsWith('thanks') || key.startsWith('confirm') || key.startsWith('request')) return 'badge-closing';
         return 'badge-main';
     }
 
@@ -219,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. RENDERIZAR GRID DE TEXTOS CON BOTONES DESACTIVAR / OCULTAR / ELIMINAR (TAB 2)
+    // 2. RENDERIZAR GRID DE TEXTOS CON BOTONES DESACTIVAR / OCULTAR / ELIMINAR + ADJUNTOS (TAB 2)
     function renderTextsGrid() {
         const container = document.getElementById('texts-list-container');
         if (!container || !currentStructure) return;
@@ -229,60 +230,111 @@ document.addEventListener('DOMContentLoaded', () => {
         const dynamicLangTexts = (currentStructure.dynamicTexts && currentStructure.dynamicTexts[currentLang]) || {};
         const categoryMap = currentStructure.categoryMap || {};
         const disabledKeys = currentStructure.disabledKeys || {};
+        const attachments = currentStructure.attachments || {};
 
         container.innerHTML = '';
         
         const allKeys = [...new Set([...Object.keys(langTexts), ...Object.keys(dynamicLangTexts)])];
 
+        // Añadir claves especiales de medios (imagen bienvenida, sticker) si no están ya
+        const specialMediaKeys = [
+            { key: 'welcomeImageUrl', label: '🖼️ Imagen de Bienvenida', category: 'main', mediaOnly: true },
+            { key: 'welcomeStickerUrl', label: '🎭 Sticker Animado de Bienvenida', category: 'main', mediaOnly: true }
+        ];
+
+        specialMediaKeys.forEach(smk => {
+            if (!allKeys.includes(smk.key)) allKeys.unshift(smk.key);
+            if (!categoryMap[smk.key]) categoryMap[smk.key] = smk.category;
+        });
+
         allKeys.forEach(key => {
+            const specialMedia = specialMediaKeys.find(s => s.key === key);
+            const isMediaOnly = specialMedia && specialMedia.mediaOnly;
             const staticVal = langTexts[key] || staticEsTexts[key] || '';
             const currentVal = dynamicLangTexts[key] !== undefined ? dynamicLangTexts[key] : staticVal;
             const category = categoryMap[key] || 'main';
             const colorClass = getBadgeColorClass(key);
             const isDisabled = !!disabledKeys[key];
-            const isCustomKey = !(key in staticEsTexts);
+            const isCustomKey = !(key in staticEsTexts) && !isMediaOnly;
 
             const card = document.createElement('div');
             card.className = `text-card ${isDisabled ? 'card-disabled' : ''}`;
             card.id = `text-card-${key}`;
             card.setAttribute('data-category', category);
 
+            // Construir sección de adjunto existente
+            const att = attachments[key];
+            let attachmentPreviewHtml = '';
+            if (att && att.mediaUrl) {
+                const mediaIcon = att.mediaType === 'image' ? '🖼️' : att.mediaType === 'video' ? '🎬' : att.mediaType === 'audio' ? '🔊' : att.mediaType === 'sticker' ? '🎭' : att.mediaType === 'document' ? '📎' : '📁';
+                let previewContent = '';
+                if (att.mediaType === 'image' || att.mediaType === 'sticker') {
+                    previewContent = `<img src="${att.mediaUrl}" alt="Adjunto" style="max-width:120px; max-height:80px; border-radius:6px; object-fit:cover; border:1px solid var(--border-color);">`;
+                } else if (att.mediaType === 'video') {
+                    previewContent = `<video src="${att.mediaUrl}" style="max-width:120px; max-height:80px; border-radius:6px;" controls muted></video>`;
+                } else {
+                    previewContent = `<a href="${att.mediaUrl}" target="_blank" style="color:var(--accent-blue); font-size:0.8rem;">${att.filename || att.mediaUrl}</a>`;
+                }
+                attachmentPreviewHtml = `
+                    <div class="attachment-preview" style="display:flex; align-items:center; gap:10px; background:#181b22; padding:8px 10px; border-radius:6px; margin-top:6px; border-left:3px solid var(--accent-gold);">
+                        ${previewContent}
+                        <div style="flex:1; font-size:0.78rem; color:var(--text-muted);">
+                            ${mediaIcon} <strong>${att.mediaType.toUpperCase()}</strong>
+                            ${att.caption ? `<br><em>${att.caption}</em>` : ''}
+                        </div>
+                        <button class="btn-danger btn-remove-attachment" data-key="${key}" style="padding:3px 8px; font-size:0.72rem;">🗑️ Quitar</button>
+                    </div>`;
+            }
+
+            // Construir título especial para claves multimedia
+            const displayTitle = specialMedia ? specialMedia.label : key;
+
             card.innerHTML = `
                 <div class="text-card-header" style="align-items:center;">
                     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                        <span class="key-title ${colorClass}" style="padding:2px 6px; border-radius:4px;">${key}</span>
+                        <span class="key-title ${colorClass}" style="padding:2px 6px; border-radius:4px;">${displayTitle}</span>
                         <span class="flow-badge">${category.toUpperCase()}</span>
                         <span class="status-badge ${isDisabled ? 'badge-off' : 'badge-on'}">${isDisabled ? '🔴 SILENCIADO / OCULTO' : '🟢 ACTIVO'}</span>
                     </div>
                 </div>
-                <textarea data-key="${key}">${currentVal}</textarea>
+                ${isMediaOnly
+                    ? `<div style="padding:8px; font-size:0.82rem; color:var(--text-muted); background:#181b22; border-radius:6px;">Este campo es exclusivamente multimedia. Usa <strong>📎 Añadir Adjunto</strong> para configurar la imagen/sticker/vídeo que el bot envía en este paso.</div>`
+                    : `<textarea data-key="${key}">${currentVal}</textarea>`
+                }
+                ${attachmentPreviewHtml}
                 <div class="text-card-footer" style="margin-top:8px;">
-                    <span class="char-counter">${currentVal.length} caracteres</span>
-                    <div style="display:flex; gap:6px;">
+                    ${isMediaOnly ? '<span></span>' : `<span class="char-counter">${currentVal.length} caracteres</span>`}
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="btn-attachment btn-add-attachment" data-key="${key}" title="Añadir o cambiar adjunto multimedia (imagen, vídeo, audio, PDF, sticker)">📎 Añadir Adjunto</button>
                         <button class="btn-secondary btn-toggle-status" data-key="${key}" title="${isDisabled ? 'Activar este mensaje en el bot' : 'Ocultar/Silenciar este mensaje en el bot'}">
                             ${isDisabled ? '👁️ Activar' : '🙈 Ocultar'}
                         </button>
                         ${isCustomKey ? `<button class="btn-danger btn-delete-key" data-key="${key}" title="Eliminar clave personalizada">🗑️ Eliminar</button>` : ''}
-                        <button class="btn-primary btn-save-text" data-key="${key}">💾 Guardar</button>
+                        ${!isMediaOnly ? `<button class="btn-primary btn-save-text" data-key="${key}">💾 Guardar</button>` : ''}
                     </div>
                 </div>
             `;
 
-            const textarea = card.querySelector('textarea');
-            textarea.addEventListener('input', (e) => {
-                const val = e.target.value;
-                card.querySelector('.char-counter').textContent = `${val.length} caracteres`;
-                if (!isTestMode) updateLiveSimulator(key, val);
-            });
+            if (!isMediaOnly) {
+                const textarea = card.querySelector('textarea');
+                textarea.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    card.querySelector('.char-counter').textContent = `${val.length} caracteres`;
+                    if (!isTestMode) updateLiveSimulator(key, val);
+                });
 
-            textarea.addEventListener('focus', () => {
-                if (!isTestMode) updateLiveSimulator(key, textarea.value);
-            });
+                textarea.addEventListener('focus', () => {
+                    if (!isTestMode) updateLiveSimulator(key, textarea.value);
+                });
 
-            // Guardar texto
-            card.querySelector('.btn-save-text').addEventListener('click', () => {
-                saveText(key, textarea.value);
-            });
+                // Guardar texto
+                const saveBtn = card.querySelector('.btn-save-text');
+                if (saveBtn) {
+                    saveBtn.addEventListener('click', () => {
+                        saveText(key, textarea.value);
+                    });
+                }
+            }
 
             // Ocultar / Silenciar / Activar clave
             card.querySelector('.btn-toggle-status').addEventListener('click', async () => {
@@ -299,10 +351,140 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            // Añadir adjunto
+            card.querySelector('.btn-add-attachment').addEventListener('click', () => {
+                openAttachmentModal(key);
+            });
+
+            // Eliminar adjunto existente
+            const removeAttBtn = card.querySelector('.btn-remove-attachment');
+            if (removeAttBtn) {
+                removeAttBtn.addEventListener('click', async () => {
+                    if (confirm(`¿Eliminar el adjunto multimedia de "${key}"?`)) {
+                        await deleteAttachment(key);
+                    }
+                });
+            }
+
             container.appendChild(card);
         });
 
         filterTexts();
+    }
+
+    // MODAL ADJUNTO MULTIMEDIA
+    function openAttachmentModal(keyName) {
+        let modal = document.getElementById('attachment-modal');
+        if (modal) modal.remove();
+
+        modal = document.createElement('div');
+        modal.id = 'attachment-modal';
+        modal.className = 'modal-overlay';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width:520px;">
+                <h3 style="margin-bottom:12px;">📎 Adjuntar Multimedia a <span style="color:var(--accent-gold);">"${keyName}"</span></h3>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <label style="font-size:0.85rem; color:var(--text-muted);">Tipo de archivo:</label>
+                    <select id="att-media-type" class="input-dark" style="width:100%;">
+                        <option value="image">🖼️ Imagen (JPG, PNG, WebP)</option>
+                        <option value="video">🎬 Vídeo (MP4)</option>
+                        <option value="audio">🔊 Audio (MP3, OGG)</option>
+                        <option value="document">📎 Documento (PDF, Word)</option>
+                        <option value="sticker">🎭 Sticker (WebP animado)</option>
+                    </select>
+                    <label style="font-size:0.85rem; color:var(--text-muted);">URL pública del archivo:</label>
+                    <input type="url" id="att-media-url" class="input-dark" placeholder="https://ejemplo.com/imagen.jpg" style="width:100%;">
+                    <label style="font-size:0.85rem; color:var(--text-muted);">Pie de foto / Descripción (opcional):</label>
+                    <input type="text" id="att-caption" class="input-dark" placeholder="Descripción del adjunto..." style="width:100%;">
+                    <label style="font-size:0.85rem; color:var(--text-muted);">Nombre del archivo (solo documentos):</label>
+                    <input type="text" id="att-filename" class="input-dark" placeholder="carta_menu.pdf" style="width:100%;">
+                </div>
+                <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end;">
+                    <button id="att-cancel-btn" class="btn-secondary">Cancelar</button>
+                    <button id="att-save-btn" class="btn-primary">💾 Guardar Adjunto</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Pre-fill if attachment exists
+        const existing = (currentStructure.attachments || {})[keyName];
+        if (existing) {
+            modal.querySelector('#att-media-type').value = existing.mediaType || 'image';
+            modal.querySelector('#att-media-url').value = existing.mediaUrl || '';
+            modal.querySelector('#att-caption').value = existing.caption || '';
+            modal.querySelector('#att-filename').value = existing.filename || '';
+        }
+
+        modal.querySelector('#att-cancel-btn').addEventListener('click', () => modal.remove());
+        modal.querySelector('#att-save-btn').addEventListener('click', async () => {
+            const mediaType = modal.querySelector('#att-media-type').value;
+            const mediaUrl = modal.querySelector('#att-media-url').value.trim();
+            const caption = modal.querySelector('#att-caption').value.trim();
+            const filename = modal.querySelector('#att-filename').value.trim();
+
+            if (!mediaUrl) {
+                alert('Por favor, introduce la URL del archivo multimedia.');
+                return;
+            }
+
+            await saveAttachment(keyName, mediaType, mediaUrl, caption, filename);
+            modal.remove();
+        });
+    }
+
+    // GUARDAR ADJUNTO EN SERVIDOR
+    async function saveAttachment(keyName, mediaType, mediaUrl, caption, filename) {
+        try {
+            const res = await fetch('/api/admin/save-attachment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': adminToken
+                },
+                body: JSON.stringify({ key_name: keyName, media_type: mediaType, media_url: mediaUrl, caption, filename })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (!currentStructure.attachments) currentStructure.attachments = {};
+                currentStructure.attachments[keyName] = data.attachment;
+                await reloadStructureData();
+                renderTextsGrid();
+                renderUseCasesFlow();
+                alert(`✅ Adjunto guardado para "${keyName}".`);
+            } else {
+                alert(`❌ Error: ${data.error}`);
+            }
+        } catch (err) {
+            alert('❌ Error de conexión al guardar adjunto.');
+        }
+    }
+
+    // ELIMINAR ADJUNTO DEL SERVIDOR
+    async function deleteAttachment(keyName) {
+        try {
+            const res = await fetch('/api/admin/delete-attachment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': adminToken
+                },
+                body: JSON.stringify({ key_name: keyName })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (currentStructure.attachments) delete currentStructure.attachments[keyName];
+                await reloadStructureData();
+                renderTextsGrid();
+                renderUseCasesFlow();
+            } else {
+                alert(`❌ Error: ${data.error}`);
+            }
+        } catch (err) {
+            alert('❌ Error de conexión al eliminar adjunto.');
+        }
     }
 
     // MODAL AÑADIR MENSAJE PERSONALIZADO

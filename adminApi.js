@@ -147,6 +147,17 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             regalarMenuCaption: 'tradicion', regalarMenuMsg: 'tradicion', menuTradStep1Tarjeta: 'tradicion', menuTradStep2Nombre: 'tradicion',
             menuTradStep2bDni: 'tradicion', menuTradStep2b2Email: 'tradicion', menuTradStep2cNac: 'tradicion', menuTradStep3Tipo: 'tradicion',
             menuTradStep4HoraComida: 'tradicion', menuTradStep4HoraCena: 'tradicion', menuTradStep5Dia1: 'tradicion', menuTradStep5Dia2: 'tradicion',
+            welcomeMessage: 'main', welcomeImageUrl: 'main', welcomeStickerUrl: 'main',
+            selectLocationTitle: 'main', selectLocationBody: 'main', locPaisVasco: 'main', locMadrid: 'main', madridMsg: 'main',
+            thanksClosingMsg: 'main', requestSummaryHeader: 'reserva', confirmPrompt: 'reserva', confirmYesBtn: 'reserva', confirmNoBtn: 'reserva', confirmCancelledMsg: 'reserva',
+            mainMenuHeader: 'main', opt1Title: 'main', opt1Desc: 'main', opt2Title: 'main', opt2Desc: 'main', opt3Title: 'main', opt3Desc: 'main', opt4Title: 'main', opt4Desc: 'main', opt5Title: 'main', opt5Desc: 'main', opt6Title: 'main', opt6Desc: 'main',
+            reservaCardPrompt: 'reserva', reservaCardBtnSi: 'reserva', reservaCardBtnNo: 'reserva', reservaNoCardPrompt: 'reserva', btnReservaWeb: 'reserva', btnReservaWaitlist: 'reserva',
+            waitlistStep1Nombre: 'reserva', waitlistStep1bDni: 'reserva', waitlistStep1b2Email: 'reserva', waitlistStep1cNac: 'reserva', btnOmitirDni: 'reserva', btnOmitirEmail: 'reserva',
+            btnNacEs: 'reserva', btnNacFr: 'reserva', btnNacUk: 'reserva', btnNacOtro: 'reserva', waitlistStep2Comensales: 'reserva', waitlistStep3Tipo: 'reserva', waitlistStep3HoraComida: 'reserva', waitlistStep3HoraCena: 'reserva', waitlistStep4Cena: 'reserva', waitlistStep4Dia1: 'reserva', waitlistStep4Dia2: 'reserva', waitlistStep4Dia3: 'reserva', waitlistStep5Ninos: 'reserva', btnNinos0: 'reserva', btnNinos1: 'reserva', btnNinos2: 'reserva', waitlistStep6Alergias: 'reserva', waitlistStep7Idioma: 'reserva', waitlistSuccessMsg: 'reserva',
+            modCancelDataPrompt: 'reserva', modReservationVerifyPrompt: 'reserva', modComensalesPrompt: 'reserva', modDiaPrompt: 'reserva', modHoraPrompt: 'reserva', modSuccessMsg: 'reserva',
+            cancelDataPrompt: 'reserva', cancelReservationVerifyPrompt: 'reserva', cancelSuccessMsg: 'reserva',
+            menuTradicionTitle: 'tradicion', menuTradicionOptRegalar: 'tradicion', menuTradicionOptReservar: 'tradicion', menuTradicionOptCaducidad: 'tradicion', regalarMenuMsg: 'tradicion',
+            menuTradStep1Tarjeta: 'tradicion', menuTradStep2Nombre: 'tradicion', menuTradStep2bDni: 'tradicion', menuTradStep2b2Email: 'tradicion', menuTradStep2cNac: 'tradicion', menuTradStep3Tipo: 'tradicion', menuTradStep3HoraComida: 'tradicion', menuTradStep3HoraCena: 'tradicion', menuTradStep4Cena: 'tradicion', menuTradStep5Dia1: 'tradicion', menuTradStep5Dia2: 'tradicion',
             menuTradStep5Dia3: 'tradicion', menuTradStep5CenaDia: 'tradicion', menuTradStep6Alergias: 'tradicion', menuTradStep7Idioma: 'tradicion',
             menuTradCardVerified: 'tradicion', menuTradCardNotFound: 'tradicion', menuTradicionFormPrompt: 'tradicion', menuTradicionSuccessMsg: 'tradicion',
             menuTradicionCaducidadPrompt: 'tradicion', menuTradicionCaducidadMsg: 'tradicion', menuTradMoreCardsPrompt: 'tradicion',
@@ -175,9 +186,9 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                 id: 'cu_1_saludo_idioma',
                 title: 'Caso de Uso 1: Saludo de Bienvenida y Selección de Idioma',
                 category: 'main',
-                botAction: 'Envía sticker animado de Casa Julián, mensaje de bienvenida y lista desplegable con 14 idiomas.',
+                botAction: 'Envía foto oficial, sticker animado de Casa Julián, mensaje de bienvenida y lista desplegable con 14 idiomas.',
                 expectedCustomerInput: 'El cliente pulsa "Seleccionar Idioma" y elige uno de los 14 idiomas disponibles (ej. 🇪🇸 Español, Euskara, 🇬🇧 English, etc.).',
-                keys: ['welcomeMessage']
+                keys: ['welcomeMessage', 'welcomeImageUrl', 'welcomeStickerUrl']
             },
             {
                 order: 2,
@@ -232,14 +243,24 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                 botAction: 'Muestra la lista desplegable con las 10 consultas más frecuentes (Carta, Horarios, Vacaciones, Cancelación, Veganos, Mascotas, etc.).',
                 expectedCustomerInput: 'El cliente selecciona una opción de la lista (ej. "1. Ver carta", "2. Horario atención", "6. Reducción comensales"). Para opción 6 el bot ofrece el botón directo [ Modificar reserva ].',
                 keys: ['faqTitle', 'faq12Title', 'faq12Msg', 'faq1Title', 'faq1Msg', 'faq2Title', 'faq2Msg', 'faq3Title', 'faq3Msg', 'faq4Title', 'faq4Msg', 'faq5Title', 'faq5Msg', 'faq6Title', 'faq6Msg', 'faq7Title', 'faq7Msg', 'faq8Title', 'faq8Msg', 'faq9Title', 'faq9Msg']
+            },
+            {
+                order: 8,
+                id: 'cu_8_cierre_despedida',
+                title: 'Caso de Uso 8: Cierre de Conversación, Confirmaciones y Despedida Final',
+                category: 'main',
+                botAction: 'Envía el mensaje de agradecimiento, dirección, teléfono de atención y enlace a la web oficial.',
+                expectedCustomerInput: 'Mensaje final o despedida enviada por el chatbot tras completar una solicitud o consulta.',
+                keys: ['thanksClosingMsg', 'requestSummaryHeader', 'confirmPrompt', 'confirmYesBtn', 'confirmNoBtn', 'confirmCancelledMsg']
             }
         ];
 
-        const { getDisabledKeys, getCustomRules, getDraftChanges, getLastPublishTimestamp } = require('./database');
+        const { getDisabledKeys, getCustomRules, getDraftChanges, getLastPublishTimestamp, getAttachments } = require('./database');
         const disabledKeys = getDisabledKeys();
         const customRules = getCustomRules();
         const draftChanges = getDraftChanges();
         const lastPublishTimestamp = getLastPublishTimestamp();
+        const attachments = getAttachments();
 
         return res.json({
             success: true,
@@ -253,7 +274,8 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             disabledKeys,
             customRules,
             draftChanges,
-            lastPublishTimestamp
+            lastPublishTimestamp,
+            attachments
         });
     } catch (e) {
         return res.status(500).json({ error: e.message });
@@ -473,4 +495,47 @@ router.post('/publish', requireAdminAuth, async (req, res) => {
     }
 });
 
+// 12. Guardar adjunto multimedia para una clave de mensaje
+router.post('/save-attachment', requireAdminAuth, async (req, res) => {
+    const { key_name, media_type, media_url, caption, filename } = req.body || {};
+    if (!key_name || !media_url) return res.status(400).json({ error: 'key_name y media_url requeridos.' });
+    try {
+        const { saveAttachment, addDraftChange } = require('./database');
+        const attachment = await saveAttachment({ key_name, media_type: media_type || 'image', media_url, caption, filename });
+
+        await addDraftChange({
+            changeType: 'Adjunto Multimedia',
+            sequenceLocation: `Clave: ${key_name}`,
+            details: `Añadido adjunto ${media_type || 'image'} a la clave "${key_name}".`,
+            payload: { type: 'attachment', key_name, media_type, media_url }
+        });
+
+        return res.json({ success: true, attachment });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 13. Eliminar adjunto multimedia de una clave de mensaje
+router.post('/delete-attachment', requireAdminAuth, async (req, res) => {
+    const { key_name } = req.body || {};
+    if (!key_name) return res.status(400).json({ error: 'key_name requerido.' });
+    try {
+        const { deleteAttachment, addDraftChange } = require('./database');
+        await deleteAttachment(key_name);
+
+        await addDraftChange({
+            changeType: 'Eliminar Adjunto',
+            sequenceLocation: `Clave: ${key_name}`,
+            details: `Eliminado adjunto multimedia de la clave "${key_name}".`,
+            payload: { type: 'delete_attachment', key_name }
+        });
+
+        return res.json({ success: true });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 module.exports = router;
+

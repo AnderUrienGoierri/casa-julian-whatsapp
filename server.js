@@ -1,4 +1,4 @@
-const express = require('express');
+1const express = require('express');
 const { processMessage } = require('./botLogic');
 require('dotenv').config();
 
@@ -6,9 +6,12 @@ const path = require('path');
 
 const app = express();
 
-// Middleware para parsear el JSON que envía Meta
-app.use(express.json());
-// Servir archivos estáticos (imágenes, vídeos, gifs, stickers) en /public, /media y /documentacion
+// Middleware para parsear el JSON que envía Meta (con límite para subida de adjuntos base64)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Servir archivos estáticos (imágenes, vídeos, gifs, stickers, uploads)
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/public', express.static(path.join(__dirname, 'media')));
 app.use('/media', express.static(path.join(__dirname, 'media')));
 app.use('/documentacion', express.static(path.join(__dirname, 'documentacion')));
@@ -29,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-04-CMS-V7-CUSTOM-RULES';
+const DEPLOY_VERSION = 'v2026-08-04-CMS-V8-ATTACHMENTS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

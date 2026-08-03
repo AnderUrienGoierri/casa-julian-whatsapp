@@ -1,0 +1,21 @@
+{
+  "states": {
+    "34664037707": {
+      "step": "modificacion_datos_actuales",
+      "data": {}
+    },
+    "test_user_flow_99": {
+      "step": "select_location",
+      "data": {}
+    },
+    "sim_test_reset_user": {
+      "step": "select_language",
+      "data": {}
+    }
+  },
+  "languages": {
+    "test_user_flow_99": "es",
+    "sim_test_reset_user": "es"
+  },
+  "locations": {}
+}
