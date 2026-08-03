@@ -859,7 +859,7 @@ function isStrictNameMatch(queryName, targetName) {
 
     if (!normQuery || !normTarget) return false;
 
-    if (normTarget === normQuery || normTarget.includes(normQuery)) {
+    if (normTarget === normQuery) {
         return true;
     }
 
@@ -868,11 +868,15 @@ function isStrictNameMatch(queryName, targetName) {
 
     if (queryWords.length === 0 || targetWords.length === 0) return false;
 
+    // Cuando el usuario introduce 2 o más palabras (ej. "Ander Urien"), CADA palabra introducida debe ser idéntica a una palabra del nombre registrado
     if (queryWords.length >= 2) {
-        const matchesCount = queryWords.filter(qw => targetWords.some(tw => tw.includes(qw) || qw.includes(tw))).length;
+        const matchesCount = queryWords.filter(qw => 
+            targetWords.some(tw => tw === qw || (qw.length >= 4 && tw.startsWith(qw)))
+        ).length;
         return matchesCount === queryWords.length;
     }
 
+    // Si introduce 1 sola palabra (ej. apellido), debe coincidir exactamente con una de las palabras
     return targetWords.some(tw => tw === queryWords[0]);
 }
 
