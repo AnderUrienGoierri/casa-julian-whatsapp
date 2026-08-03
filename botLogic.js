@@ -1859,25 +1859,7 @@ async function handleTextMessage(from, text) {
         case 'espera_step1_nombre': {
             currentState.data.waitlist = currentState.data.waitlist || {};
             currentState.data.waitlist.nombre = text;
-            currentState.step = 'espera_step1b_dni';
-            userStates.set(from, currentState);
-
-            const promptBody = getTranslation(lang, 'waitlistStep1bDni');
-            const buttons = [
-                { id: 'btn_skip_dni', title: getTranslation(lang, 'btnOmitirDni').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
-            break;
-        }
-
-        case 'espera_step1b_dni': {
-            currentState.data.waitlist = currentState.data.waitlist || {};
-            const cleanDni = text.trim();
-            if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_dni'].includes(cleanDni.toLowerCase())) {
-                currentState.data.waitlist.dni = 'N/A';
-            } else {
-                currentState.data.waitlist.dni = cleanDni.toUpperCase();
-            }
+            currentState.data.waitlist.dni = null;
             currentState.step = 'espera_step1b2_email';
             userStates.set(from, currentState);
 
@@ -2184,26 +2166,8 @@ async function handleTextMessage(from, text) {
         case 'menu_trad_step2_nombre': {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
             currentState.data.menuTrad.nombre = text;
+            currentState.data.menuTrad.dni = null;
             currentState.data.menuTrad.comensales = currentState.data.menuTrad.comensales || 2;
-            currentState.step = 'menu_trad_step2b_dni';
-            userStates.set(from, currentState);
-
-            const promptBody = getTranslation(lang, 'menuTradStep2bDni');
-            const buttons = [
-                { id: 'btn_skip_dni', title: getTranslation(lang, 'btnOmitirDni').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
-            break;
-        }
-
-        case 'menu_trad_step2b_dni': {
-            currentState.data.menuTrad = currentState.data.menuTrad || {};
-            const cleanDni = text.trim();
-            if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_dni'].includes(cleanDni.toLowerCase())) {
-                currentState.data.menuTrad.dni = 'N/A';
-            } else {
-                currentState.data.menuTrad.dni = cleanDni.toUpperCase();
-            }
             currentState.step = 'menu_trad_step2b2_email';
             userStates.set(from, currentState);
 
@@ -2499,12 +2463,46 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
     }
 }
 
+function extractNameAndPhoneFromText(text, from) {
+    const clean = (text || '').trim();
+    const phoneRegex = /(?:\+?34\s*)?(?:[679]\d{2}[\s.-]?\d{3}[\s.-]?\d{3}|\d{9,12})/g;
+    const phoneMatches = clean.match(phoneRegex);
+
+    let phone = null;
+    let name = clean;
+
+    if (phoneMatches && phoneMatches.length > 0) {
+        phone = phoneMatches[0].replace(/\D/g, '');
+        name = clean.replace(phoneMatches[0], '').replace(/[-–,:]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    if (!phone || phone.length < 7) {
+        phone = (from || '').replace(/\D/g, '');
+    }
+
+    return { phone, name };
+}
+
         case 'modificacion_datos_actuales': {
-            const queryText = text.trim();
-            const searchResult = db.findActiveReservation(queryText, from);
+            const { phone, name } = extractNameAndPhoneFromText(text, from);
+
+            if (!name || name.length < 2) {
+                let promptMsg = '';
+                if (lang === 'eu') {
+                    promptMsg = `⚠️ *Mesedez, idatzi erreserbaren Titularraren Izen-abizenak eta Telefonoa egiaztatzeko (adib: Ander Urien 612345678):*`;
+                } else if (lang === 'en') {
+                    promptMsg = `⚠️ *Please enter the Full Name and Phone Number on the reservation to verify (e.g. Ander Urien 612345678):*`;
+                } else {
+                    promptMsg = `⚠️ *Por favor, indícanos el Nombre completo y Teléfono del titular de la reserva para poder verificarla (ej: Ander Urien 612345678):*`;
+                }
+                await sendMessage(from, promptMsg);
+                break;
+            }
+
+            const searchResult = db.findReservationByNameAndPhone(phone, name);
 
             if (!searchResult || !searchResult.reservation) {
-                const notFoundMsg = getTranslation(lang, 'modReservationNotFoundMsg').replace('{query}', queryText);
+                const notFoundMsg = getTranslation(lang, 'modReservationNotFoundMsg').replace('{query}', text);
                 await sendMessage(from, notFoundMsg);
                 break;
             }
@@ -2521,25 +2519,6 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
                 break;
             }
 
-            if (!searchResult.verified) {
-                // Reserva encontrada pero no verificada (solo por nombre o teléfono del remitente)
-                // Mostrar detalles reales de la BD y pedir verificación con segundo factor
-                userStates.set(from, {
-                    step: 'modificacion_verificar_datos',
-                    data: { reservationId: reservaFound.id }
-                });
-                const verifyPrompt = getTranslation(lang, 'modReservationVerifyWithDetailsPrompt')
-                    .replace('{id}', reservaFound.id)
-                    .replace('{nombre}', reservaFound.nombre || 'N/A')
-                    .replace('{fecha}', reservaFound.fecha || 'N/A')
-                    .replace('{hora}', reservaFound.hora || 'N/A')
-                    .replace('{comensales}', reservaFound.comensales || 'N/A');
-                await sendMessage(from, verifyPrompt);
-                break;
-            }
-
-            // Verificado por factores fuertes (código, teléfono explícito, DNI, email)
-            // Usar datos REALES de la base de datos
             currentState.data.reservationId = reservaFound.id;
             currentState.data.comensalesActuales = reservaFound.comensales;
             currentState.data.nombreCliente = reservaFound.nombre;
@@ -2559,66 +2538,53 @@ function formatCancellationDetail(reservaFound, queryText, from, lang) {
             break;
         }
 
-        case 'modificacion_verificar_datos': {
-            const state = userStates.get(from);
-            const resId = state?.data?.reservationId;
-            const reservaFound = db.getReservationById(resId);
+        case 'cancelacion_datos_actuales': {
+            const { phone, name } = extractNameAndPhoneFromText(text, from);
 
-            if (!reservaFound) {
-                const notFoundMsg = getTranslation(lang, 'modReservationNotFoundMsg').replace('{query}', text);
-                await sendMessage(from, notFoundMsg);
-                userStates.set(from, { step: 'modificacion_datos_actuales', data: {} });
+            if (!name || name.length < 2) {
+                let promptMsg = '';
+                if (lang === 'eu') {
+                    promptMsg = `⚠️ *Mesedez, idatzi ezeztatu nahi duzun erreserbaren Izen-abizenak eta Telefonoa (adib: Ander Urien 612345678):*`;
+                } else if (lang === 'en') {
+                    promptMsg = `⚠️ *Please enter the Full Name and Phone Number of the reservation you wish to cancel (e.g. Ander Urien 612345678):*`;
+                } else {
+                    promptMsg = `⚠️ *Por favor, indícanos el Nombre completo y Teléfono de la reserva que deseas cancelar (ej: Ander Urien 612345678):*`;
+                }
+                await sendMessage(from, promptMsg);
                 break;
             }
 
-            if (reservaFound.estado !== 'CONFIRMADA') {
+            const searchResult = db.findReservationByNameAndPhone(phone, name);
+
+            if (!searchResult || !searchResult.reservation) {
+                const notFoundMsg = getTranslation(lang, 'cancelReservationNotFoundMsg').replace('{query}', text);
+                await sendMessage(from, notFoundMsg);
+                break;
+            }
+
+            const reservaFound = searchResult.reservation;
+
+            if (!searchResult.isModifiable) {
                 let restrictionMsg = getTranslation(lang, 'resStatusFinished').replace('{id}', reservaFound.id);
-                if (reservaFound.estado === 'PENDIENTE CANCELACION') restrictionMsg = getTranslation(lang, 'resStatusPendingCancel').replace('{id}', reservaFound.id);
-                else if (reservaFound.estado === 'PENDIENTE MODIFICACION') restrictionMsg = getTranslation(lang, 'resStatusPendingMod').replace('{id}', reservaFound.id);
-                else if (reservaFound.estado === 'EN SERVICIO') restrictionMsg = getTranslation(lang, 'resStatusInService').replace('{id}', reservaFound.id);
-                else if (reservaFound.estado === 'CANCELADA') restrictionMsg = getTranslation(lang, 'resStatusCancelled').replace('{id}', reservaFound.id);
+                if (searchResult.statusReason === 'PENDIENTE CANCELACION') restrictionMsg = getTranslation(lang, 'resStatusPendingCancel').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'PENDIENTE MODIFICACION') restrictionMsg = getTranslation(lang, 'resStatusPendingMod').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'EN SERVICIO') restrictionMsg = getTranslation(lang, 'resStatusInService').replace('{id}', reservaFound.id);
+                else if (searchResult.statusReason === 'CANCELADA') restrictionMsg = getTranslation(lang, 'resStatusCancelled').replace('{id}', reservaFound.id);
                 await sendMessage(from, restrictionMsg);
                 break;
             }
 
-            const inputNorm = text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const inputDigits = text.toString().replace(/\D/g, '');
+            const detalleCancelacion = formatCancellationDetail(reservaFound, text, from, lang);
 
-            // Verificar por código de reserva (ID)
-            const resIdNorm = (reservaFound.id || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const idMatches = resIdNorm && inputNorm.includes(resIdNorm);
-
-            const resPhoneDigits = (reservaFound.telefono || '').replace(/\D/g, '');
-            const resDniNorm = (reservaFound.dni || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const resEmailNorm = (reservaFound.email || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-
-            const phoneMatches = inputDigits.length >= 7 && (inputDigits.includes(resPhoneDigits) || resPhoneDigits.includes(inputDigits));
-            const dniMatches = resDniNorm.length >= 4 && (inputNorm.includes(resDniNorm) || resDniNorm.includes(inputNorm));
-            const emailMatches = resEmailNorm.length >= 4 && (inputNorm.includes(resEmailNorm) || resEmailNorm.includes(inputNorm));
-
-            // Verificadores válidos: código de reserva, teléfono, DNI o email
-            if (idMatches || phoneMatches || dniMatches || emailMatches) {
-                // Usar datos REALES de la base de datos
-                state.data.reservationId = reservaFound.id;
-                state.data.comensalesActuales = reservaFound.comensales;
-                state.data.nombreCliente = reservaFound.nombre;
-                state.data.telefonoReserva = reservaFound.telefono;
-                state.data.reservaActual = `🆔 ${reservaFound.id} (${reservaFound.nombre}, ${reservaFound.telefono})`;
-
-                state.step = 'modificacion_tipo';
-                userStates.set(from, state);
-
-                const modBody = getTranslation(lang, 'modOptionsPrompt');
-                const modButtons = [
-                    { id: 'mod_comensales', title: getTranslation(lang, 'modOptComensales').slice(0, 20) },
-                    { id: 'mod_dia', title: getTranslation(lang, 'modOptDia').slice(0, 20) },
-                    { id: 'mod_hora', title: getTranslation(lang, 'modOptHora').slice(0, 20) }
-                ];
-                await sendInteractiveButtons(from, modBody, modButtons);
-            } else {
-                const mismatchMsg = getTranslation(lang, 'modReservationMismatchMsg').replace('{id}', reservaFound.id);
-                await sendMessage(from, mismatchMsg);
-            }
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
+                reservationId: reservaFound.id,
+                isCancellation: true,
+                detalleMod: detalleCancelacion,
+                nombreCliente: reservaFound.nombre,
+                telefonoReserva: reservaFound.telefono,
+                successMsgKey: 'cancelSuccessMsg'
+            });
             break;
         }
 

@@ -853,6 +853,49 @@ function findActiveReservation(queryText, fromNumber) {
 
 const findReservationForCancellation = findActiveReservation;
 
+function findReservationByNameAndPhone(telefono, nombre) {
+    const dbData = loadDb();
+    const allReservations = dbData.reservas || [];
+
+    const normPhone = normalizePhone(telefono || '');
+    const normName = normalizeText(nombre || '');
+
+    if (!normPhone && !normName) return null;
+
+    const candidates = allReservations.filter(r => {
+        const estadoUpper = (r.estado || '').toUpperCase();
+        const isCancelled = ['CANCELADA', 'CANCELADO', 'RECHAZADA'].includes(estadoUpper);
+        if (isCancelled) return false;
+
+        const resPhone = normalizePhone(r.telefono || '');
+        const resName = normalizeText(r.nombre || '');
+
+        const phoneMatch = normPhone && resPhone && (resPhone.includes(normPhone.slice(-9)) || normPhone.includes(resPhone.slice(-9)));
+
+        const nameWords = normName.split(/\s+/).filter(w => w.length >= 2);
+        const resWords = resName.split(/\s+/).filter(w => w.length >= 2);
+
+        const nameMatch = normName && resName && (
+            resName.includes(normName) ||
+            normName.includes(resName) ||
+            (nameWords.length > 0 && nameWords.some(w => resWords.includes(w)))
+        );
+
+        return phoneMatch && nameMatch;
+    });
+
+    if (candidates.length === 0) return null;
+
+    const active = candidates.find(r => r.estado === 'CONFIRMADA') || candidates[0];
+
+    return {
+        reservation: active,
+        verified: true,
+        isModifiable: active.estado === 'CONFIRMADA',
+        statusReason: active.estado
+    };
+}
+
 function findExistingWaitlistEntry(telefono, nombre) {
     const db = loadDb();
     const waitlist = db.listaEspera || [];
@@ -1134,6 +1177,7 @@ module.exports = {
     autoUpdateReservationStatuses,
     findActiveReservation,
     findReservationForCancellation,
+    findReservationByNameAndPhone,
     confirmReservation,
     cancelReservation,
     addToWaitlist,
