@@ -33,7 +33,7 @@ if (process.env.DATABASE_URL) {
                 ALTER TABLE reservas DROP COLUMN cliente_dni;
             END IF;
         END $$;
-        ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'Pendiente confirmar';
+        ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'Pendiente asignacion';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS ninos VARCHAR(50) DEFAULT '0';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'Ninguna';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
@@ -957,7 +957,7 @@ async function addToWaitlist(data) {
         comensales: validComensales,
         ninos: data.ninos || '0',
         alergias: formatAllergiesInSpanish(data.alergias),
-        estado: data.estado || 'Pendiente confirmar',
+        estado: data.estado || 'Pendiente asignacion',
         idioma: formatLanguageCode(data.idioma),
         fechaRegistro: new Date().toISOString()
     };

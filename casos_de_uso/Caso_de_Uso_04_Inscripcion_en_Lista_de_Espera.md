@@ -4,8 +4,9 @@
 Este flujo permite a un cliente inscribirse en la **Lista de Espera** cuando no hay plazas disponibles para la fecha deseada o cuando elige anotarse proactivamente.
 
 > **Reglas de Negocio Clave:**
-> 1. Todas las inscripciones en la lista de espera quedan registradas **directamente con el estado `Confirmada`** (sin necesidad de aprobación previa manual).
-> 2. **Control Anti-Duplicados:** Si ya existe un registro activo en la lista de espera en estado `Confirmada` con el mismo número de teléfono o nombre del titular, el chatbot bloquea la duplicación.
+> 1. Todas las inscripciones en la lista de espera quedan registradas con el estado inicial **`Pendiente asignacion`**.
+> 2. Cuando la recepción del restaurante procesa la solicitud y le asigna una mesa/reserva, el registro pasa al estado **`Reserva Asignada`**.
+> 3. **Control Anti-Duplicados:** Si ya existe un registro activo en la lista de espera en estado `Pendiente asignacion` con el mismo número de teléfono o nombre del titular, el chatbot bloquea la duplicación.
 
 ---
 
@@ -71,7 +72,7 @@ Este flujo permite a un cliente inscribirse en la **Lista de Espera** cuando no 
     >
     > 🆔 **Solicitud:** `ESP-942945`
     > 👤 **Titular:** Ander Urien Telleria
-    > 📊 **Estado:** Confirmada
+    > 📊 **Estado:** Pendiente asignacion
     > 📅 **Preferencia:** Cualquier sábado de agosto
     >
     > Si necesitas hacer cambios, ponte en contacto directamente con nosotros por teléfono.
@@ -91,18 +92,18 @@ Este flujo permite a un cliente inscribirse en la **Lista de Espera** cuando no 
   > Pulsa **`[ ❌ Omitir Email ]`** (o escribe su correo).
 
 * **Procesamiento Interno:**
-  1. Se genera un registro en `lista_espera` con estado **`Confirmada`** e ID único `ESP-XXXXXX`.
+  1. Se genera un registro en `lista_espera` con estado **`Pendiente asignacion`** e ID único `ESP-XXXXXX`.
   2. Se guarda en PostgreSQL y `db.json`.
   3. Se notifica inmediatamente por email a la recepción del restaurante.
 
 * **Respuesta del Chatbot (Mensaje de Confirmación):**
-  > ✅ **¡Inscripción en Lista de Espera Confirmada!**
+  > ✅ **¡INSCRIPCIÓN EN LISTA DE ESPERA REGISTRADA!**
   >
-  > 🆔 **ID de Solicitud:** `ESP-182022`
+  > 🆔 **ID Solicitud:** `ESP-182022`
   > 👤 **Nombre:** Ander Urien Telleria
   > 📞 **Teléfono:** 34664037707
   > 👥 **Comensales:** 4 personas (0 niños/niñas)
-  > 📅 **Preferencia:** Cualquier sábado de agosto a comer
-  > 📊 **Estado:** Confirmada
+  > 📅 **Días de Preferencia:** Cualquier sábado de agosto a comer
+  > 📊 **Estado:** Pendiente asignacion
   >
-  > Tan pronto como se libere una mesa que encaje con tu preferencia, contactaremos contigo por WhatsApp o teléfono.
+  > Tu inscripción ha sido registrada correctamente. Te avisaremos en cuanto dispongamos de una mesa libre.

@@ -673,7 +673,7 @@ async function handleButtonResponse(from, buttonId) {
                     comensales: parseInt(wl.comensales, 10) || 1,
                     ninos: wl.ninos || '0',
                     alergias: wl.selectedAllergies || wl.alergias || [],
-                    estado: 'Confirmada',
+                    estado: 'Pendiente asignacion',
                     idioma: selectedLang
                 });
 
