@@ -490,6 +490,67 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'btn_card_gestion_reservar': {
+            const state = userStates.get(from) || { data: {} };
+            state.data.menuTrad = state.data.menuTrad || {};
+            const currentCards = state.data.menuTrad.cards || [];
+
+            if (currentCards.length >= 3) {
+                await sendMessage(from, getTranslation(lang, 'menuTradMaxTableCardsNotice'));
+                state.step = 'menu_trad_step2_nombre';
+                userStates.set(from, state);
+                await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
+            } else {
+                state.step = 'menu_trad_more_cards_choice';
+                userStates.set(from, state);
+
+                const promptBody = getTranslation(lang, 'menuTradMoreCardsPrompt')
+                    .replace('{comensales}', state.data.menuTrad.comensales || 2);
+                const buttons = [
+                    { id: 'btn_mt_add_misma_mesa', title: getTranslation(lang, 'btnMtAddMismaMesa').slice(0, 20) },
+                    { id: 'btn_mt_otra_mesa', title: getTranslation(lang, 'btnMtOtraMesa').slice(0, 20) },
+                    { id: 'btn_mt_continuar', title: getTranslation(lang, 'btnMtContinuar').slice(0, 20) }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
+            }
+            break;
+        }
+
+        case 'btn_card_gestion_caducidad': {
+            const state = userStates.get(from) || { data: {} };
+            const card = state.data?.menuTrad?.card || (state.data?.menuTrad?.cards && state.data.menuTrad.cards[0]);
+            const cardCode = card ? card.codigo : 'MT-2026';
+            const cardExpiry = card ? (card.fecha_caducidad || '31/12/2026') : '31/12/2026';
+            const cardStatus = card ? (card.estado || 'ACTIVA') : 'ACTIVA';
+
+            let cadMsg = '';
+            if (lang === 'eu') {
+                cadMsg = `⏳ *OPARI-TXARTELAREN IRAUNGITZE DATA*\n\n` +
+                         `✅ *Kodea:* ${cardCode}\n` +
+                         `📅 *Iraungitze Data:* ${cardExpiry}\n` +
+                         `📌 *Egoera:* ${cardStatus}\n\n` +
+                         `Eskerrik asko Casa Juliánekin harremanetan jartzeagatik!`;
+            } else if (lang === 'en') {
+                cadMsg = `⏳ *GIFT CARD EXPIRATION DATE*\n\n` +
+                         `✅ *Code:* ${cardCode}\n` +
+                         `📅 *Expiration Date:* ${cardExpiry}\n` +
+                         `📌 *Status:* ${cardStatus}\n\n` +
+                         `Thank you for contacting Casa Julián!`;
+            } else {
+                cadMsg = `⏳ *FECHA DE CADUCIDAD DE TARJETA REGALO*\n\n` +
+                         `✅ *Código:* ${cardCode}\n` +
+                         `📅 *Fecha de Caducidad:* ${cardExpiry}\n` +
+                         `📌 *Estado:* ${cardStatus}\n\n` +
+                         `¡Muchas gracias por contactar con Casa Julián!`;
+            }
+
+            await sendMessage(from, cadMsg);
+            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+            userStates.delete(from);
+            await showLocationOrMainMenu(from);
+            break;
+        }
+
         case 'btn_mt_add_misma_mesa': {
             const state = userStates.get(from) || { data: {} };
             state.data.menuTrad = state.data.menuTrad || {};
@@ -2142,26 +2203,33 @@ async function handleTextMessage(from, text) {
                         .replace('{expiry}', expiry);
                     await sendMessage(from, successNotice);
 
-                    // Si se alcanza el máximo de 3 tarjetas (6 comensales), avanzar automáticamente
-                    if (currentCards.length >= 3) {
-                        await sendMessage(from, getTranslation(lang, 'menuTradMaxTableCardsNotice'));
-                        currentState.step = 'menu_trad_step2_nombre';
-                        userStates.set(from, currentState);
-                        await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
-                    } else {
-                        // Ofrecer botones para añadir a misma mesa, otra mesa o continuar
-                        currentState.step = 'menu_trad_more_cards_choice';
-                        userStates.set(from, currentState);
+                    // Ofrecer opciones interactiva: ¿Qué gestión deseas realizar? (Reservar / Ver fecha caducidad)
+                    currentState.step = 'menu_trad_select_gestion';
+                    userStates.set(from, currentState);
 
-                        const promptBody = getTranslation(lang, 'menuTradMoreCardsPrompt')
-                            .replace('{comensales}', currentState.data.menuTrad.comensales);
-                        const buttons = [
-                            { id: 'btn_mt_add_misma_mesa', title: getTranslation(lang, 'btnMtAddMismaMesa').slice(0, 20) },
-                            { id: 'btn_mt_otra_mesa', title: getTranslation(lang, 'btnMtOtraMesa').slice(0, 20) },
-                            { id: 'btn_mt_continuar', title: getTranslation(lang, 'btnMtContinuar').slice(0, 20) }
-                        ];
-                        await sendInteractiveButtons(from, promptBody, buttons);
+                    let gestionPrompt = '';
+                    let btnResTitle = '';
+                    let btnCadTitle = '';
+
+                    if (lang === 'eu') {
+                        gestionPrompt = `💳 *Zer kudeaketa egin nahi duzu?*`;
+                        btnResTitle = `📅 Erreserbatu`;
+                        btnCadTitle = `⏳ Iraungipena ikusi`;
+                    } else if (lang === 'en') {
+                        gestionPrompt = `💳 *What would you like to do?*`;
+                        btnResTitle = `📅 Book`;
+                        btnCadTitle = `⏳ Check Expiration`;
+                    } else {
+                        gestionPrompt = `💳 *¿Qué gestión deseas realizar?*`;
+                        btnResTitle = `📅 Reservar`;
+                        btnCadTitle = `⏳ Ver fecha caducidad`;
                     }
+
+                    const gestionButtons = [
+                        { id: 'btn_card_gestion_reservar', title: btnResTitle.slice(0, 20) },
+                        { id: 'btn_card_gestion_caducidad', title: btnCadTitle.slice(0, 20) }
+                    ];
+                    await sendInteractiveButtons(from, gestionPrompt, gestionButtons);
                 } else {
                     let failNotice = '';
                     if (estadoNorm === 'PENDIENTE RESERVA') {
