@@ -704,6 +704,7 @@ function normalizeText(text) {
     if (!text) return '';
     return text.toString().toLowerCase()
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, ' ')
         .trim();
 }
 
@@ -862,25 +863,8 @@ function isStrictNameMatch(queryName, targetName) {
 
     if (!normQuery || !normTarget) return false;
 
-    if (normTarget === normQuery) {
-        return true;
-    }
-
-    const queryWords = normQuery.split(/\s+/).filter(w => w.length >= 2);
-    const targetWords = normTarget.split(/\s+/).filter(w => w.length >= 2);
-
-    if (queryWords.length === 0 || targetWords.length === 0) return false;
-
-    // Cuando el usuario introduce 2 o más palabras (ej. "Ander Urien"), CADA palabra introducida debe ser idéntica a una palabra del nombre registrado
-    if (queryWords.length >= 2) {
-        const matchesCount = queryWords.filter(qw => 
-            targetWords.some(tw => tw === qw || (qw.length >= 4 && tw.startsWith(qw)))
-        ).length;
-        return matchesCount === queryWords.length;
-    }
-
-    // Si introduce 1 sola palabra (ej. apellido), debe coincidir exactamente con una de las palabras
-    return targetWords.some(tw => tw === queryWords[0]);
+    // Exigir coincidencia exacta del nombre completo y apellidos para evitar falsas cancelaciones
+    return normQuery === normTarget;
 }
 
 function findReservationByNameAndPhone(telefono, nombre) {
