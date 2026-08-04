@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-04-CMS-V20-SELECT-LOCATION-HEADER-INTEGRATED';
+const DEPLOY_VERSION = 'v2026-08-04-CMS-V21-WELCOME-IMAGE-PUBLIC-PATH-AND-FALLBACK-FIX';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

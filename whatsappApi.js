@@ -200,7 +200,33 @@ async function sendImageMessage(to, imageUrl, caption = '') {
         });
         return response.data;
     } catch (error) {
-        console.error("Error enviando imagen por WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        console.error("⚠️ Error enviando imagen por WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        if (imageUrl.includes('casa_julian_erretegia.jpg') && !imageUrl.includes('githubusercontent.com')) {
+            const fallbackUrl = 'https://raw.githubusercontent.com/AnderUrienGoierri/casa-julian-whatsapp/main/media/casa_julian_erretegia.jpg';
+            console.log("🔄 Reintentando envío de imagen de bienvenida con fallback GitHub Raw:", fallbackUrl);
+            try {
+                const retryResp = await axios({
+                    method: 'POST',
+                    url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+                    headers: {
+                        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    data: {
+                        messaging_product: 'whatsapp',
+                        to: to,
+                        type: 'image',
+                        image: {
+                            link: fallbackUrl,
+                            caption: caption
+                        }
+                    }
+                });
+                return retryResp.data;
+            } catch (err2) {
+                console.error("⚠️ Fallback imagen de bienvenida también falló:", err2.response ? JSON.stringify(err2.response.data, null, 2) : err2.message);
+            }
+        }
     }
 }
 
