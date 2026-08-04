@@ -321,12 +321,14 @@ async function showLocationOrMainMenu(from) {
  */
 async function sendLocationMenu(from) {
     const lang = userLanguages.get(from) || 'es';
+    const titleText = getTranslation(lang, 'selectLocationTitle');
     const bodyText = getTranslation(lang, 'selectLocationBody');
+    const fullText = titleText ? `${titleText}\n\n${bodyText}` : bodyText;
     const buttons = [
         { id: 'loc_pais_vasco', title: getTranslation(lang, 'locPaisVasco').slice(0, 20) },
         { id: 'loc_madrid', title: getTranslation(lang, 'locMadrid').slice(0, 20) }
     ];
-    await sendInteractiveButtons(from, bodyText, buttons);
+    await sendInteractiveButtons(from, fullText, buttons);
 }
 
 /**

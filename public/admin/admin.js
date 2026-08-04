@@ -1269,7 +1269,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key === 'welcomeMessage') {
             simListTrigger.style.display = 'block';
             document.getElementById('sim-list-btn-text').textContent = '🌐 Seleccionar Idioma';
-        } else if (key === 'selectLocationBody') {
+        } else if (key === 'selectLocationTitle' || key === 'selectLocationBody') {
+            const titleText = dynamicLangTexts['selectLocationTitle'] || langTexts['selectLocationTitle'] || '📍 *Ubicación del Restaurante*';
+            const bodyText = dynamicLangTexts['selectLocationBody'] || langTexts['selectLocationBody'] || '¿En cuál de nuestros restaurantes estás interesado?';
+            simBody.textContent = `${titleText}\n\n${bodyText}`;
+
             const b1 = dynamicLangTexts['locPaisVasco'] || langTexts['locPaisVasco'] || 'Tolosa (Euskadi)';
             const b2 = dynamicLangTexts['locMadrid'] || langTexts['locMadrid'] || 'Madrid';
 
