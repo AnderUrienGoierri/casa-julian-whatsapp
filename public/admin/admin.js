@@ -249,6 +249,91 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function getEffectiveAttachment(key, attachments = {}) {
+        if (attachments && attachments[key] && attachments[key].mediaUrl) {
+            return { ...attachments[key], isCustom: true };
+        }
+        const baseUrl = window.location.origin;
+        if (key === 'welcomeImageUrl') {
+            return {
+                mediaType: 'image',
+                mediaUrl: `${baseUrl}/public/casa_julian_erretegia.jpg`,
+                caption: 'Imagen de Bienvenida Predeterminado (Parrilla Casa Julián)',
+                isDefault: true
+            };
+        }
+        if (key === 'welcomeStickerUrl') {
+            return {
+                mediaType: 'sticker',
+                mediaUrl: `${baseUrl}/public/casa_julian_sticker.webp`,
+                caption: 'Sticker Animado de Bienvenida Predeterminado',
+                isDefault: true
+            };
+        }
+        if (key === 'regalarMenuMsg' || key === 'menuTradicionTitle') {
+            return {
+                mediaType: 'image',
+                mediaUrl: `${baseUrl}/public/casa_julian_menu_tradicion.jpg`,
+                caption: 'Ficha Menú Tradición Predeterminada',
+                isDefault: true
+            };
+        }
+        return null;
+    }
+
+    function renderMediaPreviewHtml(key, att) {
+        if (!att || !att.mediaUrl) return '';
+
+        const mediaType = (att.mediaType || 'image').toLowerCase();
+        const isCustom = att.isCustom;
+        const badgeText = isCustom ? '📌 ADJUNTO PERSONALIZADO' : '⭐ ARCHIVO PREDETERMINADO EN USO';
+        const badgeColor = isCustom ? '#10b981' : '#f59e0b';
+        const mediaIcon = mediaType === 'image' ? '🖼️' : mediaType === 'video' ? '🎬' : mediaType === 'audio' ? '🔊' : mediaType === 'sticker' ? '🎭' : mediaType === 'document' ? '📄' : '📁';
+
+        let mediaElementHtml = '';
+        if (mediaType === 'image' || mediaType === 'sticker') {
+            mediaElementHtml = `
+                <div style="margin-top:6px; text-align:center;">
+                    <img src="${att.mediaUrl}" alt="Media Preview" style="max-width:100%; max-height:150px; border-radius:8px; object-fit:contain; border:1px solid rgba(255,255,255,0.15); background:#0d0f12; padding:4px;">
+                </div>
+            `;
+        } else if (mediaType === 'video') {
+            mediaElementHtml = `
+                <div style="margin-top:6px;">
+                    <video src="${att.mediaUrl}" controls style="max-width:100%; max-height:160px; border-radius:8px; width:100%; border:1px solid rgba(255,255,255,0.15);"></video>
+                </div>
+            `;
+        } else if (mediaType === 'audio') {
+            mediaElementHtml = `
+                <div style="margin-top:6px;">
+                    <audio src="${att.mediaUrl}" controls style="width:100%; height:40px; margin-top:4px;"></audio>
+                </div>
+            `;
+        } else {
+            mediaElementHtml = `
+                <div style="margin-top:6px; background:#111827; padding:10px; border-radius:6px; border:1px dashed var(--accent-gold); display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-size:0.82rem; color:#f3f4f6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">
+                        📄 <strong>${att.filename || 'Documento PDF/Adjunto'}</strong>
+                    </span>
+                    <a href="${att.mediaUrl}" target="_blank" style="background:var(--accent-gold); color:#000; font-weight:700; padding:4px 10px; border-radius:4px; font-size:0.75rem; text-decoration:none;">📥 Abrir Archivo</a>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="attachment-preview-card" style="background:#14171d; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:10px; margin-top:10px; position:relative;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-size:0.75rem; font-weight:700; color:${badgeColor}; background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:4px; border:1px solid ${badgeColor};">
+                        ${mediaIcon} ${badgeText}
+                    </span>
+                    ${isCustom ? `<button class="btn-danger btn-remove-attachment" data-key="${key}" style="padding:2px 8px; font-size:0.72rem;">🗑️ Quitar Adjunto</button>` : ''}
+                </div>
+                ${mediaElementHtml}
+                ${att.caption ? `<div style="font-size:0.78rem; color:var(--text-muted); margin-top:6px; font-style:italic;">💬 ${att.caption}</div>` : ''}
+            </div>
+        `;
+    }
+
     // 2. RENDERIZAR GRID DE TEXTOS CON BOTONES DESACTIVAR / OCULTAR / ELIMINAR + ADJUNTOS (TAB 2)
     function renderTextsGrid() {
         const container = document.getElementById('texts-list-container');
@@ -291,29 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
             card.id = `text-card-${key}`;
             card.setAttribute('data-category', category);
 
-            // Construir sección de adjunto existente
-            const att = attachments[key];
-            let attachmentPreviewHtml = '';
-            if (att && att.mediaUrl) {
-                const mediaIcon = att.mediaType === 'image' ? '🖼️' : att.mediaType === 'video' ? '🎬' : att.mediaType === 'audio' ? '🔊' : att.mediaType === 'sticker' ? '🎭' : att.mediaType === 'document' ? '📎' : '📁';
-                let previewContent = '';
-                if (att.mediaType === 'image' || att.mediaType === 'sticker') {
-                    previewContent = `<img src="${att.mediaUrl}" alt="Adjunto" style="max-width:120px; max-height:80px; border-radius:6px; object-fit:cover; border:1px solid var(--border-color);">`;
-                } else if (att.mediaType === 'video') {
-                    previewContent = `<video src="${att.mediaUrl}" style="max-width:120px; max-height:80px; border-radius:6px;" controls muted></video>`;
-                } else {
-                    previewContent = `<a href="${att.mediaUrl}" target="_blank" style="color:var(--accent-blue); font-size:0.8rem;">${att.filename || att.mediaUrl}</a>`;
-                }
-                attachmentPreviewHtml = `
-                    <div class="attachment-preview" style="display:flex; align-items:center; gap:10px; background:#181b22; padding:8px 10px; border-radius:6px; margin-top:6px; border-left:3px solid var(--accent-gold);">
-                        ${previewContent}
-                        <div style="flex:1; font-size:0.78rem; color:var(--text-muted);">
-                            ${mediaIcon} <strong>${att.mediaType.toUpperCase()}</strong>
-                            ${att.caption ? `<br><em>${att.caption}</em>` : ''}
-                        </div>
-                        <button class="btn-danger btn-remove-attachment" data-key="${key}" style="padding:3px 8px; font-size:0.72rem;">🗑️ Quitar</button>
-                    </div>`;
-            }
+            // Construir sección de adjunto o media predeterminado en uso
+            const att = getEffectiveAttachment(key, attachments);
+            const attachmentPreviewHtml = renderMediaPreviewHtml(key, att);
 
             // Construir título especial para claves multimedia
             const displayTitle = specialMedia ? specialMedia.label : key;
@@ -407,19 +472,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const cards = document.querySelectorAll('#texts-list-container .text-card');
 
         cards.forEach(card => {
-            const cardCategory = card.getAttribute('data-category') || 'main';
+            const cardCategory = (card.getAttribute('data-category') || 'main').toLowerCase();
             const cardKey = (card.id || '').replace('text-card-', '').toLowerCase();
             const textarea = card.querySelector('textarea');
             const cardText = textarea ? textarea.value.toLowerCase() : '';
             const cardTitle = (card.querySelector('.key-title') ? card.querySelector('.key-title').textContent : '').toLowerCase();
 
-            const matchesCategory = (currentCategoryFilter === 'all') || (cardCategory === currentCategoryFilter);
+            const matchesCategory = (currentCategoryFilter === 'all') || (cardCategory === currentCategoryFilter.toLowerCase());
             const matchesQuery = !query || cardKey.includes(query) || cardText.includes(query) || cardTitle.includes(query);
 
             if (matchesCategory && matchesQuery) {
-                card.style.display = 'flex';
+                card.classList.remove('hidden-card');
+                card.style.setProperty('display', 'flex', 'important');
             } else {
-                card.style.display = 'none';
+                card.classList.add('hidden-card');
+                card.style.setProperty('display', 'none', 'important');
             }
         });
     }

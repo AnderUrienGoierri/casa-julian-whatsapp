@@ -434,6 +434,10 @@ button {
     justify-content: space-between;
 }
 
+.text-card.hidden-card {
+    display: none !important;
+}
+
 .text-card-header {
     display: flex;
     justify-content: space-between;

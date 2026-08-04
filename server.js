@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-04-CMS-V12-FIX-SYNTAX-ERROR';
+const DEPLOY_VERSION = 'v2026-08-04-CMS-V13-MEDIA-PREVIEW-AND-STRICT-FILTERING';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
