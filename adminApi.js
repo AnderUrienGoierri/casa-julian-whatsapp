@@ -124,18 +124,18 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             welcomeImageUrl: 'welcome', welcomeStickerUrl: 'welcome', welcomeMessage: 'welcome',
             welcomeLanguagePrompt: 'welcome', welcomeLanguageBtn: 'welcome',
             lang_es: 'welcome', lang_eu: 'welcome', lang_en: 'welcome', lang_fr: 'welcome',
-            lang_de: 'welcome', lang_nl: 'welcome', lang_sa: 'welcome', lang_pt: 'welcome',
-            lang_it: 'welcome', lang_ca: 'welcome', lang_gl: 'welcome', lang_zh: 'welcome',
-            lang_ja: 'welcome', lang_ru: 'welcome',
+            lang_de: 'welcome', lang_nl: 'welcome', lang_ar: 'welcome', lang_it: 'welcome',
+            lang_pl: 'welcome', lang_ro: 'welcome', lang_be: 'welcome', lang_ko: 'welcome',
+            lang_zh: 'welcome', lang_ja: 'welcome', lang_ru: 'welcome',
 
-            // 2. Seleccion de Ubicacion del Restaurante
-            selectLocationTitle: 'location', selectLocationBody: 'location',
-            locPaisVasco: 'location', locMadrid: 'location', madridMsg: 'location',
+            // 2. Seleccion de Ubicacion del Restaurante (Tolosa / Madrid)
+            selectLocationBody: 'location', locPaisVasco: 'location', locMadrid: 'location', madridMsg: 'location',
 
             // 3. Cierre y Despedida
             thanksClosingMsg: 'closing',
 
             // 4. Menu Principal
+            selectLocationTitle: 'main',
             mainMenuHeader: 'main', menuButtonText: 'main',
             opt1Title: 'main', opt1Desc: 'main', opt2Title: 'main', opt2Desc: 'main',
             opt3Title: 'main', opt3Desc: 'main', opt3bTitle: 'main', opt3bDesc: 'main',

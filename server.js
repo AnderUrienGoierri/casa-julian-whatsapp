@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-04-CMS-V17-STEP1-KEYS-AND-OPT6-CATEGORY-FIX';
+const DEPLOY_VERSION = 'v2026-08-04-CMS-V18-WELCOME-LANG-CARDS-AND-SELECT-LOCATION-FIX';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key.startsWith('welcome') || key.startsWith('lang_') || key.includes('Language')) {
             return 'welcome';
         }
-        if (key.startsWith('selectLocation') || key.startsWith('loc') || key === 'madridMsg') {
+        if (key === 'selectLocationBody' || key.startsWith('loc') || key === 'madridMsg') {
             return 'location';
         }
         if (key.startsWith('thanks') || key.includes('Closing') || key.includes('Despedida')) {
@@ -380,18 +380,22 @@ document.addEventListener('DOMContentLoaded', () => {
             'welcomeImageUrl',
             'welcomeStickerUrl',
             'welcomeMessage',
-            'welcomeLanguagePrompt',
             'welcomeLanguageBtn',
-            'selectLocationTitle',
+            'welcomeLanguagePrompt',
+            'lang_es', 'lang_eu', 'lang_en', 'lang_fr', 'lang_de', 'lang_nl',
+            'lang_ar', 'lang_it', 'lang_pl', 'lang_ro', 'lang_be', 'lang_ko',
+            'lang_zh', 'lang_ja', 'lang_ru',
             'selectLocationBody',
             'locPaisVasco',
             'locMadrid',
             'madridMsg',
+            'selectLocationTitle',
             'mainMenuHeader',
             'menuButtonText',
             'opt1Title', 'opt1Desc',
             'opt2Title', 'opt2Desc',
             'opt3Title', 'opt3Desc',
+            'opt3bTitle', 'opt3bDesc',
             'opt4Title', 'opt4Desc',
             'opt5Title', 'opt5Desc',
             'opt6Title', 'opt6Desc',
