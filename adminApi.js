@@ -123,7 +123,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             // 1. Bienvenida y Seleccion de Idioma
             welcomeMessage: 'welcome', welcomeImageUrl: 'welcome', welcomeStickerUrl: 'welcome',
             welcomeLanguagePrompt: 'welcome', welcomeLanguageBtn: 'welcome',
-            opt6Title: 'welcome', opt6Desc: 'welcome', optLangTitle: 'welcome', optLangDesc: 'welcome',
+            opt6Title: 'welcome', opt6Desc: 'welcome',
             lang_es: 'welcome', lang_eu: 'welcome', lang_en: 'welcome', lang_fr: 'welcome',
             lang_de: 'welcome', lang_nl: 'welcome', lang_sa: 'welcome', lang_pt: 'welcome',
             lang_it: 'welcome', lang_ca: 'welcome', lang_gl: 'welcome', lang_zh: 'welcome',

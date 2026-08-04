@@ -55,8 +55,6 @@ const translations = {
         "opt5Desc": "Horarios, políticas, párking, taxi...",
         "opt6Title": "6. Cambiar Idioma",
         "opt6Desc": "Cambiar el idioma de la conversación.",
-        "optLangTitle": "8. Cambiar Idioma",
-        "optLangDesc": "Cambiar el idioma de la conversación.",
         "cancelWaitlistPrompt": "📝 *Cancelar Inscripción en Lista de Espera*\n\nPor favor, indícanos tu *nombre y apellidos*, *teléfono*, *DNI/Pasaporte* o *correo electrónico* para localizar tu registro en la lista de espera:",
         "cancelWaitlistSuccessMsg": "✅ *Inscripción en Lista de Espera Cancelada*\n\n🆔 *ID Registro:* {id}\n👤 *Nombre:* {nombre}\n📞 *Teléfono:* {telefono}\n📅 *Días preferencia:* {dias}\n📌 *Nuevo Estado:* Cancelado\n\nTu inscripción en la lista de espera ha sido cancelada correctamente.",
         "cancelWaitlistNotFoundMsg": "⚠️ No hemos encontrado ningún registro activo en la lista de espera con los datos indicados (\"{query}\"). Por favor, comprueba los datos e inténtalo de nuevo:",

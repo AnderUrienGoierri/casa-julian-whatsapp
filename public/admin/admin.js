@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getCategoryForKey(key) {
         if (!key) return 'main';
-        if (key.startsWith('welcome') || key.startsWith('lang_') || key.includes('Language') || key === 'opt6Title' || key === 'opt6Desc' || key === 'optLangTitle' || key === 'optLangDesc') {
+        if (key.startsWith('welcome') || key.startsWith('lang_') || key.includes('Language') || key === 'opt6Title' || key === 'opt6Desc') {
             return 'welcome';
         }
         if (key.startsWith('selectLocation') || key.startsWith('loc') || key === 'madridMsg') {
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // CLASIFICACIÓN DE COLORES POR TIPO DE ETIQUETA
     function getBadgeColorClass(key) {
-        if (key.startsWith('welcome') || key.startsWith('lang_') || key.includes('Language') || key === 'opt6Title' || key === 'opt6Desc' || key === 'optLangTitle' || key === 'optLangDesc') return 'badge-header';
+        if (key.startsWith('welcome') || key.startsWith('lang_') || key.includes('Language') || key === 'opt6Title' || key === 'opt6Desc') return 'badge-header';
         if (key.startsWith('selectLocation') || key.startsWith('loc') || key === 'madridMsg') return 'badge-button';
         if (key.startsWith('thanks') || key.includes('Closing')) return 'badge-closing';
         if (key.startsWith('btn') || key.includes('Btn')) return 'badge-button';
@@ -395,7 +395,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'opt4Title', 'opt4Desc',
             'opt5Title', 'opt5Desc',
             'opt6Title', 'opt6Desc',
-            'optLangTitle', 'optLangDesc',
             'thanksClosingMsg'
         ];
 
