@@ -121,9 +121,8 @@ router.get('/structure', requireAdminAuth, (req, res) => {
         // Categorización explícita de todas las llaves de traducción
         const categoryMap = {
             // 1. Bienvenida y Seleccion de Idioma
-            welcomeMessage: 'welcome', welcomeImageUrl: 'welcome', welcomeStickerUrl: 'welcome',
+            welcomeImageUrl: 'welcome', welcomeStickerUrl: 'welcome', welcomeMessage: 'welcome',
             welcomeLanguagePrompt: 'welcome', welcomeLanguageBtn: 'welcome',
-            opt6Title: 'welcome', opt6Desc: 'welcome',
             lang_es: 'welcome', lang_eu: 'welcome', lang_en: 'welcome', lang_fr: 'welcome',
             lang_de: 'welcome', lang_nl: 'welcome', lang_sa: 'welcome', lang_pt: 'welcome',
             lang_it: 'welcome', lang_ca: 'welcome', lang_gl: 'welcome', lang_zh: 'welcome',
@@ -141,6 +140,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             opt1Title: 'main', opt1Desc: 'main', opt2Title: 'main', opt2Desc: 'main',
             opt3Title: 'main', opt3Desc: 'main', opt3bTitle: 'main', opt3bDesc: 'main',
             opt4Title: 'main', opt4Desc: 'main', opt5Title: 'main', opt5Desc: 'main',
+            opt6Title: 'main', opt6Desc: 'main',
 
             // 5. Reservas & Lista de Espera
             reservaIntro: 'reserva', btnSolicitarReserva: 'reserva', btnAddListaEspera: 'reserva',
@@ -203,8 +203,16 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                 title: 'Caso de Uso 1: Saludo de Bienvenida y Selección de Idioma',
                 category: 'main',
                 botAction: 'Envía foto oficial, sticker animado de Casa Julián, mensaje de bienvenida y lista desplegable con 14 idiomas.',
-                expectedCustomerInput: 'El cliente pulsa "Seleccionar Idioma" y elige uno de los 14 idiomas disponibles (ej. 🇪🇸 Español, Euskara, 🇬🇧 English, etc.).',
-                keys: ['welcomeMessage', 'welcomeImageUrl', 'welcomeStickerUrl']
+                keys: [
+                    'welcomeImageUrl',
+                    'welcomeStickerUrl',
+                    'welcomeMessage',
+                    'welcomeLanguagePrompt',
+                    'welcomeLanguageBtn',
+                    'lang_es', 'lang_eu', 'lang_en', 'lang_fr', 'lang_de', 'lang_nl',
+                    'lang_sa', 'lang_pt', 'lang_it', 'lang_ca', 'lang_gl', 'lang_zh',
+                    'lang_ja', 'lang_ru'
+                ]
             },
             {
                 order: 2,
@@ -220,9 +228,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                 id: 'cu_3_menu_principal',
                 title: 'Caso de Uso 3: Menú Principal de Servicios de Casa Julián',
                 category: 'main',
-                botAction: 'Envía la imagen oficial del restaurante y muestra la lista desplegable interactiva con los 6 servicios principales.',
-                expectedCustomerInput: 'El cliente selecciona una opción de la lista: 1. Hacer una reserva, 2. Modificación, 3. Cancelar reserva, 4. Regalar Menú Tradición, 5. Otras cuestiones, 6. Cambiar Idioma.',
-                keys: ['mainMenuHeader', 'opt1Title', 'opt1Desc', 'opt2Title', 'opt2Desc', 'opt3Title', 'opt3Desc', 'opt4Title', 'opt4Desc', 'opt5Title', 'opt5Desc', 'opt6Title', 'opt6Desc']
+                keys: ['mainMenuHeader', 'menuButtonText', 'opt1Title', 'opt1Desc', 'opt2Title', 'opt2Desc', 'opt3Title', 'opt3Desc', 'opt4Title', 'opt4Desc', 'opt5Title', 'opt5Desc', 'opt6Title', 'opt6Desc']
             },
             {
                 order: 4,
