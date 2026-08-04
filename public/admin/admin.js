@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key.startsWith('welcome') || key.startsWith('lang_') || key.includes('Language')) {
             return 'welcome';
         }
-        if (key === 'selectLocationBody' || key.startsWith('loc') || key === 'madridMsg') {
+        if (key.startsWith('selectLocation') || key.startsWith('loc') || key === 'madridMsg') {
             return 'location';
         }
         if (key.startsWith('thanks') || key.includes('Closing') || key.includes('Despedida')) {

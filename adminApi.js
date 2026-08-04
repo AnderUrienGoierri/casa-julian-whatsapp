@@ -129,13 +129,12 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             lang_zh: 'welcome', lang_ja: 'welcome', lang_ru: 'welcome',
 
             // 2. Seleccion de Ubicacion del Restaurante (Tolosa / Madrid)
-            selectLocationBody: 'location', locPaisVasco: 'location', locMadrid: 'location', madridMsg: 'location',
+            selectLocationTitle: 'location', selectLocationBody: 'location', locPaisVasco: 'location', locMadrid: 'location', madridMsg: 'location',
 
             // 3. Cierre y Despedida
             thanksClosingMsg: 'closing',
 
             // 4. Menu Principal
-            selectLocationTitle: 'main',
             mainMenuHeader: 'main', menuButtonText: 'main',
             opt1Title: 'main', opt1Desc: 'main', opt2Title: 'main', opt2Desc: 'main',
             opt3Title: 'main', opt3Desc: 'main', opt3bTitle: 'main', opt3bDesc: 'main',
