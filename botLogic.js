@@ -222,6 +222,7 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
  * Página 1 muestra prioritariamente: 1. Español, 2. Euskara, 3. English.
  */
 async function sendLanguageMenu(from, page = 1) {
+    const lang = userLanguages.get(from) || 'es';
     userStates.set(from, { step: 'select_language', data: {} });
 
     if (page === 2) {
