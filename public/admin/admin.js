@@ -401,8 +401,6 @@ document.addEventListener('DOMContentLoaded', () => {
         filterTexts();
     }
 
-    let currentCategoryFilter = 'all';
-
     function filterTexts() {
         const searchInput = document.getElementById('search-text-input');
         const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
