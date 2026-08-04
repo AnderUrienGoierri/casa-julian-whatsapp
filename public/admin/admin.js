@@ -112,7 +112,15 @@ document.addEventListener('DOMContentLoaded', () => {
             
             btn.classList.add('active');
             const tabId = btn.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
+            const targetEl = document.getElementById(tabId);
+            if (targetEl) targetEl.classList.add('active');
+
+            if (tabId === 'tab-flow') renderUseCasesFlow();
+            if (tabId === 'tab-texts') renderTextsGrid();
+            if (tabId === 'tab-menu') renderMenuTable();
+            if (tabId === 'tab-faqs') renderFaqsList();
+            if (tabId === 'tab-rules') renderCustomRulesTable();
+            if (tabId === 'tab-publish') renderDraftChangesTable();
         });
     });
 
@@ -163,7 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key.startsWith('menuTrad') || key.startsWith('regalar') || key.includes('Gift')) {
             return 'tradicion';
         }
-        if (key.startsWith('waitlist') || key.startsWith('reserva') || key.startsWith('mod') || key.startsWith('cancel') || key.startsWith('day')) {
+        if (key.startsWith('mod')) {
+            return 'mod';
+        }
+        if (key.startsWith('cancel')) {
+            return 'cancel';
+        }
+        if (key.startsWith('waitlist') || key.startsWith('reserva') || key.startsWith('day')) {
             return 'reserva';
         }
         if (key.startsWith('mainMenu') || key.startsWith('menu') || key.startsWith('opt')) {
@@ -720,40 +734,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             alert('Error de conexión al eliminar.');
         }
-    }
-
-    // FILTRO DE CATEGORÍAS (Filtros Menú Principal, Reservas, Menú Tradición, FAQs)
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            currentCategoryFilter = chip.getAttribute('data-cat');
-            filterTexts();
-        });
-    });
-
-    function filterTexts() {
-        const query = (document.getElementById('search-text-input')?.value || '').toLowerCase();
-        
-        document.querySelectorAll('.text-card').forEach(card => {
-            const key = card.id.replace('text-card-', '').toLowerCase();
-            const txt = card.querySelector('textarea').value.toLowerCase();
-            const cardCat = card.getAttribute('data-category');
-
-            const matchesCategory = (currentCategoryFilter === 'all' || cardCat === currentCategoryFilter);
-            const matchesSearch = (key.includes(query) || txt.includes(query));
-
-            if (matchesCategory && matchesSearch) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    }
-
-    const searchInput = document.getElementById('search-text-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', filterTexts);
     }
 
     // GUARDAR TEXTO EN SERVIDOR

@@ -150,13 +150,20 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             waitlistStep2Comensales: 'reserva', waitlistStep3Tipo: 'reserva', waitlistStep3HoraComida: 'reserva', waitlistStep3HoraCena: 'reserva',
             waitlistStep4Dia1: 'reserva', waitlistStep4Dia2: 'reserva', waitlistStep4Dia3: 'reserva', waitlistStep4CenaDia: 'reserva',
             waitlistStep5Ninos: 'reserva', waitlistStep5NinosPrompt: 'reserva', waitlistStep6Alergias: 'reserva', waitlistStep7Idioma: 'reserva',
-            waitlistSuccessMsg: 'reserva', cancelWaitlistPrompt: 'reserva', cancelWaitlistSuccessMsg: 'reserva', cancelWaitlistNotFoundMsg: 'reserva',
-            modCancelDataPrompt: 'reserva', modReservationNotFoundMsg: 'reserva', modReservationVerifyPrompt: 'reserva',
-            modReservationVerifyWithDetailsPrompt: 'reserva', modReservationMismatchMsg: 'reserva', cancelDataPrompt: 'reserva',
-            cancelReservationNotFoundMsg: 'reserva', cancelReservationVerifyPrompt: 'reserva', cancelReservationVerifyWithDetailsPrompt: 'reserva',
-            cancelReservationMismatchMsg: 'reserva', modOptionsPrompt: 'reserva', modOptComensales: 'reserva', modOptDia: 'reserva', modOptHora: 'reserva',
-            modComensalesPrompt: 'reserva', modComensalesPromptUnknown: 'reserva', maxComensalesErrorMsg: 'reserva', modDiaPrompt: 'reserva',
-            modHoraPrompt: 'reserva', modSuccessMsg: 'reserva', cancelSuccessMsg: 'reserva',
+            waitlistSuccessMsg: 'reserva',
+            
+            // 5b. Modificaciones
+            modCancelDataPrompt: 'mod', modReservationNotFoundMsg: 'mod', modReservationVerifyPrompt: 'mod',
+            modReservationVerifyWithDetailsPrompt: 'mod', modReservationMismatchMsg: 'mod',
+            modOptionsPrompt: 'mod', modOptComensales: 'mod', modOptDia: 'mod', modOptHora: 'mod',
+            modComensalesPrompt: 'mod', modComensalesPromptUnknown: 'mod', maxComensalesErrorMsg: 'mod', modDiaPrompt: 'mod',
+            modHoraPrompt: 'mod', modSuccessMsg: 'mod',
+
+            // 5c. Cancelaciones
+            cancelWaitlistPrompt: 'cancel', cancelWaitlistSuccessMsg: 'cancel', cancelWaitlistNotFoundMsg: 'cancel',
+            cancelDataPrompt: 'cancel', cancelReservationNotFoundMsg: 'cancel', cancelReservationVerifyPrompt: 'cancel',
+            cancelReservationVerifyWithDetailsPrompt: 'cancel', cancelReservationMismatchMsg: 'cancel', cancelSuccessMsg: 'cancel',
+
             btnOmitirDni: 'reserva', btnOmitirEmail: 'reserva', btnNacEs: 'reserva', btnNacFr: 'reserva', btnNacUk: 'reserva', btnNacOtro: 'reserva',
             btnNinos0: 'reserva', btnNinos1: 'reserva', btnNinos2: 'reserva', requestSummaryHeader: 'reserva', confirmPrompt: 'reserva',
             confirmYesBtn: 'reserva', confirmNoBtn: 'reserva', confirmCancelledMsg: 'reserva',
