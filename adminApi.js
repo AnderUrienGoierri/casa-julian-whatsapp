@@ -29,8 +29,8 @@ router.post('/login', (req, res) => {
 // 2. Obtener estructura completa y datos del chatbot
 router.get('/structure', requireAdminAuth, (req, res) => {
     try {
-        const dynamicTexts = getDynamicTexts();
-        const menuItems = getMenuItems();
+        const dynamicTexts = getDynamicTexts(true);
+        const menuItems = getMenuItems(true);
         
         // Estructura de flujos del chatbot
         const flowTree = [
@@ -256,11 +256,11 @@ router.get('/structure', requireAdminAuth, (req, res) => {
         ];
 
         const { getDisabledKeys, getCustomRules, getDraftChanges, getLastPublishTimestamp, getAttachments } = require('./database');
-        const disabledKeys = getDisabledKeys();
-        const customRules = getCustomRules();
+        const disabledKeys = getDisabledKeys(true);
+        const customRules = getCustomRules(true);
         const draftChanges = getDraftChanges();
         const lastPublishTimestamp = getLastPublishTimestamp();
-        const attachments = getAttachments();
+        const attachments = getAttachments(true);
 
         return res.json({
             success: true,
@@ -482,12 +482,11 @@ router.post('/discard-draft', requireAdminAuth, async (req, res) => {
 // 11. SUBIR A PRODUCCIÓN (Publicar todos los cambios borrador)
 router.post('/publish', requireAdminAuth, async (req, res) => {
     try {
-        const { clearAllDraftChanges } = require('./database');
-        await clearAllDraftChanges();
-        const publishTimestamp = new Date().toISOString();
+        const { publishAllDraftChanges } = require('./database');
+        const result = await publishAllDraftChanges();
         return res.json({
             success: true,
-            timestamp: publishTimestamp,
+            timestamp: result.timestamp,
             message: '¡Cambios subidos a producción correctamente! El chatbot en vivo en WhatsApp reflejará las modificaciones de inmediato.'
         });
     } catch (e) {

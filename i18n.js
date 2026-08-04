@@ -2993,17 +2993,17 @@ const translations = {
     }
 };
 
-function getTranslation(lang, key) {
+function getTranslation(lang, key, isDraftParam = false) {
     const langCode = translations[lang] ? lang : 'es';
 
     try {
         const { getDynamicTexts, getDisabledKeys } = require('./database');
-        const disabledKeys = getDisabledKeys();
+        const disabledKeys = getDisabledKeys(isDraftParam);
         if (disabledKeys && disabledKeys[key] === true) {
             return '';
         }
 
-        const dynamicTexts = getDynamicTexts();
+        const dynamicTexts = getDynamicTexts(isDraftParam);
         if (dynamicTexts && dynamicTexts[langCode] && dynamicTexts[langCode][key] !== undefined && dynamicTexts[langCode][key] !== null) {
             return dynamicTexts[langCode][key];
         }
