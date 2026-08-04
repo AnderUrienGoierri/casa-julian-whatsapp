@@ -146,14 +146,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function getCategoryForKey(key) {
+        if (!key) return 'main';
+        if (key.startsWith('welcome') || key.startsWith('lang_') || key.includes('Language') || key === 'opt6Title' || key === 'opt6Desc' || key === 'optLangTitle' || key === 'optLangDesc') {
+            return 'welcome';
+        }
+        if (key.startsWith('selectLocation') || key.startsWith('loc') || key === 'madridMsg') {
+            return 'location';
+        }
+        if (key.startsWith('thanks') || key.includes('Closing') || key.includes('Despedida')) {
+            return 'closing';
+        }
+        if (key.startsWith('faq')) {
+            return 'faq';
+        }
+        if (key.startsWith('menuTrad') || key.startsWith('regalar') || key.includes('Gift')) {
+            return 'tradicion';
+        }
+        if (key.startsWith('waitlist') || key.startsWith('reserva') || key.startsWith('mod') || key.startsWith('cancel') || key.startsWith('day')) {
+            return 'reserva';
+        }
+        if (key.startsWith('mainMenu') || key.startsWith('menu') || key.startsWith('opt')) {
+            return 'main';
+        }
+        return (currentStructure && currentStructure.categoryMap && currentStructure.categoryMap[key]) || 'main';
+    }
+
     // CLASIFICACIÓN DE COLORES POR TIPO DE ETIQUETA
     function getBadgeColorClass(key) {
-        if (key.startsWith('btn') || key.startsWith('loc') || key.includes('Btn')) return 'badge-button';
+        if (key.startsWith('welcome') || key.startsWith('lang_') || key.includes('Language') || key === 'opt6Title' || key === 'opt6Desc' || key === 'optLangTitle' || key === 'optLangDesc') return 'badge-header';
+        if (key.startsWith('selectLocation') || key.startsWith('loc') || key === 'madridMsg') return 'badge-button';
+        if (key.startsWith('thanks') || key.includes('Closing')) return 'badge-closing';
+        if (key.startsWith('btn') || key.includes('Btn')) return 'badge-button';
         if (key.startsWith('faq')) return 'badge-faq';
         if (key.startsWith('menuTrad') || key.startsWith('regalar')) return 'badge-tradicion';
-        if (key.startsWith('waitlist') || key.startsWith('reserva') || key.startsWith('mod') || key.startsWith('cancel')) return 'badge-reserva';
-        if (key.startsWith('welcome') || key.startsWith('mainMenu') || key.startsWith('selectLocation')) return 'badge-header';
-        if (key.startsWith('thanks') || key.startsWith('confirm') || key.startsWith('request')) return 'badge-closing';
+        if (key.startsWith('waitlist') || key.startsWith('reserva') || key.startsWith('mod') || key.startsWith('cancel') || key.startsWith('day')) return 'badge-reserva';
         return 'badge-main';
     }
 
@@ -206,6 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     const targetKey = badge.getAttribute('data-key');
                     document.querySelector('[data-tab="tab-texts"]').click();
+                    const allChip = document.querySelector('.filter-chip[data-cat="all"]');
+                    if (allChip) allChip.click();
                     const targetCard = document.getElementById(`text-card-${targetKey}`);
                     if (targetCard) {
                         targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -238,8 +267,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Añadir claves especiales de medios (imagen bienvenida, sticker) si no están ya
         const specialMediaKeys = [
-            { key: 'welcomeImageUrl', label: '🖼️ Imagen de Bienvenida', category: 'main', mediaOnly: true },
-            { key: 'welcomeStickerUrl', label: '🎭 Sticker Animado de Bienvenida', category: 'main', mediaOnly: true }
+            { key: 'welcomeImageUrl', label: '🖼️ Imagen de Bienvenida', category: 'welcome', mediaOnly: true },
+            { key: 'welcomeStickerUrl', label: '🎭 Sticker Animado de Bienvenida', category: 'welcome', mediaOnly: true }
         ];
 
         specialMediaKeys.forEach(smk => {
@@ -252,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isMediaOnly = specialMedia && specialMedia.mediaOnly;
             const staticVal = langTexts[key] || staticEsTexts[key] || '';
             const currentVal = dynamicLangTexts[key] !== undefined ? dynamicLangTexts[key] : staticVal;
-            const category = categoryMap[key] || 'main';
+            const category = getCategoryForKey(key);
             const colorClass = getBadgeColorClass(key);
             const isDisabled = !!disabledKeys[key];
             const isCustomKey = !(key in staticEsTexts) && !isMediaOnly;
@@ -370,6 +399,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         filterTexts();
+    }
+
+    let currentCategoryFilter = 'all';
+
+    function filterTexts() {
+        const searchInput = document.getElementById('search-text-input');
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const cards = document.querySelectorAll('#texts-list-container .text-card');
+
+        cards.forEach(card => {
+            const cardCategory = card.getAttribute('data-category') || 'main';
+            const cardKey = (card.id || '').replace('text-card-', '').toLowerCase();
+            const textarea = card.querySelector('textarea');
+            const cardText = textarea ? textarea.value.toLowerCase() : '';
+            const cardTitle = (card.querySelector('.key-title') ? card.querySelector('.key-title').textContent : '').toLowerCase();
+
+            const matchesCategory = (currentCategoryFilter === 'all') || (cardCategory === currentCategoryFilter);
+            const matchesQuery = !query || cardKey.includes(query) || cardText.includes(query) || cardTitle.includes(query);
+
+            if (matchesCategory && matchesQuery) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    // Event listeners para los chips de filtro de categoría
+    const categoryFiltersContainer = document.getElementById('category-filters');
+    if (categoryFiltersContainer) {
+        categoryFiltersContainer.addEventListener('click', (e) => {
+            const chip = e.target.closest('.filter-chip');
+            if (!chip) return;
+
+            categoryFiltersContainer.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+
+            currentCategoryFilter = chip.getAttribute('data-cat') || 'all';
+            filterTexts();
+        });
+    }
+
+    // Event listener para el campo de búsqueda por texto
+    const searchTextInput = document.getElementById('search-text-input');
+    if (searchTextInput) {
+        searchTextInput.addEventListener('input', () => {
+            filterTexts();
+        });
     }
 
     // MODAL ADJUNTO MULTIMEDIA

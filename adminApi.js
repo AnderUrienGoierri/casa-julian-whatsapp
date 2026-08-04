@@ -120,14 +120,29 @@ router.get('/structure', requireAdminAuth, (req, res) => {
 
         // Categorización explícita de todas las llaves de traducción
         const categoryMap = {
-            welcomeMessage: 'main', menuButtonText: 'main', selectLocationTitle: 'main', selectLocationBody: 'main',
-            locPaisVasco: 'main', locMadrid: 'main', madridMsg: 'main', mainMenuHeader: 'main',
+            // 1. Bienvenida y Seleccion de Idioma
+            welcomeMessage: 'welcome', welcomeImageUrl: 'welcome', welcomeStickerUrl: 'welcome',
+            welcomeLanguagePrompt: 'welcome', welcomeLanguageBtn: 'welcome',
+            opt6Title: 'welcome', opt6Desc: 'welcome', optLangTitle: 'welcome', optLangDesc: 'welcome',
+            lang_es: 'welcome', lang_eu: 'welcome', lang_en: 'welcome', lang_fr: 'welcome',
+            lang_de: 'welcome', lang_nl: 'welcome', lang_sa: 'welcome', lang_pt: 'welcome',
+            lang_it: 'welcome', lang_ca: 'welcome', lang_gl: 'welcome', lang_zh: 'welcome',
+            lang_ja: 'welcome', lang_ru: 'welcome',
+
+            // 2. Seleccion de Ubicacion del Restaurante
+            selectLocationTitle: 'location', selectLocationBody: 'location',
+            locPaisVasco: 'location', locMadrid: 'location', madridMsg: 'location',
+
+            // 3. Cierre y Despedida
+            thanksClosingMsg: 'closing',
+
+            // 4. Menu Principal
+            mainMenuHeader: 'main', menuButtonText: 'main',
             opt1Title: 'main', opt1Desc: 'main', opt2Title: 'main', opt2Desc: 'main',
             opt3Title: 'main', opt3Desc: 'main', opt3bTitle: 'main', opt3bDesc: 'main',
             opt4Title: 'main', opt4Desc: 'main', opt5Title: 'main', opt5Desc: 'main',
-            opt6Title: 'main', opt6Desc: 'main', optLangTitle: 'main', optLangDesc: 'main',
-            thanksClosingMsg: 'main', confirmPrompt: 'main', confirmYesBtn: 'main', confirmNoBtn: 'main', confirmCancelledMsg: 'main',
 
+            // 5. Reservas & Lista de Espera
             reservaIntro: 'reserva', btnSolicitarReserva: 'reserva', btnAddListaEspera: 'reserva',
             webReservaLinkMsg: 'reserva', reservaCardPrompt: 'reserva', reservaCardBtnSi: 'reserva', reservaCardBtnNo: 'reserva',
             reservaNoCardPrompt: 'reserva', btnReservaWeb: 'reserva', btnReservaWaitlist: 'reserva', waitlistInitPrompt: 'reserva',
@@ -142,28 +157,22 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             cancelReservationMismatchMsg: 'reserva', modOptionsPrompt: 'reserva', modOptComensales: 'reserva', modOptDia: 'reserva', modOptHora: 'reserva',
             modComensalesPrompt: 'reserva', modComensalesPromptUnknown: 'reserva', maxComensalesErrorMsg: 'reserva', modDiaPrompt: 'reserva',
             modHoraPrompt: 'reserva', modSuccessMsg: 'reserva', cancelSuccessMsg: 'reserva',
+            btnOmitirDni: 'reserva', btnOmitirEmail: 'reserva', btnNacEs: 'reserva', btnNacFr: 'reserva', btnNacUk: 'reserva', btnNacOtro: 'reserva',
+            btnNinos0: 'reserva', btnNinos1: 'reserva', btnNinos2: 'reserva', requestSummaryHeader: 'reserva', confirmPrompt: 'reserva',
+            confirmYesBtn: 'reserva', confirmNoBtn: 'reserva', confirmCancelledMsg: 'reserva',
 
+            // 6. Menu Tradicion
             menuTradicionTitle: 'tradicion', menuTradicionOptRegalar: 'tradicion', menuTradicionOptReservar: 'tradicion', menuTradicionOptCaducidad: 'tradicion',
             regalarMenuCaption: 'tradicion', regalarMenuMsg: 'tradicion', menuTradStep1Tarjeta: 'tradicion', menuTradStep2Nombre: 'tradicion',
             menuTradStep2bDni: 'tradicion', menuTradStep2b2Email: 'tradicion', menuTradStep2cNac: 'tradicion', menuTradStep3Tipo: 'tradicion',
             menuTradStep4HoraComida: 'tradicion', menuTradStep4HoraCena: 'tradicion', menuTradStep5Dia1: 'tradicion', menuTradStep5Dia2: 'tradicion',
-            welcomeMessage: 'main', welcomeImageUrl: 'main', welcomeStickerUrl: 'main',
-            selectLocationTitle: 'main', selectLocationBody: 'main', locPaisVasco: 'main', locMadrid: 'main', madridMsg: 'main',
-            thanksClosingMsg: 'main', requestSummaryHeader: 'reserva', confirmPrompt: 'reserva', confirmYesBtn: 'reserva', confirmNoBtn: 'reserva', confirmCancelledMsg: 'reserva',
-            mainMenuHeader: 'main', opt1Title: 'main', opt1Desc: 'main', opt2Title: 'main', opt2Desc: 'main', opt3Title: 'main', opt3Desc: 'main', opt4Title: 'main', opt4Desc: 'main', opt5Title: 'main', opt5Desc: 'main', opt6Title: 'main', opt6Desc: 'main',
-            reservaCardPrompt: 'reserva', reservaCardBtnSi: 'reserva', reservaCardBtnNo: 'reserva', reservaNoCardPrompt: 'reserva', btnReservaWeb: 'reserva', btnReservaWaitlist: 'reserva',
-            waitlistStep1Nombre: 'reserva', waitlistStep1bDni: 'reserva', waitlistStep1b2Email: 'reserva', waitlistStep1cNac: 'reserva', btnOmitirDni: 'reserva', btnOmitirEmail: 'reserva',
-            btnNacEs: 'reserva', btnNacFr: 'reserva', btnNacUk: 'reserva', btnNacOtro: 'reserva', waitlistStep2Comensales: 'reserva', waitlistStep3Tipo: 'reserva', waitlistStep3HoraComida: 'reserva', waitlistStep3HoraCena: 'reserva', waitlistStep4Cena: 'reserva', waitlistStep4Dia1: 'reserva', waitlistStep4Dia2: 'reserva', waitlistStep4Dia3: 'reserva', waitlistStep5Ninos: 'reserva', btnNinos0: 'reserva', btnNinos1: 'reserva', btnNinos2: 'reserva', waitlistStep6Alergias: 'reserva', waitlistStep7Idioma: 'reserva', waitlistSuccessMsg: 'reserva',
-            modCancelDataPrompt: 'reserva', modReservationVerifyPrompt: 'reserva', modComensalesPrompt: 'reserva', modDiaPrompt: 'reserva', modHoraPrompt: 'reserva', modSuccessMsg: 'reserva',
-            cancelDataPrompt: 'reserva', cancelReservationVerifyPrompt: 'reserva', cancelSuccessMsg: 'reserva',
-            menuTradicionTitle: 'tradicion', menuTradicionOptRegalar: 'tradicion', menuTradicionOptReservar: 'tradicion', menuTradicionOptCaducidad: 'tradicion', regalarMenuMsg: 'tradicion',
-            menuTradStep1Tarjeta: 'tradicion', menuTradStep2Nombre: 'tradicion', menuTradStep2bDni: 'tradicion', menuTradStep2b2Email: 'tradicion', menuTradStep2cNac: 'tradicion', menuTradStep3Tipo: 'tradicion', menuTradStep3HoraComida: 'tradicion', menuTradStep3HoraCena: 'tradicion', menuTradStep4Cena: 'tradicion', menuTradStep5Dia1: 'tradicion', menuTradStep5Dia2: 'tradicion',
             menuTradStep5Dia3: 'tradicion', menuTradStep5CenaDia: 'tradicion', menuTradStep6Alergias: 'tradicion', menuTradStep7Idioma: 'tradicion',
             menuTradCardVerified: 'tradicion', menuTradCardNotFound: 'tradicion', menuTradicionFormPrompt: 'tradicion', menuTradicionSuccessMsg: 'tradicion',
             menuTradicionCaducidadPrompt: 'tradicion', menuTradicionCaducidadMsg: 'tradicion', menuTradMoreCardsPrompt: 'tradicion',
             btnMtAddMismaMesa: 'tradicion', btnMtOtraMesa: 'tradicion', btnMtContinuar: 'tradicion', menuTradAddSameTablePrompt: 'tradicion',
             menuTradNewTablePrompt: 'tradicion', menuTradMaxTableCardsNotice: 'tradicion',
 
+            // 7. Preguntas Frecuentes
             faqTitle: 'faq',
             faq1Title: 'faq', faq1Desc: 'faq', faq1Msg: 'faq',
             faq2Title: 'faq', faq2Desc: 'faq', faq2Msg: 'faq',
