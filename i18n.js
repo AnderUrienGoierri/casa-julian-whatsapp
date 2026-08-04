@@ -1,5 +1,6 @@
 const translations = {
     "es": {
+        "welcomeImageUrl": "🥩🔥 Asador Casa Julián de Tolosa",
         "welcomeMessage": "🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n🇪🇺 *EU:* Ongi etorri! Plazer bat izango da laguntzea. Zein hizkuntzatan jarraitu nahi duzu?\n🇪🇸 *ES:* ¡Bienvenido/a! Será un placer ayudarte. ¿En qué idioma deseas continuar?\n🇬🇧 *EN:* Welcome! It will be a pleasure to help you. Which language would you like to continue in?\n🇫🇷 *FR:* Bienvenue! Ce sera un plaisir de vous aider. Dans quelle langue souhaitez-vous continuer?",
         "thanksClosingMsg": "¡Gracias por contactar con nosotros! Esperamos haber resuelto tu consulta. Si necesitas cualquier otra cosa, estaremos encantados de ayudarte. ¡Te esperamos en Casa Julián!\n\n🌐 casajulian.eus\n\n📍 *DIRECCIÓN:*\nSanta Klara Kalea 6, 20400 Tolosa, Gipuzkoa.\n\n📞 *ATENCIÓN TELEFÓNICA:*\n☎️ +34 943 67 14 17\nMartes a Domingo: 11:00h a 12:30h & 15:30h a 17:00h",
         "faqTitle": "❓ Preguntas Frecuentes",

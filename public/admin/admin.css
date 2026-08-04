@@ -402,7 +402,11 @@ button {
 
 .category-filters {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    align-items: center;
+    width: 100%;
+    margin-top: 4px;
 }
 
 .filter-chip {
@@ -410,12 +414,19 @@ button {
     color: var(--text-secondary);
     border-radius: 20px;
     padding: 6px 14px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .filter-chip.active {
     background: var(--accent-gold);
     color: #ffffff;
+    border-color: var(--accent-gold);
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
 }
 
 .texts-grid {

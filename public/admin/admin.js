@@ -366,13 +366,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Añadir claves especiales de medios (imagen bienvenida, sticker) si no están ya
         const specialMediaKeys = [
-            { key: 'welcomeImageUrl', label: '🖼️ Imagen de Bienvenida', category: 'welcome', mediaOnly: true },
+            { key: 'welcomeImageUrl', label: '🖼️ Imagen de Bienvenida', category: 'welcome', mediaOnly: false },
             { key: 'welcomeStickerUrl', label: '🎭 Sticker Animado de Bienvenida', category: 'welcome', mediaOnly: true }
         ];
 
         specialMediaKeys.forEach(smk => {
             if (!allKeys.includes(smk.key)) allKeys.unshift(smk.key);
             if (!categoryMap[smk.key]) categoryMap[smk.key] = smk.category;
+        });
+
+        // Orden de prioridad secuencial para una presentación impecable en el CMS
+        const keyOrderPriority = [
+            'welcomeImageUrl',
+            'welcomeStickerUrl',
+            'welcomeMessage',
+            'welcomeLanguagePrompt',
+            'welcomeLanguageBtn',
+            'selectLocationTitle',
+            'selectLocationBody',
+            'locPaisVasco',
+            'locMadrid',
+            'madridMsg',
+            'mainMenuHeader',
+            'menuButtonText',
+            'opt1Title', 'opt1Desc',
+            'opt2Title', 'opt2Desc',
+            'opt3Title', 'opt3Desc',
+            'opt4Title', 'opt4Desc',
+            'opt5Title', 'opt5Desc',
+            'opt6Title', 'opt6Desc',
+            'optLangTitle', 'optLangDesc',
+            'thanksClosingMsg'
+        ];
+
+        allKeys.sort((a, b) => {
+            const indexA = keyOrderPriority.indexOf(a);
+            const indexB = keyOrderPriority.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return 0;
         });
 
         allKeys.forEach(key => {

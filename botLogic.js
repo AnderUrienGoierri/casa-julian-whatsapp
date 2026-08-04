@@ -254,7 +254,8 @@ async function sendLanguageMenu(from, page = 1) {
 
         // 1. Enviar imagen de bienvenida del restaurante
         try {
-            await sendImageMessage(from, welcomeImageUrl, 'Asador Casa Julián de Tolosa');
+            const welcomeCaption = (customWelcomeImg && customWelcomeImg.caption) || getTranslation(lang, 'welcomeImageUrl') || 'Asador Casa Julián de Tolosa';
+            await sendImageMessage(from, welcomeImageUrl, welcomeCaption);
         } catch (e) {
             console.error("⚠️ Error enviando imagen de bienvenida por WhatsApp:", e.message);
         }
