@@ -648,7 +648,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!body || !currentStructure) return;
 
         body.innerHTML = '';
-        currentStructure.menuItems.forEach((item, index) => {
+        const items = (currentStructure.menuItems && Array.isArray(currentStructure.menuItems) && currentStructure.menuItems.length > 0)
+            ? currentStructure.menuItems
+            : [
+                { id: 1, category: 'ENTRANTES Y CHARCUTERÍA', name: 'Jamón Ibérico', price: 32, currency: '€', sort_order: 1 },
+                { id: 2, category: 'ENTRANTES Y CHARCUTERÍA', name: 'Cecina', price: 36, currency: '€', sort_order: 2 },
+                { id: 3, category: 'ENTRANTES Y CHARCUTERÍA', name: 'Charcutería', price: 34, currency: '€', sort_order: 3 },
+                { id: 4, category: 'ENTRANTES Y CHARCUTERÍA', name: 'Txuleta Tartar', price: 32, currency: '€', sort_order: 4 },
+                { id: 5, category: 'VERDURAS Y ENTRANTES CALIENTES', name: 'Puerro', price: 18, currency: '€', sort_order: 5 },
+                { id: 6, category: 'VERDURAS Y ENTRANTES CALIENTES', name: 'Espárrago', price: 18, currency: '€', sort_order: 6 },
+                { id: 7, category: 'VERDURAS Y ENTRANTES CALIENTES', name: 'Pimientos del Piquillo', price: 18, currency: '€', sort_order: 7 },
+                { id: 8, category: 'VERDURAS Y ENTRANTES CALIENTES', name: 'Ensalada', price: 4, currency: '€', sort_order: 8 },
+                { id: 9, category: 'NUESTRA ESPECIALIDAD', name: 'Txuleta', price: 100, currency: '€ / kg', sort_order: 9 },
+                { id: 10, category: 'POSTRES', name: 'Flan', price: 9, currency: '€', sort_order: 10 },
+                { id: 11, category: 'POSTRES', name: 'Tarta de Queso', price: 10, currency: '€', sort_order: 11 },
+                { id: 12, category: 'POSTRES', name: 'Fresa', price: 8, currency: '€', sort_order: 12 }
+            ];
+
+        currentStructure.menuItems = items;
+
+        items.forEach((item, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><input type="text" class="table-input item-cat" value="${item.category}"></td>
@@ -664,6 +683,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             body.appendChild(tr);
+        });
+    }
+
+    const addDishBtn = document.getElementById('add-dish-btn');
+    if (addDishBtn) {
+        addDishBtn.addEventListener('click', () => {
+            if (!currentStructure.menuItems) currentStructure.menuItems = [];
+            currentStructure.menuItems.push({
+                id: currentStructure.menuItems.length + 1,
+                category: 'NUEVA CATEGORÍA',
+                name: 'Nuevo Plato',
+                price: 15,
+                currency: '€',
+                sort_order: currentStructure.menuItems.length + 1
+            });
+            renderMenuTable();
         });
     }
 
@@ -715,7 +750,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container || !currentStructure) return;
 
         const langTexts = currentStructure.staticTranslations[currentLang] || {};
+        const staticEsTexts = currentStructure.staticTranslations['es'] || {};
         const dynamicLangTexts = (currentStructure.dynamicTexts && currentStructure.dynamicTexts[currentLang]) || {};
+        const attachments = currentStructure.attachments || {};
+        const disabledKeys = currentStructure.disabledKeys || {};
 
         container.innerHTML = '';
 
@@ -733,31 +771,65 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         faqListDef.forEach(faqItem => {
-            const titleVal = dynamicLangTexts[faqItem.titleKey] || langTexts[faqItem.titleKey] || `Opción ${faqItem.num}`;
-            const msgVal = dynamicLangTexts[faqItem.msgKey] || langTexts[faqItem.msgKey] || '';
+            const titleVal = dynamicLangTexts[faqItem.titleKey] || langTexts[faqItem.titleKey] || staticEsTexts[faqItem.titleKey] || `Opción ${faqItem.num}`;
+            const msgVal = dynamicLangTexts[faqItem.msgKey] || langTexts[faqItem.msgKey] || staticEsTexts[faqItem.msgKey] || '';
+            const isDisabled = !!disabledKeys[faqItem.msgKey];
+            const att = attachments[faqItem.msgKey];
+
+            let attachmentPreviewHtml = '';
+            if (att && att.mediaUrl) {
+                const mediaIcon = att.mediaType === 'image' ? '🖼️' : att.mediaType === 'video' ? '🎬' : att.mediaType === 'audio' ? '🔊' : att.mediaType === 'sticker' ? '🎭' : att.mediaType === 'document' ? '📎' : '📁';
+                attachmentPreviewHtml = `
+                    <div class="attachment-preview" style="display:flex; align-items:center; gap:10px; background:#181b22; padding:8px 10px; border-radius:6px; margin:6px 0; border-left:3px solid var(--accent-gold);">
+                        <span>${mediaIcon} <strong>${att.mediaType.toUpperCase()}</strong>: <a href="${att.mediaUrl}" target="_blank" style="color:var(--accent-gold);">${att.filename || 'Ver adjunto'}</a></span>
+                        <button class="btn-danger btn-remove-faq-att" data-key="${faqItem.msgKey}" style="padding:3px 8px; font-size:0.72rem;">🗑️ Quitar</button>
+                    </div>
+                `;
+            }
 
             const card = document.createElement('div');
-            card.className = 'text-card';
+            card.className = `text-card ${isDisabled ? 'card-disabled' : ''}`;
+            card.style.marginBottom = '16px';
             card.innerHTML = `
-                <div class="text-card-header">
-                    <span class="key-title badge-faq" style="padding:2px 6px; border-radius:4px;">FAQ ${faqItem.num}: ${titleVal}</span>
+                <div class="text-card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span class="key-title badge-faq" style="padding:4px 8px; border-radius:4px; font-weight:700;">FAQ ${faqItem.num}: ${titleVal}</span>
+                    <span class="status-badge ${isDisabled ? 'badge-off' : 'badge-on'}" style="font-size:0.75rem;">${isDisabled ? '🔴 Oculta' : '🟢 Activa'}</span>
                 </div>
-                <label style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px;">Título de opción:</label>
-                <input type="text" value="${titleVal}" class="faq-title-input" style="margin-bottom:12px;">
-                <label style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px;">Mensaje de respuesta:</label>
-                <textarea class="faq-msg-input" style="height:110px;">${msgVal}</textarea>
-                <div class="text-card-footer" style="margin-top:10px;">
-                    <button class="btn-primary btn-save-faq">💾 Guardar FAQ ${faqItem.num}</button>
+                <label style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; display:block;">Título de opción desplegable:</label>
+                <input type="text" value="${titleVal}" class="faq-title-input" style="width:100%; margin-bottom:12px; padding:8px; border-radius:6px; background:#1e222a; color:#fff; border:1px solid #333;">
+                <label style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:4px; display:block;">Mensaje de respuesta del Chatbot:</label>
+                <textarea class="faq-msg-input" style="width:100%; height:100px; padding:8px; border-radius:6px; background:#1e222a; color:#fff; border:1px solid #333; resize:vertical;">${msgVal}</textarea>
+                ${attachmentPreviewHtml}
+                <div class="text-card-footer" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                    <button class="btn-attachment btn-add-faq-att" data-key="${faqItem.msgKey}" style="padding:6px 12px; font-size:0.8rem;">📎 Añadir Adjunto</button>
+                    <button class="btn-warning btn-toggle-faq" data-key="${faqItem.msgKey}" style="padding:6px 12px; font-size:0.8rem;">${isDisabled ? '👁️ Mostrar' : '👁️ Ocultar'}</button>
+                    <button class="btn-primary btn-save-faq" style="padding:6px 14px; font-size:0.8rem; font-weight:600;">💾 Guardar FAQ ${faqItem.num}</button>
                 </div>
             `;
 
             card.querySelector('.btn-save-faq').addEventListener('click', async () => {
                 const newTitle = card.querySelector('.faq-title-input').value;
                 const newMsg = card.querySelector('.faq-msg-input').value;
-
-                await saveText(faqItem.titleKey, newTitle);
-                await saveText(faqItem.msgKey, newMsg);
+                await saveText(faqItem.titleKey, newTitle, 'faq');
+                await saveText(faqItem.msgKey, newMsg, 'faq');
             });
+
+            card.querySelector('.btn-toggle-faq').addEventListener('click', async () => {
+                await toggleKeyStatus(faqItem.msgKey, !isDisabled);
+            });
+
+            card.querySelector('.btn-add-faq-att').addEventListener('click', () => {
+                openAttachmentModal(faqItem.msgKey);
+            });
+
+            const removeAttBtn = card.querySelector('.btn-remove-faq-att');
+            if (removeAttBtn) {
+                removeAttBtn.addEventListener('click', async () => {
+                    if (confirm(`¿Eliminar adjunto multimedia de FAQ ${faqItem.num}?`)) {
+                        await deleteAttachment(faqItem.msgKey);
+                    }
+                });
+            }
 
             container.appendChild(card);
         });

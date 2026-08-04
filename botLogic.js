@@ -246,34 +246,42 @@ async function sendLanguageMenu(from, page = 1) {
         await sendInteractiveList(from, bodyText, buttonText, sections);
     } else {
         const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
-        const welcomeImageUrl = process.env.WELCOME_IMAGE_URL || `${baseUrl}/public/casa_julian_erretegia.jpg`;
-        const welcomeStickerUrl = `${baseUrl}/public/casa_julian_sticker.webp`;
+        const { getAttachment } = require('./database');
+        const customWelcomeImg = getAttachment('welcomeImageUrl', from);
+        const customWelcomeSticker = getAttachment('welcomeStickerUrl', from);
 
-        // 1. Enviar imagen de bienvenida del restaurante (una sola vez)
+        const welcomeImageUrl = (customWelcomeImg && customWelcomeImg.mediaUrl) || process.env.WELCOME_IMAGE_URL || `${baseUrl}/public/casa_julian_erretegia.jpg`;
+
+        // 1. Enviar imagen de bienvenida del restaurante
         try {
             await sendImageMessage(from, welcomeImageUrl, 'Asador Casa Julián de Tolosa');
         } catch (e) {
             console.error("⚠️ Error enviando imagen de bienvenida por WhatsApp:", e.message);
         }
 
-        // Pequeña pausa de 1 segundo para asegurar la entrega secuencial en Meta WhatsApp API
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // 2. Enviar el Sticker animado de bienvenida sin reproductor de vídeo (casa_julian_sticker.webp)
+        // 2. Enviar el Sticker animado de bienvenida
         try {
-            const path = require('path');
-            await sendStickerMessage(from, path.join(__dirname, 'media', 'casa_julian_sticker.webp'));
+            if (customWelcomeSticker && customWelcomeSticker.mediaUrl) {
+                const { sendMediaAttachment } = require('./whatsappApi');
+                await sendMediaAttachment(from, customWelcomeSticker);
+            } else {
+                const path = require('path');
+                await sendStickerMessage(from, path.join(__dirname, 'media', 'casa_julian_sticker.webp'));
+            }
         } catch (e) {
             console.error("⚠️ Error enviando sticker animado por WhatsApp:", e.message);
         }
 
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-        const bodyText = "🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n" +
+        const welcomeMsgText = getTranslation('es', 'welcomeMessage', from);
+        const bodyText = welcomeMsgText || ("🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n" +
             "🇪🇺 *EU:* Ongi etorri! Plazer bat izango da laguntzea. Zein hizkuntzatan jarraitu nahi duzu?\n" +
             "🇪🇸 *ES:* ¡Bienvenido/a! Será un placer ayudarte. ¿En qué idioma deseas continuar?\n" +
             "🇬🇧 *EN:* Welcome! It will be a pleasure to help you. Which language would you like to continue in?\n" +
-            "🇫🇷 *FR:* Bienvenue! Ce sera un plaisir de vous aider. Dans quelle langue souhaitez-vous continuer?";
+            "🇫🇷 *FR:* Bienvenue! Ce sera un plaisir de vous aider. Dans quelle langue souhaitez-vous continuer?");
         const buttonText = "Seleccionar Idioma";
         const sections = [
             {

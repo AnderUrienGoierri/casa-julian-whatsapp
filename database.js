@@ -142,20 +142,22 @@ if (process.env.DATABASE_URL) {
     }).then(resTexts => {
         if (resTexts && resTexts.rows && resTexts.rows.length > 0) {
             const currentDb = loadDb();
-            if (!currentDb.dynamicTexts) currentDb.dynamicTexts = {};
+            ensureDraftAndPublished(currentDb);
             resTexts.rows.forEach(r => {
-                if (!currentDb.dynamicTexts[r.lang]) currentDb.dynamicTexts[r.lang] = {};
-                currentDb.dynamicTexts[r.lang][r.key_name] = r.text_value;
+                if (!currentDb.publishedDynamicTexts[r.lang]) currentDb.publishedDynamicTexts[r.lang] = {};
+                currentDb.publishedDynamicTexts[r.lang][r.key_name] = r.text_value;
+                if (!currentDb.draftDynamicTexts[r.lang]) currentDb.draftDynamicTexts[r.lang] = {};
+                currentDb.draftDynamicTexts[r.lang][r.key_name] = r.text_value;
             });
             saveDb(currentDb);
-            cachedDynamicTexts = currentDb.dynamicTexts;
             console.log(`✅ Sincronizados ${resTexts.rows.length} textos dinámicos desde PostgreSQL Neon.`);
         }
         return pool.query("SELECT id, category, name, price, currency, sort_order FROM menu_items ORDER BY sort_order ASC");
     }).then(resMenu => {
         if (resMenu && resMenu.rows && resMenu.rows.length > 0) {
             const currentDb = loadDb();
-            currentDb.menuItems = resMenu.rows.map(r => ({
+            ensureDraftAndPublished(currentDb);
+            const items = resMenu.rows.map(r => ({
                 id: r.id,
                 category: r.category,
                 name: r.name,
@@ -163,6 +165,8 @@ if (process.env.DATABASE_URL) {
                 currency: r.currency || '€',
                 sort_order: r.sort_order
             }));
+            currentDb.publishedMenuItems = items;
+            currentDb.draftMenuItems = JSON.parse(JSON.stringify(items));
             saveDb(currentDb);
             console.log(`✅ Sincronizados ${resMenu.rows.length} platos de carta desde PostgreSQL Neon.`);
         }
@@ -1338,11 +1342,11 @@ function ensureDraftAndPublished(db) {
         db.draftDynamicTexts = db.dynamicTexts ? JSON.parse(JSON.stringify(db.dynamicTexts)) : JSON.parse(JSON.stringify(db.publishedDynamicTexts));
         changed = true;
     }
-    if (!db.publishedMenuItems) {
-        db.publishedMenuItems = (db.menuItems && db.menuItems.length > 0) ? JSON.parse(JSON.stringify(db.menuItems)) : getDefaultMenuItems();
+    if (!db.publishedMenuItems || !Array.isArray(db.publishedMenuItems) || db.publishedMenuItems.length === 0) {
+        db.publishedMenuItems = (db.menuItems && Array.isArray(db.menuItems) && db.menuItems.length > 0) ? JSON.parse(JSON.stringify(db.menuItems)) : getDefaultMenuItems();
         changed = true;
     }
-    if (!db.draftMenuItems) {
+    if (!db.draftMenuItems || !Array.isArray(db.draftMenuItems) || db.draftMenuItems.length === 0) {
         db.draftMenuItems = JSON.parse(JSON.stringify(db.publishedMenuItems));
         changed = true;
     }
@@ -1396,7 +1400,9 @@ async function saveDynamicText(lang, key_name, text_value, category = 'general')
 function getMenuItems(isDraftParam = false) {
     const db = loadDb();
     ensureDraftAndPublished(db);
-    return isDraftMode(isDraftParam) ? (db.draftMenuItems || []) : (db.publishedMenuItems || []);
+    const items = isDraftMode(isDraftParam) ? (db.draftMenuItems || []) : (db.publishedMenuItems || []);
+    if (!items || items.length === 0) return getDefaultMenuItems();
+    return items;
 }
 
 async function saveMenuItems(items) {
