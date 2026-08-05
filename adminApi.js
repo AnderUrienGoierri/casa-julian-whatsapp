@@ -63,9 +63,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                     { id: 'opt_quiero_reservar', titleKey: 'opt1Title', descKey: 'opt1Desc' },
                     { id: 'opt_modificacion', titleKey: 'opt2Title', descKey: 'opt2Desc' },
                     { id: 'opt_cancelacion', titleKey: 'opt3Title', descKey: 'opt3Desc' },
-                    { id: 'opt_regalar_menu_tradicion', titleKey: 'opt4Title', descKey: 'opt4Desc' },
-                    { id: 'opt_otras_cuestiones', titleKey: 'opt5Title', descKey: 'opt5Desc' },
-                    { id: 'opt_cambiar_idioma', titleKey: 'opt6Title', descKey: 'opt6Desc' }
+                    { id: 'opt_otras_cuestiones', titleKey: 'opt5Title', descKey: 'opt5Desc' }
                 ]
             },
             {

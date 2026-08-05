@@ -287,9 +287,7 @@ async function sendMainMenu(from) {
                 { id: "opt_quiero_reservar", title: getTranslation(lang, 'opt1Title').slice(0, 24), description: getTranslation(lang, 'opt1Desc').slice(0, 72) },
                 { id: "opt_modificacion", title: getTranslation(lang, 'opt2Title').slice(0, 24), description: getTranslation(lang, 'opt2Desc').slice(0, 72) },
                 { id: "opt_cancelacion", title: getTranslation(lang, 'opt3Title').slice(0, 24), description: getTranslation(lang, 'opt3Desc').slice(0, 72) },
-                { id: "opt_regalar_menu_tradicion", title: getTranslation(lang, 'opt4Title').slice(0, 24), description: getTranslation(lang, 'opt4Desc').slice(0, 72) },
-                { id: "opt_otras_cuestiones", title: getTranslation(lang, 'opt5Title').slice(0, 24), description: getTranslation(lang, 'opt5Desc').slice(0, 72) },
-                { id: "opt_cambiar_idioma", title: getTranslation(lang, 'opt6Title').slice(0, 24), description: getTranslation(lang, 'opt6Desc').slice(0, 72) }
+                { id: "opt_otras_cuestiones", title: getTranslation(lang, 'opt5Title').slice(0, 24), description: getTranslation(lang, 'opt5Desc').slice(0, 72) }
             ]
         }
     ];
@@ -1761,10 +1759,15 @@ async function sendFaqMenu(from, lang) {
 
     const bodyText = getTranslation(lang, 'faqTitle');
     const buttonText = getTranslation(lang, 'menuButtonText');
+    const giftTitle = lang === 'eu' ? 'Opari Tradizio Menua' : (lang === 'en' ? 'Gift Tradition Menu' : 'Regalar Menú Trad.');
+    const giftDesc = lang === 'eu' ? 'Erosi Tradizio Menuaren opari txartela online.' : (lang === 'en' ? 'Buy Tradition Menu gift card online.' : 'Comprar tarjeta regalo del Menú Tradición online.');
+
     const sections = [
         {
             title: "Otras Cuestiones",
             rows: [
+                { id: "faq_regalar_menu", title: giftTitle.slice(0, 24), description: giftDesc.slice(0, 72) },
+                { id: "faq_12", title: getTranslation(lang, 'faq12Title').slice(0, 24), description: getTranslation(lang, 'faq12Desc').slice(0, 72) },
                 { id: "faq_1", title: getTranslation(lang, 'faq1Title').slice(0, 24), description: getTranslation(lang, 'faq1Desc').slice(0, 72) },
                 { id: "faq_2", title: getTranslation(lang, 'faq2Title').slice(0, 24), description: getTranslation(lang, 'faq2Desc').slice(0, 72) },
                 { id: "faq_3", title: getTranslation(lang, 'faq3Title').slice(0, 24), description: getTranslation(lang, 'faq3Desc').slice(0, 72) },
@@ -1772,9 +1775,7 @@ async function sendFaqMenu(from, lang) {
                 { id: "faq_5", title: getTranslation(lang, 'faq5Title').slice(0, 24), description: getTranslation(lang, 'faq5Desc').slice(0, 72) },
                 { id: "faq_6", title: getTranslation(lang, 'faq6Title').slice(0, 24), description: getTranslation(lang, 'faq6Desc').slice(0, 72) },
                 { id: "faq_7", title: getTranslation(lang, 'faq7Title').slice(0, 24), description: getTranslation(lang, 'faq7Desc').slice(0, 72) },
-                { id: "faq_8", title: getTranslation(lang, 'faq8Title').slice(0, 24), description: getTranslation(lang, 'faq8Desc').slice(0, 72) },
-                { id: "faq_9", title: getTranslation(lang, 'faq9Title').slice(0, 24), description: getTranslation(lang, 'faq9Desc').slice(0, 72) },
-                { id: "faq_10", title: getTranslation(lang, 'faq10Title').slice(0, 24), description: getTranslation(lang, 'faq10Desc').slice(0, 72) }
+                { id: "faq_8", title: getTranslation(lang, 'faq8Title').slice(0, 24), description: getTranslation(lang, 'faq8Desc').slice(0, 72) }
             ]
         }
     ];
@@ -1886,6 +1887,11 @@ async function sendFormLanguageList(from, lang) {
  * Responde a una selección de FAQ.
  */
 async function handleFaqSelection(from, faqId, lang) {
+    if (faqId === 'faq_regalar_menu' || faqId === 'opt_regalar_menu_tradicion') {
+        await handleRegalarMenuTradicion(from, lang);
+        return;
+    }
+
     const faqNum = faqId.replace('faq_', '');
     const msgKey = `faq${faqNum}Msg`;
     const responseMsg = getTranslation(lang, msgKey);

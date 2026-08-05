@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-05-CMS-V26-PURGE-OBSOLETE-FRENCH-WELCOME-MSG-DB';
+const DEPLOY_VERSION = 'v2026-08-05-CMS-V27-4-MAIN-MENU-OPTIONS-GIFT-CARD-IN-FAQS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
