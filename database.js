@@ -41,6 +41,7 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(255);
         ALTER TABLE lista_espera ALTER COLUMN dias_preferencia TYPE VARCHAR(255);
         ALTER TABLE reservas ALTER COLUMN dias_preferencia TYPE VARCHAR(255);
+        DELETE FROM bot_texts WHERE key_name = 'welcomeMessage' AND (text_value LIKE '%FR:%' OR text_value LIKE '%🇫🇷%');
         CREATE TABLE IF NOT EXISTS tarjetas_regalo (
             id VARCHAR(50) PRIMARY KEY,
             codigo VARCHAR(50) UNIQUE NOT NULL,
