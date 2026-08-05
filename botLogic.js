@@ -222,14 +222,14 @@ async function sendLanguageMenu(from) {
 
     const welcomeMsgText = getTranslation('es', 'welcomeMessage', from);
     const bodyText = welcomeMsgText || ("🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n" +
-        "🇪🇸 *ES:* ¡Bienvenido/a! ¿En qué idioma deseas continuar?\n" +
-        "🇪🇺 *EU:* Ongi etorri! Zein hizkuntzatan jarraitu nahi duzu?\n" +
-        "🇬🇧 *EN:* Welcome! Which language would you like to continue in?");
+        "*ES:* ¡Bienvenido/a! ¿En qué idioma deseas continuar?\n" +
+        "*EU:* Ongi etorri! Zein hizkuntzatan jarraitu nahi duzu?\n" +
+        "*EN:* Welcome! Which language would you like to continue in?");
     
     const buttons = [
-        { id: "lang_es", title: "🇪🇸 Español" },
-        { id: "lang_eu", title: "🇪🇺 Euskara" },
-        { id: "lang_en", title: "🇬🇧 English" }
+        { id: "lang_es", title: "ES Español" },
+        { id: "lang_eu", title: "EU Euskara" },
+        { id: "lang_en", title: "EN English" }
     ];
     await sendInteractiveButtons(from, bodyText, buttons);
 }
