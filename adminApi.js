@@ -38,9 +38,9 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                 id: 'step_welcome',
                 title: '1. Bienvenida y Selección de Idioma',
                 type: 'system',
-                description: 'Envía sticker animado, imagen de bienvenida y solicita seleccionar idioma entre 14 opciones.',
+                description: 'Envía el mensaje de bienvenida y solicita seleccionar idioma entre 3 opciones (Español, Euskara, English).',
                 messageKey: 'welcomeMessage',
-                buttons: ['1. Español', '2. Euskara', '3. English', '4. Français', '...']
+                buttons: ['1. Español', '2. Euskara', '3. English']
             },
             {
                 id: 'step_location',

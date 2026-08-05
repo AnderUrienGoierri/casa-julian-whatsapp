@@ -186,12 +186,8 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
     if (interactiveData && (interactiveData.type === 'button' || interactiveData.type === 'list')) {
         const buttonId = interactiveData.id;
         
-        if (buttonId === 'page_lang_1') {
-            await sendLanguageMenu(from, 1);
-            return;
-        }
-        if (buttonId === 'page_lang_2') {
-            await sendLanguageMenu(from, 2);
+        if (buttonId === 'page_lang_1' || buttonId === 'page_lang_2') {
+            await sendLanguageMenu(from);
             return;
         }
 
@@ -218,90 +214,24 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
 }
 
 /**
- * Muestra el menú de selección de idioma paginado (14 idiomas).
- * Página 1 muestra prioritariamente: 1. Español, 2. Euskara, 3. English.
+ * Muestra el menú de selección de idioma (3 idiomas: Español, Euskara, English).
  */
-async function sendLanguageMenu(from, page = 1) {
+async function sendLanguageMenu(from) {
     const lang = userLanguages.get(from) || 'es';
     userStates.set(from, { step: 'select_language', data: {} });
 
-    if (page === 2) {
-        const bodyText = "🌍 *Selecciona tu idioma / Select your language (Pág. 2/2):*";
-        const buttonText = "Seleccionar Idioma";
-        const sections = [
-            {
-                title: "Idiomas (Pág. 2/2)",
-                rows: [
-                    { id: "lang_it", title: "🇮🇹 8. Italiano", description: "Assistenza clienti in Italiano." },
-                    { id: "lang_pl", title: "🇵🇱 9. Polski", description: "Obsługa klienta w języku polskim." },
-                    { id: "lang_ro", title: "🇷🇴 10. Română", description: "Asistență clienți în limba română." },
-                    { id: "lang_be", title: "🇧🇪 11. Belgisch (NL/FR)", description: "Belgische ondersteuning / Support Belge." },
-                    { id: "lang_ko", title: "🇰🇷 12. 한국어", description: "한국어 고객 지원 서비스." },
-                    { id: "lang_zh", title: "🇨🇳 13. 中文", description: "中文全方位客户服务。" },
-                    { id: "lang_ja", title: "🇯🇵 14. 日本語", description: "日本語によるカスタマーサポート。" },
-                    { id: "lang_ru", title: "🇷🇺 15. Русский", description: "Полная поддержка на русском языке." },
-                    { id: "page_lang_1", title: "◀️ Pág. 1/2", description: "Volver a la página 1 de idiomas." }
-                ]
-            }
-        ];
-        await sendInteractiveList(from, bodyText, buttonText, sections);
-    } else {
-        const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.PUBLIC_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
-        const { getAttachment } = require('./database');
-        const customWelcomeImg = getAttachment('welcomeImageUrl', from);
-        const customWelcomeSticker = getAttachment('welcomeStickerUrl', from);
-
-        const welcomeImageUrl = (customWelcomeImg && customWelcomeImg.mediaUrl) || process.env.WELCOME_IMAGE_URL || `${baseUrl}/public/casa_julian_erretegia.jpg`;
-
-        // 1. Enviar imagen de bienvenida del restaurante
-        try {
-            const welcomeCaption = (customWelcomeImg && customWelcomeImg.caption) || getTranslation(lang, 'welcomeImageUrl') || 'Asador Casa Julián de Tolosa';
-            await sendImageMessage(from, welcomeImageUrl, welcomeCaption);
-        } catch (e) {
-            console.error("⚠️ Error enviando imagen de bienvenida por WhatsApp:", e.message);
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 2. Enviar el Sticker animado de bienvenida
-        try {
-            if (customWelcomeSticker && customWelcomeSticker.mediaUrl) {
-                const { sendMediaAttachment } = require('./whatsappApi');
-                await sendMediaAttachment(from, customWelcomeSticker);
-            } else {
-                const path = require('path');
-                await sendStickerMessage(from, path.join(__dirname, 'media', 'casa_julian_sticker.webp'));
-            }
-        } catch (e) {
-            console.error("⚠️ Error enviando sticker animado por WhatsApp:", e.message);
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        const welcomeMsgText = getTranslation('es', 'welcomeMessage', from);
-        const bodyText = welcomeMsgText || ("🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n" +
-            "🇪🇺 *EU:* Ongi etorri! Plazer bat izango da laguntzea. Zein hizkuntzatan jarraitu nahi duzu?\n" +
-            "🇪🇸 *ES:* ¡Bienvenido/a! Será un placer ayudarte. ¿En qué idioma deseas continuar?\n" +
-            "🇬🇧 *EN:* Welcome! It will be a pleasure to help you. Which language would you like to continue in?\n" +
-            "🇫🇷 *FR:* Bienvenue! Ce sera un plaisir de vous aider. Dans quelle langue souhaitez-vous continuer?");
-        const buttonText = "Seleccionar Idioma";
-        const sections = [
-            {
-                title: "Idiomas (Pág. 1/2)",
-                rows: [
-                    { id: "lang_es", title: "🇪🇸 1. Español", description: "Atención al cliente en Español." },
-                    { id: "lang_eu", title: "🇪🇺 2. Euskara", description: "Bezeroen arreta Euskaraz." },
-                    { id: "lang_en", title: "🇬🇧 3. English", description: "Customer support in English." },
-                    { id: "lang_fr", title: "🇫🇷 4. Français", description: "Support client en Français." },
-                    { id: "lang_de", title: "🇩🇪 5. Deutsch", description: "Kundenservice auf Deutsch." },
-                    { id: "lang_nl", title: "🇳🇱 6. Nederlands", description: "Klantenservice in het Nederlands." },
-                    { id: "lang_ar", title: "🇸🇦 7. العربية", description: "خدمة العملاء باللغة العربية." },
-                    { id: "page_lang_2", title: "▶️ Más idiomas", description: "Ver página 2 de idiomas." }
-                ]
-            }
-        ];
-        await sendInteractiveList(from, bodyText, buttonText, sections);
-    }
+    const welcomeMsgText = getTranslation('es', 'welcomeMessage', from);
+    const bodyText = welcomeMsgText || ("🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n" +
+        "🇪🇸 *ES:* ¡Bienvenido/a! ¿En qué idioma deseas continuar?\n" +
+        "🇪🇺 *EU:* Ongi etorri! Zein hizkuntzatan jarraitu nahi duzu?\n" +
+        "🇬🇧 *EN:* Welcome! Which language would you like to continue in?");
+    
+    const buttons = [
+        { id: "lang_es", title: "🇪🇸 Español" },
+        { id: "lang_eu", title: "🇪🇺 Euskara" },
+        { id: "lang_en", title: "🇬🇧 English" }
+    ];
+    await sendInteractiveButtons(from, bodyText, buttons);
 }
 
 /**
@@ -381,7 +311,7 @@ async function handleRegalarMenuTradicion(from, lang) {
     const messageText = getTranslation(lang, 'regalarMenuMsg');
     await sendMessage(from, messageText);
     await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-    await showLocationOrMainMenu(from);
+    userStates.delete(from);
 }
 
 async function sendGiftCardOptions(from, lang) {
@@ -447,7 +377,7 @@ async function handleListResponse(from, listId) {
             break;
 
         case 'opt_cambiar_idioma':
-            await sendLanguageMenu(from, 1);
+            await sendLanguageMenu(from);
             break;
 
         default:
@@ -468,7 +398,7 @@ async function handleListResponse(from, listId) {
             } else if (listId.startsWith('alg_')) {
                 await handleAllergiesListSelection(from, listId, lang);
             } else {
-                await sendLanguageMenu(from, 1);
+                await sendLanguageMenu(from);
             }
             break;
     }
@@ -522,7 +452,7 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_solicitar_reserva':
             await sendMessage(from, getTranslation(lang, 'webReservaLinkMsg'));
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            await showLocationOrMainMenu(from);
+            userStates.delete(from);
             break;
 
         case 'btn_add_lista_espera':
@@ -631,7 +561,6 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_salir_menu': {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
-            await showLocationOrMainMenu(from);
             break;
         }
 
@@ -862,7 +791,6 @@ async function handleButtonResponse(from, buttonId) {
                     await sendMessage(from, dupMsg);
                     await sendMessage(from, getTranslation(chatLang, 'thanksClosingMsg'));
                     userStates.delete(from);
-                    await showLocationOrMainMenu(from);
                     break;
                 }
 
@@ -949,7 +877,6 @@ async function handleButtonResponse(from, buttonId) {
 
                 await sendMessage(from, getTranslation(chatLang, 'thanksClosingMsg'));
                 userStates.delete(from);
-                await showLocationOrMainMenu(from);
             } else if (currentState && currentState.step === 'menu_trad_step7_idioma') {
                 const mt = currentState.data.menuTrad || {};
                 const resRecord = db.createReservation({
@@ -1265,10 +1192,9 @@ async function handleButtonResponse(from, buttonId) {
                     await sendMessage(from, finalMsg);
                     await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
                     
-                    // 2. Re-desplegar la selección de ubicación de restaurante
-                    await showLocationOrMainMenu(from);
+                    userStates.delete(from);
 
-                    // 3. Notificar a recepción por WhatsApp y Email
+                    // 2. Notificar a recepción por WhatsApp y Email
                     await sendInternalStaffAlertInSpanish(
                         pending.tipoAccion,
                         from,
@@ -1281,7 +1207,7 @@ async function handleButtonResponse(from, buttonId) {
                 }
             } else {
                 await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                await showLocationOrMainMenu(from);
+                userStates.delete(from);
             }
             break;
         }
@@ -1293,7 +1219,7 @@ async function handleButtonResponse(from, buttonId) {
                 db.cancelReservation(pending.reservationId);
             }
             await sendMessage(from, getTranslation(lang, 'confirmCancelledMsg'));
-            await showLocationOrMainMenu(from);
+            userStates.delete(from);
             break;
         }
 
@@ -1932,42 +1858,20 @@ async function handleNationalitySelection(from, listId, lang) {
 /**
  * Envía la lista desplegable interactiva de 14 Idiomas para el formulario de lista de espera / menú tradición.
  */
-async function sendFormLanguageList(from, lang, showMore = false) {
+async function sendFormLanguageList(from, lang) {
     const bodyText = getTranslation(lang, 'waitlistStep7Idioma');
     const buttonText = (getTranslation(lang, 'listLangBtn') || 'Hautatu Hizkuntza').slice(0, 20);
 
-    let rows = [];
-    if (!showMore) {
-        rows = [
-            { id: 'form_lang_skip', title: getTranslation(lang, 'formLangSkipTitle').slice(0, 24), description: getTranslation(lang, 'formLangSkipDesc').slice(0, 72) },
-            { id: 'form_lang_eu', title: 'EU Euskara', description: 'Euskara' },
-            { id: 'form_lang_es', title: 'ES Español', description: 'Español' },
-            { id: 'form_lang_en', title: 'EN English', description: 'English' },
-            { id: 'form_lang_fr', title: 'FR Français', description: 'Français' },
-            { id: 'form_lang_de', title: 'DE Deutsch', description: 'Deutsch' },
-            { id: 'form_lang_it', title: 'IT Italiano', description: 'Italiano' },
-            { id: 'form_lang_pt', title: 'PT Português', description: 'Português' },
-            { id: 'form_lang_nl', title: 'NL Nederlands', description: 'Nederlands' },
-            { id: 'form_lang_more', title: '🌐 Beste batzuk / Otros', description: 'CA, GL, RU, ZH, JA...' }
-        ];
-    } else {
-        rows = [
-            { id: 'form_lang_skip', title: getTranslation(lang, 'formLangSkipTitle').slice(0, 24), description: getTranslation(lang, 'formLangSkipDesc').slice(0, 72) },
-            { id: 'form_lang_ca', title: 'CA Català', description: 'Català' },
-            { id: 'form_lang_gl', title: 'GL Galego', description: 'Galego' },
-            { id: 'form_lang_ru', title: 'RU Русский', description: 'Русский' },
-            { id: 'form_lang_zh', title: 'ZH 中文', description: '中文' },
-            { id: 'form_lang_ja', title: 'JA 日本語', description: '日本語' },
-            { id: 'form_lang_ar', title: 'AR العربية', description: 'العربية' },
-            { id: 'form_lang_eu', title: 'EU Euskara', description: 'Euskara' },
-            { id: 'form_lang_es', title: 'ES Español', description: 'Español' },
-            { id: 'form_lang_en', title: 'EN English', description: 'English' }
-        ];
-    }
+    const rows = [
+        { id: 'form_lang_skip', title: getTranslation(lang, 'formLangSkipTitle').slice(0, 24), description: getTranslation(lang, 'formLangSkipDesc').slice(0, 72) },
+        { id: 'form_lang_es', title: '🇪🇸 ES Español', description: 'Español' },
+        { id: 'form_lang_eu', title: '🇪🇺 EU Euskara', description: 'Euskara' },
+        { id: 'form_lang_en', title: '🇬🇧 EN English', description: 'English' }
+    ];
 
     const sections = [
         {
-            title: showMore ? "Beste Hizkuntza Batzuk" : "Harreman-hizkuntza",
+            title: "Harreman-hizkuntza / Idioma",
             rows: rows
         }
     ];
@@ -1997,9 +1901,6 @@ async function handleFaqSelection(from, faqId, lang) {
         }
         await sendMessage(from, responseMsg);
     }
-    
-    await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-    await showLocationOrMainMenu(from);
 }
 
 /**
@@ -2039,7 +1940,7 @@ async function handleTextMessage(from, text) {
     if (isGreeting) {
         userStates.delete(from);
         userLocations.delete(from);
-        await sendLanguageMenu(from, 1);
+        await sendLanguageMenu(from);
         return;
     }
 
@@ -2058,7 +1959,7 @@ async function handleTextMessage(from, text) {
     if (!currentState || currentState.step === 'select_language') {
         userStates.delete(from);
         userLocations.delete(from);
-        await sendLanguageMenu(from, 1);
+        await sendLanguageMenu(from);
         return;
     }
 
@@ -3247,7 +3148,7 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
 
                 await sendMessage(from, successMsg);
                 await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                await showLocationOrMainMenu(from);
+                userStates.delete(from);
             } else {
                 const notFoundMsg = getTranslation(lang, 'cancelWaitlistNotFoundMsg').replace('{query}', queryText);
                 await sendMessage(from, notFoundMsg);
@@ -3343,7 +3244,7 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
 
                 await sendMessage(from, notFoundMsg);
                 await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                await showLocationOrMainMenu(from);
+                userStates.delete(from);
 
                 try {
                     await sendInternalStaffAlertInSpanish(
@@ -3361,7 +3262,7 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
         }
 
         default:
-            await sendLanguageMenu(from, 1);
+            await sendLanguageMenu(from);
             break;
     }
 }
