@@ -267,6 +267,18 @@ if (process.env.DATABASE_URL) {
                 fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026'],
                 sendEmail: true
             },
+            {
+                resId: 'RES-20260806-592814',
+                tarjeta: 'MT-2026-011',
+                nombre: 'Ander FFF FFF',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 2,
+                alergias: 'NO',
+                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026'],
+                sendEmail: true
+            },
             { tarjeta: 'MT-2026-001', nombre: 'Ander Urien Telleria', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
             { tarjeta: '12345', nombre: 'Ander Telleria Telleria', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
             { tarjeta: 'MT-2026-002', nombre: 'Ander Urien', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },

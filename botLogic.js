@@ -1241,21 +1241,29 @@ async function handleButtonResponse(from, buttonId) {
                         }
                     }
 
-                    // 1. Responder al cliente con los mensajes de revisión y agradecimiento
-                    const finalMsg = customSuccessMsg || getTranslation(lang, pending.successMsgKey || 'modSuccessMsg');
-                    await sendMessage(from, finalMsg);
-                    await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                    // 1. Notificar a recepción por WhatsApp y Email (Garantizado)
+                    try {
+                        await sendInternalStaffAlertInSpanish(
+                            pending.tipoAccion,
+                            from,
+                            pending.detalleMod,
+                            pending.nombreCliente,
+                            pending.telefonoReserva
+                        );
+                    } catch (alertErr) {
+                        console.error("⚠️ Error enviando alerta de recepción:", alertErr.message);
+                    }
+
+                    // 2. Responder al cliente con los mensajes de revisión y agradecimiento
+                    try {
+                        const finalMsg = customSuccessMsg || getTranslation(lang, pending.successMsgKey || 'modSuccessMsg');
+                        await sendMessage(from, finalMsg);
+                        await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                    } catch (clientMsgErr) {
+                        console.error("⚠️ Error enviando respuesta WhatsApp al cliente:", clientMsgErr.message);
+                    }
                     
                     userStates.delete(from);
-
-                    // 2. Notificar a recepción por WhatsApp y Email
-                    await sendInternalStaffAlertInSpanish(
-                        pending.tipoAccion,
-                        from,
-                        pending.detalleMod,
-                        pending.nombreCliente,
-                        pending.telefonoReserva
-                    );
                 } catch (err) {
                     console.error("⚠️ Error procesando confirmación:", err.message);
                 }
