@@ -99,6 +99,34 @@ userLocations.delete = function(key) {
 };
 
 /**
+ * Valida y extrae fechas en formato DD/MM/AAAA (ej. 15/09/2026).
+ */
+function parseAndValidateDates(text) {
+    if (!text) return [];
+    const parts = text.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
+    const validDates = [];
+
+    for (const part of parts) {
+        const match = part.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10);
+            const year = parseInt(match[3], 10);
+
+            if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 2026 && year <= 2030) {
+                const formattedDay = day < 10 ? '0' + day : '' + day;
+                const formattedMonth = month < 10 ? '0' + month : '' + month;
+                const cleanDateStr = `${formattedDay}/${formattedMonth}/${year}`;
+                if (!validDates.includes(cleanDateStr)) {
+                    validDates.push(cleanDateStr);
+                }
+            }
+        }
+    }
+    return validDates;
+}
+
+/**
  * Muestra directamente el Menú Principal o la Ubicación según la selección previa guardada.
  */
 async function showLocationOrMainMenu(from) {
@@ -880,6 +908,7 @@ async function handleButtonResponse(from, buttonId) {
                 userStates.delete(from);
             } else if (currentState && currentState.step === 'menu_trad_step7_idioma') {
                 const mt = currentState.data.menuTrad || {};
+                const fechasStr = (mt.fechas && mt.fechas.length > 0) ? mt.fechas.join(', ') : 'Sin preferencia';
                 const resRecord = db.createReservation({
                     nombre: mt.nombre || 'Cliente WhatsApp',
                     telefono: from,
@@ -887,13 +916,13 @@ async function handleButtonResponse(from, buttonId) {
                     email: mt.email || 'N/A',
                     nacionalidad: mt.nacionalidad,
                     fecha: '',
-                    hora: mt.horario || '',
+                    hora: mt.horario || 'Sin preferencia',
                     comensales: mt.comensales || 2,
                     estado: 'PENDIENTE CONFIRMACION',
-                    dias_preferencia: mt.dias || 'Sin preferencia',
+                    fechas_preferencia: mt.fechas || [],
                     tipo_reserva: 'tarjeta_regalo',
                     alergias: mt.alergias || 'NO',
-                    tipo_servicio: mt.tipoServicio || null,
+                    tipo_servicio: mt.tipoServicio || 'Sin preferencia',
                     tarjeta_regalo: mt.tarjeta || null,
                     idioma: selectedLang
                 });
@@ -904,45 +933,36 @@ async function handleButtonResponse(from, buttonId) {
                 if (chatLang === 'eu') {
                     detalleMenuTrad = `🆔 *Erreserba ID:* ${resRecord.id}\n` +
                                             `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
-                                            `🪪 *NAN/Pasaportea:* ${mt.dni || 'N/A'}\n` +
-                                            `📧 *Posta elektronikoa:* ${mt.email || 'N/A'}\n` +
-                                            `🌐 *Nazionalitatea:* ${displayNac}\n` +
                                             `🎁 *Opari-Txartel Zenbakia:* ${mt.tarjeta || 'Ez zehaztua'}\n` +
-                                            `🍽️ *Zerbitzua:* ${mt.tipoServicio || 'Bazkaria/Afaria'}\n` +
-                                            `⏰ *Aukeratutako ordua:* ${mt.horario || 'Ez zehaztua'}\n` +
-                                            `📅 *Egunen erabilgarritasuna:* ${mt.dias || 'Hobespenik ez'}\n` +
+                                            `👥 *Jankideak:* ${mt.comensales || 2}\n` +
+                                            `🍽️ *Zerbitzua:* ${mt.tipoServicio || 'Hobespenik ez'}\n` +
+                                            `⏰ *Aukeratutako ordua:* ${mt.horario || 'Hobespenik ez'}\n` +
+                                            `📅 *Hobetsitako datak:* ${fechasStr}\n` +
                                             `⚠️ *Alergiak/Mugak:* ${mt.alergias || 'Ez'}\n` +
-                                            `🗣️ *Harremanetarako hizkuntza:* ${displayLang}\n` +
                                             `📌 *Egoera:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
                                             `📋 *Eskaera:* TRADIZIO MENUA ERRESERBA (OPARI TXARTELA)`;
                 } else if (chatLang === 'en') {
                     detalleMenuTrad = `🆔 *Reservation ID:* ${resRecord.id}\n` +
                                             `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
-                                            `🪪 *ID/Passport:* ${mt.dni || 'N/A'}\n` +
-                                            `📧 *Email:* ${mt.email || 'N/A'}\n` +
-                                            `🌐 *Nationality:* ${displayNac}\n` +
                                             `🎁 *Gift Card No.:* ${mt.tarjeta || 'Not specified'}\n` +
-                                            `🍽️ *Service:* ${mt.tipoServicio || 'Lunch/Dinner'}\n` +
-                                            `⏰ *Selected Time:* ${mt.horario || 'Not specified'}\n` +
-                                            `📅 *Days Availability:* ${mt.dias || 'No preference'}\n` +
+                                            `👥 *Guests:* ${mt.comensales || 2}\n` +
+                                            `🍽️ *Service:* ${mt.tipoServicio || 'No preference'}\n` +
+                                            `⏰ *Selected Time:* ${mt.horario || 'No preference'}\n` +
+                                            `📅 *Preferred Dates:* ${fechasStr}\n` +
                                             `⚠️ *Allergies/Restrictions:* ${mt.alergias || 'None'}\n` +
-                                            `🗣️ *Contact Language:* ${displayLang}\n` +
                                             `📌 *Status:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *Sender WhatsApp:* ${from}\n` +
                                             `📋 *Request:* TRADITION MENU BOOKING (GIFT CARD)`;
                 } else {
                     detalleMenuTrad = `🆔 *ID Reserva:* ${resRecord.id}\n` +
                                             `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
-                                            `🪪 *DNI/Pasaporte:* ${mt.dni || 'N/A'}\n` +
-                                            `📧 *Email:* ${mt.email || 'N/A'}\n` +
-                                            `🌐 *Nacionalidad:* ${displayNac}\n` +
                                             `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
-                                            `🍽️ *Servicio:* ${mt.tipoServicio || 'Comida/Cena'}\n` +
-                                            `⏰ *Hora seleccionada:* ${mt.horario || 'No especificada'}\n` +
-                                            `📅 *Disponibilidad días:* ${mt.dias || 'Sin preferencia'}\n` +
+                                            `👥 *Comensales:* ${mt.comensales || 2}\n` +
+                                            `🍽️ *Servicio:* ${mt.tipoServicio || 'Sin preferencia'}\n` +
+                                            `⏰ *Hora seleccionada:* ${mt.horario || 'Sin preferencia'}\n` +
+                                            `📅 *Fechas de preferencia:* ${fechasStr}\n` +
                                             `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
-                                            `🗣️ *Idioma contacto:* ${displayLang}\n` +
                                             `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
                                             `📱 *WhatsApp Remitente:* ${from}\n` +
                                             `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
@@ -970,6 +990,15 @@ async function handleButtonResponse(from, buttonId) {
                 await handleTextMessage(from, 'btn_skip_dni');
             } else if (currentState && currentState.step === 'menu_trad_step2b_dni') {
                 await handleTextMessage(from, 'btn_skip_dni');
+            }
+            break;
+        }
+
+        case 'btn_finish_fechas':
+        case 'btn_add_fecha': {
+            const currentState = userStates.get(from);
+            if (currentState && currentState.step === 'menu_trad_step5_dias') {
+                await handleTextMessage(from, buttonId);
             }
             break;
         }
@@ -1092,7 +1121,8 @@ async function handleButtonResponse(from, buttonId) {
                         { id: "mt_slot_1300", title: "13:00", description: "Turno comida 13:00" },
                         { id: "mt_slot_1330", title: "13:30", description: "Turno comida 13:30" },
                         { id: "mt_slot_1400", title: "14:00", description: "Turno comida 14:00" },
-                        { id: "mt_slot_1515", title: "15:15", description: "Turno comida 15:15" }
+                        { id: "mt_slot_1515", title: "15:15", description: "Turno comida 15:15" },
+                        { id: "mt_slot_sin_pref", title: getTranslation(lang, 'btnSinPreferencia').slice(0, 24), description: "Sin horario de preferencia" }
                     ]
                 }
             ];
@@ -1116,11 +1146,25 @@ async function handleButtonResponse(from, buttonId) {
                         { id: "mt_slot_2000", title: "20:00", description: "Turno cena 20:00 (Vie-Sáb)" },
                         { id: "mt_slot_2030", title: "20:30", description: "Turno cena 20:30 (Vie-Sáb)" },
                         { id: "mt_slot_2100", title: "21:00", description: "Turno cena 21:00 (Vie-Sáb)" },
-                        { id: "mt_slot_2130", title: "21:30", description: "Turno cena 21:30 (Vie-Sáb)" }
+                        { id: "mt_slot_2130", title: "21:30", description: "Turno cena 21:30 (Vie-Sáb)" },
+                        { id: "mt_slot_sin_pref", title: getTranslation(lang, 'btnSinPreferencia').slice(0, 24), description: "Sin horario de preferencia" }
                     ]
                 }
             ];
             await sendInteractiveList(from, bodyText, buttonText, sections);
+            break;
+        }
+
+        case 'menu_trad_tipo_sin_pref': {
+            const state = userStates.get(from) || { data: {} };
+            state.data.menuTrad = state.data.menuTrad || {};
+            state.data.menuTrad.tipoServicio = 'Sin preferencia';
+            state.data.menuTrad.horario = 'Sin preferencia';
+            state.data.menuTrad.fechas = [];
+            state.step = 'menu_trad_step5_dias';
+            userStates.set(from, state);
+
+            await sendMessage(from, getTranslation(lang, 'menuTradStep5FechasPrompt'));
             break;
         }
 
@@ -1594,50 +1638,22 @@ async function handleWaitlistDaySelection(from, listId, lang) {
  * Maneja la selección interactiva de turno horario (Comida/Cena) en el formulario de Menú Tradición.
  */
 async function handleMenuTradSlotSelection(from, slotId, lang) {
-    const rawTime = slotId.replace('mt_slot_', '');
-    const timeClean = rawTime.replace(/(\d{2})(\d{2})/, '$1:$2');
-
     const state = userStates.get(from) || { data: {} };
     state.data.menuTrad = state.data.menuTrad || {};
-    state.data.menuTrad.horario = timeClean;
 
-    const avail = db.getNextAvailableDate(timeClean, 2);
-
-    let nextAvailMsg = '';
-    if (avail && avail.encontrado) {
-        if (lang === 'eu') {
-            nextAvailMsg = `📅 *Hurrengo data librea (2 pertsona, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
-        } else if (lang === 'en') {
-            nextAvailMsg = `📅 *Next available date (2 guests, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
-        } else {
-            nextAvailMsg = `📅 *Próxima fecha libre (2 comensales, ${timeClean}):*\n👉 ${avail.diaSemana}, ${avail.fecha}`;
-        }
+    if (slotId === 'mt_slot_sin_pref') {
+        state.data.menuTrad.horario = 'Sin preferencia';
     } else {
-        if (lang === 'eu') {
-            nextAvailMsg = `📅 *Erabilgarritasuna (${timeClean}):* Eskuz kontsultatuko dugu.`;
-        } else if (lang === 'en') {
-            nextAvailMsg = `📅 *Availability (${timeClean}):* We will check manually.`;
-        } else {
-            nextAvailMsg = `📅 *Disponibilidad (${timeClean}):* Comprobaremos la disponibilidad manualmente.`;
-        }
+        const rawTime = slotId.replace('mt_slot_', '');
+        const timeClean = rawTime.replace(/(\d{2})(\d{2})/, '$1:$2');
+        state.data.menuTrad.horario = timeClean;
     }
 
-    if (state.data.menuTrad.tipoServicio === 'Cena') {
-        state.step = 'menu_trad_step5_cena';
-        userStates.set(from, state);
+    state.data.menuTrad.fechas = [];
+    state.step = 'menu_trad_step5_dias';
+    userStates.set(from, state);
 
-        const promptBody = getTranslation(lang, 'menuTradStep5CenaDia').replace('{nextAvailable}', nextAvailMsg);
-        const buttons = [
-            { id: 'mt_cena_viernes', title: getTranslation(lang, 'dayViernes').slice(0, 20) },
-            { id: 'mt_cena_sabado', title: getTranslation(lang, 'daySabado').slice(0, 20) },
-            { id: 'mt_cena_skip', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
-        ];
-        await sendInteractiveButtons(from, promptBody, buttons);
-    } else {
-        state.data.menuTrad.selectedDays = [];
-        state.data.menuTrad.nextAvailMsg = nextAvailMsg;
-        await sendMenuTradDaysList(from, lang);
-    }
+    await sendMessage(from, getTranslation(lang, 'menuTradStep5FechasPrompt'));
 }
 
 /**
@@ -2328,7 +2344,8 @@ async function handleTextMessage(from, text) {
             const promptBody = getTranslation(lang, 'menuTradStep3Tipo');
             const buttons = [
                 { id: 'menu_trad_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
-                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) }
+                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) },
+                { id: 'menu_trad_tipo_sin_pref', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
             ];
             await sendInteractiveButtons(from, promptBody, buttons);
             break;
@@ -2382,8 +2399,10 @@ async function handleTextMessage(from, text) {
             const lowerText = text.trim().toLowerCase();
             if (lowerText.includes('comida') || lowerText.includes('bazkari') || lowerText.includes('lunch')) {
                 await handleButtonResponse(from, 'menu_trad_tipo_comida');
-            } else {
+            } else if (lowerText.includes('cena') || lowerText.includes('afari') || lowerText.includes('dinner')) {
                 await handleButtonResponse(from, 'menu_trad_tipo_cena');
+            } else {
+                await handleButtonResponse(from, 'menu_trad_tipo_sin_pref');
             }
             break;
         }
@@ -2394,47 +2413,69 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'menu_trad_step5_cena': {
-            const lowerText = text.trim().toLowerCase();
-            if (lowerText.includes('viernes') || lowerText.includes('ostirala') || lowerText.includes('friday')) {
-                await handleButtonResponse(from, 'mt_cena_viernes');
-            } else {
-                await handleButtonResponse(from, 'mt_cena_sabado');
-            }
-            break;
-        }
-
+        case 'menu_trad_step5_dias':
+        case 'menu_trad_step5_cena':
         case 'menu_trad_step5_dia1':
         case 'menu_trad_step5_dia2':
         case 'menu_trad_step5_dia3': {
-            const cleanDay = text.trim();
+            const cleanInput = text.trim().toLowerCase();
             currentState.data.menuTrad = currentState.data.menuTrad || {};
-            if (currentState.step === 'menu_trad_step5_dia1') {
-                currentState.data.menuTrad.day1 = cleanDay;
-                currentState.step = 'menu_trad_step5_dia2';
-                userStates.set(from, currentState);
-                const bodyText = getTranslation(lang, 'menuTradStep5Dia2').replace('{day1}', cleanDay);
-                const buttonText = getTranslation(lang, 'menuButtonText');
-                const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'mt_day2_' + r.id }));
-                await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 2 de preferencia", rows }]);
-            } else if (currentState.step === 'menu_trad_step5_dia2') {
-                currentState.data.menuTrad.day2 = cleanDay;
-                currentState.step = 'menu_trad_step5_dia3';
-                userStates.set(from, currentState);
-                const d1 = currentState.data.menuTrad.day1;
-                const bodyText = getTranslation(lang, 'menuTradStep5Dia3').replace('{day1}', d1).replace('{day2}', cleanDay);
-                const buttonText = getTranslation(lang, 'menuButtonText');
-                const rows = getDaysListRows(lang).map(r => ({ ...r, id: 'mt_day3_' + r.id }));
-                await sendInteractiveList(from, bodyText, buttonText, [{ title: "Día 3 de preferencia", rows }]);
-            } else {
-                currentState.data.menuTrad.day3 = cleanDay;
-                const d1 = currentState.data.menuTrad.day1;
-                const d2 = currentState.data.menuTrad.day2;
-                currentState.data.menuTrad.dias = `${d1}, ${d2}, ${cleanDay}`;
+            currentState.data.menuTrad.fechas = currentState.data.menuTrad.fechas || [];
+
+            if (cleanInput === 'btn_finish_fechas' || ['fin', 'finalizar', 'listo', 'ok', 'terminar', 'hecho'].includes(cleanInput)) {
+                if (currentState.data.menuTrad.fechas.length === 0) {
+                    await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                    break;
+                }
                 currentState.step = 'menu_trad_step6_alergias';
                 currentState.data.menuTrad.selectedAllergies = [];
                 userStates.set(from, currentState);
+
                 await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
+                break;
+            }
+
+            if (cleanInput === 'btn_add_fecha') {
+                let msg = `📅 *Indícanos la siguiente fecha de preferencia (formato DD/MM/AAAA):*`;
+                if (lang === 'eu') msg = `📅 *Eman hurrengo data hobetsia (DD/MM/AAAA formatuan):*`;
+                else if (lang === 'en') msg = `📅 *Please specify the next preferred date (DD/MM/AAAA format):*`;
+                await sendMessage(from, msg);
+                break;
+            }
+
+            const newDates = parseAndValidateDates(text);
+
+            if (newDates.length === 0) {
+                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                break;
+            }
+
+            for (const d of newDates) {
+                if (!currentState.data.menuTrad.fechas.includes(d) && currentState.data.menuTrad.fechas.length < 5) {
+                    currentState.data.menuTrad.fechas.push(d);
+                }
+            }
+
+            userStates.set(from, currentState);
+
+            if (currentState.data.menuTrad.fechas.length >= 5) {
+                currentState.step = 'menu_trad_step6_alergias';
+                currentState.data.menuTrad.selectedAllergies = [];
+                userStates.set(from, currentState);
+
+                const maxNotice = `📌 *Has indicado el máximo de 5 fechas de preferencia:* ${currentState.data.menuTrad.fechas.join(', ')}`;
+                await sendMessage(from, maxNotice);
+                await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
+            } else {
+                const count = currentState.data.menuTrad.fechas.length;
+                const datesListStr = currentState.data.menuTrad.fechas.map(f => `• ${f}`).join('\n');
+                const promptBody = `📌 *Fechas de preferencia guardadas (${count}/5):*\n${datesListStr}\n\n¿Deseas añadir otra fecha o finalizar la selección?`;
+
+                const buttons = [
+                    { id: 'btn_add_fecha', title: getTranslation(lang, 'btnAddOtraFecha').slice(0, 20) },
+                    { id: 'btn_finish_fechas', title: getTranslation(lang, 'btnFinalizarFechas').slice(0, 20) }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
             }
             break;
         }

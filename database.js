@@ -19,12 +19,19 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
-        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(100);
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_reserva VARCHAR(50) DEFAULT 'online';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'NO';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(30);
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(50);
+        ALTER TABLE reservas DROP COLUMN IF EXISTS dias_preferencia;
+        CREATE TABLE IF NOT EXISTS reservas_fechas_preferencia (
+            id SERIAL PRIMARY KEY,
+            reserva_id VARCHAR(50) NOT NULL,
+            fecha VARCHAR(20) NOT NULL,
+            orden INT DEFAULT 1,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
         DO $$ BEGIN
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='lista_espera' AND column_name='cliente_dni') THEN
                 ALTER TABLE lista_espera DROP COLUMN cliente_dni;
@@ -106,7 +113,14 @@ if (process.env.DATABASE_URL) {
         );
     `).then(() => {
         // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar
-        return pool.query("SELECT id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo FROM reservas ORDER BY id DESC");
+        return pool.query(`
+            SELECT r.id, r.nombre, r.telefono, r.dni, r.email, r.fecha, r.hora, r.comensales, r.estado, r.idioma, r.tipo_reserva, r.nacionalidad, r.alergias, r.tipo_servicio, r.tarjeta_regalo,
+                   ARRAY_REMOVE(ARRAY_AGG(rfp.fecha ORDER BY rfp.orden), NULL) as fechas_preferencia
+            FROM reservas r
+            LEFT JOIN reservas_fechas_preferencia rfp ON r.id = rfp.reserva_id
+            GROUP BY r.id, r.nombre, r.telefono, r.dni, r.email, r.fecha, r.hora, r.comensales, r.estado, r.idioma, r.tipo_reserva, r.nacionalidad, r.alergias, r.tipo_servicio, r.tarjeta_regalo
+            ORDER BY r.id DESC
+        `);
     }).then(res => {
         if (res && res.rows && res.rows.length > 0) {
             const currentDb = loadDb();
@@ -116,17 +130,17 @@ if (process.env.DATABASE_URL) {
                 telefono: r.telefono,
                 dni: r.dni,
                 email: r.email,
-                fecha: r.fecha,
-                hora: r.hora,
+                fecha: r.fecha || '',
+                hora: r.hora || '',
                 comensales: parseInt(r.comensales, 10),
                 estado: r.estado,
                 idioma: r.idioma || 'es',
-                dias_preferencia: r.dias_preferencia || 'Sin preferencia',
                 tipo_reserva: r.tipo_reserva || 'online',
                 nacionalidad: r.nacionalidad || 'España',
                 alergias: r.alergias || 'NO',
-                tipo_servicio: r.tipo_servicio || (r.hora ? (parseInt(r.hora.split(':')[0], 10) >= 20 ? 'Cena' : 'Comida') : 'Comida'),
-                tarjeta_regalo: r.tarjeta_regalo || null
+                tipo_servicio: r.tipo_servicio || 'Sin preferencia',
+                tarjeta_regalo: r.tarjeta_regalo || null,
+                fechas_preferencia: Array.isArray(r.fechas_preferencia) ? r.fechas_preferencia : []
             }));
             saveDb(currentDb);
             console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon.`);
@@ -600,10 +614,19 @@ function formatLanguageCode(langStr) {
 
 function createReservation(data) {
     const db = loadDb();
-    const rawDias = data.dias_preferencia || data.dias || 'Sin preferencia';
-    const diasPref = formatDaysInSpanish(rawDias);
     const nacCode = formatNationalityCode(data.nacionalidad);
     const langCode = formatLanguageCode(data.idioma);
+
+    let fechasPref = [];
+    if (Array.isArray(data.fechas_preferencia)) {
+        fechasPref = data.fechas_preferencia.map(f => (f.label || f).toString().trim()).filter(Boolean);
+    } else if (typeof data.fechas_preferencia === 'string' && data.fechas_preferencia.trim()) {
+        fechasPref = data.fechas_preferencia.split(',').map(s => s.trim()).filter(Boolean);
+    } else if (Array.isArray(data.fechas)) {
+        fechasPref = data.fechas.map(f => (f.label || f).toString().trim()).filter(Boolean);
+    } else if (typeof data.dias === 'string' && data.dias.trim()) {
+        fechasPref = [data.dias.trim()];
+    }
 
     const now = new Date();
     const dateStr = now.toISOString().slice(0,10).replace(/-/g,'');
@@ -615,16 +638,16 @@ function createReservation(data) {
         dni: (data.dni || 'N/A').toUpperCase().trim(),
         email: (data.email || 'N/A').toLowerCase().trim(),
         nacionalidad: nacCode,
-        fecha: data.fecha || '',
+        fecha: data.fecha || '', // Queda vacía hasta que la reserva sea confirmada definitivamente
         hora: data.hora || '',
         comensales: parseInt(data.comensales, 10) || 2,
-        estado: data.estado || 'CONFIRMADA',
+        estado: data.estado || 'PENDIENTE CONFIRMACION',
         idioma: langCode,
-        dias_preferencia: diasPref,
-        tipo_reserva: data.tipo_reserva || 'online',
+        tipo_reserva: data.tipo_reserva || 'tarjeta_regalo',
         alergias: formatAllergiesInSpanish(data.alergias),
-        tipo_servicio: data.tipo_servicio || (data.hora ? (parseInt(data.hora.split(':')[0], 10) >= 20 ? 'Cena' : 'Comida') : 'Comida'),
+        tipo_servicio: data.tipo_servicio || 'Sin preferencia',
         tarjeta_regalo: data.tarjeta_regalo || null,
+        fechas_preferencia: fechasPref,
         fechaCreacion: now.toISOString()
     };
 
@@ -640,10 +663,10 @@ function createReservation(data) {
             [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
         ).catch(err => console.error("❌ Error PostgreSQL INSERT cliente:", err.message));
 
-        // 2. Guardar reserva con todos los campos del formulario
+        // 2. Guardar reserva en tabla reservas
         pool.query(
-            `INSERT INTO reservas(id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, dias_preferencia, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo)
-             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) ON CONFLICT(id) DO NOTHING`,
+            `INSERT INTO reservas(id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo)
+             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) ON CONFLICT(id) DO NOTHING`,
             [
                 nuevaReserva.id,
                 nuevaReserva.nombre,
@@ -655,15 +678,23 @@ function createReservation(data) {
                 nuevaReserva.comensales,
                 nuevaReserva.estado,
                 nuevaReserva.idioma,
-                nuevaReserva.dias_preferencia,
                 nuevaReserva.tipo_reserva,
                 nuevaReserva.nacionalidad,
                 nuevaReserva.alergias,
                 nuevaReserva.tipo_servicio,
                 nuevaReserva.tarjeta_regalo
             ]
-        ).then(() => console.log(`✅ Reserva guardada en PostgreSQL: ${nuevaReserva.id}`))
-         .catch(err => console.error("❌ Error PostgreSQL INSERT reserva:", err.message, JSON.stringify(nuevaReserva)));
+        ).then(async () => {
+            console.log(`✅ Reserva guardada en PostgreSQL: ${nuevaReserva.id}`);
+            if (fechasPref && fechasPref.length > 0) {
+                for (let i = 0; i < fechasPref.length; i++) {
+                    await pool.query(
+                        `INSERT INTO reservas_fechas_preferencia(reserva_id, fecha, orden) VALUES($1, $2, $3)`,
+                        [nuevaReserva.id, fechasPref[i], i + 1]
+                    ).catch(err => console.error("❌ Error INSERT reservas_fechas_preferencia:", err.message));
+                }
+            }
+        }).catch(err => console.error("❌ Error PostgreSQL INSERT reserva:", err.message, JSON.stringify(nuevaReserva)));
     }
 
     return nuevaReserva;
