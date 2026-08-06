@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-06-CMS-V31-NEW-PREFERENCE-DATES-TABLE-AND-SIN-PREFERENCIA-OPTIONS';
+const DEPLOY_VERSION = 'v2026-08-06-CMS-V32-FIX-POSTGRES-MIGRATION-OBSELETE-COLUMN-ALTER';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
