@@ -160,6 +160,61 @@ if (process.env.DATABASE_URL) {
         // 2. Matriz con todos los clientes de prueba y sus tarjetas/reservas asociadas
         const testReservations = [
             {
+                resId: 'RES-20260806-677077',
+                tarjeta: 'MT-2026-004',
+                nombre: 'Ander Ander Ander 1',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 3,
+                alergias: 'NO',
+                fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026']
+            },
+            {
+                resId: 'RES-20260806-459318',
+                tarjeta: 'MT-2026-006',
+                nombre: 'Ander Ander Ander 2',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 3,
+                alergias: 'Gluten / Celíacos',
+                fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026']
+            },
+            {
+                resId: 'RES-20260806-214309',
+                tarjeta: 'MT-2026-007',
+                nombre: 'Ander Ander Ander 3',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 3,
+                alergias: 'NO',
+                fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026']
+            },
+            {
+                resId: 'RES-20260806-910841',
+                tarjeta: 'MT-2026-008',
+                nombre: 'Ander AAA AAA',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 3,
+                alergias: 'Vegetariano/Vegano',
+                fechas: ['20/08/2026', '21/08/2026', '22/08/2026', '23/08/2026', '24/08/2026']
+            },
+            {
+                resId: 'RES-20260806-538102',
+                tarjeta: 'MT-2026-009',
+                nombre: 'Ander BBB BBB',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 3,
+                alergias: 'NO',
+                fechas: ['25/08/2026', '26/08/2026', '27/08/2026', '28/08/2026', '29/08/2026']
+            },
+            {
                 resId: 'RES-20260806-176471',
                 tarjeta: 'MT-2026-012',
                 nombre: 'Ander CCC CCC',
@@ -168,7 +223,8 @@ if (process.env.DATABASE_URL) {
                 email: 'n/a',
                 comensales: 4,
                 alergias: 'NO',
-                fechas: ['01/09/2026', '02/09/2026', '03/09/2026', '04/09/2026', '05/09/2026']
+                fechas: ['01/09/2026', '02/09/2026', '03/09/2026', '04/09/2026', '05/09/2026'],
+                sendEmail: true
             },
             {
                 resId: 'RES-20260806-313439',
@@ -179,17 +235,13 @@ if (process.env.DATABASE_URL) {
                 email: 'n/a',
                 comensales: 2,
                 alergias: 'NO',
-                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026']
+                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026'],
+                sendEmail: true
             },
             { tarjeta: 'MT-2026-001', nombre: 'Ander Urien Telleria', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
             { tarjeta: '12345', nombre: 'Ander Telleria Telleria', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
             { tarjeta: 'MT-2026-002', nombre: 'Ander Urien', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
             { tarjeta: 'MT-2026-005', nombre: 'Ander ZZZZ MMMM', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
-            { tarjeta: 'MT-2026-004', nombre: 'Ander Ander Ander 1', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
-            { tarjeta: 'MT-2026-006', nombre: 'Ander Ander Ander 2', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
-            { tarjeta: 'MT-2026-007', nombre: 'Ander Ander Ander 3', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
-            { tarjeta: 'MT-2026-008', nombre: 'Ander AAA AAA', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
-            { tarjeta: 'MT-2026-009', nombre: 'Ander BBB BBB', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
             { tarjeta: 'MT-2026-003', nombre: 'Ander Tex Mex', telefono: '34664037707', dni: '66666666H', email: 'andertexmex@gmail.com' }
         ];
 
@@ -229,26 +281,27 @@ if (process.env.DATABASE_URL) {
                         }
                     }
 
-                    // Enviar alerta de correo pendiente para reservas de prueba si aplica
-                    const detalleMod = `🆔 *ID Reserva:* ${item.resId}\n` +
-                                       `👤 *Nombre:* ${item.nombre}\n` +
-                                       `🎁 *Nº Tarjeta Regalo:* ${item.tarjeta}\n` +
-                                       `👥 *Comensales:* ${item.comensales}\n` +
-                                       `🍽️ *Servicio:* Sin preferencia\n` +
-                                       `⏰ *Hora seleccionada:* Sin preferencia\n` +
-                                       `📅 *Fechas de preferencia:* ${item.fechas ? item.fechas.join(', ') : 'Sin preferencia'}\n` +
-                                       `⚠️ *Alergias/Restricciones:* ${item.alergias || 'NO'}\n` +
-                                       `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
-                                       `📱 *WhatsApp Remitente:* ${item.telefono}\n` +
-                                       `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
+                    if (item.sendEmail) {
+                        const detalleMod = `🆔 *ID Reserva:* ${item.resId}\n` +
+                                           `👤 *Nombre:* ${item.nombre}\n` +
+                                           `🎁 *Nº Tarjeta Regalo:* ${item.tarjeta}\n` +
+                                           `👥 *Comensales:* ${item.comensales}\n` +
+                                           `🍽️ *Servicio:* Sin preferencia\n` +
+                                           `⏰ *Hora seleccionada:* Sin preferencia\n` +
+                                           `📅 *Fechas de preferencia:* ${item.fechas ? item.fechas.join(', ') : 'Sin preferencia'}\n` +
+                                           `⚠️ *Alergias/Restricciones:* ${item.alergias || 'NO'}\n` +
+                                           `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
+                                           `📱 *WhatsApp Remitente:* ${item.telefono}\n` +
+                                           `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
 
-                    sendInternalStaffAlertInSpanish(
-                        'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
-                        item.telefono,
-                        detalleMod,
-                        item.nombre,
-                        item.telefono
-                    ).catch(() => {});
+                        await sendInternalStaffAlertInSpanish(
+                            'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
+                            item.telefono,
+                            detalleMod,
+                            item.nombre,
+                            item.telefono
+                        ).catch((e) => console.error("⚠️ Error re-sending email:", e.message));
+                    }
                 } else if (item.tarjeta) {
                     await pool.query(
                         `UPDATE reservas SET cliente_id = $1 WHERE tarjeta_regalo = $2`,
