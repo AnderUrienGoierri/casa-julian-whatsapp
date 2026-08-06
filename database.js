@@ -34,12 +34,17 @@ if (process.env.DATABASE_URL) {
         );
         DO $$ BEGIN
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='lista_espera' AND column_name='cliente_dni') THEN
-                ALTER TABLE lista_espera DROP COLUMN cliente_dni;
+                ALTER TABLE lista_espera DROP COLUMN cliente_dni CASCADE;
             END IF;
             IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='reservas' AND column_name='cliente_dni') THEN
-                ALTER TABLE reservas DROP COLUMN cliente_dni;
+                ALTER TABLE reservas DROP COLUMN cliente_dni CASCADE;
             END IF;
         END $$;
+        ALTER TABLE clientes ALTER COLUMN dni DROP NOT NULL;
+        ALTER TABLE clientes ALTER COLUMN email DROP NOT NULL;
+        ALTER TABLE reservas ALTER COLUMN dni DROP NOT NULL;
+        ALTER TABLE reservas ALTER COLUMN email DROP NOT NULL;
+        ALTER TABLE reservas ALTER COLUMN fecha DROP NOT NULL;
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'Pendiente asignacion';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS ninos VARCHAR(50) DEFAULT '0';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'Ninguna';
