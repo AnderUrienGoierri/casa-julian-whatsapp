@@ -146,7 +146,6 @@ if (process.env.DATABASE_URL) {
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
     `).then(async () => {
-    `).then(async () => {
         // 1. Eliminar restricciones antiguas si existían
         await pool.query(`
             DO $$ BEGIN
