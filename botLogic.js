@@ -484,10 +484,18 @@ async function handleButtonResponse(from, buttonId) {
             userStates.delete(from);
             break;
 
-        case 'btn_add_lista_espera':
-            userStates.set(from, { step: 'espera_step1_nombre', data: { waitlist: {} } });
-            await sendMessage(from, getTranslation(lang, 'waitlistStep1Nombre'));
+        case 'btn_add_lista_espera': {
+            let waitlistMsg = `📝 *Lista de Espera*\n\nPara inscribirte en la lista de espera, por favor realiza tu solicitud a través de nuestra web oficial en el siguiente enlace:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+            if (lang === 'eu') {
+                waitlistMsg = `📝 *Itxaron Zerrenda*\n\nItxaron zerrendan izena emateko, mesedez egin zure eskaera gure webgune ofizialaren bidez hurrengo estekan:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+            } else if (lang === 'en') {
+                waitlistMsg = `📝 *Waitlist*\n\nTo join our waitlist, please submit your request through our official website at the following link:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+            }
+            await sendMessage(from, waitlistMsg);
+            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+            userStates.delete(from);
             break;
+        }
 
         case 'btn_tarjeta_regalo': {
             userStates.set(from, { step: 'menu_tradicion_opciones', data: {} });
@@ -651,10 +659,18 @@ async function handleButtonResponse(from, buttonId) {
             await sendMessage(from, getTranslation(lang, 'menuTradicionCaducidadPrompt'));
             break;
 
-        case 'waitlist_init_no':
-            userStates.set(from, { step: 'espera_step1_nombre', data: { waitlist: {} } });
-            await sendMessage(from, getTranslation(lang, 'waitlistStep1Nombre'));
+        case 'waitlist_init_no': {
+            let waitlistMsg = `📝 *Lista de Espera*\n\nPara inscribirte en la lista de espera, por favor realiza tu solicitud a través de nuestra web oficial en el siguiente enlace:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+            if (lang === 'eu') {
+                waitlistMsg = `📝 *Itxaron Zerrenda*\n\nItxaron zerrendan izena emateko, mesedez egin zure eskaera gure webgune ofizialaren bidez hurrengo estekan:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+            } else if (lang === 'en') {
+                waitlistMsg = `📝 *Waitlist*\n\nTo join our waitlist, please submit your request through our official website at the following link:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+            }
+            await sendMessage(from, waitlistMsg);
+            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+            userStates.delete(from);
             break;
+        }
 
         case 'wl_tipo_comida': {
             const state = userStates.get(from) || { data: {} };

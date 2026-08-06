@@ -82,6 +82,46 @@ async function sendViaBrevoHttpApi(targetEmail, subject, emailHtml) {
 }
 
 /**
+ * Convierte el texto estructurado de datos recibidos del cliente a una tabla HTML limpia y estilizada.
+ */
+function formatDetailsAsHtmlTable(datosDetallados) {
+    if (!datosDetallados) return '<p style="color: #666; font-style: italic;">No hay detalles adicionales.</p>';
+
+    const lines = datosDetallados.split('\n').filter(line => line.trim() !== '');
+
+    let rowsHtml = '';
+    lines.forEach((line, index) => {
+        const cleanLine = line.replace(/\*/g, '').trim();
+        let key = '';
+        let value = '';
+
+        const colonIndex = cleanLine.indexOf(':');
+        if (colonIndex !== -1) {
+            key = cleanLine.slice(0, colonIndex).trim();
+            value = cleanLine.slice(colonIndex + 1).trim();
+        } else {
+            key = 'Detalle';
+            value = cleanLine;
+        }
+
+        const bgColor = (index % 2 === 0) ? '#ffffff' : '#f9f6f0';
+
+        rowsHtml += `
+        <tr style="background-color: ${bgColor}; border-bottom: 1px solid #eee;">
+            <td style="padding: 10px 14px; font-weight: bold; color: #8B0000; width: 42%; font-size: 14px; vertical-align: top;">${key}</td>
+            <td style="padding: 10px 14px; color: #222222; font-size: 14px; vertical-align: top; font-weight: 500;">${value}</td>
+        </tr>`;
+    });
+
+    return `
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border: 1px solid #e0d0c0; border-radius: 6px; overflow: hidden; background-color: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <tbody>
+            ${rowsHtml}
+        </tbody>
+    </table>`;
+}
+
+/**
  * Genera dinámicamente el transporte SMTP consultando las variables de entorno activas.
  * Soporta puerto 465 (SSL) y puerto 587 (STARTTLS) como sistema secundario.
  */
@@ -273,8 +313,8 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
             <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
             
             <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                <h3 style="margin-top: 0; color: #8B0000;">Datos Recibidos del Cliente:</h3>
-                <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
+                <h3 style="margin-top: 0; color: #8B0000; font-size: 16px; margin-bottom: 10px;">📋 Datos Recibidos del Cliente:</h3>
+                ${formatDetailsAsHtmlTable(datosDetallados)}
             </div>
         </div>
         <div style="border-top: 1px solid #eee; padding: 12px; text-align: center; font-size: 12px; color: #888; background-color: #fafafa;">
@@ -319,8 +359,8 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
                 <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
                 
                 <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                    <h3 style="margin-top: 0; color: #8B0000;">Datos Recibidos del Cliente:</h3>
-                    <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
+                    <h3 style="margin-top: 0; color: #8B0000; font-size: 16px; margin-bottom: 10px;">📋 Datos Recibidos del Cliente:</h3>
+                    ${formatDetailsAsHtmlTable(datosDetallados)}
                 </div>
             </div>
             <div style="border-top: 1px solid #eee; padding: 12px; text-align: center; font-size: 12px; color: #888; background-color: #fafafa;">
