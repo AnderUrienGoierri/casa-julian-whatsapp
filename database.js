@@ -16,7 +16,7 @@ if (process.env.DATABASE_URL) {
 
     // Auto-migración para asegurar que las columnas de idioma, dias_preferencia y tabla tarjetas_regalo existan
     pool.query(`
-        -- 1. Crear o asegurar tabla clientes con restricción UNIQUE en teléfono
+        -- 1. Crear o asegurar tabla clientes (SIN restricción UNIQUE en teléfono)
         CREATE TABLE IF NOT EXISTS clientes (
             id SERIAL PRIMARY KEY,
             nombre VARCHAR(100) NOT NULL,
@@ -28,19 +28,18 @@ if (process.env.DATABASE_URL) {
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
 
+        -- Eliminar cualquier restricción UNIQUE antigua en teléfono
+        DO $$ BEGIN
+            IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'clientes_telefono_key') THEN
+                ALTER TABLE clientes DROP CONSTRAINT clientes_telefono_key;
+            END IF;
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END $$;
+
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
         ALTER TABLE clientes ALTER COLUMN dni DROP NOT NULL;
         ALTER TABLE clientes ALTER COLUMN email DROP NOT NULL;
-
-        DO $$ BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_constraint WHERE conname = 'clientes_telefono_key'
-            ) THEN
-                ALTER TABLE clientes ADD CONSTRAINT clientes_telefono_key UNIQUE (telefono);
-            END IF;
-        EXCEPTION WHEN OTHERS THEN NULL;
-        END $$;
 
         -- 2. Asegurar columna cliente_id en reservas y tabla reservas
         CREATE TABLE IF NOT EXISTS reservas (
@@ -63,24 +62,6 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(50);
         ALTER TABLE reservas ALTER COLUMN fecha DROP NOT NULL;
-
-        -- Poblar cliente_id en reservas si existían columnas viejas
-        DO $$ BEGIN
-            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='reservas' AND column_name='telefono') THEN
-                UPDATE reservas r SET cliente_id = c.id FROM clientes c WHERE r.telefono = c.telefono AND r.cliente_id IS NULL;
-            END IF;
-        EXCEPTION WHEN OTHERS THEN NULL;
-        END $$;
-
-        -- Eliminar columnas duplicadas de la tabla reservas (normalización)
-        ALTER TABLE reservas DROP COLUMN IF EXISTS cliente_dni CASCADE;
-        ALTER TABLE reservas DROP COLUMN IF EXISTS dias_preferencia CASCADE;
-        ALTER TABLE reservas DROP COLUMN IF EXISTS nombre CASCADE;
-        ALTER TABLE reservas DROP COLUMN IF EXISTS telefono CASCADE;
-        ALTER TABLE reservas DROP COLUMN IF EXISTS dni CASCADE;
-        ALTER TABLE reservas DROP COLUMN IF EXISTS email CASCADE;
-        ALTER TABLE reservas DROP COLUMN IF EXISTS idioma CASCADE;
-        ALTER TABLE reservas DROP COLUMN IF EXISTS nacionalidad CASCADE;
 
         -- 3. Crear tabla reservas_fechas_preferencia
         CREATE TABLE IF NOT EXISTS reservas_fechas_preferencia (
@@ -164,8 +145,73 @@ if (process.env.DATABASE_URL) {
             filename VARCHAR(100),
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
-    `).then(() => {
-        // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar con JOIN en clientes
+    `).then(async () => {
+        // Ejecutar script de separación y restauración de registros de clientes "Ander%"
+        const testClients = [
+            { resId: 'RES-20260723-813266', nombre: 'Ander Tex Mex', telefono: '34664037707', dni: '66666666H', email: 'andertexmex@gmail.com' },
+            { resId: 'RES-20260728-051173', nombre: 'Ander AAA UUU', telefono: '34664037707', dni: '12345678H', email: 'anu@gmail.com' },
+            { resId: 'RES-20260803-361365', nombre: 'Ander Urien Telleria', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
+            { resId: 'RES-20260803-394630', nombre: 'Ander Telleria Telleria', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
+            { resId: 'RES-20260803-524351', nombre: 'Ander Urien', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
+            { resId: 'RES-20260803-595811', nombre: 'Ander ZZZZ MMMM', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
+            { resId: 'RES-20260806-677077', nombre: 'Ander Ander Ander', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026'], tarjeta: 'MT-2026-004', comensales: 3, alergias: 'NO' },
+            { resId: 'RES-20260806-459318', nombre: 'Ander Ander Ander', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026'], tarjeta: 'MT-2026-006', comensales: 3, alergias: 'Gluten / Celíacos' },
+            { resId: 'RES-20260806-214309', nombre: 'Ander Ander Ander', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026'], tarjeta: 'MT-2026-007', comensales: 3, alergias: 'NO' },
+            { resId: 'RES-20260806-910841', nombre: 'Ander AAA AAA', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['20/08/2026', '21/08/2026', '22/08/2026', '23/08/2026', '24/08/2026'], tarjeta: 'MT-2026-008', comensales: 3, alergias: 'Vegetariano/Vegano' }
+        ];
+
+        for (const tc of testClients) {
+            try {
+                let cid = null;
+                const cFind = await pool.query(
+                    `SELECT id FROM clientes WHERE LOWER(TRIM(nombre)) = LOWER(TRIM($1)) AND telefono = $2 LIMIT 1`,
+                    [tc.nombre, tc.telefono]
+                );
+
+                if (cFind && cFind.rows && cFind.rows.length > 0) {
+                    cid = cFind.rows[0].id;
+                } else {
+                    const cIns = await pool.query(
+                        `INSERT INTO clientes(nombre, telefono, dni, email) VALUES($1, $2, $3, $4) RETURNING id`,
+                        [tc.nombre, tc.telefono, tc.dni, tc.email]
+                    );
+                    cid = cIns.rows[0].id;
+                }
+
+                await pool.query(
+                    `INSERT INTO reservas(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo)
+                     VALUES($1, $2, '', 'Sin preferencia', $3, 'PENDIENTE CONFIRMACION', 'tarjeta_regalo', $4, 'Sin preferencia', $5)
+                     ON CONFLICT(id) DO UPDATE SET cliente_id = $2, comensales = $3, alergias = $4, tarjeta_regalo = $5`,
+                    [tc.resId, cid, tc.comensales || 2, tc.alergias || 'NO', tc.tarjeta || null]
+                );
+
+                if (tc.fechas && tc.fechas.length > 0) {
+                    await pool.query(`DELETE FROM reservas_fechas_preferencia WHERE reserva_id = $1`, [tc.resId]);
+                    for (let i = 0; i < tc.fechas.length; i++) {
+                        await pool.query(
+                            `INSERT INTO reservas_fechas_preferencia(reserva_id, fecha, orden) VALUES($1, $2, $3)`,
+                            [tc.resId, tc.fechas[i], i + 1]
+                        );
+                    }
+                }
+            } catch (e) {
+                console.error(`⚠️ Error en migración cliente ${tc.nombre}:`, e.message);
+            }
+        }
+
+        // Eliminar columnas duplicadas de reservas de forma limpia
+        await pool.query(`
+            ALTER TABLE reservas DROP COLUMN IF EXISTS cliente_dni CASCADE;
+            ALTER TABLE reservas DROP COLUMN IF EXISTS dias_preferencia CASCADE;
+            ALTER TABLE reservas DROP COLUMN IF EXISTS nombre CASCADE;
+            ALTER TABLE reservas DROP COLUMN IF EXISTS telefono CASCADE;
+            ALTER TABLE reservas DROP COLUMN IF EXISTS dni CASCADE;
+            ALTER TABLE reservas DROP COLUMN IF EXISTS email CASCADE;
+            ALTER TABLE reservas DROP COLUMN IF EXISTS idioma CASCADE;
+            ALTER TABLE reservas DROP COLUMN IF EXISTS nacionalidad CASCADE;
+        `).catch(() => {});
+
+        // Sincronizar reservas con JOIN
         return pool.query(`
             SELECT r.id, r.cliente_id, c.nombre, c.telefono, c.dni, c.email, c.idioma, c.nacionalidad, r.fecha, r.hora, r.comensales, r.estado, r.tipo_reserva, r.alergias, r.tipo_servicio, r.tarjeta_regalo,
                    ARRAY_REMOVE(ARRAY_AGG(rfp.fecha ORDER BY rfp.orden), NULL) as fechas_preferencia
@@ -713,27 +759,33 @@ function createReservation(data) {
         (async () => {
             let clienteId = null;
 
-            // 1. Guardar o actualizar cliente (aislado)
+            // 1. Guardar o actualizar cliente (emparejando por NOMBRE Y TELÉFONO)
             try {
-                const clientRes = await pool.query(
-                    `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
-                     VALUES($1, $2, $3, $4, $5, $6)
-                     ON CONFLICT(telefono) DO UPDATE SET nombre=$1, dni=$3, email=$4, idioma=$5, nacionalidad=$6
-                     RETURNING id`,
-                    [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
+                const searchClient = await pool.query(
+                    `SELECT id FROM clientes WHERE LOWER(TRIM(nombre)) = LOWER(TRIM($1)) AND telefono = $2 LIMIT 1`,
+                    [nuevaReserva.nombre, nuevaReserva.telefono]
                 );
-                if (clientRes && clientRes.rows && clientRes.rows[0]) {
-                    clienteId = clientRes.rows[0].id;
-                }
-                console.log(`✅ Cliente ${nuevaReserva.nombre} (${nuevaReserva.telefono}) registrado/actualizado en 'clientes' (ID: ${clienteId}).`);
-            } catch (err) {
-                console.error("⚠️ Aviso INSERT clientes:", err.message);
-                try {
-                    const findRes = await pool.query(`SELECT id FROM clientes WHERE telefono = $1 LIMIT 1`, [nuevaReserva.telefono]);
-                    if (findRes && findRes.rows && findRes.rows[0]) {
-                        clienteId = findRes.rows[0].id;
+
+                if (searchClient && searchClient.rows && searchClient.rows.length > 0) {
+                    clienteId = searchClient.rows[0].id;
+                    await pool.query(
+                        `UPDATE clientes SET dni = COALESCE(NULLIF($1, 'N/A'), dni), email = COALESCE(NULLIF($2, 'N/A'), email), idioma = $3, nacionalidad = $4 WHERE id = $5`,
+                        [nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad, clienteId]
+                    );
+                } else {
+                    const newClient = await pool.query(
+                        `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
+                         VALUES($1, $2, $3, $4, $5, $6)
+                         RETURNING id`,
+                        [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
+                    );
+                    if (newClient && newClient.rows && newClient.rows[0]) {
+                        clienteId = newClient.rows[0].id;
                     }
-                } catch (e) {}
+                }
+                console.log(`✅ Cliente '${nuevaReserva.nombre}' (${nuevaReserva.telefono}) asignado a cliente_id: ${clienteId}`);
+            } catch (err) {
+                console.error("⚠️ Error procesando cliente en PostgreSQL:", err.message);
             }
 
             // 2. Guardar reserva en tabla reservas (normalizada con cliente_id)
