@@ -1271,9 +1271,9 @@ async function handleButtonResponse(from, buttonId) {
                 // Estado perdido (ej. reinicio del servidor en Render).
                 // Recuperar la reserva más reciente PENDIENTE para este teléfono y enviar el email igualmente.
                 try {
-                    const recentRes = db.getMostRecentPendingReservationByPhone(from);
+                    const recentRes = await db.getMostRecentPendingReservationByPhone(from);
                     if (recentRes) {
-                        const fechasPref = db.getFechasPreferencia ? db.getFechasPreferencia(recentRes.id) : [];
+                        const fechasPref = db.getFechasPreferencia ? await db.getFechasPreferencia(recentRes.id) : [];
                         const fechasStr = Array.isArray(fechasPref) && fechasPref.length > 0
                             ? fechasPref.map(f => f.fecha || f).join(', ')
                             : (recentRes.fecha || 'Sin preferencia');
@@ -1296,6 +1296,9 @@ async function handleButtonResponse(from, buttonId) {
                             recentRes.nombre || from,
                             from
                         );
+                        console.log(`✅ Email de fallback enviado para reserva ${recentRes.id} (teléfono: ${from})`);
+                    } else {
+                        console.warn(`⚠️ confirm_yes fallback: no se encontró reserva PENDIENTE para ${from}`);
                     }
                 } catch (fallbackErr) {
                     console.error("⚠️ Error en fallback de email confirm_yes:", fallbackErr.message);
@@ -2303,7 +2306,7 @@ async function handleTextMessage(from, text) {
                         } else if (lang === 'en') {
                             failNotice = `⚠️ Gift card *${card.codigo}* already has a booking request pending restaurant confirmation. Gift cards can only be used once.`;
                         } else {
-                            failNotice = `⚠️ La tarjeta regalo *${card.codigo}* ya tiene una solicitud de reserva pendiente de confirmación por el restaurante. Las tarjetas regalo solo pueden utilizarse una sola vez.`;
+                            failNotice = `⚠️ La tarjeta regalo *${card.codigo}* ya tiene una solicitud de reserva pendiente de confirmación por el restaurante. Las tarjetas regalo solo pueden utilizarse una sola vez. Introduzca otro código, por favor.`;
                         }
                     } else if (estadoNorm === 'RESERVADA') {
                         if (lang === 'eu') {
