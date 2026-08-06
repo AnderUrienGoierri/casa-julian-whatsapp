@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-06-CMS-V41-FIX-NULL-DEFAULT-VALUES-AND-REPAIR-ANDER-CCC-CCC-RESERVATION';
+const DEPLOY_VERSION = 'v2026-08-06-CMS-V42-STABLE-MIGRATION-AND-GUARANTEED-CLIENT-RESERVATION-INSERTION';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

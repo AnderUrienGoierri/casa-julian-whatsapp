@@ -146,21 +146,18 @@ if (process.env.DATABASE_URL) {
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
     `).then(async () => {
-        // Ejecutar script de separación y restauración de registros de clientes "Ander%"
-        const testClients = [
-            { resId: 'RES-20260723-813266', nombre: 'Ander Tex Mex', telefono: '34664037707', dni: '66666666H', email: 'andertexmex@gmail.com' },
-            { resId: 'RES-20260728-051173', nombre: 'Ander AAA UUU', telefono: '34664037707', dni: '12345678H', email: 'anu@gmail.com' },
-            { resId: 'RES-20260803-361365', nombre: 'Ander Urien Telleria', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
-            { resId: 'RES-20260803-394630', nombre: 'Ander Telleria Telleria', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
-            { resId: 'RES-20260803-524351', nombre: 'Ander Urien', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
-            { resId: 'RES-20260803-595811', nombre: 'Ander ZZZZ MMMM', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
-            { resId: 'RES-20260806-677077', nombre: 'Ander Ander Ander', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026'], tarjeta: 'MT-2026-004', comensales: 3, alergias: 'NO' },
-            { resId: 'RES-20260806-459318', nombre: 'Ander Ander Ander', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026'], tarjeta: 'MT-2026-006', comensales: 3, alergias: 'Gluten / Celíacos' },
-            { resId: 'RES-20260806-214309', nombre: 'Ander Ander Ander', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['15/08/2026', '16/08/2026', '17/08/2026', '18/08/2026', '19/08/2026'], tarjeta: 'MT-2026-007', comensales: 3, alergias: 'NO' },
-            { resId: 'RES-20260806-910841', nombre: 'Ander AAA AAA', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['20/08/2026', '21/08/2026', '22/08/2026', '23/08/2026', '24/08/2026'], tarjeta: 'MT-2026-008', comensales: 3, alergias: 'Vegetariano/Vegano' }
-        ];
+    `).then(async () => {
+        // 1. Eliminar restricciones antiguas si existían
+        await pool.query(`
+            DO $$ BEGIN
+                IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'clientes_telefono_key') THEN
+                    ALTER TABLE clientes DROP CONSTRAINT clientes_telefono_key;
+                END IF;
+            EXCEPTION WHEN OTHERS THEN NULL;
+            END $$;
+        `).catch(() => {});
 
-        // Matriz con todos los clientes de prueba y sus tarjetas/reservas asociadas
+        // 2. Matriz con todos los clientes de prueba y sus tarjetas/reservas asociadas
         const testReservations = [
             { resId: 'RES-20260806-176471', tarjeta: 'MT-2026-012', nombre: 'Ander CCC CCC', telefono: '34664037707', dni: 'N/A', email: 'n/a', comensales: 4, alergias: 'NO' },
             { tarjeta: 'MT-2026-001', nombre: 'Ander Urien Telleria', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
@@ -211,14 +208,14 @@ if (process.env.DATABASE_URL) {
             }
         }
 
-        // Asignar un cliente nuevo a cualquier reserva que aún quede sin cliente_id o vinculada por defecto
+        // 3. Asignar un cliente nuevo a cualquier reserva que aún quede sin cliente_id
         try {
-            const unassigned = await pool.query(`SELECT id, tarjeta_regalo FROM reservas WHERE cliente_id IS NULL OR cliente_id = 6855`);
+            const unassigned = await pool.query(`SELECT id, tarjeta_regalo FROM reservas WHERE cliente_id IS NULL`);
             if (unassigned && unassigned.rows && unassigned.rows.length > 0) {
                 for (const row of unassigned.rows) {
                     const cName = `Ander Reserva ${row.tarjeta_regalo || row.id}`;
                     const cIns = await pool.query(
-                        `INSERT INTO clientes(nombre, telefono) VALUES($1, '34664037707') RETURNING id`,
+                        `INSERT INTO clientes(nombre, telefono, idioma, nacionalidad) VALUES($1, '34664037707', 'es', 'España') RETURNING id`,
                         [cName]
                     );
                     await pool.query(`UPDATE reservas SET cliente_id = $1 WHERE id = $2`, [cIns.rows[0].id, row.id]);
@@ -226,7 +223,7 @@ if (process.env.DATABASE_URL) {
             }
         } catch (e) {}
 
-        // Eliminar columnas duplicadas de reservas
+        // 4. Eliminar columnas duplicadas de reservas
         await pool.query(`
             ALTER TABLE reservas DROP COLUMN IF EXISTS cliente_dni CASCADE;
             ALTER TABLE reservas DROP COLUMN IF EXISTS dias_preferencia CASCADE;
@@ -238,36 +235,44 @@ if (process.env.DATABASE_URL) {
             ALTER TABLE reservas DROP COLUMN IF EXISTS nacionalidad CASCADE;
         `).catch(() => {});
 
-        // Reordenar columnas físicamente en la tabla 'reservas' para poner cliente_id a la derecha de id
+        // 5. Reordenar columnas solo si cliente_id no es la 2ª columna
         try {
-            await pool.query(`DROP TABLE IF EXISTS reservas_ordered CASCADE;`);
-            await pool.query(`
-                CREATE TABLE reservas_ordered (
-                    id VARCHAR(50) PRIMARY KEY,
-                    cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
-                    fecha VARCHAR(20) DEFAULT '',
-                    hora VARCHAR(10) DEFAULT '',
-                    comensales INT DEFAULT 2,
-                    estado VARCHAR(30) DEFAULT 'PENDIENTE CONFIRMACION',
-                    tipo_reserva VARCHAR(50) DEFAULT 'online',
-                    alergias TEXT DEFAULT 'NO',
-                    tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia',
-                    tarjeta_regalo VARCHAR(50),
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-                );
+            const checkPos = await pool.query(`
+                SELECT ordinal_position FROM information_schema.columns 
+                WHERE table_name = 'reservas' AND column_name = 'cliente_id'
             `);
-            await pool.query(`
-                INSERT INTO reservas_ordered(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at)
-                SELECT id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at FROM reservas;
-            `);
-            await pool.query(`ALTER TABLE reservas_fechas_preferencia DROP CONSTRAINT IF EXISTS reservas_fechas_preferencia_reserva_id_fkey;`);
-            await pool.query(`DROP TABLE reservas CASCADE;`);
-            await pool.query(`ALTER TABLE reservas_ordered RENAME TO reservas;`);
-            await pool.query(`
-                ALTER TABLE reservas_fechas_preferencia ADD CONSTRAINT reservas_fechas_preferencia_reserva_id_fkey 
-                FOREIGN KEY (reserva_id) REFERENCES reservas(id) ON DELETE CASCADE;
-            `);
-            console.log("✅ Tabla 'reservas' reordenada físicamente con éxito (cliente_id es la 2ª columna).");
+            const pos = (checkPos && checkPos.rows && checkPos.rows[0]) ? parseInt(checkPos.rows[0].ordinal_position, 10) : 0;
+
+            if (pos > 2) {
+                await pool.query(`DROP TABLE IF EXISTS reservas_ordered CASCADE;`);
+                await pool.query(`
+                    CREATE TABLE reservas_ordered (
+                        id VARCHAR(50) PRIMARY KEY,
+                        cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
+                        fecha VARCHAR(20) DEFAULT '',
+                        hora VARCHAR(10) DEFAULT '',
+                        comensales INT DEFAULT 2,
+                        estado VARCHAR(30) DEFAULT 'PENDIENTE CONFIRMACION',
+                        tipo_reserva VARCHAR(50) DEFAULT 'online',
+                        alergias TEXT DEFAULT 'NO',
+                        tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia',
+                        tarjeta_regalo VARCHAR(50),
+                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                    );
+                `);
+                await pool.query(`
+                    INSERT INTO reservas_ordered(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at)
+                    SELECT id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at FROM reservas;
+                `);
+                await pool.query(`ALTER TABLE reservas_fechas_preferencia DROP CONSTRAINT IF EXISTS reservas_fechas_preferencia_reserva_id_fkey;`);
+                await pool.query(`DROP TABLE reservas CASCADE;`);
+                await pool.query(`ALTER TABLE reservas_ordered RENAME TO reservas;`);
+                await pool.query(`
+                    ALTER TABLE reservas_fechas_preferencia ADD CONSTRAINT reservas_fechas_preferencia_reserva_id_fkey 
+                    FOREIGN KEY (reserva_id) REFERENCES reservas(id) ON DELETE CASCADE;
+                `);
+                console.log("✅ Tabla 'reservas' reordenada físicamente con éxito (cliente_id es la 2ª columna).");
+            }
         } catch (err) {
             console.error("⚠️ Aviso al reordenar columnas de reservas:", err.message);
         }
