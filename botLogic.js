@@ -1206,8 +1206,13 @@ async function handleButtonResponse(from, buttonId) {
         case 'confirm_yes': {
             const state = userStates.get(from);
             const pending = state?.data?.pendingAlert;
+            console.log(`\n🔍 [confirm_yes] from=${from}`);
+            console.log(`🔍 [confirm_yes] state exists: ${!!state}`);
+            console.log(`🔍 [confirm_yes] pending exists: ${!!pending}`);
+            if (pending) console.log(`🔍 [confirm_yes] tipoAccion: ${pending.tipoAccion}`);
 
             if (pending) {
+                console.log(`✅ [confirm_yes] Rama IF PENDING → enviando email...`);
                 try {
                     let customSuccessMsg = null;
 
@@ -1242,14 +1247,16 @@ async function handleButtonResponse(from, buttonId) {
                     }
 
                     // 1. Notificar a recepción por WhatsApp y Email (Garantizado)
+                    console.log(`📧 [confirm_yes] Llamando a sendInternalStaffAlertInSpanish...`);
                     try {
-                        await sendInternalStaffAlertInSpanish(
+                        const emailResult = await sendInternalStaffAlertInSpanish(
                             pending.tipoAccion,
                             from,
                             pending.detalleMod,
                             pending.nombreCliente,
                             pending.telefonoReserva
                         );
+                        console.log(`✅ [confirm_yes] Email enviado:`, JSON.stringify(emailResult));
                     } catch (alertErr) {
                         console.error("⚠️ Error enviando alerta de recepción:", alertErr.message);
                     }
@@ -1265,9 +1272,10 @@ async function handleButtonResponse(from, buttonId) {
                     
                     userStates.delete(from);
                 } catch (err) {
-                    console.error("⚠️ Error procesando confirmación:", err.message);
+                    console.error("⚠️ Error procesando confirmación:", err.message, err.stack);
                 }
             } else {
+                console.warn(`⚠️ [confirm_yes] RAMA ELSE (sin pending): buscando en DB para ${from}...`);
                 // Estado perdido (ej. reinicio del servidor en Render).
                 // Recuperar la reserva más reciente PENDIENTE para este teléfono y enviar el email igualmente.
                 try {
