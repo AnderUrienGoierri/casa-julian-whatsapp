@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-06-CMS-V38-REORDER-RESERVAS-COLUMNS-AND-REPAIR-ALL-TEST-CLIENT-IDS';
+const DEPLOY_VERSION = 'v2026-08-06-CMS-V39-PHYSICAL-REORDER-RESERVAS-COLUMNS-CLIENTE-ID-SECOND';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

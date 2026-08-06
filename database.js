@@ -229,41 +229,39 @@ if (process.env.DATABASE_URL) {
         `).catch(() => {});
 
         // Reordenar columnas físicamente en la tabla 'reservas' para poner cliente_id a la derecha de id
-        await pool.query(`
-            DO $$ 
-            BEGIN
-                IF EXISTS (
-                    SELECT 1 FROM information_schema.columns 
-                    WHERE table_name = 'reservas' AND column_name = 'cliente_id' AND ordinal_position > 2
-                ) THEN
-                    CREATE TABLE IF NOT EXISTS reservas_ordered (
-                        id VARCHAR(50) PRIMARY KEY,
-                        cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
-                        fecha VARCHAR(20) DEFAULT '',
-                        hora VARCHAR(10) DEFAULT '',
-                        comensales INT DEFAULT 2,
-                        estado VARCHAR(30) DEFAULT 'PENDIENTE CONFIRMACION',
-                        tipo_reserva VARCHAR(50) DEFAULT 'online',
-                        alergias TEXT DEFAULT 'NO',
-                        tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia',
-                        tarjeta_regalo VARCHAR(50),
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-                    );
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS reservas_ordered (
+                    id VARCHAR(50) PRIMARY KEY,
+                    cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
+                    fecha VARCHAR(20) DEFAULT '',
+                    hora VARCHAR(10) DEFAULT '',
+                    comensales INT DEFAULT 2,
+                    estado VARCHAR(30) DEFAULT 'PENDIENTE CONFIRMACION',
+                    tipo_reserva VARCHAR(50) DEFAULT 'online',
+                    alergias TEXT DEFAULT 'NO',
+                    tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia',
+                    tarjeta_regalo VARCHAR(50),
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );
 
-                    INSERT INTO reservas_ordered(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at)
-                    SELECT id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at FROM reservas;
+                INSERT INTO reservas_ordered(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at)
+                SELECT id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at FROM reservas
+                ON CONFLICT (id) DO UPDATE SET cliente_id = EXCLUDED.cliente_id;
 
-                    ALTER TABLE reservas_fechas_preferencia DROP CONSTRAINT IF EXISTS reservas_fechas_preferencia_reserva_id_fkey;
+                ALTER TABLE reservas_fechas_preferencia DROP CONSTRAINT IF EXISTS reservas_fechas_preferencia_reserva_id_fkey;
 
-                    DROP TABLE reservas CASCADE;
-                    ALTER TABLE reservas_ordered RENAME TO reservas;
+                DROP TABLE reservas CASCADE;
 
-                    ALTER TABLE reservas_fechas_preferencia ADD CONSTRAINT reservas_fechas_preferencia_reserva_id_fkey 
-                    FOREIGN KEY (reserva_id) REFERENCES reservas(id) ON DELETE CASCADE;
-                END IF;
-            EXCEPTION WHEN OTHERS THEN NULL;
-            END $$;
-        `).catch(() => {});
+                ALTER TABLE reservas_ordered RENAME TO reservas;
+
+                ALTER TABLE reservas_fechas_preferencia ADD CONSTRAINT reservas_fechas_preferencia_reserva_id_fkey 
+                FOREIGN KEY (reserva_id) REFERENCES reservas(id) ON DELETE CASCADE;
+            `);
+            console.log("✅ Tabla 'reservas' reordenada físicamente (cliente_id es la 2ª columna).");
+        } catch (err) {
+            console.error("⚠️ Aviso al reordenar columnas de reservas:", err.message);
+        }
 
         // Sincronizar reservas con JOIN
         return pool.query(`
