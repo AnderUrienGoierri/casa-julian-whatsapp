@@ -89,15 +89,15 @@ if (process.env.DATABASE_URL) {
             id VARCHAR(50) PRIMARY KEY,
             cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
             fecha VARCHAR(50) DEFAULT '',
+            tipo_servicio VARCHAR(50) DEFAULT 'Sin preferencia',
             hora VARCHAR(50) DEFAULT '',
             comensales INT DEFAULT 2,
             num_ninos INT DEFAULT 0,
+            alergias TEXT DEFAULT 'NO',
             estado VARCHAR(50) DEFAULT 'PENDIENTE CONFIRMACION',
             tipo_reserva VARCHAR(50) DEFAULT 'online',
-            alergias TEXT DEFAULT 'NO',
-            tipo_servicio VARCHAR(50) DEFAULT 'Sin preferencia',
             tarjeta_regalo VARCHAR(100),
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
 
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS cliente_id INT;
