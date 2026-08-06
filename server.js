@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-06-CMS-V35-RELAX-CONSTRAINTS-AND-CASCADE-DROP-CLIENTE-DNI';
+const DEPLOY_VERSION = 'v2026-08-06-CMS-V36-NORMALIZED-RESERVAS-SCHEMA-WITH-CLIENTE-ID-FOREIGN-KEY';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

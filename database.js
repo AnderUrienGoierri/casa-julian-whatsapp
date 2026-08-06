@@ -16,15 +16,73 @@ if (process.env.DATABASE_URL) {
 
     // Auto-migración para asegurar que las columnas de idioma, dias_preferencia y tabla tarjetas_regalo existan
     pool.query(`
+        -- 1. Crear o asegurar tabla clientes con restricción UNIQUE en teléfono
+        CREATE TABLE IF NOT EXISTS clientes (
+            id SERIAL PRIMARY KEY,
+            nombre VARCHAR(100) NOT NULL,
+            telefono VARCHAR(20) NOT NULL,
+            dni VARCHAR(20) DEFAULT 'N/A',
+            email VARCHAR(100) DEFAULT 'N/A',
+            idioma VARCHAR(10) DEFAULT 'es',
+            nacionalidad VARCHAR(50) DEFAULT 'España',
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
-        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
+        ALTER TABLE clientes ALTER COLUMN dni DROP NOT NULL;
+        ALTER TABLE clientes ALTER COLUMN email DROP NOT NULL;
+
+        DO $$ BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_constraint WHERE conname = 'clientes_telefono_key'
+            ) THEN
+                ALTER TABLE clientes ADD CONSTRAINT clientes_telefono_key UNIQUE (telefono);
+            END IF;
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END $$;
+
+        -- 2. Asegurar columna cliente_id en reservas y tabla reservas
+        CREATE TABLE IF NOT EXISTS reservas (
+            id VARCHAR(50) PRIMARY KEY,
+            cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
+            fecha VARCHAR(20) DEFAULT '',
+            hora VARCHAR(10) DEFAULT '',
+            comensales INT DEFAULT 2,
+            estado VARCHAR(30) DEFAULT 'PENDIENTE CONFIRMACION',
+            tipo_reserva VARCHAR(50) DEFAULT 'online',
+            alergias TEXT DEFAULT 'NO',
+            tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia',
+            tarjeta_regalo VARCHAR(50),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS cliente_id INT;
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_reserva VARCHAR(50) DEFAULT 'online';
-        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'NO';
-        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(30);
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(50);
-        ALTER TABLE reservas DROP COLUMN IF EXISTS dias_preferencia;
+        ALTER TABLE reservas ALTER COLUMN fecha DROP NOT NULL;
+
+        -- Poblar cliente_id en reservas si existían columnas viejas
+        DO $$ BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='reservas' AND column_name='telefono') THEN
+                UPDATE reservas r SET cliente_id = c.id FROM clientes c WHERE r.telefono = c.telefono AND r.cliente_id IS NULL;
+            END IF;
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END $$;
+
+        -- Eliminar columnas duplicadas de la tabla reservas (normalización)
+        ALTER TABLE reservas DROP COLUMN IF EXISTS cliente_dni CASCADE;
+        ALTER TABLE reservas DROP COLUMN IF EXISTS dias_preferencia CASCADE;
+        ALTER TABLE reservas DROP COLUMN IF EXISTS nombre CASCADE;
+        ALTER TABLE reservas DROP COLUMN IF EXISTS telefono CASCADE;
+        ALTER TABLE reservas DROP COLUMN IF EXISTS dni CASCADE;
+        ALTER TABLE reservas DROP COLUMN IF EXISTS email CASCADE;
+        ALTER TABLE reservas DROP COLUMN IF EXISTS idioma CASCADE;
+        ALTER TABLE reservas DROP COLUMN IF EXISTS nacionalidad CASCADE;
+
+        -- 3. Crear tabla reservas_fechas_preferencia
         CREATE TABLE IF NOT EXISTS reservas_fechas_preferencia (
             id SERIAL PRIMARY KEY,
             reserva_id VARCHAR(50) NOT NULL,
@@ -32,19 +90,8 @@ if (process.env.DATABASE_URL) {
             orden INT DEFAULT 1,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
-        DO $$ BEGIN
-            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='lista_espera' AND column_name='cliente_dni') THEN
-                ALTER TABLE lista_espera DROP COLUMN cliente_dni CASCADE;
-            END IF;
-            IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='reservas' AND column_name='cliente_dni') THEN
-                ALTER TABLE reservas DROP COLUMN cliente_dni CASCADE;
-            END IF;
-        END $$;
-        ALTER TABLE clientes ALTER COLUMN dni DROP NOT NULL;
-        ALTER TABLE clientes ALTER COLUMN email DROP NOT NULL;
-        ALTER TABLE reservas ALTER COLUMN dni DROP NOT NULL;
-        ALTER TABLE reservas ALTER COLUMN email DROP NOT NULL;
-        ALTER TABLE reservas ALTER COLUMN fecha DROP NOT NULL;
+
+        -- Tablas auxiliares
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS estado VARCHAR(30) DEFAULT 'Pendiente asignacion';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS ninos VARCHAR(50) DEFAULT '0';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'Ninguna';
@@ -52,7 +99,9 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
         ALTER TABLE lista_espera ADD COLUMN IF NOT EXISTS dias_preferencia VARCHAR(255);
         ALTER TABLE lista_espera ALTER COLUMN dias_preferencia TYPE VARCHAR(255);
+
         DELETE FROM bot_texts WHERE key_name = 'welcomeMessage' AND (text_value LIKE '%FR:%' OR text_value LIKE '%🇫🇷%');
+
         CREATE TABLE IF NOT EXISTS tarjetas_regalo (
             id VARCHAR(50) PRIMARY KEY,
             codigo VARCHAR(50) UNIQUE NOT NULL,
@@ -116,13 +165,14 @@ if (process.env.DATABASE_URL) {
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
     `).then(() => {
-        // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar
+        // Sincronizar reservas y tarjetas de regalo desde PostgreSQL al arrancar con JOIN en clientes
         return pool.query(`
-            SELECT r.id, r.nombre, r.telefono, r.dni, r.email, r.fecha, r.hora, r.comensales, r.estado, r.idioma, r.tipo_reserva, r.nacionalidad, r.alergias, r.tipo_servicio, r.tarjeta_regalo,
+            SELECT r.id, r.cliente_id, c.nombre, c.telefono, c.dni, c.email, c.idioma, c.nacionalidad, r.fecha, r.hora, r.comensales, r.estado, r.tipo_reserva, r.alergias, r.tipo_servicio, r.tarjeta_regalo,
                    ARRAY_REMOVE(ARRAY_AGG(rfp.fecha ORDER BY rfp.orden), NULL) as fechas_preferencia
             FROM reservas r
+            LEFT JOIN clientes c ON r.cliente_id = c.id
             LEFT JOIN reservas_fechas_preferencia rfp ON r.id = rfp.reserva_id
-            GROUP BY r.id, r.nombre, r.telefono, r.dni, r.email, r.fecha, r.hora, r.comensales, r.estado, r.idioma, r.tipo_reserva, r.nacionalidad, r.alergias, r.tipo_servicio, r.tarjeta_regalo
+            GROUP BY r.id, r.cliente_id, c.nombre, c.telefono, c.dni, c.email, c.idioma, c.nacionalidad, r.fecha, r.hora, r.comensales, r.estado, r.tipo_reserva, r.alergias, r.tipo_servicio, r.tarjeta_regalo
             ORDER BY r.id DESC
         `);
     }).then(res => {
@@ -130,10 +180,11 @@ if (process.env.DATABASE_URL) {
             const currentDb = loadDb();
             currentDb.reservas = res.rows.map(r => ({
                 id: r.id,
-                nombre: r.nombre,
-                telefono: r.telefono,
-                dni: r.dni,
-                email: r.email,
+                cliente_id: r.cliente_id,
+                nombre: r.nombre || 'Cliente WhatsApp',
+                telefono: r.telefono || '',
+                dni: r.dni || 'N/A',
+                email: r.email || 'N/A',
                 fecha: r.fecha || '',
                 hora: r.hora || '',
                 comensales: parseInt(r.comensales, 10),
@@ -147,7 +198,7 @@ if (process.env.DATABASE_URL) {
                 fechas_preferencia: Array.isArray(r.fechas_preferencia) ? r.fechas_preferencia : []
             }));
             saveDb(currentDb);
-            console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon.`);
+            console.log(`✅ Sincronizadas ${res.rows.length} reservas activas desde PostgreSQL Neon (Normalizadas).`);
         }
         return pool.query("SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado, fecha_ultima_modificacion FROM tarjetas_regalo ORDER BY id ASC");
     }).then(resCards => {
@@ -660,51 +711,51 @@ function createReservation(data) {
 
     if (pool) {
         (async () => {
+            let clienteId = null;
+
             // 1. Guardar o actualizar cliente (aislado)
             try {
-                if (nuevaReserva.telefono && nuevaReserva.telefono !== 'N/A') {
-                    await pool.query(
-                        `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
-                         VALUES($1, $2, $3, $4, $5, $6)
-                         ON CONFLICT(telefono) DO UPDATE SET nombre=$1, dni=$3, email=$4, idioma=$5, nacionalidad=$6`,
-                        [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
-                    );
-                } else {
-                    await pool.query(
-                        `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
-                         VALUES($1, $2, $3, $4, $5, $6)`,
-                        [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
-                    );
+                const clientRes = await pool.query(
+                    `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
+                     VALUES($1, $2, $3, $4, $5, $6)
+                     ON CONFLICT(telefono) DO UPDATE SET nombre=$1, dni=$3, email=$4, idioma=$5, nacionalidad=$6
+                     RETURNING id`,
+                    [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
+                );
+                if (clientRes && clientRes.rows && clientRes.rows[0]) {
+                    clienteId = clientRes.rows[0].id;
                 }
-                console.log(`✅ Cliente ${nuevaReserva.nombre} (${nuevaReserva.telefono}) procesado en tabla 'clientes'.`);
+                console.log(`✅ Cliente ${nuevaReserva.nombre} (${nuevaReserva.telefono}) registrado/actualizado en 'clientes' (ID: ${clienteId}).`);
             } catch (err) {
-                console.error("⚠️ Aviso INSERT clientes (continuando...):", err.message);
+                console.error("⚠️ Aviso INSERT clientes:", err.message);
+                try {
+                    const findRes = await pool.query(`SELECT id FROM clientes WHERE telefono = $1 LIMIT 1`, [nuevaReserva.telefono]);
+                    if (findRes && findRes.rows && findRes.rows[0]) {
+                        clienteId = findRes.rows[0].id;
+                    }
+                } catch (e) {}
             }
 
-            // 2. Guardar reserva en tabla reservas (aislado)
+            // 2. Guardar reserva en tabla reservas (normalizada con cliente_id)
             try {
                 await pool.query(
-                    `INSERT INTO reservas(id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo)
-                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) ON CONFLICT(id) DO NOTHING`,
+                    `INSERT INTO reservas(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo)
+                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                     ON CONFLICT(id) DO UPDATE SET cliente_id=$2, hora=$4, comensales=$5, estado=$6, tipo_reserva=$7, alergias=$8, tipo_servicio=$9, tarjeta_regalo=$10`,
                     [
                         nuevaReserva.id,
-                        nuevaReserva.nombre,
-                        nuevaReserva.telefono,
-                        nuevaReserva.dni,
-                        nuevaReserva.email,
+                        clienteId,
                         nuevaReserva.fecha,
                         nuevaReserva.hora,
                         nuevaReserva.comensales,
                         nuevaReserva.estado,
-                        nuevaReserva.idioma,
                         nuevaReserva.tipo_reserva,
-                        nuevaReserva.nacionalidad,
                         nuevaReserva.alergias,
                         nuevaReserva.tipo_servicio,
                         nuevaReserva.tarjeta_regalo
                     ]
                 );
-                console.log(`✅ Reserva ${nuevaReserva.id} guardada exitosamente en tabla 'reservas' (PostgreSQL).`);
+                console.log(`✅ Reserva ${nuevaReserva.id} (cliente_id: ${clienteId}) guardada exitosamente en 'reservas' (PostgreSQL).`);
             } catch (err) {
                 console.error("❌ Error PostgreSQL INSERT reservas:", err.message);
             }
@@ -772,13 +823,12 @@ function updateReservation(id, newData) {
 
         if (pool) {
             pool.query(
-                `UPDATE reservas SET fecha=$1, hora=$2, comensales=$3, estado=$4, dias_preferencia=$5 WHERE id=$6`,
+                `UPDATE reservas SET fecha=$1, hora=$2, comensales=$3, estado=$4 WHERE id=$5`,
                 [
                     db.reservas[index].fecha,
                     db.reservas[index].hora,
                     db.reservas[index].comensales,
                     db.reservas[index].estado,
-                    db.reservas[index].dias_preferencia,
                     id
                 ]
             ).catch(err => console.error("Error PostgreSQL UPDATE reserva:", err.message));
