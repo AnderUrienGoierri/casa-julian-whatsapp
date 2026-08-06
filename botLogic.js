@@ -1999,16 +1999,13 @@ async function handleTextMessage(from, text) {
 
         case 'espera_step1_nombre': {
             currentState.data.waitlist = currentState.data.waitlist || {};
-            currentState.data.waitlist.nombre = text;
+            currentState.data.waitlist.nombre = text.trim();
             currentState.data.waitlist.dni = null;
-            currentState.step = 'espera_step1b2_email';
+            currentState.data.waitlist.email = 'N/A';
+            currentState.step = 'espera_step1c_nac';
             userStates.set(from, currentState);
 
-            const promptBody = getTranslation(lang, 'waitlistStep1b2Email');
-            const buttons = [
-                { id: 'btn_skip_email', title: getTranslation(lang, 'btnOmitirEmail').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
+            await sendNationalityList(from, lang);
             break;
         }
 
@@ -2322,14 +2319,11 @@ async function handleTextMessage(from, text) {
             }
 
             currentState.data.menuTrad.comensales = numComensales;
-            currentState.step = 'menu_trad_step2b2_email';
+            currentState.data.menuTrad.email = 'N/A';
+            currentState.step = 'menu_trad_step2c_nac';
             userStates.set(from, currentState);
 
-            const promptBody = getTranslation(lang, 'menuTradStep2b2Email');
-            const buttons = [
-                { id: 'btn_skip_email', title: getTranslation(lang, 'btnOmitirEmail').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
+            await sendNationalityList(from, lang);
             break;
         }
 
