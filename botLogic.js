@@ -2270,9 +2270,10 @@ async function handleTextMessage(from, text) {
             const card = await db.getGiftCard(rawCardCode);
 
             if (card) {
-                const estadoNorm = (card.estado || 'NO CONSUMIDA').trim().toUpperCase();
+                const estadoNorm = (card.estado || 'DISPONIBLE').trim().toUpperCase();
 
-                if (estadoNorm === 'NO CONSUMIDA' || estadoNorm === 'ACTIVA') {
+                // Estados válidos: DISPONIBLE, ACTIVA, NO CONSUMIDA
+                if (estadoNorm === 'DISPONIBLE' || estadoNorm === 'NO CONSUMIDA' || estadoNorm === 'ACTIVA') {
                     currentState.data.menuTrad = currentState.data.menuTrad || {};
                     const currentCards = currentState.data.menuTrad.cards || [];
 
