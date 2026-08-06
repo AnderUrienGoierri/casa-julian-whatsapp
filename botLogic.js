@@ -1022,6 +1022,22 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'btn_mt_ninos_0':
+        case 'btn_mt_ninos_1':
+        case 'btn_mt_ninos_2': {
+            const count = parseInt(buttonId.replace('btn_mt_ninos_', ''), 10) || 0;
+            const state = userStates.get(from) || { data: {} };
+            state.data = state.data || {};
+            state.data.menuTrad = state.data.menuTrad || {};
+            state.data.menuTrad.ninos = count;
+            state.data.menuTrad.num_ninos = count;
+            state.step = 'menu_trad_step6_alergias';
+            state.data.menuTrad.selectedAllergies = [];
+            userStates.set(from, state);
+            await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
+            break;
+        }
+
         case 'nac_es':
         case 'nac_fr':
         case 'nac_uk':
