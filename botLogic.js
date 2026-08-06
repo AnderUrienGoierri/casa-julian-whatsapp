@@ -907,6 +907,7 @@ async function handleButtonResponse(from, buttonId) {
                     alergias: mt.alergias || 'NO',
                     tipo_servicio: mt.tipoServicio || 'Sin preferencia',
                     tarjeta_regalo: mt.tarjeta || null,
+                    ninos: mt.ninos || mt.num_ninos || 0,
                     idioma: selectedLang
                 });
 
@@ -918,6 +919,7 @@ async function handleButtonResponse(from, buttonId) {
                                             `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
                                             `🎁 *Opari-Txartel Zenbakia:* ${mt.tarjeta || 'Ez zehaztua'}\n` +
                                             `👥 *Jankideak:* ${mt.comensales || 2}\n` +
+                                            `👶 *Haurrak (<12 urte):* ${mt.ninos || 0}\n` +
                                             `🍽️ *Zerbitzua:* ${mt.tipoServicio || 'Hobespenik ez'}\n` +
                                             `⏰ *Aukeratutako ordua:* ${mt.horario || 'Hobespenik ez'}\n` +
                                             `📅 *Hobetsitako datak:* ${fechasStr}\n` +
@@ -930,6 +932,7 @@ async function handleButtonResponse(from, buttonId) {
                                             `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
                                             `🎁 *Gift Card No.:* ${mt.tarjeta || 'Not specified'}\n` +
                                             `👥 *Guests:* ${mt.comensales || 2}\n` +
+                                            `👶 *Children (<12 yrs):* ${mt.ninos || 0}\n` +
                                             `🍽️ *Service:* ${mt.tipoServicio || 'No preference'}\n` +
                                             `⏰ *Selected Time:* ${mt.horario || 'No preference'}\n` +
                                             `📅 *Preferred Dates:* ${fechasStr}\n` +
@@ -942,6 +945,7 @@ async function handleButtonResponse(from, buttonId) {
                                             `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
                                             `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
                                             `👥 *Comensales:* ${mt.comensales || 2}\n` +
+                                            `👶 *Niños (<12 años):* ${mt.ninos || 0}\n` +
                                             `🍽️ *Servicio:* ${mt.tipoServicio || 'Sin preferencia'}\n` +
                                             `⏰ *Hora seleccionada:* ${mt.horario || 'Sin preferencia'}\n` +
                                             `📅 *Fechas de preferencia:* ${fechasStr}\n` +
@@ -2546,12 +2550,20 @@ async function handleTextMessage(from, text) {
         case 'menu_trad_step5_fechas_confirm': {
             const cleanInput = text.trim().toLowerCase();
             if (cleanInput === 'btn_fechas_confirm_si' || ['si', 'sí', 'correcto', 'ok', 'yes', 'bai'].includes(cleanInput)) {
-                currentState.step = 'menu_trad_step6_alergias';
+                currentState.step = 'menu_trad_step5b_ninos';
                 currentState.data.menuTrad = currentState.data.menuTrad || {};
-                currentState.data.menuTrad.selectedAllergies = [];
                 userStates.set(from, currentState);
 
-                await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
+                let promptBody = `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
+                if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
+                else if (lang === 'en') promptBody = `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
+
+                const buttons = [
+                    { id: 'btn_mt_ninos_0', title: '0 niños' },
+                    { id: 'btn_mt_ninos_1', title: '1 niño' },
+                    { id: 'btn_mt_ninos_2', title: '2 niños' }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
             } else {
                 currentState.data.menuTrad = currentState.data.menuTrad || {};
                 currentState.data.menuTrad.fechas = [];
@@ -2563,6 +2575,27 @@ async function handleTextMessage(from, text) {
                 else if (lang === 'en') resetMsg = `📅 *Understood. Please specify your preferred dates again (DD/MM/AAAA format):*`;
                 await sendMessage(from, resetMsg);
             }
+            break;
+        }
+
+        case 'menu_trad_step5b_ninos': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            let numNinos = 0;
+            const cleanText = text.trim().toLowerCase();
+
+            if (cleanText.startsWith('btn_mt_ninos_')) {
+                numNinos = parseInt(cleanText.replace('btn_mt_ninos_', ''), 10) || 0;
+            } else if (!['no', 'ninguno', 'ninguna', 'none', '0', 'omitir', 'skip'].includes(cleanText)) {
+                numNinos = parseInt(cleanText, 10) || 0;
+            }
+
+            currentState.data.menuTrad.ninos = numNinos;
+            currentState.data.menuTrad.num_ninos = numNinos;
+            currentState.step = 'menu_trad_step6_alergias';
+            currentState.data.menuTrad.selectedAllergies = [];
+            userStates.set(from, currentState);
+
+            await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
             break;
         }
 

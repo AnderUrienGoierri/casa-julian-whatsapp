@@ -17,13 +17,16 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || defaultResendKey;
  */
 async function sendViaResendHttpApi(targetEmail, subject, emailHtml) {
     try {
+        const plainText = emailHtml ? emailHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '';
         const response = await axios.post(
             'https://api.resend.com/emails',
             {
                 from: 'onboarding@resend.dev',
                 to: [targetEmail],
+                reply_to: 'anurte@gmail.com',
                 subject: subject,
-                html: emailHtml
+                html: emailHtml,
+                text: plainText
             },
             {
                 headers: {

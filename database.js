@@ -61,6 +61,7 @@ if (process.env.DATABASE_URL) {
             fecha VARCHAR(50) DEFAULT '',
             hora VARCHAR(50) DEFAULT '',
             comensales INT DEFAULT 2,
+            num_ninos INT DEFAULT 0,
             estado VARCHAR(50) DEFAULT 'PENDIENTE CONFIRMACION',
             tipo_reserva VARCHAR(50) DEFAULT 'online',
             alergias TEXT DEFAULT 'NO',
@@ -74,6 +75,8 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'NO';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(50) DEFAULT 'Sin preferencia';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(100);
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS num_ninos INT DEFAULT 0;
+        UPDATE reservas SET num_ninos = 0 WHERE num_ninos IS NULL;
         ALTER TABLE reservas ALTER COLUMN hora TYPE VARCHAR(50);
         ALTER TABLE reservas ALTER COLUMN fecha TYPE VARCHAR(50);
         ALTER TABLE reservas ALTER COLUMN estado TYPE VARCHAR(50);
@@ -925,6 +928,7 @@ function createReservation(data) {
         fecha: data.fecha || '', // Queda vacía hasta que la reserva sea confirmada definitivamente
         hora: data.hora || '',
         comensales: parseInt(data.comensales, 10) || 2,
+        num_ninos: parseInt(data.ninos || data.num_ninos, 10) || 0,
         estado: data.estado || 'PENDIENTE CONFIRMACION',
         idioma: langCode,
         tipo_reserva: data.tipo_reserva || 'tarjeta_regalo',
@@ -984,12 +988,12 @@ function createReservation(data) {
                 } catch (e) {}
             }
 
-            // 2. Guardar reserva en tabla reservas (normalizada con cliente_id)
+            // 2. Guardar reserva en tabla reservas (normalizada con cliente_id y num_ninos)
             try {
                 await pool.query(
-                    `INSERT INTO reservas(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo)
-                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                     ON CONFLICT(id) DO UPDATE SET cliente_id=$2, hora=$4, comensales=$5, estado=$6, tipo_reserva=$7, alergias=$8, tipo_servicio=$9, tarjeta_regalo=$10`,
+                    `INSERT INTO reservas(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, num_ninos)
+                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                     ON CONFLICT(id) DO UPDATE SET cliente_id=$2, hora=$4, comensales=$5, estado=$6, tipo_reserva=$7, alergias=$8, tipo_servicio=$9, tarjeta_regalo=$10, num_ninos=$11`,
                     [
                         nuevaReserva.id,
                         clienteId,
@@ -1000,10 +1004,11 @@ function createReservation(data) {
                         nuevaReserva.tipo_reserva || 'tarjeta_regalo',
                         nuevaReserva.alergias || 'NO',
                         nuevaReserva.tipo_servicio || 'Sin preferencia',
-                        nuevaReserva.tarjeta_regalo || null
+                        nuevaReserva.tarjeta_regalo || null,
+                        nuevaReserva.num_ninos || 0
                     ]
                 );
-                console.log(`✅ Reserva ${nuevaReserva.id} (cliente_id: ${clienteId}) guardada exitosamente en 'reservas' (PostgreSQL).`);
+                console.log(`✅ Reserva ${nuevaReserva.id} (cliente_id: ${clienteId}, num_ninos: ${nuevaReserva.num_ninos}) guardada exitosamente en 'reservas' (PostgreSQL).`);
             } catch (err) {
                 console.error("❌ Error PostgreSQL INSERT reservas:", err.message);
             }
