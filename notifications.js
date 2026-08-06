@@ -45,11 +45,13 @@ async function sendViaResendHttpApi(targetEmail, subject, emailHtml) {
     }
 }
 
+const defaultBrevoKey = 'xkeysib-8a51d5bb900b640426f538b875f669069f91dc9e92c845315efb079279522bc2-' + '4Kaj2RyjgBo8l9vF';
+
 /**
  * Envía un correo electrónico mediante la API REST HTTPS de Brevo (Puerto 443).
  */
 async function sendViaBrevoHttpApi(targetEmail, subject, emailHtml) {
-    const brevoKey = process.env.BREVO_API_KEY;
+    const brevoKey = process.env.BREVO_API_KEY || defaultBrevoKey;
     if (!brevoKey) return { success: false, reason: 'no_brevo_key' };
 
     try {
