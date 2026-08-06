@@ -387,10 +387,17 @@ async function handleListResponse(from, listId) {
             break;
         }
 
-        case 'opt_modificacion':
-            userStates.set(from, { step: 'modificacion_datos_actuales', data: {} });
-            await sendMessage(from, getTranslation(lang, 'modCancelDataPrompt'));
+        case 'opt_modificacion': {
+            userStates.set(from, { step: 'modificacion_tipo_inicial', data: {} });
+            const modBody = getTranslation(lang, 'modOptionsPrompt');
+            const modButtons = [
+                { id: 'mod_comensales', title: getTranslation(lang, 'modOptComensales').slice(0, 20) },
+                { id: 'mod_dia', title: getTranslation(lang, 'modOptDia').slice(0, 20) },
+                { id: 'mod_hora', title: getTranslation(lang, 'modOptHora').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, modBody, modButtons);
             break;
+        }
 
         case 'opt_cancelacion':
             userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
@@ -451,10 +458,17 @@ async function handleButtonResponse(from, buttonId) {
             await sendMainMenu(from);
             break;
 
-        case 'btn_go_modificacion':
-            userStates.set(from, { step: 'modificacion_datos_actuales', data: {} });
-            await sendMessage(from, getTranslation(lang, 'modCancelDataPrompt'));
+        case 'btn_go_modificacion': {
+            userStates.set(from, { step: 'modificacion_tipo_inicial', data: {} });
+            const modBody = getTranslation(lang, 'modOptionsPrompt');
+            const modButtons = [
+                { id: 'mod_comensales', title: getTranslation(lang, 'modOptComensales').slice(0, 20) },
+                { id: 'mod_dia', title: getTranslation(lang, 'modOptDia').slice(0, 20) },
+                { id: 'mod_hora', title: getTranslation(lang, 'modOptHora').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, modBody, modButtons);
             break;
+        }
 
         case 'btn_volver_menu':
             await showLocationOrMainMenu(from);
@@ -1347,32 +1361,37 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'mod_comensales': {
-            const state = userStates.get(from);
-            userStates.set(from, { step: 'mod_val_comensales', data: state?.data || {} });
-            
-            const comensales = state?.data?.comensalesActuales;
-            const reservaActual = state?.data?.reservaActual || '';
+        case 'mod_comensales':
+        case 'mod_dia':
+        case 'mod_hora': {
+            const state = userStates.get(from) || { data: {} };
+            state.data = state.data || {};
+            const tipo = buttonId === 'mod_comensales' ? 'comensales' : (buttonId === 'mod_dia' ? 'dia' : 'hora');
+            state.data.modTipo = tipo;
 
-            let promptMsg = '';
-            if (comensales) {
-                promptMsg = getTranslation(lang, 'modComensalesPrompt').replace('{comensales}', comensales);
-            } else {
-                promptMsg = getTranslation(lang, 'modComensalesPromptUnknown').replace('{reserva}', reservaActual);
+            if (state.data.reservationId && state.data.nombreCliente && state.data.telefonoReserva) {
+                if (tipo === 'comensales') {
+                    state.step = 'mod_val_comensales';
+                    userStates.set(from, state);
+                    const promptMsg = getTranslation(lang, 'modComensalesPrompt').replace('{comensales}', state.data.comensalesActuales || 2);
+                    await sendMessage(from, promptMsg);
+                } else if (tipo === 'dia') {
+                    state.step = 'mod_val_dia';
+                    userStates.set(from, state);
+                    await sendMessage(from, getTranslation(lang, 'modDiaPrompt'));
+                } else if (tipo === 'hora') {
+                    state.step = 'mod_val_hora';
+                    userStates.set(from, state);
+                    await sendMessage(from, getTranslation(lang, 'modHoraPrompt'));
+                }
+                break;
             }
-            await sendMessage(from, promptMsg);
+
+            state.step = 'modificacion_datos_actuales';
+            userStates.set(from, state);
+            await sendMessage(from, getTranslation(lang, 'modCancelDataPrompt'));
             break;
         }
-
-        case 'mod_dia':
-            userStates.set(from, { step: 'mod_val_dia', data: userStates.get(from)?.data || {} });
-            await sendMessage(from, getTranslation(lang, 'modDiaPrompt'));
-            break;
-
-        case 'mod_hora':
-            userStates.set(from, { step: 'mod_val_hora', data: userStates.get(from)?.data || {} });
-            await sendMessage(from, getTranslation(lang, 'modHoraPrompt'));
-            break;
 
         default:
             await sendLanguageMenu(from, 1);
@@ -2887,16 +2906,32 @@ async function executeReservationSearchForMod(from, lang, phone, name, currentSt
     currentState.data.telefonoReserva = reservaFound.telefono;
     currentState.data.reservaActual = `🆔 ${reservaFound.id} (${reservaFound.nombre}, ${reservaFound.telefono})`;
 
-    currentState.step = 'modificacion_tipo';
-    userStates.set(from, currentState);
+    const modTipo = currentState.data.modTipo;
+    if (modTipo === 'comensales') {
+        currentState.step = 'mod_val_comensales';
+        userStates.set(from, currentState);
+        const promptMsg = getTranslation(lang, 'modComensalesPrompt').replace('{comensales}', reservaFound.comensales);
+        await sendMessage(from, promptMsg);
+    } else if (modTipo === 'dia') {
+        currentState.step = 'mod_val_dia';
+        userStates.set(from, currentState);
+        await sendMessage(from, getTranslation(lang, 'modDiaPrompt'));
+    } else if (modTipo === 'hora') {
+        currentState.step = 'mod_val_hora';
+        userStates.set(from, currentState);
+        await sendMessage(from, getTranslation(lang, 'modHoraPrompt'));
+    } else {
+        currentState.step = 'modificacion_tipo';
+        userStates.set(from, currentState);
 
-    const modBody = getTranslation(lang, 'modOptionsPrompt');
-    const modButtons = [
-        { id: 'mod_comensales', title: getTranslation(lang, 'modOptComensales').slice(0, 20) },
-        { id: 'mod_dia', title: getTranslation(lang, 'modOptDia').slice(0, 20) },
-        { id: 'mod_hora', title: getTranslation(lang, 'modOptHora').slice(0, 20) }
-    ];
-    await sendInteractiveButtons(from, modBody, modButtons);
+        const modBody = getTranslation(lang, 'modOptionsPrompt');
+        const modButtons = [
+            { id: 'mod_comensales', title: getTranslation(lang, 'modOptComensales').slice(0, 20) },
+            { id: 'mod_dia', title: getTranslation(lang, 'modOptDia').slice(0, 20) },
+            { id: 'mod_hora', title: getTranslation(lang, 'modOptHora').slice(0, 20) }
+        ];
+        await sendInteractiveButtons(from, modBody, modButtons);
+    }
 }
 
 async function executeReservationSearchForCancel(from, lang, phone, name, currentState) {
@@ -2941,6 +2976,22 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
         successMsgKey: 'cancelSuccessMsg'
     });
 }
+
+        case 'modificacion_tipo_inicial': {
+            const cleanText = text.trim().toLowerCase();
+            let tipo = 'comensales';
+            if (cleanText.includes('día') || cleanText.includes('dia') || cleanText.includes('fecha')) {
+                tipo = 'dia';
+            } else if (cleanText.includes('hora')) {
+                tipo = 'hora';
+            }
+            currentState.data = currentState.data || {};
+            currentState.data.modTipo = tipo;
+            currentState.step = 'modificacion_datos_actuales';
+            userStates.set(from, currentState);
+            await sendMessage(from, getTranslation(lang, 'modCancelDataPrompt'));
+            break;
+        }
 
         case 'modificacion_datos_actuales': {
             const { phone, name } = analyzeVerificationInput(text);
