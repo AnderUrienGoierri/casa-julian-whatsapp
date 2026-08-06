@@ -1878,15 +1878,11 @@ async function sendFaqMenu(from, lang) {
 
     const bodyText = getTranslation(lang, 'faqTitle');
     const buttonText = getTranslation(lang, 'menuButtonText');
-    const giftTitle = lang === 'eu' ? 'Opari Tradizio Menua' : (lang === 'en' ? 'Gift Tradition Menu' : 'Regalar Menú Trad.');
-    const giftDesc = lang === 'eu' ? 'Erosi Tradizio Menuaren opari txartela online.' : (lang === 'en' ? 'Buy Tradition Menu gift card online.' : 'Comprar tarjeta regalo del Menú Tradición online.');
 
     const sections = [
         {
             title: "Otras Cuestiones",
             rows: [
-                { id: "faq_regalar_menu", title: giftTitle.slice(0, 24), description: giftDesc.slice(0, 72) },
-                { id: "faq_12", title: getTranslation(lang, 'faq12Title').slice(0, 24), description: getTranslation(lang, 'faq12Desc').slice(0, 72) },
                 { id: "faq_1", title: getTranslation(lang, 'faq1Title').slice(0, 24), description: getTranslation(lang, 'faq1Desc').slice(0, 72) },
                 { id: "faq_2", title: getTranslation(lang, 'faq2Title').slice(0, 24), description: getTranslation(lang, 'faq2Desc').slice(0, 72) },
                 { id: "faq_3", title: getTranslation(lang, 'faq3Title').slice(0, 24), description: getTranslation(lang, 'faq3Desc').slice(0, 72) },
