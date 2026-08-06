@@ -1,7 +1,7 @@
 const translations = {
     "es": {
         "welcomeImageUrl": "🥩🔥 Asador Casa Julián de Tolosa",
-        "welcomeMessage": "🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!*\n\n🇪🇸 *ES:* ¡Bienvenido/a! ¿En qué idioma deseas continuar?\n🇪🇺 *EU:* Ongi etorri! Zein hizkuntzatan jarraitu nahi duzu?\n🇬🇧 *EN:* Welcome! Which language would you like to continue in?",
+        "welcomeMessage": "🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* \n\n🇪🇸 *ES:* ¡Bienvenido/a! ¿En qué idioma deseas continuar?\n🇪🇺 *EU:* Ongi etorri! Zein hizkuntzatan jarraitu nahi duzu?\n🇬🇧 *EN:* Welcome! Which language would you like to continue in?",
         "welcomeLanguageBtn": "Seleccionar Idioma",
         "lang_es": "🇪🇸 Español",
         "lang_eu": "🇪🇺 Euskara",
