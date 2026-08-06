@@ -1517,8 +1517,13 @@ async function handleAllergiesListSelection(from, listId, lang) {
     };
 
     const selectedName = allergyMap[listId];
-    if (selectedName && !currentState.data[formKey].selectedAllergies.includes(selectedName)) {
-        currentState.data[formKey].selectedAllergies.push(selectedName);
+    if (selectedName) {
+        const idx = currentState.data[formKey].selectedAllergies.indexOf(selectedName);
+        if (idx >= 0) {
+            currentState.data[formKey].selectedAllergies.splice(idx, 1);
+        } else {
+            currentState.data[formKey].selectedAllergies.push(selectedName);
+        }
     }
     userStates.set(from, currentState);
 

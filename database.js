@@ -654,46 +654,55 @@ function createReservation(data) {
     saveDb(db);
 
     if (pool) {
-        // 1. Guardar o actualizar cliente
-        pool.query(
-            `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
-             VALUES($1, $2, $3, $4, $5, $6)
-             ON CONFLICT(dni) DO UPDATE SET nombre=$1, telefono=$2, email=$4, idioma=$5, nacionalidad=$6`,
-            [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
-        ).catch(err => console.error("❌ Error PostgreSQL INSERT cliente:", err.message));
+        (async () => {
+            try {
+                // 1. Guardar o actualizar cliente
+                await pool.query(
+                    `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
+                     VALUES($1, $2, $3, $4, $5, $6)
+                     ON CONFLICT(dni) DO UPDATE SET nombre=$1, telefono=$2, email=$4, idioma=$5, nacionalidad=$6`,
+                    [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
+                );
 
-        // 2. Guardar reserva en tabla reservas
-        pool.query(
-            `INSERT INTO reservas(id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo)
-             VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) ON CONFLICT(id) DO NOTHING`,
-            [
-                nuevaReserva.id,
-                nuevaReserva.nombre,
-                nuevaReserva.telefono,
-                nuevaReserva.dni,
-                nuevaReserva.email,
-                nuevaReserva.fecha,
-                nuevaReserva.hora,
-                nuevaReserva.comensales,
-                nuevaReserva.estado,
-                nuevaReserva.idioma,
-                nuevaReserva.tipo_reserva,
-                nuevaReserva.nacionalidad,
-                nuevaReserva.alergias,
-                nuevaReserva.tipo_servicio,
-                nuevaReserva.tarjeta_regalo
-            ]
-        ).then(async () => {
-            console.log(`✅ Reserva guardada en PostgreSQL: ${nuevaReserva.id}`);
-            if (fechasPref && fechasPref.length > 0) {
-                for (let i = 0; i < fechasPref.length; i++) {
-                    await pool.query(
-                        `INSERT INTO reservas_fechas_preferencia(reserva_id, fecha, orden) VALUES($1, $2, $3)`,
-                        [nuevaReserva.id, fechasPref[i], i + 1]
-                    ).catch(err => console.error("❌ Error INSERT reservas_fechas_preferencia:", err.message));
+                // 2. Guardar reserva en tabla reservas
+                await pool.query(
+                    `INSERT INTO reservas(id, nombre, telefono, dni, email, fecha, hora, comensales, estado, idioma, tipo_reserva, nacionalidad, alergias, tipo_servicio, tarjeta_regalo)
+                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) ON CONFLICT(id) DO NOTHING`,
+                    [
+                        nuevaReserva.id,
+                        nuevaReserva.nombre,
+                        nuevaReserva.telefono,
+                        nuevaReserva.dni,
+                        nuevaReserva.email,
+                        nuevaReserva.fecha,
+                        nuevaReserva.hora,
+                        nuevaReserva.comensales,
+                        nuevaReserva.estado,
+                        nuevaReserva.idioma,
+                        nuevaReserva.tipo_reserva,
+                        nuevaReserva.nacionalidad,
+                        nuevaReserva.alergias,
+                        nuevaReserva.tipo_servicio,
+                        nuevaReserva.tarjeta_regalo
+                    ]
+                );
+                console.log(`✅ Reserva ${nuevaReserva.id} guardada exitosamente en tabla 'reservas' (PostgreSQL).`);
+
+                // 3. Guardar fechas de preferencia en tabla reservas_fechas_preferencia
+                if (fechasPref && fechasPref.length > 0) {
+                    await pool.query(`DELETE FROM reservas_fechas_preferencia WHERE reserva_id = $1`, [nuevaReserva.id]);
+                    for (let i = 0; i < fechasPref.length; i++) {
+                        await pool.query(
+                            `INSERT INTO reservas_fechas_preferencia(reserva_id, fecha, orden) VALUES($1, $2, $3)`,
+                            [nuevaReserva.id, fechasPref[i], i + 1]
+                        );
+                    }
+                    console.log(`✅ ${fechasPref.length} fechas de preferencia insertadas en 'reservas_fechas_preferencia' para reserva ${nuevaReserva.id}: ${fechasPref.join(', ')}`);
                 }
+            } catch (err) {
+                console.error("❌ Error en createReservation PostgreSQL:", err.message);
             }
-        }).catch(err => console.error("❌ Error PostgreSQL INSERT reserva:", err.message, JSON.stringify(nuevaReserva)));
+        })();
     }
 
     return nuevaReserva;
