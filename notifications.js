@@ -183,6 +183,17 @@ function getTransporter(forcedPort = null) {
 function getCategoryHeader(tipoAccion) {
     const tipo = (tipoAccion || '').toUpperCase();
 
+    if (tipo.includes('CONSULTA') || tipo.includes('CASUÍSTICA') || tipo.includes('CASUISTICA')) {
+        return {
+            banner: `💬🟣 *[CATEGORÍA: CONSULTAS ABIERTAS - CASUÍSTICAS ESPECIALES]* 🟣💬`,
+            colorTag: `🟣 CONSULTAS ABIERTAS / CASUÍSTICAS ESPECIALES`,
+            subjectTag: `[💬 Casa Julian / Consultas-Abiertas]`,
+            labelCategory: `Casa Julian / Consultas-Abiertas`,
+            subLabel: `Consultas-Abiertas`,
+            emoji: `💬`
+        };
+    }
+
     if (tipo.includes('CANCELACIÓN') || tipo.includes('CANCELACION')) {
         if (tipo.includes('ESPERA')) {
             return {

@@ -315,6 +315,7 @@ async function sendMainMenu(from) {
                 { id: "opt_quiero_reservar", title: getTranslation(lang, 'opt1Title').slice(0, 24), description: getTranslation(lang, 'opt1Desc').slice(0, 72) },
                 { id: "opt_modificacion", title: getTranslation(lang, 'opt2Title').slice(0, 24), description: getTranslation(lang, 'opt2Desc').slice(0, 72) },
                 { id: "opt_cancelacion", title: getTranslation(lang, 'opt3Title').slice(0, 24), description: getTranslation(lang, 'opt3Desc').slice(0, 72) },
+                { id: "opt_consulta_abierta", title: getTranslation(lang, 'optConsultaAbiertaTitle').slice(0, 24), description: getTranslation(lang, 'optConsultaAbiertaDesc').slice(0, 72) },
                 { id: "opt_otras_cuestiones", title: getTranslation(lang, 'opt5Title').slice(0, 24), description: getTranslation(lang, 'opt5Desc').slice(0, 72) }
             ]
         }
@@ -403,6 +404,18 @@ async function handleListResponse(from, listId) {
             userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
             await sendMessage(from, getTranslation(lang, 'cancelDataPrompt'));
             break;
+
+        case 'opt_consulta_abierta': {
+            userStates.set(from, { step: 'consulta_abierta_paso1_texto', data: {} });
+            let promptMsg = `💬 *Consulta Abierta (Casuísticas Especiales)*\n\nPor favor, indícanos a continuación tu duda o consulta (preguntas sobre embarazadas, mascotas de asistencia, eventos o cualquier necesidad especial):\n\nNuestro equipo la revisará y te responderemos lo antes posible.`;
+            if (lang === 'eu') {
+                promptMsg = `💬 *Galdera Irekia (Kasuistika Bereziak)*\n\nMesedez, idatzi hemen zure zalantza edo kontsulta (haurdunaldia, laguntza-txakurrak edo zeinahi behar berezi):\n\nGure lantaldeak zure mezua aztertuko du eta ahalik eta azkien erantzungo dizu.`;
+            } else if (lang === 'en') {
+                promptMsg = `💬 *Open Inquiry (Special Requests)*\n\nPlease type your inquiry or special request below (pregnancy restrictions, assistance animals, special requirements, etc.):\n\nOur team will review your message and respond as soon as possible.`;
+            }
+            await sendMessage(from, promptMsg);
+            break;
+        }
 
         case 'opt_regalar_menu_tradicion':
             await handleRegalarMenuTradicion(from, lang);
@@ -2992,6 +3005,57 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
         successMsgKey: 'cancelSuccessMsg'
     });
 }
+
+        case 'consulta_abierta_paso1_texto': {
+            const consultaTexto = text.trim();
+            if (consultaTexto.length < 3) {
+                let msg = `⚠️ Por favor, describe tu consulta detalladamente:`;
+                if (lang === 'eu') msg = `⚠️ Mesedez, azaldu zure zalantza xehetasunez:`;
+                else if (lang === 'en') msg = `⚠️ Please describe your inquiry in detail:`;
+                await sendMessage(from, msg);
+                break;
+            }
+            currentState.data = currentState.data || {};
+            currentState.data.consultaTexto = consultaTexto;
+            currentState.step = 'consulta_abierta_paso2_datos';
+            userStates.set(from, currentState);
+
+            let dataPrompt = `📝 *Datos de Contacto para darte Respuesta*\n\nPor favor, indícanos tu *Nombre completo* y *Número de teléfono* para poder responderte (ej: *Ander Urien 612345678*):`;
+            if (lang === 'eu') {
+                dataPrompt = `📝 *Harremanetarako Datuak Erantzuteko*\n\nMesedez, idatzi zure *Izen-abizenak* eta *Telefono zenbakia* (adib: *Ander Urien 612345678*):`;
+            } else if (lang === 'en') {
+                dataPrompt = `📝 *Contact Information for Response*\n\nPlease enter your *Full Name* and *Phone Number* (e.g. *Ander Urien 612345678*):`;
+            }
+            await sendMessage(from, dataPrompt);
+            break;
+        }
+
+        case 'consulta_abierta_paso2_datos': {
+            const { phone, name } = analyzeVerificationInput(text);
+            const nombreCliente = name || text.trim();
+            const telefonoCliente = phone || from.replace(/\D/g, '');
+            const consultaTexto = currentState.data?.consultaTexto || 'Consulta abierta';
+
+            const detalleConsulta = 
+                `🆔 *Tipo de Solicitud:* CONSULTA ABIERTA / CASUÍSTICAS ESPECIALES\n` +
+                `👤 *Nombre:* ${nombreCliente}\n` +
+                `📞 *Teléfono:* ${telefonoCliente}\n` +
+                `💬 *Consulta del Cliente:* ${consultaTexto}\n` +
+                `📌 *Estado:* PENDIENTE RESPUESTA RESTAURANTE\n` +
+                `📱 *WhatsApp Remitente:* ${from}`;
+
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'CONSULTA ABIERTA (CASUÍSTICAS ESPECIALES)',
+                reservationId: 'CONSULTA-' + Date.now().toString().slice(-6),
+                initialStatus: 'PENDIENTE RESPUESTA',
+                isCancellation: false,
+                detalleMod: detalleConsulta,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoCliente,
+                successMsgKey: 'consultaSuccessMsg'
+            });
+            break;
+        }
 
         case 'modificacion_tipo_inicial': {
             const cleanText = text.trim().toLowerCase();
