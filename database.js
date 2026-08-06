@@ -160,8 +160,9 @@ if (process.env.DATABASE_URL) {
             { resId: 'RES-20260806-910841', nombre: 'Ander AAA AAA', telefono: '34664037707', dni: 'N/A', email: 'n/a', fechas: ['20/08/2026', '21/08/2026', '22/08/2026', '23/08/2026', '24/08/2026'], tarjeta: 'MT-2026-008', comensales: 3, alergias: 'Vegetariano/Vegano' }
         ];
 
-        // Matriz con todos los clientes de prueba y sus tarjetas asociadas
+        // Matriz con todos los clientes de prueba y sus tarjetas/reservas asociadas
         const testReservations = [
+            { resId: 'RES-20260806-176471', tarjeta: 'MT-2026-012', nombre: 'Ander CCC CCC', telefono: '34664037707', dni: 'N/A', email: 'n/a', comensales: 4, alergias: 'NO' },
             { tarjeta: 'MT-2026-001', nombre: 'Ander Urien Telleria', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
             { tarjeta: '12345', nombre: 'Ander Telleria Telleria', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
             { tarjeta: 'MT-2026-002', nombre: 'Ander Urien', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
@@ -186,16 +187,25 @@ if (process.env.DATABASE_URL) {
                     cid = cFind.rows[0].id;
                 } else {
                     const cIns = await pool.query(
-                        `INSERT INTO clientes(nombre, telefono, dni, email) VALUES($1, $2, $3, $4) RETURNING id`,
+                        `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad) VALUES($1, $2, $3, $4, 'es', 'España') RETURNING id`,
                         [item.nombre, item.telefono, item.dni, item.email]
                     );
                     cid = cIns.rows[0].id;
                 }
 
-                await pool.query(
-                    `UPDATE reservas SET cliente_id = $1 WHERE tarjeta_regalo = $2`,
-                    [cid, item.tarjeta]
-                );
+                if (item.resId) {
+                    await pool.query(
+                        `INSERT INTO reservas(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo)
+                         VALUES($1, $2, '', 'Sin preferencia', $3, 'PENDIENTE CONFIRMACION', 'tarjeta_regalo', $4, 'Sin preferencia', $5)
+                         ON CONFLICT(id) DO UPDATE SET cliente_id = $2, comensales = $3, alergias = $4, tarjeta_regalo = $5`,
+                        [item.resId, cid, item.comensales || 2, item.alergias || 'NO', item.tarjeta || null]
+                    );
+                } else if (item.tarjeta) {
+                    await pool.query(
+                        `UPDATE reservas SET cliente_id = $1 WHERE tarjeta_regalo = $2`,
+                        [cid, item.tarjeta]
+                    );
+                }
             } catch (e) {
                 console.error(`⚠️ Error en migración cliente ${item.nombre}:`, e.message);
             }
@@ -809,6 +819,10 @@ function createReservation(data) {
     if (pool) {
         (async () => {
             let clienteId = null;
+            const clientLang = nuevaReserva.idioma || 'es';
+            const clientNac = nuevaReserva.nacionalidad || 'España';
+            const clientDni = nuevaReserva.dni || 'N/A';
+            const clientEmail = nuevaReserva.email || 'N/A';
 
             // 1. Guardar o actualizar cliente (emparejando por NOMBRE Y TELÉFONO)
             try {
@@ -821,14 +835,14 @@ function createReservation(data) {
                     clienteId = searchClient.rows[0].id;
                     await pool.query(
                         `UPDATE clientes SET dni = COALESCE(NULLIF($1, 'N/A'), dni), email = COALESCE(NULLIF($2, 'N/A'), email), idioma = $3, nacionalidad = $4 WHERE id = $5`,
-                        [nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad, clienteId]
+                        [clientDni, clientEmail, clientLang, clientNac, clienteId]
                     );
                 } else {
                     const newClient = await pool.query(
                         `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad)
                          VALUES($1, $2, $3, $4, $5, $6)
                          RETURNING id`,
-                        [nuevaReserva.nombre, nuevaReserva.telefono, nuevaReserva.dni, nuevaReserva.email, nuevaReserva.idioma, nuevaReserva.nacionalidad]
+                        [nuevaReserva.nombre, nuevaReserva.telefono, clientDni, clientEmail, clientLang, clientNac]
                     );
                     if (newClient && newClient.rows && newClient.rows[0]) {
                         clienteId = newClient.rows[0].id;
@@ -837,6 +851,15 @@ function createReservation(data) {
                 console.log(`✅ Cliente '${nuevaReserva.nombre}' (${nuevaReserva.telefono}) asignado a cliente_id: ${clienteId}`);
             } catch (err) {
                 console.error("⚠️ Error procesando cliente en PostgreSQL:", err.message);
+                try {
+                    const fallback = await pool.query(
+                        `INSERT INTO clientes(nombre, telefono, dni, email, idioma, nacionalidad) VALUES($1, $2, 'N/A', 'N/A', 'es', 'España') RETURNING id`,
+                        [nuevaReserva.nombre || 'Cliente WhatsApp', nuevaReserva.telefono]
+                    );
+                    if (fallback && fallback.rows && fallback.rows[0]) {
+                        clienteId = fallback.rows[0].id;
+                    }
+                } catch (e) {}
             }
 
             // 2. Guardar reserva en tabla reservas (normalizada con cliente_id)
@@ -848,14 +871,14 @@ function createReservation(data) {
                     [
                         nuevaReserva.id,
                         clienteId,
-                        nuevaReserva.fecha,
-                        nuevaReserva.hora,
-                        nuevaReserva.comensales,
-                        nuevaReserva.estado,
-                        nuevaReserva.tipo_reserva,
-                        nuevaReserva.alergias,
-                        nuevaReserva.tipo_servicio,
-                        nuevaReserva.tarjeta_regalo
+                        nuevaReserva.fecha || '',
+                        nuevaReserva.hora || 'Sin preferencia',
+                        nuevaReserva.comensales || 2,
+                        nuevaReserva.estado || 'PENDIENTE CONFIRMACION',
+                        nuevaReserva.tipo_reserva || 'tarjeta_regalo',
+                        nuevaReserva.alergias || 'NO',
+                        nuevaReserva.tipo_servicio || 'Sin preferencia',
+                        nuevaReserva.tarjeta_regalo || null
                     ]
                 );
                 console.log(`✅ Reserva ${nuevaReserva.id} (cliente_id: ${clienteId}) guardada exitosamente en 'reservas' (PostgreSQL).`);
