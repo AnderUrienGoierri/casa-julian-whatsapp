@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
+const { sendInternalStaffAlertInSpanish } = require('./notifications');
 require('dotenv').config();
 
 const DB_PATH = path.join(__dirname, 'db.json');
@@ -158,7 +159,28 @@ if (process.env.DATABASE_URL) {
 
         // 2. Matriz con todos los clientes de prueba y sus tarjetas/reservas asociadas
         const testReservations = [
-            { resId: 'RES-20260806-176471', tarjeta: 'MT-2026-012', nombre: 'Ander CCC CCC', telefono: '34664037707', dni: 'N/A', email: 'n/a', comensales: 4, alergias: 'NO' },
+            {
+                resId: 'RES-20260806-176471',
+                tarjeta: 'MT-2026-012',
+                nombre: 'Ander CCC CCC',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 4,
+                alergias: 'NO',
+                fechas: ['01/09/2026', '02/09/2026', '03/09/2026', '04/09/2026', '05/09/2026']
+            },
+            {
+                resId: 'RES-20260806-313439',
+                tarjeta: 'MT-2026-010',
+                nombre: 'Ander DDD DDD',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 2,
+                alergias: 'NO',
+                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026']
+            },
             { tarjeta: 'MT-2026-001', nombre: 'Ander Urien Telleria', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
             { tarjeta: '12345', nombre: 'Ander Telleria Telleria', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
             { tarjeta: 'MT-2026-002', nombre: 'Ander Urien', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
@@ -196,6 +218,37 @@ if (process.env.DATABASE_URL) {
                          ON CONFLICT(id) DO UPDATE SET cliente_id = $2, comensales = $3, alergias = $4, tarjeta_regalo = $5`,
                         [item.resId, cid, item.comensales || 2, item.alergias || 'NO', item.tarjeta || null]
                     );
+
+                    if (item.fechas && item.fechas.length > 0) {
+                        await pool.query(`DELETE FROM reservas_fechas_preferencia WHERE reserva_id = $1`, [item.resId]);
+                        for (let i = 0; i < item.fechas.length; i++) {
+                            await pool.query(
+                                `INSERT INTO reservas_fechas_preferencia (reserva_id, fecha, orden) VALUES ($1, $2, $3)`,
+                                [item.resId, item.fechas[i], i + 1]
+                            );
+                        }
+                    }
+
+                    // Enviar alerta de correo pendiente para reservas de prueba si aplica
+                    const detalleMod = `🆔 *ID Reserva:* ${item.resId}\n` +
+                                       `👤 *Nombre:* ${item.nombre}\n` +
+                                       `🎁 *Nº Tarjeta Regalo:* ${item.tarjeta}\n` +
+                                       `👥 *Comensales:* ${item.comensales}\n` +
+                                       `🍽️ *Servicio:* Sin preferencia\n` +
+                                       `⏰ *Hora seleccionada:* Sin preferencia\n` +
+                                       `📅 *Fechas de preferencia:* ${item.fechas ? item.fechas.join(', ') : 'Sin preferencia'}\n` +
+                                       `⚠️ *Alergias/Restricciones:* ${item.alergias || 'NO'}\n` +
+                                       `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
+                                       `📱 *WhatsApp Remitente:* ${item.telefono}\n` +
+                                       `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
+
+                    sendInternalStaffAlertInSpanish(
+                        'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
+                        item.telefono,
+                        detalleMod,
+                        item.nombre,
+                        item.telefono
+                    ).catch(() => {});
                 } else if (item.tarjeta) {
                     await pool.query(
                         `UPDATE reservas SET cliente_id = $1 WHERE tarjeta_regalo = $2`,
