@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-06-CMS-V46-DROP-ALL-UNIQUE-CONSTRAINTS-ON-CLIENTES-AND-ADD-ANDER-EEE-EEE';
+const DEPLOY_VERSION = 'v2026-08-06-CMS-V47-FIX-HORA-VARCHAR-50-TRUNCATION-AND-REMOVE-DROP-TABLE';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

@@ -54,26 +54,31 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE clientes ALTER COLUMN dni DROP NOT NULL;
         ALTER TABLE clientes ALTER COLUMN email DROP NOT NULL;
 
-        -- 2. Asegurar columna cliente_id en reservas y tabla reservas
+        -- 2. Asegurar columna cliente_id en reservas y tabla reservas (con campos ampliados)
         CREATE TABLE IF NOT EXISTS reservas (
             id VARCHAR(50) PRIMARY KEY,
             cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
-            fecha VARCHAR(20) DEFAULT '',
-            hora VARCHAR(10) DEFAULT '',
+            fecha VARCHAR(50) DEFAULT '',
+            hora VARCHAR(50) DEFAULT '',
             comensales INT DEFAULT 2,
-            estado VARCHAR(30) DEFAULT 'PENDIENTE CONFIRMACION',
+            estado VARCHAR(50) DEFAULT 'PENDIENTE CONFIRMACION',
             tipo_reserva VARCHAR(50) DEFAULT 'online',
             alergias TEXT DEFAULT 'NO',
-            tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia',
-            tarjeta_regalo VARCHAR(50),
+            tipo_servicio VARCHAR(50) DEFAULT 'Sin preferencia',
+            tarjeta_regalo VARCHAR(100),
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
 
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS cliente_id INT;
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_reserva VARCHAR(50) DEFAULT 'online';
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS alergias TEXT DEFAULT 'NO';
-        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia';
-        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(50);
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tipo_servicio VARCHAR(50) DEFAULT 'Sin preferencia';
+        ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(100);
+        ALTER TABLE reservas ALTER COLUMN hora TYPE VARCHAR(50);
+        ALTER TABLE reservas ALTER COLUMN fecha TYPE VARCHAR(50);
+        ALTER TABLE reservas ALTER COLUMN estado TYPE VARCHAR(50);
+        ALTER TABLE reservas ALTER COLUMN tipo_servicio TYPE VARCHAR(50);
+        ALTER TABLE reservas ALTER COLUMN tarjeta_regalo TYPE VARCHAR(100);
         ALTER TABLE reservas ALTER COLUMN fecha DROP NOT NULL;
 
         -- 3. Crear tabla reservas_fechas_preferencia
@@ -364,47 +369,18 @@ if (process.env.DATABASE_URL) {
             ALTER TABLE reservas DROP COLUMN IF EXISTS nacionalidad CASCADE;
         `).catch(() => {});
 
-        // 5. Reordenar columnas solo si cliente_id no es la 2ª columna
+        // 5. Asegurar FK entre reservas_fechas_preferencia y reservas
         try {
-            const checkPos = await pool.query(`
-                SELECT ordinal_position FROM information_schema.columns 
-                WHERE table_name = 'reservas' AND column_name = 'cliente_id'
+            await pool.query(`
+                DO $$ BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'reservas_fechas_preferencia_reserva_id_fkey') THEN
+                        ALTER TABLE reservas_fechas_preferencia ADD CONSTRAINT reservas_fechas_preferencia_reserva_id_fkey 
+                        FOREIGN KEY (reserva_id) REFERENCES reservas(id) ON DELETE CASCADE;
+                    END IF;
+                EXCEPTION WHEN OTHERS THEN NULL;
+                END $$;
             `);
-            const pos = (checkPos && checkPos.rows && checkPos.rows[0]) ? parseInt(checkPos.rows[0].ordinal_position, 10) : 0;
-
-            if (pos > 2) {
-                await pool.query(`DROP TABLE IF EXISTS reservas_ordered CASCADE;`);
-                await pool.query(`
-                    CREATE TABLE reservas_ordered (
-                        id VARCHAR(50) PRIMARY KEY,
-                        cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
-                        fecha VARCHAR(20) DEFAULT '',
-                        hora VARCHAR(10) DEFAULT '',
-                        comensales INT DEFAULT 2,
-                        estado VARCHAR(30) DEFAULT 'PENDIENTE CONFIRMACION',
-                        tipo_reserva VARCHAR(50) DEFAULT 'online',
-                        alergias TEXT DEFAULT 'NO',
-                        tipo_servicio VARCHAR(30) DEFAULT 'Sin preferencia',
-                        tarjeta_regalo VARCHAR(50),
-                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-                    );
-                `);
-                await pool.query(`
-                    INSERT INTO reservas_ordered(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at)
-                    SELECT id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at FROM reservas;
-                `);
-                await pool.query(`ALTER TABLE reservas_fechas_preferencia DROP CONSTRAINT IF EXISTS reservas_fechas_preferencia_reserva_id_fkey;`);
-                await pool.query(`DROP TABLE reservas CASCADE;`);
-                await pool.query(`ALTER TABLE reservas_ordered RENAME TO reservas;`);
-                await pool.query(`
-                    ALTER TABLE reservas_fechas_preferencia ADD CONSTRAINT reservas_fechas_preferencia_reserva_id_fkey 
-                    FOREIGN KEY (reserva_id) REFERENCES reservas(id) ON DELETE CASCADE;
-                `);
-                console.log("✅ Tabla 'reservas' reordenada físicamente con éxito (cliente_id es la 2ª columna).");
-            }
-        } catch (err) {
-            console.error("⚠️ Aviso al reordenar columnas de reservas:", err.message);
-        }
+        } catch (err) {}
 
         // Sincronizar reservas con JOIN
         return pool.query(`
