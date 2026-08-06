@@ -1438,7 +1438,7 @@ async function handleAllergiesListSelection(from, listId, lang) {
         currentState.data[formKey].alergias = 'NO';
         currentState.step = isMenuTrad ? 'menu_trad_step7_idioma' : 'espera_step7_idioma';
         userStates.set(from, currentState);
-        await sendFormLanguageList(from, lang);
+        await handleButtonResponse(from, 'form_lang_' + lang);
         return;
     }
 
@@ -1447,7 +1447,7 @@ async function handleAllergiesListSelection(from, listId, lang) {
         currentState.data[formKey].alergias = list.length > 0 ? list.join(', ') : 'NO';
         currentState.step = isMenuTrad ? 'menu_trad_step7_idioma' : 'espera_step7_idioma';
         userStates.set(from, currentState);
-        await sendFormLanguageList(from, lang);
+        await handleButtonResponse(from, 'form_lang_' + lang);
         return;
     }
 
@@ -2002,10 +2002,11 @@ async function handleTextMessage(from, text) {
             currentState.data.waitlist.nombre = text.trim();
             currentState.data.waitlist.dni = null;
             currentState.data.waitlist.email = 'N/A';
-            currentState.step = 'espera_step1c_nac';
+            currentState.data.waitlist.nacionalidad = 'España';
+            currentState.step = 'espera_step2_comensales';
             userStates.set(from, currentState);
 
-            await sendNationalityList(from, lang);
+            await sendMessage(from, getTranslation(lang, 'waitlistStep2Comensales'));
             break;
         }
 
@@ -2320,10 +2321,16 @@ async function handleTextMessage(from, text) {
 
             currentState.data.menuTrad.comensales = numComensales;
             currentState.data.menuTrad.email = 'N/A';
-            currentState.step = 'menu_trad_step2c_nac';
+            currentState.data.menuTrad.nacionalidad = 'España';
+            currentState.step = 'menu_trad_step3_tipo';
             userStates.set(from, currentState);
 
-            await sendNationalityList(from, lang);
+            const promptBody = getTranslation(lang, 'menuTradStep3Tipo');
+            const buttons = [
+                { id: 'menu_trad_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
+                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
             break;
         }
 

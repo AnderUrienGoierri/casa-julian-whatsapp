@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-06-CMS-V29-REMOVE-EMAIL-PROMPT';
+const DEPLOY_VERSION = 'v2026-08-06-CMS-V30-REMOVE-NATIONALITY-AND-LANGUAGE-STEPS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
