@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-06-CMS-V33-MULTI-SELECT-ALLERGIES-AND-FECHAS-PREFERENCIA-SYNC-FIX';
+const DEPLOY_VERSION = 'v2026-08-06-CMS-V34-ISOLATE-CLIENTES-INSERT-AND-FECHAS-PREFERENCIA-CONFIRMATION-STEP';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

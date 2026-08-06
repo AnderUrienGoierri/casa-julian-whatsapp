@@ -1003,6 +1003,15 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'btn_fechas_confirm_si':
+        case 'btn_fechas_confirm_no': {
+            const currentState = userStates.get(from);
+            if (currentState && currentState.step === 'menu_trad_step5_fechas_confirm') {
+                await handleTextMessage(from, buttonId);
+            }
+            break;
+        }
+
         case 'btn_skip_email': {
             const currentState = userStates.get(from);
             if (currentState && (currentState.step === 'espera_step1b2_email' || currentState.step === 'menu_trad_step2b2_email')) {
@@ -2432,11 +2441,19 @@ async function handleTextMessage(from, text) {
                     await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
                     break;
                 }
-                currentState.step = 'menu_trad_step6_alergias';
-                currentState.data.menuTrad.selectedAllergies = [];
+                currentState.step = 'menu_trad_step5_fechas_confirm';
                 userStates.set(from, currentState);
 
-                await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
+                const datesStr = currentState.data.menuTrad.fechas.join(', ');
+                let promptBody = `📌 *Has indicado las siguientes fechas de preferencia:* ${datesStr}\n\n¿Es correcto?`;
+                if (lang === 'eu') promptBody = `📌 *Data hobetsi hauek adierazi dituzu:* ${datesStr}\n\nZuzena da?`;
+                else if (lang === 'en') promptBody = `📌 *You specified the following preferred dates:* ${datesStr}\n\nIs this correct?`;
+
+                const buttons = [
+                    { id: 'btn_fechas_confirm_si', title: 'Sí' },
+                    { id: 'btn_fechas_confirm_no', title: 'No' }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
                 break;
             }
 
@@ -2464,13 +2481,19 @@ async function handleTextMessage(from, text) {
             userStates.set(from, currentState);
 
             if (currentState.data.menuTrad.fechas.length >= 5) {
-                currentState.step = 'menu_trad_step6_alergias';
-                currentState.data.menuTrad.selectedAllergies = [];
+                currentState.step = 'menu_trad_step5_fechas_confirm';
                 userStates.set(from, currentState);
 
-                const maxNotice = `📌 *Has indicado el máximo de 5 fechas de preferencia:* ${currentState.data.menuTrad.fechas.join(', ')}`;
-                await sendMessage(from, maxNotice);
-                await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
+                const datesStr = currentState.data.menuTrad.fechas.join(', ');
+                let promptBody = `📌 *Has indicado el máximo de 5 fechas de preferencia:* ${datesStr}\n\n¿Es correcto?`;
+                if (lang === 'eu') promptBody = `📌 *Gehienezko 5 data hobetsiak adierazi dituzu:* ${datesStr}\n\nZuzena da?`;
+                else if (lang === 'en') promptBody = `📌 *You specified the maximum 5 preferred dates:* ${datesStr}\n\nIs this correct?`;
+
+                const buttons = [
+                    { id: 'btn_fechas_confirm_si', title: 'Sí' },
+                    { id: 'btn_fechas_confirm_no', title: 'No' }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
             } else {
                 const count = currentState.data.menuTrad.fechas.length;
                 const datesListStr = currentState.data.menuTrad.fechas.map(f => `• ${f}`).join('\n');
@@ -2481,6 +2504,29 @@ async function handleTextMessage(from, text) {
                     { id: 'btn_finish_fechas', title: getTranslation(lang, 'btnFinalizarFechas').slice(0, 20) }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
+            }
+            break;
+        }
+
+        case 'menu_trad_step5_fechas_confirm': {
+            const cleanInput = text.trim().toLowerCase();
+            if (cleanInput === 'btn_fechas_confirm_si' || ['si', 'sí', 'correcto', 'ok', 'yes', 'bai'].includes(cleanInput)) {
+                currentState.step = 'menu_trad_step6_alergias';
+                currentState.data.menuTrad = currentState.data.menuTrad || {};
+                currentState.data.menuTrad.selectedAllergies = [];
+                userStates.set(from, currentState);
+
+                await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
+            } else {
+                currentState.data.menuTrad = currentState.data.menuTrad || {};
+                currentState.data.menuTrad.fechas = [];
+                currentState.step = 'menu_trad_step5_dias';
+                userStates.set(from, currentState);
+
+                let resetMsg = `📅 *De acuerdo. Por favor, vuelve a indicarnos tus fechas de preferencia (formato DD/MM/AAAA):*`;
+                if (lang === 'eu') resetMsg = `📅 *Ados. Mesedez, adierazi berriro zure data hobetsiak (DD/MM/AAAA formatuan):*`;
+                else if (lang === 'en') resetMsg = `📅 *Understood. Please specify your preferred dates again (DD/MM/AAAA format):*`;
+                await sendMessage(from, resetMsg);
             }
             break;
         }
