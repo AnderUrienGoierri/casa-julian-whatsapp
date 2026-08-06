@@ -17,28 +17,40 @@ if (process.env.DATABASE_URL) {
 
     // Auto-migración para asegurar que las columnas de idioma, dias_preferencia y tabla tarjetas_regalo existan
     pool.query(`
-        -- 1. Crear o asegurar tabla clientes (SIN restricción UNIQUE en teléfono)
+        -- 1. Crear o asegurar tabla clientes (SIN restricciones UNIQUE)
         CREATE TABLE IF NOT EXISTS clientes (
             id SERIAL PRIMARY KEY,
-            nombre VARCHAR(100) NOT NULL,
-            telefono VARCHAR(20) NOT NULL,
-            dni VARCHAR(20) DEFAULT 'N/A',
-            email VARCHAR(100) DEFAULT 'N/A',
-            idioma VARCHAR(10) DEFAULT 'es',
-            nacionalidad VARCHAR(50) DEFAULT 'España',
+            nombre VARCHAR(150) NOT NULL,
+            telefono VARCHAR(50) NOT NULL,
+            dni VARCHAR(50) DEFAULT 'N/A',
+            email VARCHAR(150) DEFAULT 'N/A',
+            idioma VARCHAR(50) DEFAULT 'es',
+            nacionalidad VARCHAR(100) DEFAULT 'España',
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- Eliminar cualquier restricción UNIQUE antigua en teléfono
-        DO $$ BEGIN
-            IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'clientes_telefono_key') THEN
-                ALTER TABLE clientes DROP CONSTRAINT clientes_telefono_key;
-            END IF;
+        -- Eliminar TODAS las restricciones UNIQUE en clientes (excepto PRIMARY KEY)
+        DO $$ 
+        DECLARE r RECORD;
+        BEGIN
+            FOR r IN (
+                SELECT constraint_name 
+                FROM information_schema.table_constraints 
+                WHERE table_name = 'clientes' AND constraint_type = 'UNIQUE'
+            ) LOOP
+                EXECUTE 'ALTER TABLE clientes DROP CONSTRAINT IF EXISTS ' || quote_ident(r.constraint_name) || ' CASCADE;';
+            END LOOP;
         EXCEPTION WHEN OTHERS THEN NULL;
         END $$;
 
-        ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(10) DEFAULT 'es';
-        ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(50) DEFAULT 'España';
+        ALTER TABLE clientes ADD COLUMN IF NOT EXISTS idioma VARCHAR(50) DEFAULT 'es';
+        ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nacionalidad VARCHAR(100) DEFAULT 'España';
+        ALTER TABLE clientes ALTER COLUMN idioma TYPE VARCHAR(50);
+        ALTER TABLE clientes ALTER COLUMN nacionalidad TYPE VARCHAR(100);
+        ALTER TABLE clientes ALTER COLUMN dni TYPE VARCHAR(50);
+        ALTER TABLE clientes ALTER COLUMN email TYPE VARCHAR(150);
+        ALTER TABLE clientes ALTER COLUMN nombre TYPE VARCHAR(150);
+        ALTER TABLE clientes ALTER COLUMN telefono TYPE VARCHAR(50);
         ALTER TABLE clientes ALTER COLUMN dni DROP NOT NULL;
         ALTER TABLE clientes ALTER COLUMN email DROP NOT NULL;
 
@@ -230,6 +242,18 @@ if (process.env.DATABASE_URL) {
                 resId: 'RES-20260806-313439',
                 tarjeta: 'MT-2026-010',
                 nombre: 'Ander DDD DDD',
+                telefono: '34664037707',
+                dni: 'N/A',
+                email: 'n/a',
+                comensales: 2,
+                alergias: 'NO',
+                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026'],
+                sendEmail: true
+            },
+            {
+                resId: 'RES-20260806-485834',
+                tarjeta: 'MT-2026-011',
+                nombre: 'Ander EEE EEE',
                 telefono: '34664037707',
                 dni: 'N/A',
                 email: 'n/a',
