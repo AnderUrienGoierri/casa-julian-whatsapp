@@ -46,6 +46,40 @@ async function sendViaResendHttpApi(targetEmail, subject, emailHtml) {
 }
 
 /**
+ * Envía un correo electrónico mediante la API REST HTTPS de Brevo (Puerto 443).
+ */
+async function sendViaBrevoHttpApi(targetEmail, subject, emailHtml) {
+    const brevoKey = process.env.BREVO_API_KEY;
+    if (!brevoKey) return { success: false, reason: 'no_brevo_key' };
+
+    try {
+        const response = await axios.post(
+            'https://api.brevo.com/v3/smtp/email',
+            {
+                sender: { name: 'Asador Casa Julián', email: 'anurte@gmail.com' },
+                to: [{ email: targetEmail }],
+                replyTo: { email: 'anurte@gmail.com', name: 'Asador Casa Julián' },
+                subject: subject,
+                htmlContent: emailHtml
+            },
+            {
+                headers: {
+                    'api-key': brevoKey,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 8000
+            }
+        );
+        console.log(`   └─ ✅ Email de alerta entregado con éxito vía Brevo HTTPS API (ID: ${response.data.messageId})`);
+        return { success: true, method: 'brevo_https_api_port443', messageId: response.data.messageId, targetEmail };
+    } catch (error) {
+        const errDetails = error.response ? JSON.stringify(error.response.data) : error.message;
+        console.error("⚠️ Falló Brevo HTTPS API:", errDetails);
+        return { success: false, error: errDetails };
+    }
+}
+
+/**
  * Genera dinámicamente el transporte SMTP consultando las variables de entorno activas.
  * Soporta puerto 465 (SSL) y puerto 587 (STARTTLS) como sistema secundario.
  */
@@ -249,7 +283,13 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
 
     const subject = `[Casa Julián] ${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`;
 
-    // Intento 1: API REST HTTPS Resend (Ejecución rápida ~200ms por puerto 443)
+    // Intento 1: API REST HTTPS Brevo (si está configurada la API KEY)
+    const brevoResult = await sendViaBrevoHttpApi(targetEmail, subject, emailHtmlResend);
+    if (brevoResult.success) {
+        return brevoResult;
+    }
+
+    // Intento 2: API REST HTTPS Resend (Ejecución rápida ~200ms por puerto 443)
     const resendResult = await sendViaResendHttpApi(targetEmail, subject, emailHtmlResend);
     if (resendResult.success) {
         return resendResult;
