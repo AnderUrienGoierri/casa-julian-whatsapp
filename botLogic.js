@@ -2223,33 +2223,10 @@ async function handleTextMessage(from, text) {
                         .replace('{expiry}', expiry);
                     await sendMessage(from, successNotice);
 
-                    // Ofrecer opciones interactiva: ¿Qué gestión deseas realizar? (Reservar / Ver fecha caducidad)
-                    currentState.step = 'menu_trad_select_gestion';
+                    // Avanzar directamente al registro de datos de la reserva (Nombre y apellidos)
+                    currentState.step = 'menu_trad_step2_nombre';
                     userStates.set(from, currentState);
-
-                    let gestionPrompt = '';
-                    let btnResTitle = '';
-                    let btnCadTitle = '';
-
-                    if (lang === 'eu') {
-                        gestionPrompt = `💳 *Zer kudeaketa egin nahi duzu?*`;
-                        btnResTitle = `📅 Erreserbatu`;
-                        btnCadTitle = `⏳ Iraungipena ikusi`;
-                    } else if (lang === 'en') {
-                        gestionPrompt = `💳 *What would you like to do?*`;
-                        btnResTitle = `📅 Book`;
-                        btnCadTitle = `⏳ Check Expiration`;
-                    } else {
-                        gestionPrompt = `💳 *¿Qué gestión deseas realizar?*`;
-                        btnResTitle = `📅 Reservar`;
-                        btnCadTitle = `⏳ Fecha caducidad`;
-                    }
-
-                    const gestionButtons = [
-                        { id: 'btn_card_gestion_reservar', title: btnResTitle.slice(0, 20) },
-                        { id: 'btn_card_gestion_caducidad', title: btnCadTitle.slice(0, 20) }
-                    ];
-                    await sendInteractiveButtons(from, gestionPrompt, gestionButtons);
+                    await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
                 } else {
                     let failNotice = '';
                     if (estadoNorm === 'PENDIENTE RESERVA') {
@@ -2323,9 +2300,28 @@ async function handleTextMessage(from, text) {
 
         case 'menu_trad_step2_nombre': {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
-            currentState.data.menuTrad.nombre = text;
+            currentState.data.menuTrad.nombre = text.trim();
             currentState.data.menuTrad.dni = null;
-            currentState.data.menuTrad.comensales = currentState.data.menuTrad.comensales || 2;
+            currentState.step = 'menu_trad_step2_comensales';
+            userStates.set(from, currentState);
+
+            await sendMessage(from, getTranslation(lang, 'menuTradStep2Comensales'));
+            break;
+        }
+
+        case 'menu_trad_step2_comensales': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            const cleanText = text.trim();
+            const numComensales = parseInt(cleanText, 10);
+
+            if (isNaN(numComensales) || numComensales < 1 || numComensales > 6) {
+                const errMsg = getTranslation(lang, 'maxComensalesErrorMsg');
+                await sendMessage(from, errMsg);
+                await sendMessage(from, getTranslation(lang, 'menuTradStep2Comensales'));
+                break;
+            }
+
+            currentState.data.menuTrad.comensales = numComensales;
             currentState.step = 'menu_trad_step2b2_email';
             userStates.set(from, currentState);
 
