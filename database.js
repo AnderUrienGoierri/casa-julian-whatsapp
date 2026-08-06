@@ -6,6 +6,36 @@ require('dotenv').config();
 
 const DB_PATH = path.join(__dirname, 'db.json');
 
+/**
+ * Genera la fecha/hora exacta en la zona horaria de España (Europe/Madrid) con offset explícito (+02:00 / +01:00).
+ */
+function getSpainIsoTimestamp() {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'Europe/Madrid',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    const dateStr = formatter.format(now).replace(' ', 'T');
+    
+    const tzFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid', timeZoneName: 'longOffset' });
+    const parts = tzFormatter.formatToParts(now);
+    const tzPart = parts.find(p => p.type === 'timeZoneName');
+    let offset = '+02:00';
+    if (tzPart && tzPart.value) {
+        const match = tzPart.value.match(/GMT([+-]\d{1,2}:?\d{0,2})/);
+        if (match && match[1]) {
+            offset = match[1];
+            if (!offset.includes(':') && offset.length === 3) offset += ':00';
+        }
+    }
+    return `${dateStr}${offset}`;
+}
+
 // Conexión opcional a PostgreSQL con Auto-Migración de columnas
 let pool = null;
 if (process.env.DATABASE_URL) {
@@ -77,6 +107,7 @@ if (process.env.DATABASE_URL) {
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS tarjeta_regalo VARCHAR(100);
         ALTER TABLE reservas ADD COLUMN IF NOT EXISTS num_ninos INT DEFAULT 0;
         UPDATE reservas SET num_ninos = 0 WHERE num_ninos IS NULL;
+        ALTER TABLE reservas ALTER COLUMN created_at SET DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid');
         ALTER TABLE reservas ALTER COLUMN hora TYPE VARCHAR(50);
         ALTER TABLE reservas ALTER COLUMN fecha TYPE VARCHAR(50);
         ALTER TABLE reservas ALTER COLUMN estado TYPE VARCHAR(50);
@@ -918,6 +949,7 @@ function createReservation(data) {
     const now = new Date();
     const dateStr = now.toISOString().slice(0,10).replace(/-/g,'');
     const seq = now.getTime().toString().slice(-6);
+    const spainStamp = getSpainIsoTimestamp();
     const nuevaReserva = {
         id: `RES-${dateStr}-${seq}`,
         nombre: data.nombre,
@@ -936,7 +968,7 @@ function createReservation(data) {
         tipo_servicio: data.tipo_servicio || 'Sin preferencia',
         tarjeta_regalo: data.tarjeta_regalo || null,
         fechas_preferencia: fechasPref,
-        fechaCreacion: now.toISOString()
+        fechaCreacion: spainStamp
     };
 
     db.reservas.push(nuevaReserva);
@@ -988,12 +1020,12 @@ function createReservation(data) {
                 } catch (e) {}
             }
 
-            // 2. Guardar reserva en tabla reservas (normalizada con cliente_id y num_ninos)
+            // 2. Guardar reserva en tabla reservas (normalizada con cliente_id, num_ninos y created_at con hora de España)
             try {
                 await pool.query(
-                    `INSERT INTO reservas(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, num_ninos)
-                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-                     ON CONFLICT(id) DO UPDATE SET cliente_id=$2, hora=$4, comensales=$5, estado=$6, tipo_reserva=$7, alergias=$8, tipo_servicio=$9, tarjeta_regalo=$10, num_ninos=$11`,
+                    `INSERT INTO reservas(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, num_ninos, created_at)
+                     VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                     ON CONFLICT(id) DO UPDATE SET cliente_id=$2, hora=$4, comensales=$5, estado=$6, tipo_reserva=$7, alergias=$8, tipo_servicio=$9, tarjeta_regalo=$10, num_ninos=$11, created_at=$12`,
                     [
                         nuevaReserva.id,
                         clienteId,
@@ -1005,10 +1037,11 @@ function createReservation(data) {
                         nuevaReserva.alergias || 'NO',
                         nuevaReserva.tipo_servicio || 'Sin preferencia',
                         nuevaReserva.tarjeta_regalo || null,
-                        nuevaReserva.num_ninos || 0
+                        nuevaReserva.num_ninos || 0,
+                        spainStamp
                     ]
                 );
-                console.log(`✅ Reserva ${nuevaReserva.id} (cliente_id: ${clienteId}, num_ninos: ${nuevaReserva.num_ninos}) guardada exitosamente en 'reservas' (PostgreSQL).`);
+                console.log(`✅ Reserva ${nuevaReserva.id} (cliente_id: ${clienteId}, num_ninos: ${nuevaReserva.num_ninos}, created_at: ${spainStamp}) guardada exitosamente en 'reservas' (PostgreSQL).`);
             } catch (err) {
                 console.error("❌ Error PostgreSQL INSERT reservas:", err.message);
             }
