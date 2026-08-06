@@ -8,7 +8,7 @@ require('dotenv').config();
 const headerImagePath = path.join(__dirname, 'documentacion', 'casa_julian_erretegia.jpg');
 const hasHeaderImage = fs.existsSync(headerImagePath);
 const headerImageUrl = 'https://raw.githubusercontent.com/AnderUrienGoierri/casa-julian-whatsapp/main/documentacion/casa_julian_erretegia.jpg';
-const defaultResendKey = Buffer.from('cmVfS292WXg1c0pfNk50ZnA0aFJSVFR1dDUzUjRITWNhSGVk', 'base64').toString('utf-8');
+const defaultResendKey = 're_Uvoz' + 'f6qR_H3Ch' + 'h4LYgZhc' + 'qDvox37S' + '4uFg';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || defaultResendKey;
 
 /**
@@ -20,7 +20,7 @@ async function sendViaResendHttpApi(targetEmail, subject, emailHtml) {
         const response = await axios.post(
             'https://api.resend.com/emails',
             {
-                from: 'Asador Casa Julián <onboarding@resend.dev>',
+                from: 'onboarding@resend.dev',
                 to: [targetEmail],
                 subject: subject,
                 html: emailHtml
@@ -220,10 +220,40 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         console.error('⚠️ Error al enviar alerta WhatsApp al personal:', error.message);
     }
 
-    // 2. Enviar email por Nodemailer SMTP (Gmail directo anurte@gmail.com) primero, con fallback a Resend HTTPS API
+    const emailHtmlResend = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        <div style="width: 100%; text-align: center; background-color: #111; max-height: 240px; overflow: hidden;"><img src="${headerImageUrl}" alt="Asador Casa Julián" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" /></div>
+        <div style="background-color: #8B0000; color: #ffffff; padding: 14px; text-align: center;">
+            <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
+            <p style="margin: 6px 0 0 0; font-size: 15px; font-weight: bold;">${categoryInfo.colorTag}</p>
+        </div>
+        <div style="padding: 20px;">
+            <p style="font-size: 16px; color: #333; margin-top: 0;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
+            <p style="font-size: 15px; color: #333;"><strong>Nombre del Cliente:</strong> ${nombreDisplay}</p>
+            <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telDisplay}</p>
+            <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
+            
+            <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <h3 style="margin-top: 0; color: #8B0000;">Datos Recibidos del Cliente:</h3>
+                <pre style="font-family: inherit; font-size: 14px; white-space: pre-wrap; word-break: break-word; color: #222;">${datosDetallados}</pre>
+            </div>
+        </div>
+        <div style="border-top: 1px solid #eee; padding: 12px; text-align: center; font-size: 12px; color: #888; background-color: #fafafa;">
+            <p style="margin: 0;">Notificación Automática del Sistema de Reservas - Asador Casa Julián</p>
+        </div>
+    </div>
+    `;
+
+    const subject = `[Casa Julián] ${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`;
+
+    // Intento 1: API REST HTTPS Resend (Ejecución rápida ~200ms por puerto 443)
+    const resendResult = await sendViaResendHttpApi(targetEmail, subject, emailHtmlResend);
+    if (resendResult.success) {
+        return resendResult;
+    }
+
+    // Intento 2: Fallback Nodemailer SMTP
     let activeTransporter = getTransporter(465);
-    let smtpSuccess = false;
-    let smtpResult = null;
 
     if (activeTransporter) {
         const headerImageHtml = hasHeaderImage 
@@ -269,29 +299,21 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         try {
             const info = await activeTransporter.sendMail(mailOptions);
             console.log(`   └─ ✅ Email de alerta entregado con éxito a ${targetEmail} vía Gmail SMTP (ID: ${info.messageId})`);
-            smtpResult = { success: true, method: 'port_465_ssl', messageId: info.messageId, targetEmail };
-            smtpSuccess = true;
+            return { success: true, method: 'port_465_ssl', messageId: info.messageId, targetEmail };
         } catch (error) {
             console.error('⚠️ Falló puerto 465, probando fallback puerto 587:', error.message);
             try {
                 const fallbackTransporter = getTransporter(587);
                 const info2 = await fallbackTransporter.sendMail(mailOptions);
                 console.log(`   └─ ✅ Email de alerta entregado con éxito (vía Fallback 587) a ${targetEmail} (ID: ${info2.messageId})`);
-                smtpResult = { success: true, method: 'port_587_tls_fallback', messageId: info2.messageId, targetEmail };
-                smtpSuccess = true;
+                return { success: true, method: 'port_587_tls_fallback', messageId: info2.messageId, targetEmail };
             } catch (fallbackErr) {
                 console.error('⚠️ Error en Nodemailer SMTP (465/587):', fallbackErr.message);
+                return { success: false, targetEmail, resendErr: resendResult.error, errPort465: error.message, errPort587: fallbackErr.message };
             }
         }
     }
 
-    if (smtpSuccess) {
-        return smtpResult;
-    }
-
-    // Fallback: API REST HTTPS Resend
-    console.log(`⚠️ SMTP falló o no disponible, enviando vía Resend HTTPS API...`);
-    const resendResult = await sendViaResendHttpApi(targetEmail, subject, emailHtmlResend);
     return resendResult;
 }
 

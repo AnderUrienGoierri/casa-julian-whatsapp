@@ -504,26 +504,9 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_card_gestion_reservar': {
             const state = userStates.get(from) || { data: {} };
             state.data.menuTrad = state.data.menuTrad || {};
-            const currentCards = state.data.menuTrad.cards || [];
-
-            if (currentCards.length >= 3) {
-                await sendMessage(from, getTranslation(lang, 'menuTradMaxTableCardsNotice'));
-                state.step = 'menu_trad_step2_nombre';
-                userStates.set(from, state);
-                await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
-            } else {
-                state.step = 'menu_trad_more_cards_choice';
-                userStates.set(from, state);
-
-                const promptBody = getTranslation(lang, 'menuTradMoreCardsPrompt')
-                    .replace('{comensales}', state.data.menuTrad.comensales || 2);
-                const buttons = [
-                    { id: 'btn_mt_add_misma_mesa', title: getTranslation(lang, 'btnMtAddMismaMesa').slice(0, 20) },
-                    { id: 'btn_mt_otra_mesa', title: getTranslation(lang, 'btnMtOtraMesa').slice(0, 20) },
-                    { id: 'btn_mt_continuar', title: getTranslation(lang, 'btnMtContinuar').slice(0, 20) }
-                ];
-                await sendInteractiveButtons(from, promptBody, buttons);
-            }
+            state.step = 'menu_trad_step2_nombre';
+            userStates.set(from, state);
+            await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
             break;
         }
 
