@@ -2123,6 +2123,56 @@ async function deleteAttachment(key_name) {
     return true;
 }
 
+/**
+ * Devuelve la reserva PENDIENTE CONFIRMACION más reciente para un número de teléfono dado.
+ * Usada como fallback cuando el estado en memoria se pierde (ej. reinicio del servidor).
+ */
+async function getMostRecentPendingReservationByPhone(telefono) {
+    try {
+        if (pool) {
+            const result = await pool.query(
+                `SELECT r.*, c.nombre, c.email, c.dni FROM reservas r
+                 LEFT JOIN clientes c ON r.cliente_id = c.id
+                 WHERE r.estado = 'PENDIENTE CONFIRMACION'
+                 AND c.telefono = $1
+                 ORDER BY r.created_at DESC LIMIT 1`,
+                [telefono]
+            );
+            if (result && result.rows && result.rows[0]) {
+                return result.rows[0];
+            }
+        }
+        // Fallback a JSON en memoria
+        const db = loadDb();
+        const matching = (db.reservas || []).filter(r =>
+            r.telefono === telefono && r.estado === 'PENDIENTE CONFIRMACION'
+        ).sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
+        return matching[0] || null;
+    } catch (err) {
+        console.error('⚠️ Error getMostRecentPendingReservationByPhone:', err.message);
+        return null;
+    }
+}
+
+/**
+ * Devuelve las fechas de preferencia de una reserva desde la tabla reservas_fechas_preferencia.
+ */
+async function getFechasPreferencia(reservaId) {
+    try {
+        if (pool) {
+            const result = await pool.query(
+                `SELECT fecha FROM reservas_fechas_preferencia WHERE reserva_id = $1 ORDER BY orden ASC`,
+                [reservaId]
+            );
+            if (result && result.rows) return result.rows;
+        }
+        return [];
+    } catch (err) {
+        console.error('⚠️ Error getFechasPreferencia:', err.message);
+        return [];
+    }
+}
+
 module.exports = {
     checkAvailability,
     getAvailableTimeSlotsForDate,
@@ -2173,5 +2223,7 @@ module.exports = {
     saveAttachment,
     deleteAttachment,
     SHIFT_CAPACITIES,
-    SCHEDULE_BY_DAY
+    SCHEDULE_BY_DAY,
+    getMostRecentPendingReservationByPhone,
+    getFechasPreferencia
 };
