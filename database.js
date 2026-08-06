@@ -230,8 +230,9 @@ if (process.env.DATABASE_URL) {
 
         // Reordenar columnas físicamente en la tabla 'reservas' para poner cliente_id a la derecha de id
         try {
+            await pool.query(`DROP TABLE IF EXISTS reservas_ordered CASCADE;`);
             await pool.query(`
-                CREATE TABLE IF NOT EXISTS reservas_ordered (
+                CREATE TABLE reservas_ordered (
                     id VARCHAR(50) PRIMARY KEY,
                     cliente_id INT REFERENCES clientes(id) ON DELETE CASCADE,
                     fecha VARCHAR(20) DEFAULT '',
@@ -244,21 +245,19 @@ if (process.env.DATABASE_URL) {
                     tarjeta_regalo VARCHAR(50),
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
                 );
-
+            `);
+            await pool.query(`
                 INSERT INTO reservas_ordered(id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at)
-                SELECT id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at FROM reservas
-                ON CONFLICT (id) DO UPDATE SET cliente_id = EXCLUDED.cliente_id;
-
-                ALTER TABLE reservas_fechas_preferencia DROP CONSTRAINT IF EXISTS reservas_fechas_preferencia_reserva_id_fkey;
-
-                DROP TABLE reservas CASCADE;
-
-                ALTER TABLE reservas_ordered RENAME TO reservas;
-
+                SELECT id, cliente_id, fecha, hora, comensales, estado, tipo_reserva, alergias, tipo_servicio, tarjeta_regalo, created_at FROM reservas;
+            `);
+            await pool.query(`ALTER TABLE reservas_fechas_preferencia DROP CONSTRAINT IF EXISTS reservas_fechas_preferencia_reserva_id_fkey;`);
+            await pool.query(`DROP TABLE reservas CASCADE;`);
+            await pool.query(`ALTER TABLE reservas_ordered RENAME TO reservas;`);
+            await pool.query(`
                 ALTER TABLE reservas_fechas_preferencia ADD CONSTRAINT reservas_fechas_preferencia_reserva_id_fkey 
                 FOREIGN KEY (reserva_id) REFERENCES reservas(id) ON DELETE CASCADE;
             `);
-            console.log("✅ Tabla 'reservas' reordenada físicamente (cliente_id es la 2ª columna).");
+            console.log("✅ Tabla 'reservas' reordenada físicamente con éxito (cliente_id es la 2ª columna).");
         } catch (err) {
             console.error("⚠️ Aviso al reordenar columnas de reservas:", err.message);
         }
