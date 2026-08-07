@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V67-FIX-CATEGORY-EMAIL-SUBJECT-PRIORITY';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V68-DISABLE-FALLBACK-EMAIL-RESEND-ON-RESTART';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

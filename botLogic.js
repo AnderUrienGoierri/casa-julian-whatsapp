@@ -1321,42 +1321,7 @@ async function handleButtonResponse(from, buttonId) {
                     console.error("⚠️ Error procesando confirmación:", err.message, err.stack);
                 }
             } else {
-                console.warn(`⚠️ [confirm_yes] RAMA ELSE (sin pending): buscando en DB para ${from}...`);
-                // Estado perdido (ej. reinicio del servidor en Render).
-                // Recuperar la reserva más reciente PENDIENTE para este teléfono y enviar el email igualmente.
-                try {
-                    const recentRes = await db.getMostRecentPendingReservationByPhone(from);
-                    if (recentRes) {
-                        const fechasPref = db.getFechasPreferencia ? await db.getFechasPreferencia(recentRes.id) : [];
-                        const fechasStr = Array.isArray(fechasPref) && fechasPref.length > 0
-                            ? fechasPref.map(f => f.fecha || f).join(', ')
-                            : (recentRes.fecha || 'Sin preferencia');
-                        const detalle = `🆔 *ID Reserva:* ${recentRes.id}\n` +
-                                        `👤 *Nombre:* ${recentRes.nombre || from}\n` +
-                                        `🎁 *Nº Tarjeta Regalo:* ${recentRes.tarjeta_regalo || 'No especificado'}\n` +
-                                        `👥 *Comensales:* ${recentRes.comensales || 2}\n` +
-                                        `🍽️ *Servicio:* ${recentRes.tipo_servicio || 'Sin preferencia'}\n` +
-                                        `⏰ *Hora seleccionada:* ${recentRes.hora || 'Sin preferencia'}\n` +
-                                        `📅 *Fechas de preferencia:* ${fechasStr}\n` +
-                                        `⚠️ *Alergias/Restricciones:* ${recentRes.alergias || 'NO'}\n` +
-                                        `📌 *Estado:* ${recentRes.estado || 'PENDIENTE CONFIRMACION'}\n` +
-                                        `📱 *WhatsApp Remitente:* ${from}\n` +
-                                        `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)\n` +
-                                        `⚠️ *(Email recuperado tras reinicio del servidor)*`;
-                        await sendInternalStaffAlertInSpanish(
-                            'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
-                            from,
-                            detalle,
-                            recentRes.nombre || from,
-                            from
-                        );
-                        console.log(`✅ Email de fallback enviado para reserva ${recentRes.id} (teléfono: ${from})`);
-                    } else {
-                        console.warn(`⚠️ confirm_yes fallback: no se encontró reserva PENDIENTE para ${from}`);
-                    }
-                } catch (fallbackErr) {
-                    console.error("⚠️ Error en fallback de email confirm_yes:", fallbackErr.message);
-                }
+                console.warn(`⚠️ [confirm_yes] RAMA ELSE (sin pending): no hay solicitud pendiente en memoria para ${from}`);
                 await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
                 userStates.delete(from);
             }
