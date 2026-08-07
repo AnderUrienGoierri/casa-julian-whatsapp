@@ -98,117 +98,55 @@ userLocations.delete = function(key) {
     return res;
 };
 
-/**
- * Valida y extrae fechas en formato DD/MM/AAAA (ej. 15/09/2026).
- */
-function parseAndValidateDates(text) {
-    if (!text) return [];
-    // Separa por saltos de línea, comas, punto y coma o espacios múltiples
-    const parts = text.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
-    const validDates = [];
+// Importación de submódulos modularizados de /bot
+const {
+    parseAndValidateDates,
+    getDayOfWeekFromDateStr,
+    checkRestaurantClosedDate,
+    isValidEmail,
+    getInvalidEmailMsg,
+    formatModificationDetail
+} = require('./bot/utils');
 
-    for (const part of parts) {
-        // Coincide con D(D) [/-.] M(M) [/-.] YYYY, por ejemplo: "10/10-2026", "5.8.2026", "05-08-2026", "5/8/2026"
-        const match = part.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
-        if (match) {
-            const day = parseInt(match[1], 10);
-            const month = parseInt(match[2], 10);
-            const year = parseInt(match[3], 10);
+const {
+    sendLanguageMenu: sendLanguageMenuSub,
+    showLocationOrMainMenu: showLocationOrMainMenuSub,
+    sendLocationMenu: sendLocationMenuSub,
+    sendMainMenu: sendMainMenuSub,
+    sendFaqMenu: sendFaqMenuSub,
+    sendNationalityList: sendNationalityListSub,
+    sendFormLanguageList: sendFormLanguageListSub
+} = require('./bot/menus');
 
-            if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 2024 && year <= 2035) {
-                const formattedDay = day < 10 ? '0' + day : '' + day;
-                const formattedMonth = month < 10 ? '0' + month : '' + month;
-                const cleanDateStr = `${formattedDay}/${formattedMonth}/${year}`;
-                if (!validDates.includes(cleanDateStr)) {
-                    validDates.push(cleanDateStr);
-                }
-            }
-        }
-    }
-    return validDates;
-}
+const { handleFaqSelection: handleFaqSelectionSub } = require('./bot/faq');
+const { requestUserConfirmation: requestUserConfirmationSub } = require('./bot/confirmation');
+const {
+    handleRegalarMenuTradicion: handleRegalarMenuTradicionSub,
+    sendGiftCardOptions: sendGiftCardOptionsSub,
+    handleMenuTradSlotSelection: handleMenuTradSlotSelectionSub,
+    sendMenuTradDaysList: sendMenuTradDaysListSub
+} = require('./bot/giftCardFlow');
 
-/**
- * Obtiene el día de la semana (0=Domingo, 1=Lunes, ..., 6=Sábado) de una fecha en formato DD/MM/AAAA.
- */
-function getDayOfWeekFromDateStr(dateStr) {
-    if (!dateStr || typeof dateStr !== 'string') return null;
-    const match = dateStr.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
-    if (!match) return null;
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10) - 1;
-    const year = parseInt(match[3], 10);
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-    const d = new Date(year, month, day);
-}
+const {
+    sendModHoraOptions: sendModHoraOptionsSub,
+    handleModHoraSelection: handleModHoraSelectionSub
+} = require('./bot/modCancelFlow');
 
-/**
- * Comprueba si una fecha (DD/MM/AAAA) coincide con día de descanso (Lunes) o periodo de vacaciones (25 Ago - 7 Sep).
- * Devuelve null si está abierto, o un objeto { closed: true, reason: 'monday' | 'vacation', date: dateStr } si está cerrado.
- */
-function checkRestaurantClosedDate(dateStr) {
-    if (!dateStr || typeof dateStr !== 'string') return null;
-    const match = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
-    if (!match) return null;
+// Envoltorios delegados para mantener firma y mapas en memoria singletons
+async function sendLanguageMenu(from) { return sendLanguageMenuSub(from, userLanguages, userStates); }
+async function sendLocationMenu(from) { return sendLocationMenuSub(from, userLanguages); }
+async function sendMainMenu(from) { return sendMainMenuSub(from, userLanguages, userStates); }
+async function showLocationOrMainMenu(from) { return showLocationOrMainMenuSub(from, userLocations, userLanguages, userStates); }
+async function sendFaqMenu(from, lang) { return sendFaqMenuSub(from, lang, userStates); }
+async function sendNationalityList(from, lang) { return sendNationalityListSub(from, lang); }
+async function sendFormLanguageList(from, lang) { return sendFormLanguageListSub(from, lang); }
+async function handleFaqSelection(from, faqId, lang) { return handleFaqSelectionSub(from, faqId, lang, handleRegalarMenuTradicion); }
+async function requestUserConfirmation(from, lang, pendingAlertData) { return requestUserConfirmationSub(from, lang, pendingAlertData, userStates); }
+async function handleRegalarMenuTradicion(from, lang) { return handleRegalarMenuTradicionSub(from, lang, userStates); }
+async function sendGiftCardOptions(from, lang) { return sendGiftCardOptionsSub(from, lang, userStates); }
+async function sendModHoraOptions(from, lang, state) { return sendModHoraOptionsSub(from, lang, state); }
+async function handleModHoraSelection(from, selectedTime, passedState) { return handleModHoraSelectionSub(from, selectedTime, userStates, userLanguages); }
 
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10); // 1..12
-    const year = parseInt(match[3], 10);
-
-    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-
-    // 1. Vacaciones anuales del restaurante: del 25 de Agosto al 7 de Septiembre (ambos inclusive) para cualquier año
-    if ((month === 8 && day >= 25) || (month === 9 && day <= 7)) {
-        return { closed: true, reason: 'vacation', date: dateStr };
-    }
-
-    // 2. Descanso semanal del restaurante: Lunes (dayOfWeek === 1)
-    const dateObj = new Date(year, month - 1, day);
-    const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
-    if (dayOfWeek === 1) {
-        return { closed: true, reason: 'monday', date: dateStr };
-    }
-
-    return null;
-}
-
-/**
- * Muestra directamente el Menú Principal o la Ubicación según la selección previa guardada.
- */
-async function showLocationOrMainMenu(from) {
-    const loc = userLocations.get(from);
-    if (loc === 'pais_vasco') {
-        await sendMainMenu(from);
-    } else if (loc === 'madrid') {
-        const lang = userLanguages.get(from) || 'es';
-        await sendMessage(from, getTranslation(lang, 'madridMsg'));
-        await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-    } else {
-        await sendLocationMenu(from);
-    }
-}
-
-/**
- * Valida que un string sea un email válido.
- * Requiere: caracteres antes del @, dominio con punto y extensión.
- */
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(email.trim());
-}
-
-/**
- * Devuelve el mensaje de error de email inválido según el idioma.
- */
-function getInvalidEmailMsg(lang) {
-    if (lang === 'eu') {
-        return '⚠️ *Email helbide baliogabea.* Mesedez, idatzi email baliogarri bat (adib. *nombre@ejemplo.com*), edo sakatu botoiaren bidez saltatu:';
-    } else if (lang === 'en') {
-        return '⚠️ *Invalid email address.* Please enter a valid email (e.g. *nombre@ejemplo.com*), or skip using the button:';
-    } else {
-        return '⚠️ *Email no válido.* Por favor, introduce un email correcto (ej. *nombre@ejemplo.com*), o pulsa el botón para omitirlo:';
-    }
-}
 
 /**
  * Parsea el payload de mensaje entrante de Meta Webhook y lo envía a handleUserMessage.

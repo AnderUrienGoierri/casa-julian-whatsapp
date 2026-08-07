@@ -1,0 +1,117 @@
+/**
+ * Utility functions for bot logic (date parsing, closure checks, email validation, etc.).
+ */
+
+function parseAndValidateDates(text) {
+    if (!text) return [];
+    const parts = text.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
+    const validDates = [];
+
+    for (const part of parts) {
+        const match = part.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+        if (match) {
+            const day = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10);
+            const year = parseInt(match[3], 10);
+
+            if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 2024 && year <= 2035) {
+                const formattedDay = day < 10 ? '0' + day : '' + day;
+                const formattedMonth = month < 10 ? '0' + month : '' + month;
+                const cleanDateStr = `${formattedDay}/${formattedMonth}/${year}`;
+                if (!validDates.includes(cleanDateStr)) {
+                    validDates.push(cleanDateStr);
+                }
+            }
+        }
+    }
+    return validDates;
+}
+
+function getDayOfWeekFromDateStr(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return null;
+    const match = dateStr.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+    if (!match) return null;
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    const year = parseInt(match[3], 10);
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    const d = new Date(year, month, day);
+    return d.getDay();
+}
+
+function checkRestaurantClosedDate(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return null;
+    const match = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if (!match) return null;
+
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const year = parseInt(match[3], 10);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+
+    // 1. Vacaciones anuales del restaurante: del 25 de Agosto al 7 de Septiembre (ambos inclusive) para cualquier año
+    if ((month === 8 && day >= 25) || (month === 9 && day <= 7)) {
+        return { closed: true, reason: 'vacation', date: dateStr };
+    }
+
+    // 2. Descanso semanal del restaurante: Lunes (dayOfWeek === 1)
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = dateObj.getDay();
+    if (dayOfWeek === 1) {
+        return { closed: true, reason: 'monday', date: dateStr };
+    }
+
+    return null;
+}
+
+function isValidEmail(email) {
+    if (!email) return false;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email.trim());
+}
+
+function getInvalidEmailMsg(lang) {
+    if (lang === 'eu') {
+        return '⚠️ *Email helbide baliogabea.* Mesedez, idatzi email baliogarri bat (adib. *nombre@ejemplo.com*), edo sakatu botoiaren bidez saltatu:';
+    } else if (lang === 'en') {
+        return '⚠️ *Invalid email address.* Please enter a valid email (e.g. *nombre@ejemplo.com*), or skip using the button:';
+    } else {
+        return '⚠️ *Email no válido.* Por favor, introduce un email correcto (ej. *nombre@ejemplo.com*), o pulsa el botón para omitirlo:';
+    }
+}
+
+function formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, campoMod, valorMod, lang = 'es') {
+    let detailStr = '';
+
+    if (lang === 'eu') {
+        detailStr = `🆔 *Berrespen-kodea:* Ez da berretsi (Jatetxeak aztertzeko zain)\n` +
+                    `👤 *Bezeroaren izena:* ${nombreCliente || 'Zehaztugabea'}\n` +
+                    `📞 *Telefonoa:* ${telefonoReserva || from}\n` +
+                    `📌 *Uneko erreserba:* ${reservaActual}\n` +
+                    `✏️ *Eskatutako aldaketa (${campoMod}):* ${valorMod}`;
+    } else if (lang === 'en') {
+        detailStr = `🆔 *Confirmation Code:* Not confirmed (Pending restaurant review)\n` +
+                    `👤 *Guest Name:* ${nombreCliente || 'Unspecified'}\n` +
+                    `📞 *Phone:* ${telefonoReserva || from}\n` +
+                    `📌 *Current Reservation:* ${reservaActual}\n` +
+                    `✏️ *Requested Change (${campoMod}):* ${valorMod}`;
+    } else {
+        detailStr = `🆔 *Código de Confirmación:* No confirmada (Pendiente de revisión por el restaurante)\n` +
+                    `👤 *Nombre del Cliente:* ${nombreCliente || 'No especificado'}\n` +
+                    `📞 *Teléfono:* ${telefonoReserva || from}\n` +
+                    `📌 *Reserva Actual:* ${reservaActual}\n` +
+                    `✏️ *Modificación Solicitada (${campoMod}):* ${valorMod}`;
+    }
+
+    return detailStr;
+}
+
+module.exports = {
+    parseAndValidateDates,
+    getDayOfWeekFromDateStr,
+    checkRestaurantClosedDate,
+    isValidEmail,
+    getInvalidEmailMsg,
+    formatModificationDetail
+};
