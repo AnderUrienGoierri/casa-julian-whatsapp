@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V80-BUTTON-TITLE-ALIASES-ENVIAR-SUBMIT';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V81-UNIFIED-CONFIRM-YES-SUBMISSION-PIPELINE';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

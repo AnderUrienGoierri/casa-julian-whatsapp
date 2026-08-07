@@ -1402,9 +1402,37 @@ async function handleButtonResponse(from, buttonId) {
         case 'send':
         case 'Bidali':
         case 'bidali': {
-            const state = userStates.get(from);
-            const consultas = state?.data?.consultas || [];
-            await executeConsultaAbiertaSubmit(from, lang, consultas);
+            const state = userStates.get(from) || { data: {} };
+            const consultas = (state.data && Array.isArray(state.data.consultas) && state.data.consultas.length > 0)
+                ? state.data.consultas
+                : ['Consulta abierta'];
+
+            const telefonoCliente = from.replace(/\D/g, '');
+            const nombreCliente = `Cliente WhatsApp (${telefonoCliente})`;
+            const inquiriesFormatted = consultas.length > 1
+                ? consultas.map((q, idx) => `${idx + 1}. ${q}`).join('\n')
+                : consultas[0];
+
+            const detalleConsulta = 
+                `🆔 *Tipo de Solicitud:* CONSULTA ABIERTA / CASUÍSTICAS ESPECIALES\n` +
+                `👤 *Cliente:* ${nombreCliente}\n` +
+                `📞 *Teléfono:* ${telefonoCliente}\n` +
+                `💬 *Consulta(s) del Cliente:*\n${inquiriesFormatted}\n` +
+                `📌 *Estado:* PENDIENTE RESPUESTA RESTAURANTE\n` +
+                `📱 *WhatsApp Remitente:* ${from}`;
+
+            state.data = state.data || {};
+            state.data.pendingAlert = {
+                tipoAccion: 'CONSULTA ABIERTA (CASUÍSTICAS ESPECIALES)',
+                detalleMod: detalleConsulta,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoCliente,
+                successMsgKey: 'consultaSuccessMsg'
+            };
+            userStates.set(from, state);
+
+            // Reutilizar la canalización confirm_yes que ya funciona al 100% en todo el bot
+            await handleButtonResponse(from, 'confirm_yes');
             break;
         }
 
