@@ -129,6 +129,21 @@ function parseAndValidateDates(text) {
 }
 
 /**
+ * Obtiene el día de la semana (0=Domingo, 1=Lunes, ..., 6=Sábado) de una fecha en formato DD/MM/AAAA.
+ */
+function getDayOfWeekFromDateStr(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return null;
+    const match = dateStr.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+    if (!match) return null;
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    const year = parseInt(match[3], 10);
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    const d = new Date(year, month, day);
+    return d.getDay();
+}
+
+/**
  * Muestra directamente el Menú Principal o la Ubicación según la selección previa guardada.
  */
 async function showLocationOrMainMenu(from) {
@@ -448,6 +463,10 @@ async function handleListResponse(from, listId) {
                 await handleFaqSelection(from, listId, lang);
             } else if (listId.startsWith('nac_')) {
                 await handleNationalitySelection(from, listId, lang);
+            } else if (listId.startsWith('mod_time_')) {
+                const rawTime = listId.replace('mod_time_', '');
+                const timeFormatted = rawTime.slice(0, 2) + ':' + rawTime.slice(2);
+                await handleModHoraSelection(from, timeFormatted);
             } else if (listId.startsWith('form_lang_')) {
                 await handleButtonResponse(from, listId);
             } else if (listId.startsWith('alg_')) {
@@ -1371,7 +1390,7 @@ async function handleButtonResponse(from, buttonId) {
                 } else if (tipo === 'hora') {
                     state.step = 'mod_val_hora';
                     userStates.set(from, state);
-                    await sendMessage(from, getTranslation(lang, 'modHoraPrompt'));
+                    await sendModHoraOptions(from, lang, state);
                 }
                 break;
             }
@@ -2092,6 +2111,107 @@ async function handleFaqSelection(from, faqId, lang) {
         }
         await sendMessage(from, responseMsg);
     }
+}
+
+/**
+ * Envía las opciones de turnos horarios para modificación mediante lista interactiva según el día de la semana.
+ */
+async function sendModHoraOptions(from, lang, state) {
+    const fechaStr = state?.data?.fechaReservaOriginal || state?.data?.fecha || (Array.isArray(state?.data?.modFechas) && state.data.modFechas.length > 0 ? state.data.modFechas[0] : null);
+    
+    const dayOfWeek = getDayOfWeekFromDateStr(fechaStr);
+    const isWeekend = (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === null); // 5 = Viernes, 6 = Sábado, null = fallback
+
+    const comidaRows = [
+        { id: "mod_time_1230", title: "12:30", description: "1º Turno Comida (12:30)" },
+        { id: "mod_time_1300", title: "13:00", description: "1º Turno Comida (13:00)" },
+        { id: "mod_time_1330", title: "13:30", description: "1º Turno Comida (13:30)" },
+        { id: "mod_time_1400", title: "14:00", description: "1º Turno Comida (14:00)" },
+        { id: "mod_time_1515", title: "15:15", description: "2º Turno Comida (15:15)" }
+    ];
+
+    const cenaRows = [
+        { id: "mod_time_2000", title: "20:00", description: "Turno Cena (20:00)" },
+        { id: "mod_time_2030", title: "20:30", description: "Turno Cena (20:30)" },
+        { id: "mod_time_2100", title: "21:00", description: "Turno Cena (21:00)" },
+        { id: "mod_time_2130", title: "21:30", description: "Turno Cena (21:30)" }
+    ];
+
+    let headerBody = '';
+    let buttonText = '';
+    let sections = [];
+
+    if (lang === 'eu') {
+        buttonText = "🕐 Orduak Ikusi";
+        if (isWeekend) {
+            headerBody = `🕐 *Ordu Berriaren Aukeraketa Erreserba Aldatzeko*\n\n📅 Erreserba-data: *${fechaStr || 'Zehaztua'}* (Ostirala / Larunbata)\n\nMesedez, sakatu beheko botoia nahi duzun txanda berria aukeratzeko (Bazkaria edo Afaria):`;
+            sections = [
+                { title: "☀️ Bazkaria Txandak", rows: comidaRows },
+                { title: "🌙 Afaria Txandak", rows: cenaRows }
+            ];
+        } else {
+            headerBody = `🕐 *Ordu Berriaren Aukeraketa Erreserba Aldatzeko*\n\n📅 Erreserba-data: *${fechaStr || 'Zehaztua'}*\n*(Igandetik ostegunera bazkari zerbitzua bakarrik eskaintzen da)*\n\nMesedez, sakatu beheko botoia nahi duzun bazkari txanda aukeratzeko:`;
+            sections = [
+                { title: "☀️ Bazkaria Txandak", rows: comidaRows }
+            ];
+        }
+    } else if (lang === 'en') {
+        buttonText = "🕐 View Time Slots";
+        if (isWeekend) {
+            headerBody = `🕐 *Select New Time Slot for Modification*\n\n📅 Reservation date: *${fechaStr || 'Specified'}* (Friday / Saturday)\n\nPlease tap the button below to select your desired time slot (Lunch or Dinner):`;
+            sections = [
+                { title: "☀️ Lunch Shift", rows: comidaRows },
+                { title: "🌙 Dinner Shift", rows: cenaRows }
+            ];
+        } else {
+            headerBody = `🕐 *Select New Time Slot for Modification*\n\n📅 Reservation date: *${fechaStr || 'Specified'}*\n*(Sunday to Thursday we offer lunch service exclusively)*\n\nPlease tap the button below to select your desired lunch time slot:`;
+            sections = [
+                { title: "☀️ Lunch Shift", rows: comidaRows }
+            ];
+        }
+    } else {
+        // Spanish (ES)
+        buttonText = "🕐 Ver Horarios";
+        if (isWeekend) {
+            headerBody = `🕐 *Selección de Turno Horario para Modificación*\n\n📅 Fecha de reserva: *${fechaStr || 'Especificada'}* (Viernes / Sábado)\n\nPor favor, pulsa el botón de abajo para seleccionar el nuevo turno deseado (Comida o Cena):`;
+            sections = [
+                { title: "☀️ Turnos Comida (Mediodía)", rows: comidaRows },
+                { title: "🌙 Turnos Cena (Noche)", rows: cenaRows }
+            ];
+        } else {
+            headerBody = `🕐 *Selección de Turno Horario para Modificación*\n\n📅 Fecha de reserva: *${fechaStr || 'Especificada'}*\n*(De domingo a jueves el restaurante ofrece exclusivamente servicio de comidas)*\n\nPor favor, pulsa el botón de abajo para seleccionar el nuevo turno de comida deseado:`;
+            sections = [
+                { title: "☀️ Turnos Comida (Mediodía)", rows: comidaRows }
+            ];
+        }
+    }
+
+    await sendInteractiveList(from, headerBody, buttonText, sections);
+}
+
+/**
+ * Maneja la selección del turno horario de modificación (desde lista interactiva o texto).
+ */
+async function handleModHoraSelection(from, selectedTime) {
+    const state = userStates.get(from) || { data: {} };
+    const lang = userLanguages.get(from) || 'es';
+
+    const reservationId = state.data.reservationId || null;
+    const nombreCliente = state.data.nombreCliente || null;
+    const telefonoReserva = state.data.telefonoReserva || from;
+    const reservaActual = state.data.reservaActual || 'No especificada';
+
+    const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA', selectedTime, lang);
+
+    await requestUserConfirmation(from, lang, {
+        tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+        reservationId: reservationId,
+        isModification: true,
+        detalleMod: detalleMod,
+        nombreCliente: nombreCliente,
+        telefonoReserva: telefonoReserva,
+        successMsgKey: 'modSuccessMsg'
+    });
 }
 
 /**
@@ -3274,7 +3394,7 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
             } else if (modTipo === 'hora') {
                 currentState.step = 'mod_val_hora';
                 userStates.set(from, currentState);
-                await sendMessage(from, getTranslation(lang, 'modHoraPrompt'));
+                await sendModHoraOptions(from, lang, currentState);
             } else {
                 currentState.step = 'modificacion_tipo';
                 userStates.set(from, currentState);
@@ -3460,22 +3580,10 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
         }
 
         case 'mod_val_hora': {
-            const reservationId = currentState.data.reservationId || null;
-            const nombreCliente = currentState.data.nombreCliente || null;
-            const telefonoReserva = currentState.data.telefonoReserva || from;
-            const reservaActual = currentState.data.reservaActual || 'No especificada';
-
-            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA', text, lang);
-            
-            await requestUserConfirmation(from, lang, {
-                tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
-                reservationId: reservationId,
-                isModification: true,
-                detalleMod: detalleMod,
-                nombreCliente: nombreCliente,
-                telefonoReserva: telefonoReserva,
-                successMsgKey: 'modSuccessMsg'
-            });
+            const rawInput = text.trim();
+            const timeMatch = rawInput.match(/(\d{1,2})[:\.](\d{2})/);
+            const selectedTime = timeMatch ? `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : rawInput;
+            await handleModHoraSelection(from, selectedTime);
             break;
         }
 
