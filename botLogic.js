@@ -1257,7 +1257,11 @@ async function handleButtonResponse(from, buttonId) {
             console.log(`🔍 [confirm_yes] pending exists: ${!!pending}`);
             if (pending) console.log(`🔍 [confirm_yes] tipoAccion: ${pending.tipoAccion}`);
 
-            if (pending) {
+            if (pending && pending.tipoAccion) {
+                // Limpiar inmediatamente el objeto pendiente para evitar re-ejecuciones
+                state.data.pendingAlert = null;
+                userStates.set(from, state);
+
                 console.log(`✅ [confirm_yes] Rama IF PENDING → enviando email...`);
                 try {
                     let customSuccessMsg = null;

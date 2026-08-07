@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V71-ADD-ANOTHER-INQUIRY-OR-SEND-BUTTONS';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V72-PERMANENT-WEBHOOK-AGE-GUARD-AND-STATE-RESET';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
@@ -146,15 +146,14 @@ app.post('/webhook', async (req, res) => {
                         
                         const message = change.value.messages[0];
 
-                        // 1. Filtrar mensajes antiguos o reintentados por Meta (> 5 minutos de antigüedad)
-                        if (message.timestamp) {
-                            const msgTime = parseInt(message.timestamp, 10);
-                            const nowSec = Math.floor(Date.now() / 1000);
-                            const ageSec = nowSec - msgTime;
-                            if (ageSec > 300) {
-                                console.log(`⚠️ Webhook antiguo ignorado (ID: ${message.id}, Antigüedad: ${ageSec}s)`);
-                                continue;
-                            }
+                        // 1. Filtrar mensajes antiguos o reintentados por Meta (> 5 minutos de antigüedad o sin timestamp válido)
+                        const msgTime = Number(message.timestamp);
+                        const nowSec = Math.floor(Date.now() / 1000);
+                        const ageSec = isNaN(msgTime) ? 999999 : (nowSec - msgTime);
+
+                        if (isNaN(msgTime) || ageSec > 300 || ageSec < -60) {
+                            console.log(`⚠️ Webhook antiguo o sin timestamp ignorado (ID: ${message.id}, RawTimestamp: ${message.timestamp}, Antigüedad: ${ageSec}s)`);
+                            continue;
                         }
 
                         // 2. Evitar procesar mensajes duplicados si Meta reintenta la petición
