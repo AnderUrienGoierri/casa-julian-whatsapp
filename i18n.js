@@ -169,7 +169,7 @@ const translations = {
         "modComensalesPrompt": "📌 *Su reserva actual consta de {comensales} comensales (máximo permitido: 6 personas).*\n\nIndica el nuevo número de comensales deseado (máx. 6):",
         "modComensalesPromptUnknown": "📌 *Reserva actual:* {reserva}\n⚠️ *Recuerda:* El máximo permitido por reserva es de 6 comensales.\n\nIndica el nuevo número de comensales deseado (máx. 6):",
         "maxComensalesErrorMsg": "⚠️ El número máximo permitido por reserva es de 6 comensales. No aceptamos reservas para grupos de más de 6 personas.\n\nPor favor, indica un número entre 1 y 6:",
-        "modDiaPrompt": "Indica el nuevo día deseado en formato DD/MM/AAAA:",
+        "modDiaPrompt": "📅 *Fechas de Preferencia para Modificación*\n\nPor favor, indícanos tus fechas de preferencia deseada para la modificación (puedes indicar hasta 5 fechas de preferencia, ej: *15/08/2026, 16/08/2026*):",
         "modHoraPrompt": "Indica la nueva hora deseada (ejemplo: 13:30 / 20:30):",
         "modSuccessMsg": "Nuestro equipo revisará su solicitud. Hasta que no reciba confirmación por parte nuestra su modificación no queda confirmada.",
         "cancelSuccessMsg": "Nuestro equipo revisará y procesará su solicitud de cancelación. Recuerde que los responsables deben confirmar la cancelación y que en caso de cancelar con menos de 24 horas de antelación se aplicará el cargo de 45 € por comensal.",

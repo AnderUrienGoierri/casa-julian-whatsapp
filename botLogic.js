@@ -1363,6 +1363,7 @@ async function handleButtonResponse(from, buttonId) {
                     await sendMessage(from, promptMsg);
                 } else if (tipo === 'dia') {
                     state.step = 'mod_val_dia';
+                    state.data.modFechas = [];
                     userStates.set(from, state);
                     await sendMessage(from, getTranslation(lang, 'modDiaPrompt'));
                 } else if (tipo === 'hora') {
@@ -3236,6 +3237,7 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
                 await sendMessage(from, promptMsg);
             } else if (modTipo === 'dia') {
                 currentState.step = 'mod_val_dia';
+                currentState.data.modFechas = [];
                 userStates.set(from, currentState);
                 await sendMessage(from, getTranslation(lang, 'modDiaPrompt'));
             } else if (modTipo === 'hora') {
@@ -3344,15 +3346,92 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
             break;
         }
 
-        case 'mod_val_dia':
-        case 'mod_val_hora': {
-            const tipoModLabel = currentState.step.replace('mod_val_', '').toUpperCase();
+        case 'mod_val_dia': {
+            const cleanInput = text.trim();
             const reservationId = currentState.data.reservationId || null;
             const nombreCliente = currentState.data.nombreCliente || null;
             const telefonoReserva = currentState.data.telefonoReserva || from;
             const reservaActual = currentState.data.reservaActual || 'No especificada';
 
-            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, tipoModLabel, text, lang);
+            currentState.data = currentState.data || {};
+            currentState.data.modFechas = currentState.data.modFechas || [];
+
+            if (cleanInput === 'btn_finish_mod_fechas' || ['finalizar', 'enviar', 'listo', 'ok', 'no'].includes(cleanInput.toLowerCase())) {
+                if (currentState.data.modFechas.length === 0) {
+                    await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                    break;
+                }
+                const fechasFormatted = currentState.data.modFechas.join(', ');
+                const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'FECHAS DE PREFERENCIA / DIA', fechasFormatted, lang);
+
+                await requestUserConfirmation(from, lang, {
+                    tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                    reservationId: reservationId,
+                    isModification: true,
+                    detalleMod: detalleMod,
+                    nombreCliente: nombreCliente,
+                    telefonoReserva: telefonoReserva,
+                    successMsgKey: 'modSuccessMsg'
+                });
+                break;
+            }
+
+            if (cleanInput === 'btn_add_mod_fecha') {
+                let msg = `📅 *Indícanos la siguiente fecha de preferencia para la modificación (formato DD/MM/AAAA):*`;
+                if (lang === 'eu') msg = `📅 *Eman hurrengo data hobetsia aldatzeko (DD/MM/AAAA formatuan):*`;
+                else if (lang === 'en') msg = `📅 *Please specify the next preferred date for modification (DD/MM/AAAA format):*`;
+                await sendMessage(from, msg);
+                break;
+            }
+
+            const newDates = parseAndValidateDates(text);
+            if (newDates.length === 0) {
+                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                break;
+            }
+
+            for (const d of newDates) {
+                if (!currentState.data.modFechas.includes(d) && currentState.data.modFechas.length < 5) {
+                    currentState.data.modFechas.push(d);
+                }
+            }
+
+            userStates.set(from, currentState);
+
+            if (currentState.data.modFechas.length >= 5) {
+                const fechasFormatted = currentState.data.modFechas.join(', ');
+                const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'FECHAS DE PREFERENCIA / DIA (MÁX. 5 FECHAS)', fechasFormatted, lang);
+
+                await requestUserConfirmation(from, lang, {
+                    tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                    reservationId: reservationId,
+                    isModification: true,
+                    detalleMod: detalleMod,
+                    nombreCliente: nombreCliente,
+                    telefonoReserva: telefonoReserva,
+                    successMsgKey: 'modSuccessMsg'
+                });
+            } else {
+                const count = currentState.data.modFechas.length;
+                const datesListStr = currentState.data.modFechas.map(f => `• ${f}`).join('\n');
+                const promptBody = `📌 *Fechas de preferencia para la modificación (${count}/5):*\n${datesListStr}\n\n¿Deseas añadir otra fecha de preferencia o finalizar la solicitud?`;
+
+                const buttons = [
+                    { id: 'btn_add_mod_fecha', title: getTranslation(lang, 'btnAddOtraFecha').slice(0, 20) },
+                    { id: 'btn_finish_mod_fechas', title: getTranslation(lang, 'btnFinalizarFechas').slice(0, 20) }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
+            }
+            break;
+        }
+
+        case 'mod_val_hora': {
+            const reservationId = currentState.data.reservationId || null;
+            const nombreCliente = currentState.data.nombreCliente || null;
+            const telefonoReserva = currentState.data.telefonoReserva || from;
+            const reservaActual = currentState.data.reservaActual || 'No especificada';
+
+            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA', text, lang);
             
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
