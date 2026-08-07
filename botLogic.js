@@ -103,17 +103,19 @@ userLocations.delete = function(key) {
  */
 function parseAndValidateDates(text) {
     if (!text) return [];
+    // Separa por saltos de línea, comas, punto y coma o espacios múltiples
     const parts = text.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
     const validDates = [];
 
     for (const part of parts) {
-        const match = part.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        // Coincide con D(D) [/-.] M(M) [/-.] YYYY, por ejemplo: "10/10-2026", "5.8.2026", "05-08-2026", "5/8/2026"
+        const match = part.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
         if (match) {
             const day = parseInt(match[1], 10);
             const month = parseInt(match[2], 10);
             const year = parseInt(match[3], 10);
 
-            if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 2026 && year <= 2030) {
+            if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 2024 && year <= 2035) {
                 const formattedDay = day < 10 ? '0' + day : '' + day;
                 const formattedMonth = month < 10 ? '0' + month : '' + month;
                 const cleanDateStr = `${formattedDay}/${formattedMonth}/${year}`;
@@ -3237,8 +3239,11 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
         }
 
         case 'modificacion_fecha_reserva': {
-            const fechaReservaOriginal = text.trim();
-            if (fechaReservaOriginal.length < 2) {
+            const rawText = text.trim();
+            const parsedDates = parseAndValidateDates(rawText);
+            const fechaReservaOriginal = parsedDates.length > 0 ? parsedDates[0] : rawText;
+
+            if (rawText.length < 2) {
                 let promptFecha = `⚠️ *Por favor, indícanos la fecha actual de la reserva a modificar (Ejemplo: DD/MM/AAAA):*`;
                 if (lang === 'eu') promptFecha = `⚠️ *Mesedez, idatzi aldatu nahi duzun erreserbaren egungo data (Adibidez: DD/MM/AAAA):*`;
                 else if (lang === 'en') promptFecha = `⚠️ *Please enter the current date of the reservation to modify (Example: DD/MM/YYYY):*`;
@@ -3311,8 +3316,11 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
         }
 
         case 'cancelacion_fecha_reserva': {
-            const fechaReserva = text.trim();
-            if (fechaReserva.length < 2) {
+            const rawText = text.trim();
+            const parsedDates = parseAndValidateDates(rawText);
+            const fechaReserva = parsedDates.length > 0 ? parsedDates[0] : rawText;
+
+            if (rawText.length < 2) {
                 let promptFecha = `⚠️ *Por favor, indícanos la fecha de la reserva a cancelar (Ejemplo: DD/MM/AAAA):*`;
                 if (lang === 'eu') promptFecha = `⚠️ *Mesedez, idatzi ezeztatu nahi duzun erreserbaren data (Adibidez: DD/MM/AAAA):*`;
                 else if (lang === 'en') promptFecha = `⚠️ *Please enter the date of the reservation to cancel (Example: DD/MM/YYYY):*`;
