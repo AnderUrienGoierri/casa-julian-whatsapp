@@ -1379,7 +1379,11 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'btn_consulta_otra': {
+        case 'btn_consulta_otra':
+        case 'Otra consulta':
+        case 'otra consulta':
+        case 'Beste galdera bat':
+        case 'Add inquiry': {
             const state = userStates.get(from) || { data: {} };
             state.step = 'consulta_abierta_mas_texto';
             userStates.set(from, state);
@@ -1391,7 +1395,13 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'btn_consulta_enviar': {
+        case 'btn_consulta_enviar':
+        case 'Enviar':
+        case 'enviar':
+        case 'Send':
+        case 'send':
+        case 'Bidali':
+        case 'bidali': {
             const state = userStates.get(from);
             const consultas = state?.data?.consultas || [];
             await executeConsultaAbiertaSubmit(from, lang, consultas);
