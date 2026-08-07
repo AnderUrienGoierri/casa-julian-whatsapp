@@ -1371,6 +1371,25 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'btn_consulta_otra': {
+            const state = userStates.get(from) || { data: {} };
+            state.step = 'consulta_abierta_mas_texto';
+            userStates.set(from, state);
+
+            let msg = `💬 *Añadir otra consulta:*\n\nPor favor, escribe a continuación tu siguiente pregunta o necesidad especial:`;
+            if (lang === 'eu') msg = `💬 *Beste galdera bat gehitu:*\n\nMesedez, idatzi jarraian zure hurrengo galdera edo behar berezia:`;
+            else if (lang === 'en') msg = `💬 *Add another inquiry:*\n\nPlease enter your next question or special request below:`;
+            await sendMessage(from, msg);
+            break;
+        }
+
+        case 'btn_consulta_enviar': {
+            const state = userStates.get(from);
+            const consultas = state?.data?.consultas || [];
+            await executeConsultaAbiertaSubmit(from, lang, consultas);
+            break;
+        }
+
         default:
             await sendLanguageMenu(from, 1);
     }
@@ -2971,6 +2990,98 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
     });
 }
 
+/**
+ * Envía al cliente el resumen de su consulta (o consultas acumuladas) junto a 2 botones:
+ * [Otra consulta] y [Enviar]
+ */
+async function sendConsultaAbiertaSummary(from, lang, consultas) {
+    const telefonoCliente = from.replace(/\D/g, '');
+    let summaryHeader = `📋 *RESUMEN DE TU CONSULTA:*`;
+    let inquiriesLabel = `💬 *Consulta:*`;
+    let inquiriesText = '';
+
+    if (consultas.length > 1) {
+        if (lang === 'eu') {
+            summaryHeader = `📋 *ZURE GALDEREN LABURPENA:*`;
+            inquiriesLabel = `💬 *Galderak:*`;
+        } else if (lang === 'en') {
+            summaryHeader = `📋 *SUMMARY OF YOUR INQUIRIES:*`;
+            inquiriesLabel = `💬 *Inquiries:*`;
+        } else {
+            summaryHeader = `📋 *RESUMEN DE TUS CONSULTAS:*`;
+            inquiriesLabel = `💬 *Consultas:*`;
+        }
+        inquiriesText = consultas.map((q, idx) => `${idx + 1}. ${q}`).join('\n');
+    } else {
+        if (lang === 'eu') {
+            summaryHeader = `📋 *ZURE GALDERAREN LABURPENA:*`;
+            inquiriesLabel = `💬 *Galdera:*`;
+        } else if (lang === 'en') {
+            summaryHeader = `📋 *SUMMARY OF YOUR INQUIRY:*`;
+            inquiriesLabel = `💬 *Inquiry:*`;
+        } else {
+            summaryHeader = `📋 *RESUMEN DE TU CONSULTA:*`;
+            inquiriesLabel = `💬 *Consulta:*`;
+        }
+        inquiriesText = consultas[0] || 'Consulta abierta';
+    }
+
+    const phoneLabel = lang === 'eu' ? 'Harremanetarako Telefonoa' : (lang === 'en' ? 'Contact Phone' : 'Teléfono de Contacto');
+    const summaryMsg = `${summaryHeader}\n\n${inquiriesLabel}\n${inquiriesText}\n\n📱 *${phoneLabel}:* ${telefonoCliente}`;
+
+    await sendMessage(from, summaryMsg);
+
+    const btnOtraTitle = lang === 'eu' ? 'Beste galdera bat' : (lang === 'en' ? 'Add inquiry' : 'Otra consulta');
+    const btnEnviarTitle = lang === 'eu' ? 'Bidali' : (lang === 'en' ? 'Send' : 'Enviar');
+
+    const promptBody = lang === 'eu' 
+        ? `¿Beste galderarik gehitu nahi duzu ala kontsulta bidali?` 
+        : (lang === 'en' ? `Would you like to add another inquiry or send it now?` : `¿Deseas añadir alguna consulta más o enviar la solicitud al restaurante?`);
+
+    const buttons = [
+        { id: 'btn_consulta_otra', title: btnOtraTitle.slice(0, 20) },
+        { id: 'btn_consulta_enviar', title: btnEnviarTitle.slice(0, 20) }
+    ];
+
+    await sendInteractiveButtons(from, promptBody, buttons);
+}
+
+/**
+ * Ejecuta el envío final de las consultas del cliente al restaurante por email y WhatsApp
+ */
+async function executeConsultaAbiertaSubmit(from, lang, consultas) {
+    const telefonoCliente = from.replace(/\D/g, '');
+    const nombreCliente = `Cliente WhatsApp (${telefonoCliente})`;
+
+    const inquiriesList = Array.isArray(consultas) && consultas.length > 0 ? consultas : ['Consulta abierta'];
+    const inquiriesFormatted = inquiriesList.length > 1
+        ? inquiriesList.map((q, idx) => `${idx + 1}. ${q}`).join('\n')
+        : inquiriesList[0];
+
+    const detalleConsulta = 
+        `🆔 *Tipo de Solicitud:* CONSULTA ABIERTA / CASUÍSTICAS ESPECIALES\n` +
+        `👤 *Cliente:* ${nombreCliente}\n` +
+        `📞 *Teléfono:* ${telefonoCliente}\n` +
+        `💬 *Consulta(s) del Cliente:*\n${inquiriesFormatted}\n` +
+        `📌 *Estado:* PENDIENTE RESPUESTA RESTAURANTE\n` +
+        `📱 *WhatsApp Remitente:* ${from}`;
+
+    try {
+        await sendInternalStaffAlertInSpanish(
+            'CONSULTA ABIERTA (CASUÍSTICAS ESPECIALES)',
+            from,
+            detalleConsulta,
+            nombreCliente,
+            telefonoCliente
+        );
+    } catch (e) {
+        console.error("⚠️ Error enviando alerta de consulta abierta:", e.message);
+    }
+
+    await sendMessage(from, getTranslation(lang, 'consultaSuccessMsg'));
+    userStates.delete(from);
+}
+
         case 'consulta_abierta_paso1_texto': {
             const consultaTexto = text.trim();
             if (consultaTexto.length < 3) {
@@ -2981,42 +3092,49 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
                 break;
             }
 
-            const telefonoCliente = from.replace(/\D/g, '');
-            const nombreCliente = `Cliente WhatsApp (${telefonoCliente})`;
+            currentState.data = currentState.data || {};
+            currentState.data.consultas = [consultaTexto];
+            currentState.step = 'consulta_abierta_opciones';
+            userStates.set(from, currentState);
 
-            // 1. Mostrar inmediatamente al cliente el Resumen de su Consulta
-            let summaryMsg = `📋 *RESUMEN DE TU CONSULTA:*\n\n💬 *Consulta:* ${consultaTexto}\n📱 *Teléfono de Contacto:* ${telefonoCliente}`;
-            if (lang === 'eu') {
-                summaryMsg = `📋 *ZURE GALDERAREN LABURPENA:*\n\n💬 *Galdera:* ${consultaTexto}\n📱 *Harremanetarako Telefonoa:* ${telefonoCliente}`;
-            } else if (lang === 'en') {
-                summaryMsg = `📋 *SUMMARY OF YOUR INQUIRY:*\n\n💬 *Inquiry:* ${consultaTexto}\n📱 *Contact Phone:* ${telefonoCliente}`;
-            }
-            await sendMessage(from, summaryMsg);
+            await sendConsultaAbiertaSummary(from, lang, currentState.data.consultas);
+            break;
+        }
 
-            // 2. Enviar la alerta directa de correo electrónico y WhatsApp a recepción
-            const detalleConsulta = 
-                `🆔 *Tipo de Solicitud:* CONSULTA ABIERTA / CASUÍSTICAS ESPECIALES\n` +
-                `👤 *Cliente:* ${nombreCliente}\n` +
-                `📞 *Teléfono:* ${telefonoCliente}\n` +
-                `💬 *Consulta del Cliente:* ${consultaTexto}\n` +
-                `📌 *Estado:* PENDIENTE RESPUESTA RESTAURANTE\n` +
-                `📱 *WhatsApp Remitente:* ${from}`;
-
-            try {
-                await sendInternalStaffAlertInSpanish(
-                    'CONSULTA ABIERTA (CASUÍSTICAS ESPECIALES)',
-                    from,
-                    detalleConsulta,
-                    nombreCliente,
-                    telefonoCliente
-                );
-            } catch (e) {
-                console.error("⚠️ Error enviando alerta de consulta abierta:", e.message);
+        case 'consulta_abierta_mas_texto': {
+            const consultaTexto = text.trim();
+            if (consultaTexto.length < 3) {
+                let msg = `⚠️ Por favor, escribe tu consulta detalladamente:`;
+                if (lang === 'eu') msg = `⚠️ Mesedez, idatzi zure galdera xehetasunez:`;
+                else if (lang === 'en') msg = `⚠️ Please enter your question in detail:`;
+                await sendMessage(from, msg);
+                break;
             }
 
-            // 3. Responder de inmediato con el mensaje de confirmación y agradecimiento
-            await sendMessage(from, getTranslation(lang, 'consultaSuccessMsg'));
-            userStates.delete(from);
+            currentState.data = currentState.data || {};
+            currentState.data.consultas = currentState.data.consultas || [];
+            currentState.data.consultas.push(consultaTexto);
+            currentState.step = 'consulta_abierta_opciones';
+            userStates.set(from, currentState);
+
+            await sendConsultaAbiertaSummary(from, lang, currentState.data.consultas);
+            break;
+        }
+
+        case 'consulta_abierta_opciones': {
+            const cleanText = text.trim().toLowerCase();
+            if (cleanText.includes('otra') || cleanText.includes('añadir') || cleanText.includes('anadir') || cleanText.includes('gehitu') || cleanText.includes('add')) {
+                await handleButtonResponse(from, 'btn_consulta_otra');
+            } else if (cleanText.includes('enviar') || cleanText.includes('send') || cleanText.includes('bidali') || cleanText.includes('listo') || cleanText.includes('ok')) {
+                await handleButtonResponse(from, 'btn_consulta_enviar');
+            } else {
+                currentState.data = currentState.data || {};
+                currentState.data.consultas = currentState.data.consultas || [];
+                currentState.data.consultas.push(text.trim());
+                userStates.set(from, currentState);
+
+                await sendConsultaAbiertaSummary(from, lang, currentState.data.consultas);
+            }
             break;
         }
 

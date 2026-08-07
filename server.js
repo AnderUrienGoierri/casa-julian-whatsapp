@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V70-BLOCK-OLD-WEBHOOK-REPLAY-PERMANENTLY';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V71-ADD-ANOTHER-INQUIRY-OR-SEND-BUTTONS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
