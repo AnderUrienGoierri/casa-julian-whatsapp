@@ -2204,9 +2204,7 @@ async function handleModHoraSelection(from, selectedTime, passedState) {
             successMsgKey: 'modSuccessMsg'
         });
     } catch (err) {
-        console.error("⚠️ Error en handleModHoraSelection:", err);
-        const lang = userLanguages.get(from) || 'es';
-        await sendMessage(from, getTranslation(lang, 'generalErrorMsg') || "Ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo.");
+        console.error("⚠️ Error en handleModHoraSelection:", err.stack || err);
     }
 }
 
@@ -3577,11 +3575,27 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
 
         case 'mod_val_hora': {
             const rawInput = text.trim();
-            if (rawInput.length < 2) {
+            if (rawInput.length < 1) {
                 await sendModHoraOptions(from, lang, currentState);
                 break;
             }
-            await handleModHoraSelection(from, rawInput, currentState);
+
+            const reservationId = currentState?.data?.reservationId || null;
+            const nombreCliente = currentState?.data?.nombreCliente || null;
+            const telefonoReserva = currentState?.data?.telefonoReserva || from.replace(/\D/g, '');
+            const reservaActual = currentState?.data?.reservaActual || 'No especificada';
+
+            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA DE PREFERENCIA / TURNO', rawInput, lang);
+
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                reservationId: reservationId,
+                isModification: true,
+                detalleMod: detalleMod,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoReserva,
+                successMsgKey: 'modSuccessMsg'
+            });
             break;
         }
 
