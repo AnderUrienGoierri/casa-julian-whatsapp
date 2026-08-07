@@ -1382,6 +1382,12 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'btn_add_mod_fecha':
+        case 'btn_finish_mod_fechas': {
+            await handleTextMessage(from, buttonId);
+            break;
+        }
+
         case 'btn_consulta_otra':
         case 'Otra consulta':
         case 'otra consulta':
