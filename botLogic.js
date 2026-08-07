@@ -140,7 +140,36 @@ function getDayOfWeekFromDateStr(dateStr) {
     const year = parseInt(match[3], 10);
     if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
     const d = new Date(year, month, day);
-    return d.getDay();
+}
+
+/**
+ * Comprueba si una fecha (DD/MM/AAAA) coincide con día de descanso (Lunes) o periodo de vacaciones (25 Ago - 7 Sep).
+ * Devuelve null si está abierto, o un objeto { closed: true, reason: 'monday' | 'vacation', date: dateStr } si está cerrado.
+ */
+function checkRestaurantClosedDate(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return null;
+    const match = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if (!match) return null;
+
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10); // 1..12
+    const year = parseInt(match[3], 10);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+
+    // 1. Vacaciones anuales del restaurante: del 25 de Agosto al 7 de Septiembre (ambos inclusive) para cualquier año
+    if ((month === 8 && day >= 25) || (month === 9 && day <= 7)) {
+        return { closed: true, reason: 'vacation', date: dateStr };
+    }
+
+    // 2. Descanso semanal del restaurante: Lunes (dayOfWeek === 1)
+    const dateObj = new Date(year, month - 1, day);
+    const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+    if (dayOfWeek === 1) {
+        return { closed: true, reason: 'monday', date: dateStr };
+    }
+
+    return null;
 }
 
 /**
@@ -2729,8 +2758,15 @@ async function handleTextMessage(from, text) {
             }
 
             for (const d of newDates) {
-                if (!currentState.data.menuTrad.fechas.includes(d) && currentState.data.menuTrad.fechas.length < 5) {
-                    currentState.data.menuTrad.fechas.push(d);
+                const closedCheck = checkRestaurantClosedDate(d);
+                if (closedCheck) {
+                    const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
+                    const msgText = getTranslation(lang, msgKey).replace('{date}', d);
+                    await sendMessage(from, msgText);
+                } else {
+                    if (!currentState.data.menuTrad.fechas.includes(d) && currentState.data.menuTrad.fechas.length < 5) {
+                        currentState.data.menuTrad.fechas.push(d);
+                    }
                 }
             }
 
@@ -2750,7 +2786,7 @@ async function handleTextMessage(from, text) {
                     { id: 'btn_fechas_confirm_no', title: 'No' }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
-            } else {
+            } else if (currentState.data.menuTrad.fechas.length > 0) {
                 const count = currentState.data.menuTrad.fechas.length;
                 const datesListStr = currentState.data.menuTrad.fechas.map(f => `• ${f}`).join('\n');
                 const promptBody = `📌 *Fechas de preferencia guardadas (${count}/5):*\n${datesListStr}\n\n¿Deseas añadir otra fecha o finalizar la selección?`;
@@ -3528,8 +3564,15 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
             }
 
             for (const d of newDates) {
-                if (!currentState.data.modFechas.includes(d) && currentState.data.modFechas.length < 5) {
-                    currentState.data.modFechas.push(d);
+                const closedCheck = checkRestaurantClosedDate(d);
+                if (closedCheck) {
+                    const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
+                    const msgText = getTranslation(lang, msgKey).replace('{date}', d);
+                    await sendMessage(from, msgText);
+                } else {
+                    if (!currentState.data.modFechas.includes(d) && currentState.data.modFechas.length < 5) {
+                        currentState.data.modFechas.push(d);
+                    }
                 }
             }
 
@@ -3548,7 +3591,7 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
                     telefonoReserva: telefonoReserva,
                     successMsgKey: 'modSuccessMsg'
                 });
-            } else {
+            } else if (currentState.data.modFechas.length > 0) {
                 const count = currentState.data.modFechas.length;
                 const datesListStr = currentState.data.modFechas.map(f => `• ${f}`).join('\n');
                 const promptBody = `📌 *Fechas de preferencia para la modificación (${count}/5):*\n${datesListStr}\n\n¿Deseas añadir otra fecha de preferencia o finalizar la solicitud?`;
@@ -3835,5 +3878,6 @@ module.exports = {
     handleUserMessage,
     sendLanguageMenu,
     sendLocationMenu,
-    sendMainMenu
+    sendMainMenu,
+    checkRestaurantClosedDate
 };
