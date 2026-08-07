@@ -16,8 +16,7 @@ yarn-error.log*
 db.json
 *.db
 *.sqlite
-database.js
-db/
+
 
 # WhatsApp Baileys Authentication & Session Credentials
 auth_info_baileys/
