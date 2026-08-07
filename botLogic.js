@@ -1406,6 +1406,16 @@ async function handleButtonResponse(from, buttonId) {
         case 'Bidali':
         case 'bidali': {
             const state = userStates.get(from) || { data: {} };
+            
+            // Si no estamos en el flujo de consulta abierta y el usuario envió "enviar", no forzar a CONSULTA ABIERTA
+            if (buttonId !== 'btn_consulta_enviar' && state.step && !state.step.startsWith('consulta_abierta')) {
+                if (state.step === 'confirmacion_solicitud') {
+                    await handleButtonResponse(from, 'confirm_yes');
+                    break;
+                }
+                break;
+            }
+
             const consultas = (state.data && Array.isArray(state.data.consultas) && state.data.consultas.length > 0)
                 ? state.data.consultas
                 : ['Consulta abierta'];
