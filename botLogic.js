@@ -3264,17 +3264,45 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
             const telefonoCliente = phone || from.replace(/\D/g, '');
 
             if (nombreCliente.length < 2) {
-                let promptMsg = `⚠️ *Por favor, indícanos un nombre para la cancelación:*`;
-                if (lang === 'eu') promptMsg = `⚠️ *Mesedez, idatzi gutxienez izen bat ezeztatzeko:*`;
-                else if (lang === 'en') promptMsg = `⚠️ *Please provide a name for the cancellation:*`;
+                let promptMsg = `⚠️ *Por favor, indícanos el nombre del titular para la cancelación:*`;
+                if (lang === 'eu') promptMsg = `⚠️ *Mesedez, idatzi titularraren izena ezeztatzeko:*`;
+                else if (lang === 'en') promptMsg = `⚠️ *Please provide the reservation name for the cancellation:*`;
                 await sendMessage(from, promptMsg);
                 break;
             }
+
+            currentState.data = currentState.data || {};
+            currentState.data.nombreCliente = nombreCliente;
+            currentState.data.telefonoReserva = telefonoCliente;
+            currentState.step = 'cancelacion_fecha_reserva';
+            userStates.set(from, currentState);
+
+            let promptFecha = `📅 *Indícanos la fecha de la reserva que deseas cancelar:*`;
+            if (lang === 'eu') promptFecha = `📅 *Mesedez, adierazi bertan behera utzi nahi duzun erreserbaren data:*`;
+            else if (lang === 'en') promptFecha = `📅 *Please specify the date of the reservation you wish to cancel:*`;
+
+            await sendMessage(from, promptFecha);
+            break;
+        }
+
+        case 'cancelacion_fecha_reserva': {
+            const fechaReserva = text.trim();
+            if (fechaReserva.length < 2) {
+                let promptFecha = `⚠️ *Por favor, indícanos la fecha de la reserva a cancelar (Ejemplo: DD/MM/AAAA):*`;
+                if (lang === 'eu') promptFecha = `⚠️ *Mesedez, idatzi ezeztatu nahi duzun erreserbaren data (Adibidez: DD/MM/AAAA):*`;
+                else if (lang === 'en') promptFecha = `⚠️ *Please enter the date of the reservation to cancel (Example: DD/MM/YYYY):*`;
+                await sendMessage(from, promptFecha);
+                break;
+            }
+
+            const nombreCliente = currentState.data?.nombreCliente || 'Cliente';
+            const telefonoCliente = currentState.data?.telefonoReserva || from.replace(/\D/g, '');
 
             const detalleCancelacion = 
                 `🆔 *Tipo de Solicitud:* SOLICITUD CANCELACIÓN DE RESERVA\n` +
                 `👤 *Nombre Cliente:* ${nombreCliente}\n` +
                 `📞 *Teléfono Cliente:* ${telefonoCliente}\n` +
+                `📅 *Fecha Reserva a Cancelar:* ${fechaReserva}\n` +
                 `📌 *Estado:* PENDIENTE PROCESAMIENTO RECEPCIÓN\n` +
                 `📱 *WhatsApp Remitente:* ${from}`;
 
