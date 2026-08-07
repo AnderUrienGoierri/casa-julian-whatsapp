@@ -3051,6 +3051,8 @@ async function sendConsultaAbiertaSummary(from, lang, consultas) {
         { id: 'btn_consulta_enviar', title: btnEnviarTitle.slice(0, 20) }
     ];
 
+    userStates.set(from, { step: 'consulta_abierta_opciones', data: { consultas: consultas } });
+
     await sendInteractiveButtons(from, promptBody, buttons);
 }
 
