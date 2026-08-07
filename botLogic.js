@@ -3082,8 +3082,23 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
         console.error("⚠️ Error enviando alerta de consulta abierta:", e.message);
     }
 
-    await sendMessage(from, getTranslation(lang, 'consultaSuccessMsg'));
-    userStates.delete(from);
+    try {
+        let successMsg = getTranslation(lang, 'consultaSuccessMsg');
+        if (!successMsg || successMsg.includes('key_not_found') || typeof successMsg !== 'string') {
+            if (lang === 'eu') {
+                successMsg = "✅ *Galdera Ongi Bidali Da*\n\nZure galdera erregistratu dugu. Asador Casa Julián-eko harrera taldeak berrikusi eta lehenbailehen erantzungo dizu adierazitako telefonoan.\n\nEskerrik asko gurekin harremanetan jartzeagatik!";
+            } else if (lang === 'en') {
+                successMsg = "✅ *Inquiry Sent Successfully*\n\nWe have registered your inquiry. The reception team at Asador Casa Julián will review it and reply to the indicated phone number as soon as possible.\n\nThank you very much for contacting us!";
+            } else {
+                successMsg = "✅ *Consulta Enviada Exitosamente*\n\nHemos registrado tu consulta. El equipo de recepción de Asador Casa Julián la revisará y te responderá al teléfono indicado a la mayor brevedad posible.\n\n¡Muchas gracias por contactarnos!";
+            }
+        }
+        await sendMessage(from, successMsg);
+    } catch (msgErr) {
+        console.error("⚠️ Error enviando mensaje de confirmación al cliente:", msgErr.message);
+    } finally {
+        userStates.delete(from);
+    }
 }
 
         case 'consulta_abierta_paso1_texto': {
