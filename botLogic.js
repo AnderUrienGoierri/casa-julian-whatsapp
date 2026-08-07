@@ -176,13 +176,17 @@ async function processMessage(message) {
         await handleUserMessage(from, text, 'text');
     } else if (type === 'interactive') {
         const interactive = message.interactive;
-        if (interactive.type === 'list_reply') {
+        if (interactive && interactive.type === 'list_reply') {
             const listId = interactive.list_reply.id;
             await handleUserMessage(from, listId, 'interactive', { type: 'list', id: listId });
-        } else if (interactive.type === 'button_reply') {
+        } else if (interactive && interactive.type === 'button_reply') {
             const buttonId = interactive.button_reply.id;
             await handleUserMessage(from, buttonId, 'interactive', { type: 'button', id: buttonId });
         }
+    } else if (type === 'button') {
+        const button = message.button;
+        const buttonId = (button && (button.payload || button.text)) ? (button.payload || button.text) : '';
+        await handleUserMessage(from, buttonId, 'interactive', { type: 'button', id: buttonId });
     }
 }
 
@@ -3142,17 +3146,10 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
 
         case 'consulta_abierta_opciones': {
             const cleanText = text.trim().toLowerCase();
-            if (cleanText.includes('otra') || cleanText.includes('añadir') || cleanText.includes('anadir') || cleanText.includes('gehitu') || cleanText.includes('add')) {
+            if (cleanText.includes('otra') || cleanText.includes('añadir') || cleanText.includes('anadir') || cleanText.includes('gehitu') || cleanText.includes('add') || cleanText.includes('mas') || cleanText.includes('más')) {
                 await handleButtonResponse(from, 'btn_consulta_otra');
-            } else if (cleanText.includes('enviar') || cleanText.includes('send') || cleanText.includes('bidali') || cleanText.includes('listo') || cleanText.includes('ok')) {
-                await handleButtonResponse(from, 'btn_consulta_enviar');
             } else {
-                currentState.data = currentState.data || {};
-                currentState.data.consultas = currentState.data.consultas || [];
-                currentState.data.consultas.push(text.trim());
-                userStates.set(from, currentState);
-
-                await sendConsultaAbiertaSummary(from, lang, currentState.data.consultas);
+                await handleButtonResponse(from, 'btn_consulta_enviar');
             }
             break;
         }
