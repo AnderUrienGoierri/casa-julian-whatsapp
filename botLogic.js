@@ -3225,15 +3225,40 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
             currentState.data = currentState.data || {};
             currentState.data.nombreCliente = nombreCliente;
             currentState.data.telefonoReserva = telefonoCliente;
-            currentState.data.reservaActual = `${nombreCliente} (${telefonoCliente})`;
+            currentState.step = 'modificacion_fecha_reserva';
+            userStates.set(from, currentState);
+
+            let promptFecha = `📅 *Indícanos la fecha actual de la reserva que deseas modificar:*`;
+            if (lang === 'eu') promptFecha = `📅 *Mesedez, adierazi aldatu nahi duzun erreserbaren egungo data:*`;
+            else if (lang === 'en') promptFecha = `📅 *Please specify the current date of the reservation you wish to modify:*`;
+
+            await sendMessage(from, promptFecha);
+            break;
+        }
+
+        case 'modificacion_fecha_reserva': {
+            const fechaReservaOriginal = text.trim();
+            if (fechaReservaOriginal.length < 2) {
+                let promptFecha = `⚠️ *Por favor, indícanos la fecha actual de la reserva a modificar (Ejemplo: DD/MM/AAAA):*`;
+                if (lang === 'eu') promptFecha = `⚠️ *Mesedez, idatzi aldatu nahi duzun erreserbaren egungo data (Adibidez: DD/MM/AAAA):*`;
+                else if (lang === 'en') promptFecha = `⚠️ *Please enter the current date of the reservation to modify (Example: DD/MM/YYYY):*`;
+                await sendMessage(from, promptFecha);
+                break;
+            }
+
+            const nombreCliente = currentState.data?.nombreCliente || 'Cliente';
+            const telefonoCliente = currentState.data?.telefonoReserva || from.replace(/\D/g, '');
+
+            currentState.data.fechaReservaOriginal = fechaReservaOriginal;
+            currentState.data.reservaActual = `${nombreCliente} (${telefonoCliente}) - Fecha: ${fechaReservaOriginal}`;
 
             const modTipo = currentState.data.modTipo;
             if (modTipo === 'comensales') {
                 currentState.step = 'mod_val_comensales';
                 userStates.set(from, currentState);
-                let promptMsg = `📌 *Modificación de comensales para ${nombreCliente}*\n\nIndica el nuevo número de comensales deseado (máx. 6):`;
-                if (lang === 'eu') promptMsg = `📌 *Kide kopuruaren aldaketa ${nombreCliente} izenean*\n\nIdatzi kide kopuru berria (geh. 6):`;
-                else if (lang === 'en') promptMsg = `📌 *Guest count modification for ${nombreCliente}*\n\nEnter the new number of guests (max. 6):`;
+                let promptMsg = `📌 *Modificación de comensales para ${nombreCliente} (Reserva fecha: ${fechaReservaOriginal})*\n\nIndica el nuevo número de comensales deseado (máx. 6):`;
+                if (lang === 'eu') promptMsg = `📌 *Kide kopuruaren aldaketa ${nombreCliente} izenean (${fechaReservaOriginal} erreserba-data)*\n\nIdatzi kide kopuru berria (geh. 6):`;
+                else if (lang === 'en') promptMsg = `📌 *Guest count modification for ${nombreCliente} (Reservation date: ${fechaReservaOriginal})*\n\nEnter the new number of guests (max. 6):`;
                 await sendMessage(from, promptMsg);
             } else if (modTipo === 'dia') {
                 currentState.step = 'mod_val_dia';
