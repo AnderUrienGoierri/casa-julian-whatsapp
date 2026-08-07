@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V102-MODULARIZED-BOTLOGIC-AND-DATABASE';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V103-BOTLOGIC-CLEAN-FACADE-30-LINES';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
