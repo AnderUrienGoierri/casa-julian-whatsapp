@@ -183,17 +183,19 @@ function getTransporter(forcedPort = null) {
 function getCategoryHeader(tipoAccion) {
     const tipo = (tipoAccion || '').toUpperCase();
 
-    if (tipo.includes('CONSULTA') || tipo.includes('CASUÍSTICA') || tipo.includes('CASUISTICA')) {
+    // 1. Modificaciones de Reserva
+    if (tipo.includes('MODIFICACIÓN') || tipo.includes('MODIFICACION')) {
         return {
-            banner: `💬🟣 *[CATEGORÍA: CONSULTAS ABIERTAS - CASUÍSTICAS ESPECIALES]* 🟣💬`,
-            colorTag: `🟣 CONSULTAS ABIERTAS / CASUÍSTICAS ESPECIALES`,
-            subjectTag: `[💬 Casa Julian / Consultas-Abiertas]`,
-            labelCategory: `Casa Julian / Consultas-Abiertas`,
-            subLabel: `Consultas-Abiertas`,
-            emoji: `💬`
+            banner: `✏️🔵 *[CATEGORÍA: MODIFICACIÓN DE RESERVA]* 🔵✏️`,
+            colorTag: `🔵 MODIFICACIÓN DE RESERVA`,
+            subjectTag: `[🔵 MODIFICACIÓN]`,
+            labelCategory: `Modificaciones`,
+            subLabel: `modificacion_reserva`,
+            emoji: `✏️`
         };
     }
 
+    // 2. Cancelaciones de Reserva
     if (tipo.includes('CANCELACIÓN') || tipo.includes('CANCELACION')) {
         if (tipo.includes('ESPERA')) {
             return {
@@ -215,17 +217,19 @@ function getCategoryHeader(tipoAccion) {
         };
     }
 
-    if (tipo.includes('MODIFICACIÓN') || tipo.includes('MODIFICACION')) {
+    // 3. Consultas Abiertas / Casuísticas Especiales
+    if (tipo.includes('CONSULTA ABIERTA') || tipo.includes('CONSULTAS ABIERTAS') || tipo.includes('CASUÍSTICA') || tipo.includes('CASUISTICA')) {
         return {
-            banner: `✏️🔵 *[CATEGORÍA: MODIFICACIÓN]* 🔵✏️`,
-            colorTag: `🔵 MODIFICACIÓN DE RESERVA`,
-            subjectTag: `[🔵 MODIFICACIÓN]`,
-            labelCategory: `Modificaciones`,
-            subLabel: null,
-            emoji: `✏️`
+            banner: `💬🟣 *[CATEGORÍA: CONSULTAS ABIERTAS - CASUÍSTICAS ESPECIALES]* 🟣💬`,
+            colorTag: `🟣 CONSULTAS ABIERTAS / CASUÍSTICAS ESPECIALES`,
+            subjectTag: `[💬 Casa Julian / Consultas-Abiertas]`,
+            labelCategory: `Casa Julian / Consultas-Abiertas`,
+            subLabel: `Consultas-Abiertas`,
+            emoji: `💬`
         };
     }
 
+    // 4. Lista de Espera
     if (tipo.includes('ESPERA')) {
         return {
             banner: `📋🟡 *[CATEGORÍA: LISTA DE ESPERA]* 🟡📋`,
@@ -237,8 +241,9 @@ function getCategoryHeader(tipoAccion) {
         };
     }
 
+    // 5. Tarjeta Regalo / Menú Tradición
     if (tipo.includes('TRADICIÓN') || tipo.includes('TRADICION') || tipo.includes('REGALO')) {
-        if (tipo.includes('CADUCIDAD') || tipo.includes('CONSULTA')) {
+        if (tipo.includes('CADUCIDAD')) {
             return {
                 banner: `🎁🟢 *[CATEGORÍA: CONSULTA MENÚ TRADICIÓN]* 🟢🎁`,
                 colorTag: `🟢 CONSULTA MENÚ TRADICIÓN`,
@@ -253,7 +258,7 @@ function getCategoryHeader(tipoAccion) {
             colorTag: `🟢 RESERVA MENÚ TRADICIÓN`,
             subjectTag: `[🟢 MENÚ TRADICIÓN SOLICITUD]`,
             labelCategory: `Reservas Menu-Tradición`,
-            subLabel: `Solicitudes Reservas`,
+            subLabel: `reserva_menu_tradicion`,
             emoji: `🎁`
         };
     }
