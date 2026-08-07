@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V93-INTERACTIVE-SHIFT-SELECTION-PER-DAY';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V94-TEXT-LISTING-SHIFTS-FLEXIBLE-ENTRY';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

@@ -2114,7 +2114,7 @@ async function handleFaqSelection(from, faqId, lang) {
 }
 
 /**
- * Envía las opciones de turnos horarios para modificación mediante lista interactiva según el día de la semana.
+ * Envía las opciones de turnos horarios para modificación en formato texto según el día de la semana.
  */
 async function sendModHoraOptions(from, lang, state) {
     const fechaStr = state?.data?.fechaReservaOriginal || state?.data?.fecha || (Array.isArray(state?.data?.modFechas) && state.data.modFechas.length > 0 ? state.data.modFechas[0] : null);
@@ -2122,71 +2122,60 @@ async function sendModHoraOptions(from, lang, state) {
     const dayOfWeek = getDayOfWeekFromDateStr(fechaStr);
     const isWeekend = (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === null); // 5 = Viernes, 6 = Sábado, null = fallback
 
-    const comidaRows = [
-        { id: "mod_time_1230", title: "12:30", description: "1º Turno Comida (12:30)" },
-        { id: "mod_time_1300", title: "13:00", description: "1º Turno Comida (13:00)" },
-        { id: "mod_time_1330", title: "13:30", description: "1º Turno Comida (13:30)" },
-        { id: "mod_time_1400", title: "14:00", description: "1º Turno Comida (14:00)" },
-        { id: "mod_time_1515", title: "15:15", description: "2º Turno Comida (15:15)" }
-    ];
-
-    const cenaRows = [
-        { id: "mod_time_2000", title: "20:00", description: "Turno Cena (20:00)" },
-        { id: "mod_time_2030", title: "20:30", description: "Turno Cena (20:30)" },
-        { id: "mod_time_2100", title: "21:00", description: "Turno Cena (21:00)" },
-        { id: "mod_time_2130", title: "21:30", description: "Turno Cena (21:30)" }
-    ];
-
-    let headerBody = '';
-    let buttonText = '';
-    let sections = [];
+    let msg = '';
 
     if (lang === 'eu') {
-        buttonText = "🕐 Orduak Ikusi";
         if (isWeekend) {
-            headerBody = `🕐 *Ordu Berriaren Aukeraketa Erreserba Aldatzeko*\n\n📅 Erreserba-data: *${fechaStr || 'Zehaztua'}* (Ostirala / Larunbata)\n\nMesedez, sakatu beheko botoia nahi duzun txanda berria aukeratzeko (Bazkaria edo Afaria):`;
-            sections = [
-                { title: "☀️ Bazkaria Txandak", rows: comidaRows },
-                { title: "🌙 Afaria Txandak", rows: cenaRows }
-            ];
+            msg = `🕐 *Ordu Berriaren Aukeraketa Erreserba Aldatzeko*\n\n` +
+                  `📅 Erreserba-data: *${fechaStr || 'Zehaztua'}* (Ostirala / Larunbata)\n\n` +
+                  `📌 *Eskuragarri dauden txanda berriak:*\n` +
+                  `☀️ *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n` +
+                  `🌙 *Afaria:* 20:00, 20:30, 21:00, 21:30\n\n` +
+                  `✍️ *Mesedez, idatzi zure ordu hobetsia(k)* (txanda bat edo gehiago idatz ditzakezu malgutasun handiagoa izateko, adibidez: *13:30, 14:00* edo *20:00*):`;
         } else {
-            headerBody = `🕐 *Ordu Berriaren Aukeraketa Erreserba Aldatzeko*\n\n📅 Erreserba-data: *${fechaStr || 'Zehaztua'}*\n*(Igandetik ostegunera bazkari zerbitzua bakarrik eskaintzen da)*\n\nMesedez, sakatu beheko botoia nahi duzun bazkari txanda aukeratzeko:`;
-            sections = [
-                { title: "☀️ Bazkaria Txandak", rows: comidaRows }
-            ];
+            msg = `🕐 *Ordu Berriaren Aukeraketa Erreserba Aldatzeko*\n\n` +
+                  `📅 Erreserba-data: *${fechaStr || 'Zehaztua'}*\n` +
+                  `*(Igandetik ostegunera bazkari zerbitzua bakarrik eskaintzen da)*\n\n` +
+                  `📌 *Eskuragarri dauden bazkari txanda berriak:*\n` +
+                  `☀️ *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n\n` +
+                  `✍️ *Mesedez, idatzi zure ordu hobetsia(k)* (txanda bat edo gehiago idatz ditzakezu malgutasun handiagoa izateko, adibidez: *13:30, 14:00*):`;
         }
     } else if (lang === 'en') {
-        buttonText = "🕐 View Time Slots";
         if (isWeekend) {
-            headerBody = `🕐 *Select New Time Slot for Modification*\n\n📅 Reservation date: *${fechaStr || 'Specified'}* (Friday / Saturday)\n\nPlease tap the button below to select your desired time slot (Lunch or Dinner):`;
-            sections = [
-                { title: "☀️ Lunch Shift", rows: comidaRows },
-                { title: "🌙 Dinner Shift", rows: cenaRows }
-            ];
+            msg = `🕐 *Select New Time Slot for Modification*\n\n` +
+                  `📅 Reservation date: *${fechaStr || 'Specified'}* (Friday / Saturday)\n\n` +
+                  `📌 *Available turn/time options:*\n` +
+                  `☀️ *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n` +
+                  `🌙 *Dinner:* 20:00, 20:30, 21:00, 21:30\n\n` +
+                  `✍️ *Please enter your preferred time slot(s)* (you can enter one or more available shifts for flexibility, e.g.: *13:30, 14:00* or *20:00*):`;
         } else {
-            headerBody = `🕐 *Select New Time Slot for Modification*\n\n📅 Reservation date: *${fechaStr || 'Specified'}*\n*(Sunday to Thursday we offer lunch service exclusively)*\n\nPlease tap the button below to select your desired lunch time slot:`;
-            sections = [
-                { title: "☀️ Lunch Shift", rows: comidaRows }
-            ];
+            msg = `🕐 *Select New Time Slot for Modification*\n\n` +
+                  `📅 Reservation date: *${fechaStr || 'Specified'}*\n` +
+                  `*(Sunday to Thursday we offer lunch service exclusively)*\n\n` +
+                  `📌 *Available lunch turn/time options:*\n` +
+                  `☀️ *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n\n` +
+                  `✍️ *Please enter your preferred time slot(s)* (you can enter one or more available shifts for flexibility, e.g.: *13:30, 14:00*):`;
         }
     } else {
         // Spanish (ES)
-        buttonText = "🕐 Ver Horarios";
         if (isWeekend) {
-            headerBody = `🕐 *Selección de Turno Horario para Modificación*\n\n📅 Fecha de reserva: *${fechaStr || 'Especificada'}* (Viernes / Sábado)\n\nPor favor, pulsa el botón de abajo para seleccionar el nuevo turno deseado (Comida o Cena):`;
-            sections = [
-                { title: "☀️ Turnos Comida (Mediodía)", rows: comidaRows },
-                { title: "🌙 Turnos Cena (Noche)", rows: cenaRows }
-            ];
+            msg = `🕐 *Selección de Turno Horario para Modificación*\n\n` +
+                  `📅 Fecha de reserva: *${fechaStr || 'Especificada'}* (Viernes / Sábado)\n\n` +
+                  `📌 *Turnos disponibles para elegir:*\n` +
+                  `☀️ *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n` +
+                  `🌙 *Cena:* 20:00, 20:30, 21:00, 21:30\n\n` +
+                  `✍️ *Por favor, escribe la hora o turnos de preferencia deseados* (puedes indicar uno o varios turnos posibles para mayor flexibilidad, ej: *13:30, 14:00* o *20:00*):`;
         } else {
-            headerBody = `🕐 *Selección de Turno Horario para Modificación*\n\n📅 Fecha de reserva: *${fechaStr || 'Especificada'}*\n*(De domingo a jueves el restaurante ofrece exclusivamente servicio de comidas)*\n\nPor favor, pulsa el botón de abajo para seleccionar el nuevo turno de comida deseado:`;
-            sections = [
-                { title: "☀️ Turnos Comida (Mediodía)", rows: comidaRows }
-            ];
+            msg = `🕐 *Selección de Turno Horario para Modificación*\n\n` +
+                  `📅 Fecha de reserva: *${fechaStr || 'Especificada'}*\n` +
+                  `*(De domingo a jueves el restaurante ofrece exclusivamente servicio de comidas)*\n\n` +
+                  `📌 *Turnos de comida disponibles para elegir:*\n` +
+                  `☀️ *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n\n` +
+                  `✍️ *Por favor, escribe la hora o turnos de preferencia deseados* (puedes indicar uno o varios turnos posibles para mayor flexibilidad, ej: *13:30, 14:00*):`;
         }
     }
 
-    await sendInteractiveList(from, headerBody, buttonText, sections);
+    await sendMessage(from, msg);
 }
 
 /**
@@ -3581,9 +3570,11 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
 
         case 'mod_val_hora': {
             const rawInput = text.trim();
-            const timeMatch = rawInput.match(/(\d{1,2})[:\.](\d{2})/);
-            const selectedTime = timeMatch ? `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}` : rawInput;
-            await handleModHoraSelection(from, selectedTime);
+            if (rawInput.length < 2) {
+                await sendModHoraOptions(from, lang, currentState);
+                break;
+            }
+            await handleModHoraSelection(from, rawInput);
             break;
         }
 
