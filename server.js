@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V69-INSTANT-OPEN-INQUIRY-WITHOUT-PROMPTS';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V70-BLOCK-OLD-WEBHOOK-REPLAY-PERMANENTLY';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
@@ -78,16 +78,48 @@ app.get('/webhook', (req, res) => {
     }
 });
 
-// Cache en memoria para deduplicar mensajes de webhook reintentados por Meta
+const idsFilePath = path.join(__dirname, 'processed_ids.json');
 const processedMessageIds = new Map();
+
+try {
+    if (fs.existsSync(idsFilePath)) {
+        const raw = fs.readFileSync(idsFilePath, 'utf8');
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+            const now = Date.now();
+            list.forEach(item => {
+                if (now - item.time < 24 * 60 * 60 * 1000) {
+                    processedMessageIds.set(item.id, item.time);
+                }
+            });
+        }
+    }
+} catch (e) {
+    console.error("Error cargando processed_ids.json:", e.message);
+}
+
+function saveProcessedIds() {
+    try {
+        const list = [];
+        processedMessageIds.forEach((time, id) => {
+            list.push({ id, time });
+        });
+        fs.writeFileSync(idsFilePath, JSON.stringify(list), 'utf8');
+    } catch (e) {
+        console.error("Error guardando processed_ids.json:", e.message);
+    }
+}
 
 setInterval(() => {
     const now = Date.now();
+    let changed = false;
     for (const [id, timestamp] of processedMessageIds.entries()) {
-        if (now - timestamp > 10 * 60 * 1000) {
+        if (now - timestamp > 12 * 60 * 60 * 1000) {
             processedMessageIds.delete(id);
+            changed = true;
         }
     }
+    if (changed) saveProcessedIds();
 }, 5 * 60 * 1000);
 
 /**
@@ -114,12 +146,24 @@ app.post('/webhook', async (req, res) => {
                         
                         const message = change.value.messages[0];
 
-                        // Evitar procesar mensajes duplicados si Meta reintenta la petición
+                        // 1. Filtrar mensajes antiguos o reintentados por Meta (> 5 minutos de antigüedad)
+                        if (message.timestamp) {
+                            const msgTime = parseInt(message.timestamp, 10);
+                            const nowSec = Math.floor(Date.now() / 1000);
+                            const ageSec = nowSec - msgTime;
+                            if (ageSec > 300) {
+                                console.log(`⚠️ Webhook antiguo ignorado (ID: ${message.id}, Antigüedad: ${ageSec}s)`);
+                                continue;
+                            }
+                        }
+
+                        // 2. Evitar procesar mensajes duplicados si Meta reintenta la petición
                         if (processedMessageIds.has(message.id)) {
                             console.log(`⚠️ Webhook duplicado omitido (${message.id})`);
                             continue;
                         }
                         processedMessageIds.set(message.id, Date.now());
+                        saveProcessedIds();
                         
                         // Enviamos el mensaje a nuestra lógica (botLogic.js)
                         await processMessage(message);
