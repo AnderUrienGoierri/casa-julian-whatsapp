@@ -274,8 +274,7 @@ if (process.env.DATABASE_URL) {
                 email: 'n/a',
                 comensales: 4,
                 alergias: 'NO',
-                fechas: ['01/09/2026', '02/09/2026', '03/09/2026', '04/09/2026', '05/09/2026'],
-                sendEmail: true
+                fechas: ['01/09/2026', '02/09/2026', '03/09/2026', '04/09/2026', '05/09/2026']
             },
             {
                 resId: 'RES-20260806-313439',
@@ -286,8 +285,7 @@ if (process.env.DATABASE_URL) {
                 email: 'n/a',
                 comensales: 2,
                 alergias: 'NO',
-                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026'],
-                sendEmail: true
+                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026']
             },
             {
                 resId: 'RES-20260806-485834',
@@ -298,8 +296,7 @@ if (process.env.DATABASE_URL) {
                 email: 'n/a',
                 comensales: 2,
                 alergias: 'NO',
-                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026'],
-                sendEmail: true
+                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026']
             },
             {
                 resId: 'RES-20260806-592814',
@@ -310,8 +307,7 @@ if (process.env.DATABASE_URL) {
                 email: 'n/a',
                 comensales: 2,
                 alergias: 'NO',
-                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026'],
-                sendEmail: true
+                fechas: ['10/09/2026', '11/09/2026', '12/09/2026', '13/09/2026', '14/09/2026']
             },
             { tarjeta: 'MT-2026-001', nombre: 'Ander Urien Telleria', telefono: '34664037707', dni: 'N/A', email: 'anurte@gmail.com' },
             { tarjeta: '12345', nombre: 'Ander Telleria Telleria', telefono: '34664037707', dni: 'N/A', email: 'n/a' },
@@ -354,28 +350,6 @@ if (process.env.DATABASE_URL) {
                                 [item.resId, item.fechas[i], i + 1]
                             );
                         }
-                    }
-
-                    if (item.sendEmail) {
-                        const detalleMod = `🆔 *ID Reserva:* ${item.resId}\n` +
-                                           `👤 *Nombre:* ${item.nombre}\n` +
-                                           `🎁 *Nº Tarjeta Regalo:* ${item.tarjeta}\n` +
-                                           `👥 *Comensales:* ${item.comensales}\n` +
-                                           `🍽️ *Servicio:* Sin preferencia\n` +
-                                           `⏰ *Hora seleccionada:* Sin preferencia\n` +
-                                           `📅 *Fechas de preferencia:* ${item.fechas ? item.fechas.join(', ') : 'Sin preferencia'}\n` +
-                                           `⚠️ *Alergias/Restricciones:* ${item.alergias || 'NO'}\n` +
-                                           `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
-                                           `📱 *WhatsApp Remitente:* ${item.telefono}\n` +
-                                           `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
-
-                        await sendInternalStaffAlertInSpanish(
-                            'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
-                            item.telefono,
-                            detalleMod,
-                            item.nombre,
-                            item.telefono
-                        ).catch((e) => console.error("⚠️ Error re-sending email:", e.message));
                     }
                 } else if (item.tarjeta) {
                     await pool.query(
