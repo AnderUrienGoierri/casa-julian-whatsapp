@@ -2980,45 +2980,43 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
                 await sendMessage(from, msg);
                 break;
             }
-            currentState.data = currentState.data || {};
-            currentState.data.consultaTexto = consultaTexto;
-            currentState.step = 'consulta_abierta_paso2_datos';
-            userStates.set(from, currentState);
 
-            let dataPrompt = `📝 *Datos de Contacto para darte Respuesta*\n\nPor favor, indícanos tu *Nombre completo* y *Número de teléfono* para poder responderte (ej: *Ander Urien 612345678*):`;
+            const telefonoCliente = from.replace(/\D/g, '');
+            const nombreCliente = `Cliente WhatsApp (${telefonoCliente})`;
+
+            // 1. Mostrar inmediatamente al cliente el Resumen de su Consulta
+            let summaryMsg = `📋 *RESUMEN DE TU CONSULTA:*\n\n💬 *Consulta:* ${consultaTexto}\n📱 *Teléfono de Contacto:* ${telefonoCliente}`;
             if (lang === 'eu') {
-                dataPrompt = `📝 *Harremanetarako Datuak Erantzuteko*\n\nMesedez, idatzi zure *Izen-abizenak* eta *Telefono zenbakia* (adib: *Ander Urien 612345678*):`;
+                summaryMsg = `📋 *ZURE GALDERAREN LABURPENA:*\n\n💬 *Galdera:* ${consultaTexto}\n📱 *Harremanetarako Telefonoa:* ${telefonoCliente}`;
             } else if (lang === 'en') {
-                dataPrompt = `📝 *Contact Information for Response*\n\nPlease enter your *Full Name* and *Phone Number* (e.g. *Ander Urien 612345678*):`;
+                summaryMsg = `📋 *SUMMARY OF YOUR INQUIRY:*\n\n💬 *Inquiry:* ${consultaTexto}\n📱 *Contact Phone:* ${telefonoCliente}`;
             }
-            await sendMessage(from, dataPrompt);
-            break;
-        }
+            await sendMessage(from, summaryMsg);
 
-        case 'consulta_abierta_paso2_datos': {
-            const { phone, name } = analyzeVerificationInput(text);
-            const nombreCliente = name || text.trim();
-            const telefonoCliente = phone || from.replace(/\D/g, '');
-            const consultaTexto = currentState.data?.consultaTexto || 'Consulta abierta';
-
+            // 2. Enviar la alerta directa de correo electrónico y WhatsApp a recepción
             const detalleConsulta = 
                 `🆔 *Tipo de Solicitud:* CONSULTA ABIERTA / CASUÍSTICAS ESPECIALES\n` +
-                `👤 *Nombre:* ${nombreCliente}\n` +
+                `👤 *Cliente:* ${nombreCliente}\n` +
                 `📞 *Teléfono:* ${telefonoCliente}\n` +
                 `💬 *Consulta del Cliente:* ${consultaTexto}\n` +
                 `📌 *Estado:* PENDIENTE RESPUESTA RESTAURANTE\n` +
                 `📱 *WhatsApp Remitente:* ${from}`;
 
-            await requestUserConfirmation(from, lang, {
-                tipoAccion: 'CONSULTA ABIERTA (CASUÍSTICAS ESPECIALES)',
-                reservationId: 'CONSULTA-' + Date.now().toString().slice(-6),
-                initialStatus: 'PENDIENTE RESPUESTA',
-                isCancellation: false,
-                detalleMod: detalleConsulta,
-                nombreCliente: nombreCliente,
-                telefonoReserva: telefonoCliente,
-                successMsgKey: 'consultaSuccessMsg'
-            });
+            try {
+                await sendInternalStaffAlertInSpanish(
+                    'CONSULTA ABIERTA (CASUÍSTICAS ESPECIALES)',
+                    from,
+                    detalleConsulta,
+                    nombreCliente,
+                    telefonoCliente
+                );
+            } catch (e) {
+                console.error("⚠️ Error enviando alerta de consulta abierta:", e.message);
+            }
+
+            // 3. Responder de inmediato con el mensaje de confirmación y agradecimiento
+            await sendMessage(from, getTranslation(lang, 'consultaSuccessMsg'));
+            userStates.delete(from);
             break;
         }
 

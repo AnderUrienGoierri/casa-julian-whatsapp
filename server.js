@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V68-DISABLE-FALLBACK-EMAIL-RESEND-ON-RESTART';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V69-INSTANT-OPEN-INQUIRY-WITHOUT-PROMPTS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
