@@ -3210,14 +3210,13 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
         }
 
         case 'modificacion_datos_actuales': {
-            const { phone, name } = analyzeVerificationInput(text);
-            const nombreCliente = name || text.trim();
-            const telefonoCliente = phone || from.replace(/\D/g, '');
+            const nombreCliente = text.trim();
+            const telefonoCliente = from.replace(/\D/g, '');
 
             if (nombreCliente.length < 2) {
-                let promptMsg = `⚠️ *Por favor, indícanos un nombre para la modificación:*`;
-                if (lang === 'eu') promptMsg = `⚠️ *Mesedez, idatzi gutxienez izen bat aldatzeko:*`;
-                else if (lang === 'en') promptMsg = `⚠️ *Please provide a name for the modification:*`;
+                let promptMsg = `⚠️ *Por favor, indícanos el nombre del titular para la modificación:*`;
+                if (lang === 'eu') promptMsg = `⚠️ *Mesedez, idatzi titularraren izena aldatzeko:*`;
+                else if (lang === 'en') promptMsg = `⚠️ *Please provide the reservation name for the modification:*`;
                 await sendMessage(from, promptMsg);
                 break;
             }
@@ -3231,9 +3230,9 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
             if (modTipo === 'comensales') {
                 currentState.step = 'mod_val_comensales';
                 userStates.set(from, currentState);
-                let promptMsg = `📌 *Modificación de comensales para ${nombreCliente} (${telefonoCliente})*\n\nIndica el nuevo número de comensales deseado (máx. 6):`;
-                if (lang === 'eu') promptMsg = `📌 *Kide kopuruaren aldaketa ${nombreCliente} (${telefonoCliente}) izenean*\n\nIdatzi kide kopuru berria (geh. 6):`;
-                else if (lang === 'en') promptMsg = `📌 *Guest count modification for ${nombreCliente} (${telefonoCliente})*\n\nEnter the new number of guests (max. 6):`;
+                let promptMsg = `📌 *Modificación de comensales para ${nombreCliente}*\n\nIndica el nuevo número de comensales deseado (máx. 6):`;
+                if (lang === 'eu') promptMsg = `📌 *Kide kopuruaren aldaketa ${nombreCliente} izenean*\n\nIdatzi kide kopuru berria (geh. 6):`;
+                else if (lang === 'en') promptMsg = `📌 *Guest count modification for ${nombreCliente}*\n\nEnter the new number of guests (max. 6):`;
                 await sendMessage(from, promptMsg);
             } else if (modTipo === 'dia') {
                 currentState.step = 'mod_val_dia';
@@ -3259,9 +3258,8 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
         }
 
         case 'cancelacion_datos_actuales': {
-            const { phone, name } = analyzeVerificationInput(text);
-            const nombreCliente = name || text.trim();
-            const telefonoCliente = phone || from.replace(/\D/g, '');
+            const nombreCliente = text.trim();
+            const telefonoCliente = from.replace(/\D/g, '');
 
             if (nombreCliente.length < 2) {
                 let promptMsg = `⚠️ *Por favor, indícanos el nombre del titular para la cancelación:*`;

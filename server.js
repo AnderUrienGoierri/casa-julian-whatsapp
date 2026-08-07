@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V82-ADD-DATE-PROMPT-TO-CANCELLATION';
+const DEPLOY_VERSION = 'v2026-08-07-CMS-V83-NAME-ONLY-FOR-MOD-AND-CANCEL';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
