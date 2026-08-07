@@ -265,7 +265,9 @@ async function handleTextMessage(from, text) {
             const card = await db.getGiftCard(cardInput);
 
             if (card) {
-                const isCardActive = (card.estado || 'ACTIVA').toUpperCase() === 'ACTIVA';
+                const statusUpper = (card.estado || 'ACTIVA').toString().trim().toUpperCase();
+                const invalidStates = ['CADUCADA', 'USADA', 'CANJEADA', 'CANCELADA', 'PENDIENTE RESERVA', 'INACTIVA', 'DESACTIVADA'];
+                const isCardActive = !invalidStates.includes(statusUpper);
                 if (!isCardActive) {
                     let inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* se encuentra actualmente en estado: *${card.estado}* y no puede usarse para reservar en este momento.`;
                     if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela *${card.estado}* egoeran dago eta ezin da erabili erreserba egiteko une honetan.`;
