@@ -566,11 +566,11 @@ async function handleButtonResponse(from, buttonId) {
             break;
 
         case 'btn_add_lista_espera': {
-            let waitlistMsg = `📝 *Lista de Espera*\n\nPara inscribirte en la lista de espera, por favor realiza tu solicitud a través de nuestra web oficial en el siguiente enlace:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+            let waitlistMsg = `📝 *Lista de Espera*\n\nPara inscribirte en la lista de espera, por favor realiza tu solicitud a través de nuestra web oficial:\n\n👉 [Inscribirse en Lista de Espera Web](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             if (lang === 'eu') {
-                waitlistMsg = `📝 *Itxaron Zerrenda*\n\nItxaron zerrendan izena emateko, mesedez egin zure eskaera gure webgune ofizialaren bidez hurrengo estekan:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+                waitlistMsg = `📝 *Itxaron Zerrenda*\n\nItxaron zerrendan izena emateko, mesedez egin zure eskaera gure webgune ofizialean:\n\n👉 [Eman izena Webgune Ofizialean](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             } else if (lang === 'en') {
-                waitlistMsg = `📝 *Waitlist*\n\nTo join our waitlist, please submit your request through our official website at the following link:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+                waitlistMsg = `📝 *Waitlist*\n\nTo join our waitlist, please submit your request through our official website:\n\n👉 [Join Waitlist on Official Website](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             }
             await sendMessage(from, waitlistMsg);
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
@@ -741,11 +741,11 @@ async function handleButtonResponse(from, buttonId) {
             break;
 
         case 'waitlist_init_no': {
-            let waitlistMsg = `📝 *Lista de Espera*\n\nPara inscribirte en la lista de espera, por favor realiza tu solicitud a través de nuestra web oficial en el siguiente enlace:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+            let waitlistMsg = `📝 *Lista de Espera*\n\nPara inscribirte en la lista de espera, por favor realiza tu solicitud a través de nuestra web oficial:\n\n👉 [Inscribirse en Lista de Espera Web](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             if (lang === 'eu') {
-                waitlistMsg = `📝 *Itxaron Zerrenda*\n\nItxaron zerrendan izena emateko, mesedez egin zure eskaera gure webgune ofizialaren bidez hurrengo estekan:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+                waitlistMsg = `📝 *Itxaron Zerrenda*\n\nItxaron zerrendan izena emateko, mesedez egin zure eskaera gure webgune ofizialean:\n\n👉 [Eman izena Webgune Ofizialean](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             } else if (lang === 'en') {
-                waitlistMsg = `📝 *Waitlist*\n\nTo join our waitlist, please submit your request through our official website at the following link:\n\n👉 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+                waitlistMsg = `📝 *Waitlist*\n\nTo join our waitlist, please submit your request through our official website:\n\n👉 [Join Waitlist on Official Website](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             }
             await sendMessage(from, waitlistMsg);
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
@@ -1974,7 +1974,9 @@ async function sendFaqMenu(from, lang) {
                 { id: "faq_5", title: getTranslation(lang, 'faq5Title').slice(0, 24), description: getTranslation(lang, 'faq5Desc').slice(0, 72) },
                 { id: "faq_6", title: getTranslation(lang, 'faq6Title').slice(0, 24), description: getTranslation(lang, 'faq6Desc').slice(0, 72) },
                 { id: "faq_7", title: getTranslation(lang, 'faq7Title').slice(0, 24), description: getTranslation(lang, 'faq7Desc').slice(0, 72) },
-                { id: "faq_8", title: getTranslation(lang, 'faq8Title').slice(0, 24), description: getTranslation(lang, 'faq8Desc').slice(0, 72) }
+                { id: "faq_8", title: getTranslation(lang, 'faq8Title').slice(0, 24), description: getTranslation(lang, 'faq8Desc').slice(0, 72) },
+                { id: "faq_9", title: getTranslation(lang, 'faq9Title').slice(0, 24), description: getTranslation(lang, 'faq9Desc').slice(0, 72) },
+                { id: "faq_10", title: getTranslation(lang, 'faq10Title').slice(0, 24), description: getTranslation(lang, 'faq10Desc').slice(0, 72) }
             ]
         }
     ];
