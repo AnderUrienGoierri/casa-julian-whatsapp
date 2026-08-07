@@ -1299,18 +1299,7 @@ async function handleButtonResponse(from, buttonId) {
                         const isPendingRes = currentStatus.includes('PENDIENTE CONFIRM') || currentStatus === 'PENDIENTE';
 
                         if (isPendingRes) {
-                            // Al estar en estado PENDIENTE CONFIRMACIÓN, se pasa directamente a CANCELADA
                             await db.updateReservationStatus(pending.reservationId, 'CANCELADA');
-
-                            if (lang === 'eu') {
-                                customSuccessMsg = `✅ *Zure erreserba bertan behera utzi da.* (Oraindik berretsi gabe zegoenez, zuzenean baliogabetu da).`;
-                            } else if (lang === 'en') {
-                                customSuccessMsg = `✅ *Your reservation has been cancelled successfully.* (Since it was pending confirmation, it has been cancelled directly).`;
-                            } else if (lang === 'fr') {
-                                customSuccessMsg = `✅ *Votre réservation a été annulée avec succès.* (Étant en attente de confirmation, elle a été annulée directement).`;
-                            } else {
-                                customSuccessMsg = `✅ *Tu reserva ha sido cancelada correctamente.* Al estar pendiente de confirmación, la cancelación ha sido ejecutada de forma inmediata.`;
-                            }
                         } else {
                             await db.updateReservationStatus(pending.reservationId, 'PENDIENTE CANCELACION');
                         }
