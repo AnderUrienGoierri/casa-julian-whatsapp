@@ -3075,233 +3075,83 @@ async function executeReservationSearchForCancel(from, lang, phone, name, curren
 
         case 'modificacion_datos_actuales': {
             const { phone, name } = analyzeVerificationInput(text);
+            const nombreCliente = name || text.trim();
+            const telefonoCliente = phone || from.replace(/\D/g, '');
 
-            if (name && !phone) {
-                const activeRes = db.findActiveReservationsByName(name);
-                if (activeRes.length === 0) {
-                    let notFoundMsg = '';
-                    if (lang === 'eu') {
-                        notFoundMsg = `⚠️ *Ez dugu erreserba berretsirik aurkitu "${name}" izenean erreserben taulan.*\n\nMesedez, egiaztatu sartutako izena.`;
-                    } else if (lang === 'en') {
-                        notFoundMsg = `⚠️ *We could not locate any confirmed reservation for "${name}" in our reservations table.*\n\nPlease check the name provided.`;
-                    } else {
-                        notFoundMsg = `⚠️ *No hemos localizado ninguna reserva confirmada a nombre de "${name}" en nuestra tabla de reservas.*\n\nPor favor, verifica el nombre introducido.`;
-                    }
-                    await sendMessage(from, notFoundMsg);
-                    break;
-                }
+            if (nombreCliente.length < 2) {
+                let promptMsg = `⚠️ *Por favor, indícanos un nombre para la modificación:*`;
+                if (lang === 'eu') promptMsg = `⚠️ *Mesedez, idatzi gutxienez izen bat aldatzeko:*`;
+                else if (lang === 'en') promptMsg = `⚠️ *Please provide a name for the modification:*`;
+                await sendMessage(from, promptMsg);
+                break;
+            }
 
-                currentState.data.searchName = name;
-                currentState.step = 'modificacion_esperar_telefono';
+            currentState.data = currentState.data || {};
+            currentState.data.nombreCliente = nombreCliente;
+            currentState.data.telefonoReserva = telefonoCliente;
+            currentState.data.reservaActual = `${nombreCliente} (${telefonoCliente})`;
+
+            const modTipo = currentState.data.modTipo;
+            if (modTipo === 'comensales') {
+                currentState.step = 'mod_val_comensales';
+                userStates.set(from, currentState);
+                let promptMsg = `📌 *Modificación de comensales para ${nombreCliente} (${telefonoCliente})*\n\nIndica el nuevo número de comensales deseado (máx. 6):`;
+                if (lang === 'eu') promptMsg = `📌 *Kide kopuruaren aldaketa ${nombreCliente} (${telefonoCliente}) izenean*\n\nIdatzi kide kopuru berria (geh. 6):`;
+                else if (lang === 'en') promptMsg = `📌 *Guest count modification for ${nombreCliente} (${telefonoCliente})*\n\nEnter the new number of guests (max. 6):`;
+                await sendMessage(from, promptMsg);
+            } else if (modTipo === 'dia') {
+                currentState.step = 'mod_val_dia';
+                userStates.set(from, currentState);
+                await sendMessage(from, getTranslation(lang, 'modDiaPrompt'));
+            } else if (modTipo === 'hora') {
+                currentState.step = 'mod_val_hora';
+                userStates.set(from, currentState);
+                await sendMessage(from, getTranslation(lang, 'modHoraPrompt'));
+            } else {
+                currentState.step = 'modificacion_tipo';
                 userStates.set(from, currentState);
 
-                let promptMsg = '';
-                if (lang === 'eu') {
-                    promptMsg = `📌 Erreserba aurkitu dugu *${name}* izenean. Mesedez, idatzi erreserbaren *telefono zenbakia* zure nortasuna egiaztatzeko:`;
-                } else if (lang === 'en') {
-                    promptMsg = `📌 We located a reservation under *${name}*. Please enter the *phone number* on the reservation to verify your identity:`;
-                } else {
-                    promptMsg = `📌 Hemos localizado una reserva a nombre de *${name}*. Por favor, indícanos el *número de teléfono* con el que la realizaste para verificar tu identidad:`;
-                }
-                await sendMessage(from, promptMsg);
-                break;
+                const modBody = getTranslation(lang, 'modOptionsPrompt');
+                const modButtons = [
+                    { id: 'mod_comensales', title: getTranslation(lang, 'modOptComensales').slice(0, 20) },
+                    { id: 'mod_dia', title: getTranslation(lang, 'modOptDia').slice(0, 20) },
+                    { id: 'mod_hora', title: getTranslation(lang, 'modOptHora').slice(0, 20) }
+                ];
+                await sendInteractiveButtons(from, modBody, modButtons);
             }
-
-            if (phone && !name) {
-                const activeRes = db.findActiveReservationsByPhone(phone);
-                if (activeRes.length === 0) {
-                    let notFoundMsg = '';
-                    if (lang === 'eu') {
-                        notFoundMsg = `⚠️ *Ez dugu erreserba berretsirik aurkitu "${phone}" telefonoarekin erreserben taulan.*\n\nMesedez, egiaztatu sartutako telefonoa.`;
-                    } else if (lang === 'en') {
-                        notFoundMsg = `⚠️ *We could not locate any confirmed reservation for phone "${phone}" in our reservations table.*\n\nPlease check the phone number provided.`;
-                    } else {
-                        notFoundMsg = `⚠️ *No hemos localizado ninguna reserva confirmada asociada al teléfono "${phone}" en nuestra tabla de reservas.*\n\nPor favor, verifica el número de teléfono introducido.`;
-                    }
-                    await sendMessage(from, notFoundMsg);
-                    break;
-                }
-
-                currentState.data.searchPhone = phone;
-                currentState.step = 'modificacion_esperar_nombre';
-                userStates.set(from, currentState);
-
-                let promptMsg = '';
-                if (lang === 'eu') {
-                    promptMsg = `📌 Erreserba aurkitu dugu *${phone}* telefonoarekin. Mesedez, idatzi erreserbaren *Izen-abizen osoak* zure nortasuna egiaztatzeko:`;
-                } else if (lang === 'en') {
-                    promptMsg = `📌 We located a reservation for *${phone}*. Please enter the *full name* on the reservation to verify your identity:`;
-                } else {
-                    promptMsg = `📌 Hemos localizado una reserva asociada al teléfono *${phone}*. Por favor, indícanos el *nombre completo* del titular para verificar tu identidad:`;
-                }
-                await sendMessage(from, promptMsg);
-                break;
-            }
-
-            if (!phone && !name) {
-                let promptMsg = '';
-                if (lang === 'eu') {
-                    promptMsg = `⚠️ *Mesedez, idatzi erreserbaren Titularraren Izen-abizenak eta Telefonoa:*`;
-                } else if (lang === 'en') {
-                    promptMsg = `⚠️ *Please enter the Full Name and Phone Number on the reservation:*`;
-                } else {
-                    promptMsg = `⚠️ *Por favor, indícanos el Nombre completo y Teléfono de la reserva:*`;
-                }
-                await sendMessage(from, promptMsg);
-                break;
-            }
-
-            await executeReservationSearchForMod(from, lang, phone, name, currentState);
-            break;
-        }
-
-        case 'modificacion_esperar_telefono': {
-            const phoneDigits = text.trim().replace(/\D/g, '');
-            const searchName = currentState.data.searchName;
-
-            if (phoneDigits.length < 7) {
-                let promptMsg = '';
-                if (lang === 'eu') promptMsg = `⚠️ *Telefono zenbakia ez da baliozkoa.* Mesedez, idatzi telefono zenbaki egokia (adib: *612345678*):`;
-                else if (lang === 'en') promptMsg = `⚠️ *Invalid phone number.* Please enter a valid phone number (e.g. *612345678*):`;
-                else promptMsg = `⚠️ *El número de teléfono no parece válido.* Por favor, introduce un número correcto (ej: *612345678*):`;
-                await sendMessage(from, promptMsg);
-                break;
-            }
-
-            await executeReservationSearchForMod(from, lang, phoneDigits, searchName, currentState);
-            break;
-        }
-
-        case 'modificacion_esperar_nombre': {
-            const searchName = text.trim();
-            const searchPhone = currentState.data.searchPhone;
-
-            if (searchName.length < 2) {
-                let promptMsg = '';
-                if (lang === 'eu') promptMsg = `⚠️ *Izen-abizenak laburregiak dira.* Mesedez, idatzi izen osoa:`;
-                else if (lang === 'en') promptMsg = `⚠️ *Name is too short.* Please enter the full name:`;
-                else promptMsg = `⚠️ *El nombre es demasiado corto.* Por favor, introduce el nombre completo:`;
-                await sendMessage(from, promptMsg);
-                break;
-            }
-
-            await executeReservationSearchForMod(from, lang, searchPhone, searchName, currentState);
             break;
         }
 
         case 'cancelacion_datos_actuales': {
             const { phone, name } = analyzeVerificationInput(text);
+            const nombreCliente = name || text.trim();
+            const telefonoCliente = phone || from.replace(/\D/g, '');
 
-            if (name && !phone) {
-                const activeRes = db.findActiveReservationsByName(name);
-                if (activeRes.length === 0) {
-                    let notFoundMsg = '';
-                    if (lang === 'eu') {
-                        notFoundMsg = `⚠️ *Ez dugu erreserba berretsirik aurkitu "${name}" izenean erreserben taulan.*\n\nMesedez, egiaztatu sartutako izena.`;
-                    } else if (lang === 'en') {
-                        notFoundMsg = `⚠️ *We could not locate any confirmed reservation for "${name}" in our reservations table.*\n\nPlease check the name provided.`;
-                    } else {
-                        notFoundMsg = `⚠️ *No hemos localizado ninguna reserva confirmada a nombre de "${name}" en nuestra tabla de reservas.*\n\nPor favor, verifica el nombre introducido.`;
-                    }
-                    await sendMessage(from, notFoundMsg);
-                    break;
-                }
-
-                currentState.data.searchName = name;
-                currentState.step = 'cancelacion_esperar_telefono';
-                userStates.set(from, currentState);
-
-                let promptMsg = '';
-                if (lang === 'eu') {
-                    promptMsg = `📌 Erreserba aurkitu dugu *${name}* izenean. Mesedez, idatzi ezeztatu nahi duzun erreserbaren *telefono zenbakia* zure nortasuna egiaztatzeko:`;
-                } else if (lang === 'en') {
-                    promptMsg = `📌 We located a reservation under *${name}*. Please enter the *phone number* of the reservation to verify your identity:`;
-                } else {
-                    promptMsg = `📌 Hemos localizado una reserva a nombre de *${name}*. Por favor, indícanos el *número de teléfono* con el que realizaste la reserva para verificar tu identidad:`;
-                }
+            if (nombreCliente.length < 2) {
+                let promptMsg = `⚠️ *Por favor, indícanos un nombre para la cancelación:*`;
+                if (lang === 'eu') promptMsg = `⚠️ *Mesedez, idatzi gutxienez izen bat ezeztatzeko:*`;
+                else if (lang === 'en') promptMsg = `⚠️ *Please provide a name for the cancellation:*`;
                 await sendMessage(from, promptMsg);
                 break;
             }
 
-            if (phone && !name) {
-                const activeRes = db.findActiveReservationsByPhone(phone);
-                if (activeRes.length === 0) {
-                    let notFoundMsg = '';
-                    if (lang === 'eu') {
-                        notFoundMsg = `⚠️ *Ez dugu erreserba berretsirik aurkitu "${phone}" telefonoarekin erreserben taulan.*\n\nMesedez, egiaztatu sartutako telefonoa.`;
-                    } else if (lang === 'en') {
-                        notFoundMsg = `⚠️ *We could not locate any confirmed reservation for phone "${phone}" in our reservations table.*\n\nPlease check the phone number provided.`;
-                    } else {
-                        notFoundMsg = `⚠️ *No hemos localizado ninguna reserva confirmada asociada al teléfono "${phone}" en nuestra tabla de reservas.*\n\nPor favor, verifica el número de teléfono introducido.`;
-                    }
-                    await sendMessage(from, notFoundMsg);
-                    break;
-                }
+            const detalleCancelacion = 
+                `🆔 *Tipo de Solicitud:* SOLICITUD CANCELACIÓN DE RESERVA\n` +
+                `👤 *Nombre Cliente:* ${nombreCliente}\n` +
+                `📞 *Teléfono Cliente:* ${telefonoCliente}\n` +
+                `📌 *Estado:* PENDIENTE PROCESAMIENTO RECEPCIÓN\n` +
+                `📱 *WhatsApp Remitente:* ${from}`;
 
-                currentState.data.searchPhone = phone;
-                currentState.step = 'cancelacion_esperar_nombre';
-                userStates.set(from, currentState);
-
-                let promptMsg = '';
-                if (lang === 'eu') {
-                    promptMsg = `📌 Erreserba aurkitu dugu *${phone}* telefonoarekin. Mesedez, idatzi ezeztatu nahi duzun erreserba zeinen izenean dagoen (*Izen-abizen osoak*):`;
-                } else if (lang === 'en') {
-                    promptMsg = `📌 We located a reservation for *${phone}*. Please provide the *full name* on the reservation to verify your identity:`;
-                } else {
-                    promptMsg = `📌 Hemos localizado una reserva asociada al teléfono *${phone}*. Por favor, indícanos el *nombre completo* a nombre de quien está la reserva para verificar tu identidad:`;
-                }
-                await sendMessage(from, promptMsg);
-                break;
-            }
-
-            if (!phone && !name) {
-                let promptMsg = '';
-                if (lang === 'eu') {
-                    promptMsg = `⚠️ *Mesedez, idatzi ezeztatu nahi duzun erreserbaren Izen-abizenak eta Telefonoa:*`;
-                } else if (lang === 'en') {
-                    promptMsg = `⚠️ *Please enter the Full Name and Phone Number of the reservation to cancel:*`;
-                } else {
-                    promptMsg = `⚠️ *Por favor, indícanos el Nombre completo y Teléfono de la reserva que deseas cancelar:*`;
-                }
-                await sendMessage(from, promptMsg);
-                break;
-            }
-
-            await executeReservationSearchForCancel(from, lang, phone, name, currentState);
-            break;
-        }
-
-        case 'cancelacion_esperar_telefono': {
-            const phoneDigits = text.trim().replace(/\D/g, '');
-            const searchName = currentState.data.searchName;
-
-            if (phoneDigits.length < 7) {
-                let promptMsg = '';
-                if (lang === 'eu') promptMsg = `⚠️ *Telefono zenbakia ez da baliozkoa.* Mesedez, idatzi telefono zenbaki egokia (adib: *612345678*):`;
-                else if (lang === 'en') promptMsg = `⚠️ *Invalid phone number.* Please enter a valid phone number (e.g. *612345678*):`;
-                else promptMsg = `⚠️ *El número de teléfono no parece válido.* Por favor, introduce un número correcto (ej: *612345678*):`;
-                await sendMessage(from, promptMsg);
-                break;
-            }
-
-            await executeReservationSearchForCancel(from, lang, phoneDigits, searchName, currentState);
-            break;
-        }
-
-        case 'cancelacion_esperar_nombre': {
-            const searchName = text.trim();
-            const searchPhone = currentState.data.searchPhone;
-
-            if (searchName.length < 2) {
-                let promptMsg = '';
-                if (lang === 'eu') promptMsg = `⚠️ *Izen-abizenak laburregiak dira.* Mesedez, idatzi izen osoa:`;
-                else if (lang === 'en') promptMsg = `⚠️ *Name is too short.* Please enter the full name:`;
-                else promptMsg = `⚠️ *El nombre es demasiado corto.* Por favor, introduce el nombre completo:`;
-                await sendMessage(from, promptMsg);
-                break;
-            }
-
-            await executeReservationSearchForCancel(from, lang, searchPhone, searchName, currentState);
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
+                reservationId: 'CAN-' + Date.now().toString().slice(-6),
+                initialStatus: 'PENDIENTE',
+                isCancellation: true,
+                detalleMod: detalleCancelacion,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoCliente,
+                successMsgKey: 'cancelSuccessMsg'
+            });
             break;
         }
 
