@@ -188,7 +188,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `✏️🔵 *[CATEGORÍA: MODIFICACIÓN DE RESERVA]* 🔵✏️`,
             colorTag: `🔵 MODIFICACIÓN DE RESERVA`,
-            subjectTag: `[🔵 MODIFICACIÓN]`,
+            subjectTag: `[🔵 MODIFICACIÓN DE RESERVA]`,
             labelCategory: `Modificaciones`,
             subLabel: `modificacion_reserva`,
             emoji: `✏️`
@@ -201,7 +201,7 @@ function getCategoryHeader(tipoAccion) {
             return {
                 banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN LISTA DE ESPERA]* 🔴❌`,
                 colorTag: `🔴 CANCELACIÓN LISTA DE ESPERA`,
-                subjectTag: `[🔴 CANCELACIÓN LISTA ESPERA]`,
+                subjectTag: `[🔴 CANCELACIÓN LISTA DE ESPERA]`,
                 labelCategory: `Cancelaciones`,
                 subLabel: `cancelacion_lista_espera`,
                 emoji: `❌`
@@ -210,7 +210,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN DE RESERVA]* 🔴❌`,
             colorTag: `🔴 CANCELACIÓN DE RESERVA`,
-            subjectTag: `[🔴 CANCELACIÓN RESERVA]`,
+            subjectTag: `[🔴 CANCELACIÓN DE RESERVA]`,
             labelCategory: `Cancelaciones`,
             subLabel: `cancelacion_reserva`,
             emoji: `❌`
@@ -222,7 +222,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `💬🟣 *[CATEGORÍA: CONSULTAS ABIERTAS - CASUÍSTICAS ESPECIALES]* 🟣💬`,
             colorTag: `🟣 CONSULTAS ABIERTAS / CASUÍSTICAS ESPECIALES`,
-            subjectTag: `[💬 Casa Julian / Consultas-Abiertas]`,
+            subjectTag: `[💬 CONSULTA ABIERTA]`,
             labelCategory: `Casa Julian / Consultas-Abiertas`,
             subLabel: `Consultas-Abiertas`,
             emoji: `💬`
