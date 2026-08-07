@@ -339,7 +339,7 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
     </div>
     `;
 
-    const subject = `[Casa Julián] ${categoryInfo.subjectTag} - ${nombreDisplay} (${telDisplay})`;
+    const subject = `${categoryInfo.subjectTag} Casa Julián - ${nombreDisplay} (${telDisplay})`;
 
     // Intento 1: API REST HTTPS Brevo (si está configurada la API KEY)
     const brevoResult = await sendViaBrevoHttpApi(targetEmail, subject, emailHtmlResend);
