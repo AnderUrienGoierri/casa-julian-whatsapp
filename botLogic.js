@@ -3074,18 +3074,7 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
         `📌 *Estado:* PENDIENTE RESPUESTA RESTAURANTE\n` +
         `📱 *WhatsApp Remitente:* ${from}`;
 
-    try {
-        await sendInternalStaffAlertInSpanish(
-            'CONSULTA ABIERTA (CASUÍSTICAS ESPECIALES)',
-            from,
-            detalleConsulta,
-            nombreCliente,
-            telefonoCliente
-        );
-    } catch (e) {
-        console.error("⚠️ Error enviando alerta de consulta abierta:", e.message);
-    }
-
+    // 1. Responder AL CLIENTE EN WHATSAPP DE FORMA INMEDIATA (< 300ms)
     try {
         let successMsg = getTranslation(lang, 'consultaSuccessMsg');
         if (!successMsg || successMsg.includes('key_not_found') || typeof successMsg !== 'string') {
@@ -3098,11 +3087,21 @@ async function executeConsultaAbiertaSubmit(from, lang, consultas) {
             }
         }
         await sendMessage(from, successMsg);
+        await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
     } catch (msgErr) {
         console.error("⚠️ Error enviando mensaje de confirmación al cliente:", msgErr.message);
     } finally {
         userStates.delete(from);
     }
+
+    // 2. Enviar alerta por email y WhatsApp a la recepción en segundo plano (sin retrasar al cliente)
+    sendInternalStaffAlertInSpanish(
+        'CONSULTA ABIERTA (CASUÍSTICAS ESPECIALES)',
+        from,
+        detalleConsulta,
+        nombreCliente,
+        telefonoCliente
+    ).catch(e => console.error("⚠️ Error enviando alerta de consulta abierta:", e.message));
 }
 
         case 'consulta_abierta_paso1_texto': {
