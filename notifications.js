@@ -188,7 +188,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `✏️🔵 *[CATEGORÍA: MODIFICACIÓN DE RESERVA]* 🔵✏️`,
             colorTag: `🔵 MODIFICACIÓN DE RESERVA`,
-            subjectTag: `[🔵 MODIFICACIÓN DE RESERVA]`,
+            subjectTag: `[Modificación]`,
             labelCategory: `Modificaciones`,
             subLabel: `modificacion_reserva`,
             emoji: `✏️`
@@ -201,7 +201,7 @@ function getCategoryHeader(tipoAccion) {
             return {
                 banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN LISTA DE ESPERA]* 🔴❌`,
                 colorTag: `🔴 CANCELACIÓN LISTA DE ESPERA`,
-                subjectTag: `[🔴 CANCELACIÓN LISTA DE ESPERA]`,
+                subjectTag: `[Cancelación Lista de Espera]`,
                 labelCategory: `Cancelaciones`,
                 subLabel: `cancelacion_lista_espera`,
                 emoji: `❌`
@@ -210,7 +210,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `❌🔴 *[CATEGORÍA: CANCELACIÓN DE RESERVA]* 🔴❌`,
             colorTag: `🔴 CANCELACIÓN DE RESERVA`,
-            subjectTag: `[🔴 CANCELACIÓN DE RESERVA]`,
+            subjectTag: `[Cancelación]`,
             labelCategory: `Cancelaciones`,
             subLabel: `cancelacion_reserva`,
             emoji: `❌`
@@ -222,7 +222,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `💬🟣 *[CATEGORÍA: CONSULTAS ABIERTAS - CASUÍSTICAS ESPECIALES]* 🟣💬`,
             colorTag: `🟣 CONSULTAS ABIERTAS / CASUÍSTICAS ESPECIALES`,
-            subjectTag: `[💬 CONSULTA ABIERTA]`,
+            subjectTag: `[Consulta Abierta]`,
             labelCategory: `Casa Julian / Consultas-Abiertas`,
             subLabel: `Consultas-Abiertas`,
             emoji: `💬`
@@ -234,7 +234,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `📋🟡 *[CATEGORÍA: LISTA DE ESPERA]* 🟡📋`,
             colorTag: `🟡 LISTA DE ESPERA`,
-            subjectTag: `[🟡 LISTA DE ESPERA]`,
+            subjectTag: `[Lista de Espera]`,
             labelCategory: `Listas de espera`,
             subLabel: null,
             emoji: `📋`
@@ -247,7 +247,7 @@ function getCategoryHeader(tipoAccion) {
             return {
                 banner: `🎁🟢 *[CATEGORÍA: CONSULTA MENÚ TRADICIÓN]* 🟢🎁`,
                 colorTag: `🟢 CONSULTA MENÚ TRADICIÓN`,
-                subjectTag: `[🟢 MENÚ TRADICIÓN CADUCIDAD]`,
+                subjectTag: `[Reserva Menu-Tradición Caducidad]`,
                 labelCategory: `Reservas Menu-Tradición`,
                 subLabel: `Consultas Fecha Caducidad`,
                 emoji: `🎁`
@@ -256,7 +256,7 @@ function getCategoryHeader(tipoAccion) {
         return {
             banner: `🎁🟢 *[CATEGORÍA: RESERVA MENÚ TRADICIÓN]* 🟢🎁`,
             colorTag: `🟢 RESERVA MENÚ TRADICIÓN`,
-            subjectTag: `[🟢 MENÚ TRADICIÓN SOLICITUD]`,
+            subjectTag: `[Reserva Menu-Tradición]`,
             labelCategory: `Reservas Menu-Tradición`,
             subLabel: `reserva_menu_tradicion`,
             emoji: `🎁`
