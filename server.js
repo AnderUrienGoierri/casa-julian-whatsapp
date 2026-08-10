@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-10-CMS-V106-DIRECT-FLOW-AFTER-FECHAS';
+const DEPLOY_VERSION = 'v2026-08-10-CMS-V107-REMOVE-IDIOMA-REGISTRO-PROMPT';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

@@ -154,6 +154,87 @@ async function sendAllergiesList(from, lang, promptTextKey, selectedList = []) {
     await sendInteractiveList(from, promptBody, buttonText, sections);
 }
 
+async function processMenuTradReservation(from, lang) {
+    const currentState = userStates.get(from) || { data: {} };
+    const chatLang = userLanguages.get(from) || lang || 'es';
+    const mt = currentState.data.menuTrad || {};
+    const fechasStr = (mt.fechas && mt.fechas.length > 0) ? mt.fechas.join(', ') : 'Sin preferencia';
+    
+    const resRecord = db.createReservation({
+        nombre: mt.nombre || 'Cliente WhatsApp',
+        telefono: from,
+        dni: mt.dni || 'N/A',
+        email: mt.email || 'N/A',
+        nacionalidad: mt.nacionalidad,
+        fecha: '',
+        hora: mt.horario || 'Sin preferencia',
+        comensales: mt.comensales || 2,
+        estado: 'PENDIENTE CONFIRMACION',
+        fechas_preferencia: mt.fechas || [],
+        tipo_reserva: 'tarjeta_regalo',
+        alergias: mt.alergias || 'NO',
+        tipo_servicio: mt.tipoServicio || 'Sin preferencia',
+        tarjeta_regalo: mt.tarjeta || null,
+        ninos: mt.ninos || mt.num_ninos || 0,
+        idioma: chatLang
+    });
+
+    let detalleMenuTrad = '';
+    if (chatLang === 'eu') {
+        detalleMenuTrad = `🆔 *Erreserba ID:* ${resRecord.id}\n` +
+                                `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
+                                `🎁 *Opari-Txartel Zenbakia:* ${mt.tarjeta || 'Ez zehaztua'}\n` +
+                                `👥 *Jankideak:* ${mt.comensales || 2}\n` +
+                                `👶 *Haurrak (<12 urte):* ${mt.ninos || 0}\n` +
+                                `🍽️ *Zerbitzua:* ${mt.tipoServicio || 'Hobespenik ez'}\n` +
+                                `⏰ *Aukeratutako ordua:* ${mt.horario || 'Hobespenik ez'}\n` +
+                                `📅 *Hobetsitako datak:* ${fechasStr}\n` +
+                                `⚠️ *Alergiak/Mugak:* ${mt.alergias || 'Ez'}\n` +
+                                `📌 *Egoera:* PENDIENTE CONFIRMACION\n` +
+                                `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
+                                `📋 *Eskaera:* TRADIZIO MENUA ERRESERBA (OPARI TXARTELA)`;
+    } else if (chatLang === 'en') {
+        detalleMenuTrad = `🆔 *Reservation ID:* ${resRecord.id}\n` +
+                                `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
+                                `🎁 *Gift Card No.:* ${mt.tarjeta || 'Not specified'}\n` +
+                                `👥 *Guests:* ${mt.comensales || 2}\n` +
+                                `👶 *Children (<12 yrs):* ${mt.ninos || 0}\n` +
+                                `🍽️ *Service:* ${mt.tipoServicio || 'No preference'}\n` +
+                                `⏰ *Selected Time:* ${mt.horario || 'No preference'}\n` +
+                                `📅 *Preferred Dates:* ${fechasStr}\n` +
+                                `⚠️ *Allergies/Restrictions:* ${mt.alergias || 'None'}\n` +
+                                `📌 *Status:* PENDIENTE CONFIRMACION\n` +
+                                `📱 *Sender WhatsApp:* ${from}\n` +
+                                `📋 *Request:* TRADITION MENU BOOKING (GIFT CARD)`;
+    } else {
+        detalleMenuTrad = `🆔 *ID Reserva:* ${resRecord.id}\n` +
+                                `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
+                                `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
+                                `👥 *Comensales:* ${mt.comensales || 2}\n` +
+                                `👶 *Niños (<12 años):* ${mt.ninos || 0}\n` +
+                                `🍽️ *Servicio:* ${mt.tipoServicio || 'Sin preferencia'}\n` +
+                                `⏰ *Hora seleccionada:* ${mt.horario || 'Sin preferencia'}\n` +
+                                `📅 *Fechas de preferencia:* ${fechasStr}\n` +
+                                `⚠️ *Alergias/Restricciones:* ${mt.alergias || 'Ninguna'}\n` +
+                                `📌 *Estado:* PENDIENTE CONFIRMACION\n` +
+                                `📱 *WhatsApp Remitente:* ${from}\n` +
+                                `📋 *Solicitud:* RESERVA MENÚ TRADICIÓN (TARJETA REGALO)`;
+    }
+
+    await requestUserConfirmation(from, chatLang, {
+        tipoAccion: 'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',
+        detalleMod: detalleMenuTrad,
+        nombreCliente: mt.nombre || 'Cliente WhatsApp',
+        telefonoReserva: from,
+        tarjetaCodigo: mt.tarjeta,
+        diasPreferencia: mt.dias || 'Sin preferencia',
+        horario: mt.horario || '',
+        idioma: chatLang,
+        reservationId: resRecord.id,
+        successMsgKey: 'menuTradicionSuccessMsg'
+    });
+}
+
 async function handleAllergiesListSelection(from, listId, lang) {
     const currentState = userStates.get(from) || { data: {} };
     const isMenuTrad = currentState.step.startsWith('menu_trad');
@@ -165,18 +246,28 @@ async function handleAllergiesListSelection(from, listId, lang) {
     if (listId === 'alg_no') {
         currentState.data[formKey].alergias = 'NO';
         currentState.data[formKey].selectedAllergies = [];
-        currentState.step = isMenuTrad ? 'menu_trad_step7_idioma' : 'espera_step7_idioma';
-        userStates.set(from, currentState);
-        await sendFormLanguageList(from, lang);
+        if (isMenuTrad) {
+            userStates.set(from, currentState);
+            await processMenuTradReservation(from, lang);
+        } else {
+            currentState.step = 'espera_step7_idioma';
+            userStates.set(from, currentState);
+            await sendFormLanguageList(from, lang);
+        }
         return;
     }
 
     if (listId === 'alg_finish') {
         const sel = currentState.data[formKey].selectedAllergies;
         currentState.data[formKey].alergias = sel.length > 0 ? sel.join(', ') : 'NO';
-        currentState.step = isMenuTrad ? 'menu_trad_step7_idioma' : 'espera_step7_idioma';
-        userStates.set(from, currentState);
-        await sendFormLanguageList(from, lang);
+        if (isMenuTrad) {
+            userStates.set(from, currentState);
+            await processMenuTradReservation(from, lang);
+        } else {
+            currentState.step = 'espera_step7_idioma';
+            userStates.set(from, currentState);
+            await sendFormLanguageList(from, lang);
+        }
         return;
     }
 
