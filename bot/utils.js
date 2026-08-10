@@ -50,16 +50,25 @@ function checkRestaurantClosedDate(dateStr) {
 
     if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
 
-    // 1. Vacaciones anuales del restaurante: del 25 de Agosto al 7 de Septiembre (ambos inclusive) para cualquier año
-    if ((month === 8 && day >= 25) || (month === 9 && day <= 7)) {
-        return { closed: true, reason: 'vacation', date: dateStr };
-    }
-
-    // 2. Descanso semanal del restaurante: Lunes (dayOfWeek === 1)
+    // 1. Descanso semanal del restaurante: Lunes (dayOfWeek === 1) para CUALQUIER año
     const dateObj = new Date(year, month - 1, day);
     const dayOfWeek = dateObj.getDay();
     if (dayOfWeek === 1) {
         return { closed: true, reason: 'monday', date: dateStr };
+    }
+
+    // 2. Periodos de vacaciones del restaurante:
+    // Periodo A: 12 de Enero - 29 de Enero
+    if (month === 1 && day >= 12 && day <= 29) {
+        return { closed: true, reason: 'vacation', date: dateStr };
+    }
+    // Periodo B: 23 de Marzo - 29 de Marzo
+    if (month === 3 && day >= 23 && day <= 29) {
+        return { closed: true, reason: 'vacation', date: dateStr };
+    }
+    // Periodo C: 24 de Agosto - 8 de Septiembre
+    if ((month === 8 && day >= 24) || (month === 9 && day <= 8)) {
+        return { closed: true, reason: 'vacation', date: dateStr };
     }
 
     return null;
