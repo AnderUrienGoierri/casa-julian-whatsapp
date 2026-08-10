@@ -633,6 +633,11 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'btn_go_cancelacion':
+            userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
+            await sendMessage(from, getTranslation(lang, 'cancelDataPrompt'));
+            break;
+
         case 'btn_volver_menu':
             await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
             break;
