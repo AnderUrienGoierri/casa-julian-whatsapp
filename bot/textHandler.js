@@ -905,7 +905,21 @@ async function handleTextMessage(from, text) {
 
         case 'cancelacion_paso2_fecha':
         case 'cancelacion_verificar_datos': {
-            const fechaIngresada = text.trim();
+            const rawDates = parseAndValidateDates(text);
+            if (rawDates.length === 0) {
+                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                break;
+            }
+
+            const fechaIngresada = rawDates[0];
+            const closedCheck = checkRestaurantClosedDate(fechaIngresada);
+            if (closedCheck) {
+                const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
+                const msgText = getTranslation(lang, msgKey).replace('{date}', fechaIngresada);
+                await sendMessage(from, msgText);
+                break;
+            }
+
             const currentState = userStates.get(from) || { data: {} };
             const cancelNombre = currentState?.data?.cancelNombre || 'No especificado';
 
