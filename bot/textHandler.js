@@ -474,7 +474,7 @@ async function handleTextMessage(from, text) {
             userStates.set(from, currentState);
 
             if (currentState.data.menuTrad.fechas.length >= 5) {
-                currentState.step = 'menu_trad_step5b_ninos';
+                currentState.step = 'menu_trad_step5a_comensales';
                 userStates.set(from, currentState);
 
                 const datesStr = currentState.data.menuTrad.fechas.join(', ');
@@ -482,14 +482,14 @@ async function handleTextMessage(from, text) {
                 if (lang === 'eu') maxHeader = `📌 *Gehienezko 5 data hobetsiak adierazi dituzu:* ${datesStr}\n\n`;
                 else if (lang === 'en') maxHeader = `📌 *You specified the maximum 5 preferred dates:* ${datesStr}\n\n`;
 
-                let promptBody = maxHeader + `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
-                if (lang === 'eu') promptBody = maxHeader + `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
-                else if (lang === 'en') promptBody = maxHeader + `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
+                let promptBody = maxHeader + `👥 *¿Cuántos comensales (personas en total) acudirán a la reserva?*\n\n(La tarjeta regalo suele ser para 2 comensales, pero puedes indicar si seréis más personas):`;
+                if (lang === 'eu') promptBody = maxHeader + `👥 *Zenbat jankide (pertsona guztira) etorriko dira erreserbara?*\n\n(Normalean opari-txartela 2 jankiderentzat izaten da, baina gehiago bazarete aukeratu dezakezu):`;
+                else if (lang === 'en') promptBody = maxHeader + `👥 *How many guests (total people) will attend the reservation?*\n\n(The gift card is usually for 2 guests, but you can specify if more people will attend):`;
 
                 const buttons = [
-                    { id: 'btn_mt_ninos_0', title: '0 niños' },
-                    { id: 'btn_mt_ninos_1', title: '1 niño' },
-                    { id: 'btn_mt_ninos_2', title: '2 niños' }
+                    { id: 'btn_mt_comensales_2', title: '2 comensales' },
+                    { id: 'btn_mt_comensales_3', title: '3 comensales' },
+                    { id: 'btn_mt_comensales_4', title: '4 comensales' }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
             } else if (currentState.data.menuTrad.fechas.length > 0) {
@@ -503,6 +503,34 @@ async function handleTextMessage(from, text) {
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
             }
+            break;
+        }
+
+        case 'menu_trad_step5a_comensales': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            let numComensales = 2;
+            const cleanTextVal = text.trim().toLowerCase();
+
+            if (cleanTextVal.startsWith('btn_mt_comensales_')) {
+                numComensales = parseInt(cleanTextVal.replace('btn_mt_comensales_', ''), 10) || 2;
+            } else {
+                numComensales = parseInt(cleanTextVal.replace(/\D/g, ''), 10) || 2;
+            }
+
+            currentState.data.menuTrad.comensales = numComensales;
+            currentState.step = 'menu_trad_step5b_ninos';
+            userStates.set(from, currentState);
+
+            let promptBody = `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
+            if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
+            else if (lang === 'en') promptBody = `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
+
+            const buttons = [
+                { id: 'btn_mt_ninos_0', title: '0 niños' },
+                { id: 'btn_mt_ninos_1', title: '1 niño' },
+                { id: 'btn_mt_ninos_2', title: '2 niños' }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
             break;
         }
 

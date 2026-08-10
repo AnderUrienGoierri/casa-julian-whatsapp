@@ -1175,8 +1175,32 @@ async function handleButtonResponse(from, buttonId) {
                 break;
             }
 
-            currentState.step = 'menu_trad_step5b_ninos';
+            currentState.step = 'menu_trad_step5a_comensales';
             userStates.set(from, currentState);
+
+            let promptBody = `👥 *¿Cuántos comensales (personas en total) acudirán a la reserva?*\n\n(La tarjeta regalo suele ser para 2 comensales, pero puedes indicar si seréis más personas):`;
+            if (lang === 'eu') promptBody = `👥 *Zenbat jankide (pertsona guztira) etorriko dira erreserbara?*\n\n(Normalean opari-txartela 2 jankiderentzat izaten da, baina gehiago bazarete aukeratu dezakezu):`;
+            else if (lang === 'en') promptBody = `👥 *How many guests (total people) will attend the reservation?*\n\n(The gift card is usually for 2 guests, but you can specify if more people will attend):`;
+
+            const buttons = [
+                { id: 'btn_mt_comensales_2', title: '2 comensales' },
+                { id: 'btn_mt_comensales_3', title: '3 comensales' },
+                { id: 'btn_mt_comensales_4', title: '4 comensales' }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
+        case 'btn_mt_comensales_2':
+        case 'btn_mt_comensales_3':
+        case 'btn_mt_comensales_4': {
+            const count = parseInt(buttonId.replace('btn_mt_comensales_', ''), 10) || 2;
+            const state = userStates.get(from) || { data: {} };
+            state.data = state.data || {};
+            state.data.menuTrad = state.data.menuTrad || {};
+            state.data.menuTrad.comensales = count;
+            state.step = 'menu_trad_step5b_ninos';
+            userStates.set(from, state);
 
             let promptBody = `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
             if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
