@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-10-CMS-V121-ROUTE-FAQ-CANCEL-BTN-TO-CANCELLATION-FLOW';
+const DEPLOY_VERSION = 'v2026-08-10-CMS-V122-VALIDATE-MODIFICATION-DATE-CALENDAR-CLOSURE';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

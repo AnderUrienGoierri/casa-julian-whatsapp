@@ -689,13 +689,17 @@ async function handleTextMessage(from, text) {
         case 'modificacion_fecha_reserva': {
             const rawText = text.trim();
             const parsedDates = parseAndValidateDates(rawText);
-            const fechaReservaOriginal = parsedDates.length > 0 ? parsedDates[0] : rawText;
+            if (parsedDates.length === 0) {
+                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                break;
+            }
 
-            if (rawText.length < 2) {
-                let promptFecha = `⚠️ *Por favor, indícanos la fecha actual de la reserva a modificar (Ejemplo: DD/MM/AAAA):*`;
-                if (lang === 'eu') promptFecha = `⚠️ *Mesedez, idatzi aldatu nahi duzun erreserbaren egungo data (Adibidez: DD/MM/AAAA):*`;
-                else if (lang === 'en') promptFecha = `⚠️ *Please enter the current date of the reservation to modify (Example: DD/MM/YYYY):*`;
-                await sendMessage(from, promptFecha);
+            const fechaReservaOriginal = parsedDates[0];
+            const closedCheck = checkRestaurantClosedDate(fechaReservaOriginal);
+            if (closedCheck) {
+                const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
+                const msgText = getTranslation(lang, msgKey).replace('{date}', fechaReservaOriginal);
+                await sendMessage(from, msgText);
                 break;
             }
 
