@@ -878,109 +878,51 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'cancelacion_datos_actuales': {
-            const queryText = text.trim();
-            const searchResult = db.findReservationForCancellation(queryText, from);
-
-            if (!searchResult || !searchResult.reservation) {
-                const notFoundMsg = getTranslation(lang, 'cancelReservationNotFoundMsg').replace('{query}', queryText);
-                await sendMessage(from, notFoundMsg);
+        case 'cancelacion_datos_actuales':
+        case 'cancelacion_paso1_nombre': {
+            const nombreIngresado = text.trim();
+            if (!nombreIngresado) {
+                await sendMessage(from, getTranslation(lang, 'cancelDataPrompt'));
                 break;
             }
 
-            const reservaFound = searchResult.reservation;
+            const currentState = userStates.get(from) || { data: {} };
+            currentState.data = currentState.data || {};
+            currentState.data.cancelNombre = nombreIngresado;
+            currentState.step = 'cancelacion_paso2_fecha';
+            userStates.set(from, currentState);
 
-            if (!searchResult.isModifiable) {
-                let restrictionMsg = getTranslation(lang, 'resStatusFinished').replace('{id}', reservaFound.id);
-                if (searchResult.statusReason === 'PENDIENTE CANCELACION') restrictionMsg = getTranslation(lang, 'resStatusPendingCancel').replace('{id}', reservaFound.id);
-                else if (searchResult.statusReason === 'PENDIENTE MODIFICACION') restrictionMsg = getTranslation(lang, 'resStatusPendingMod').replace('{id}', reservaFound.id);
-                else if (searchResult.statusReason === 'EN SERVICIO') restrictionMsg = getTranslation(lang, 'resStatusInService').replace('{id}', reservaFound.id);
-                else if (searchResult.statusReason === 'CANCELADA') restrictionMsg = getTranslation(lang, 'resStatusCancelled').replace('{id}', reservaFound.id);
-                await sendMessage(from, restrictionMsg);
-                break;
+            let promptFecha = `📅 *Indícanos la fecha actual de la reserva que deseas cancelar* (ejemplo: 15/09/2026):`;
+            if (lang === 'eu') {
+                promptFecha = `📅 *Indíka iezaguzu ezeztatu nahi duzun erreserbaren egungo data* (adibidez: 15/09/2026):`;
+            } else if (lang === 'en') {
+                promptFecha = `📅 *Please enter the current date of the reservation you wish to cancel* (example: 15/09/2026):`;
             }
 
-            if (!searchResult.verified) {
-                userStates.set(from, {
-                    step: 'cancelacion_verificar_datos',
-                    data: { reservationId: reservaFound.id }
-                });
-                const verifyPrompt = getTranslation(lang, 'cancelReservationVerifyWithDetailsPrompt')
-                    .replace('{id}', reservaFound.id)
-                    .replace('{nombre}', reservaFound.nombre || 'N/A')
-                    .replace('{fecha}', reservaFound.fecha || 'N/A')
-                    .replace('{hora}', reservaFound.hora || 'N/A')
-                    .replace('{comensales}', reservaFound.comensales || 'N/A');
-                await sendMessage(from, verifyPrompt);
-                break;
-            }
-
-            const detalleCancelacion = formatCancellationDetail(reservaFound, queryText, from, lang);
-
-            await requestUserConfirmation(from, lang, {
-                tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
-                reservationId: reservaFound.id,
-                isCancellation: true,
-                detalleMod: detalleCancelacion,
-                nombreCliente: reservaFound.nombre,
-                telefonoReserva: reservaFound.telefono,
-                successMsgKey: 'cancelSuccessMsg'
-            });
+            await sendMessage(from, promptFecha);
             break;
         }
 
+        case 'cancelacion_paso2_fecha':
         case 'cancelacion_verificar_datos': {
-            const state = userStates.get(from);
-            const resId = state?.data?.reservationId;
-            const reservaFound = db.getReservationById(resId);
+            const fechaIngresada = text.trim();
+            const currentState = userStates.get(from) || { data: {} };
+            const cancelNombre = currentState?.data?.cancelNombre || 'No especificado';
 
-            if (!reservaFound) {
-                const notFoundMsg = getTranslation(lang, 'cancelReservationNotFoundMsg').replace('{query}', text);
-                await sendMessage(from, notFoundMsg);
-                userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
-                break;
-            }
+            const detalleCancelacion = 
+                `👤 *Nombre del Titular:* ${cancelNombre}\n` +
+                `📅 *Fecha de la Reserva a Cancelar:* ${fechaIngresada}\n` +
+                `📱 *WhatsApp Remitente:* ${from}\n` +
+                `📋 *Solicitud:* SOLICITUD CANCELACIÓN DE RESERVA`;
 
-            if (reservaFound.estado !== 'CONFIRMADA') {
-                let restrictionMsg = getTranslation(lang, 'resStatusFinished').replace('{id}', reservaFound.id);
-                if (reservaFound.estado === 'PENDIENTE CANCELACION') restrictionMsg = getTranslation(lang, 'resStatusPendingCancel').replace('{id}', reservaFound.id);
-                else if (reservaFound.estado === 'PENDIENTE MODIFICACION') restrictionMsg = getTranslation(lang, 'resStatusPendingMod').replace('{id}', reservaFound.id);
-                else if (reservaFound.estado === 'EN SERVICIO') restrictionMsg = getTranslation(lang, 'resStatusInService').replace('{id}', reservaFound.id);
-                else if (reservaFound.estado === 'CANCELADA') restrictionMsg = getTranslation(lang, 'resStatusCancelled').replace('{id}', reservaFound.id);
-                await sendMessage(from, restrictionMsg);
-                break;
-            }
-
-            const inputNorm = text.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const inputDigits = text.toString().replace(/\D/g, '');
-
-            const resIdNorm = (reservaFound.id || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const idMatches = resIdNorm && inputNorm.includes(resIdNorm);
-
-            const resPhoneDigits = (reservaFound.telefono || '').replace(/\D/g, '');
-            const resDniNorm = (reservaFound.dni || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const resEmailNorm = (reservaFound.email || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-
-            const phoneMatches = inputDigits.length >= 7 && (inputDigits.includes(resPhoneDigits) || resPhoneDigits.includes(inputDigits));
-            const dniMatches = resDniNorm.length >= 4 && (inputNorm.includes(resDniNorm) || resDniNorm.includes(inputNorm));
-            const emailMatches = resEmailNorm.length >= 4 && (inputNorm.includes(resEmailNorm) || resEmailNorm.includes(inputNorm));
-
-            if (idMatches || phoneMatches || dniMatches || emailMatches) {
-                const detalleCancelacion = formatCancellationDetail(reservaFound, text, from, lang);
-
-                await requestUserConfirmation(from, lang, {
-                    tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
-                    reservationId: reservaFound.id,
-                    isCancellation: true,
-                    detalleMod: detalleCancelacion,
-                    nombreCliente: reservaFound.nombre,
-                    telefonoReserva: reservaFound.telefono,
-                    successMsgKey: 'cancelSuccessMsg'
-                });
-            } else {
-                const mismatchMsg = getTranslation(lang, 'cancelReservationMismatchMsg').replace('{id}', reservaFound.id);
-                await sendMessage(from, mismatchMsg);
-            }
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
+                isCancellation: true,
+                detalleMod: detalleCancelacion,
+                nombreCliente: cancelNombre,
+                telefonoReserva: from,
+                successMsgKey: 'cancelSuccessMsg'
+            });
             break;
         }
 
