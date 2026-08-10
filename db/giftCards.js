@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { pool, DB_PATH } = require('./connection');
+const { pool, DB_PATH, getSpainIsoTimestamp } = require('./connection');
 
 function loadDb() {
     try {
@@ -58,7 +58,7 @@ async function getGiftCard(criterio) {
 async function updateGiftCardStatus(criterio, nuevoEstado) {
     if (!criterio) return null;
     const search = criterio.toString().trim().toUpperCase();
-    const nowIso = new Date().toISOString();
+    const nowSpain = getSpainIsoTimestamp ? getSpainIsoTimestamp() : new Date().toISOString();
 
     const db = loadDb();
     if (db.tarjetasRegalo) {
@@ -68,7 +68,7 @@ async function updateGiftCardStatus(criterio, nuevoEstado) {
         );
         if (localCard) {
             localCard.estado = nuevoEstado;
-            localCard.fecha_ultima_modificacion = nowIso;
+            localCard.fecha_ultima_modificacion = nowSpain;
             saveDb(db);
         }
     }
@@ -76,10 +76,10 @@ async function updateGiftCardStatus(criterio, nuevoEstado) {
     if (pool) {
         try {
             await pool.query(
-                `UPDATE tarjetas_regalo SET estado = $1, fecha_ultima_modificacion = CURRENT_TIMESTAMP WHERE UPPER(codigo) = $2 OR UPPER(id) = $2`,
+                `UPDATE tarjetas_regalo SET estado = $1, fecha_ultima_modificacion = (NOW() AT TIME ZONE 'Europe/Madrid') WHERE UPPER(codigo) = $2 OR UPPER(id) = $2`,
                 [nuevoEstado, search]
             );
-            console.log(`✅ Estado de tarjeta ${search} actualizado a '${nuevoEstado}' con timestamp de modificación en PostgreSQL.`);
+            console.log(`✅ Estado de tarjeta ${search} actualizado a '${nuevoEstado}' con timestamp de modificación Madrid en PostgreSQL.`);
         } catch (err) {
             console.error("Error actualizando tarjetas_regalo en PostgreSQL:", err.message);
         }
@@ -88,7 +88,7 @@ async function updateGiftCardStatus(criterio, nuevoEstado) {
 
 function createGiftCard(data) {
     const db = loadDb();
-    const nowIso = new Date().toISOString();
+    const nowSpain = getSpainIsoTimestamp ? getSpainIsoTimestamp() : new Date().toISOString();
     const nuevaTarjeta = {
         id: 'TR-' + Date.now().toString().slice(-6),
         codigo: data.codigo.trim().toUpperCase(),
@@ -97,7 +97,7 @@ function createGiftCard(data) {
         fecha_compra: data.fecha_compra || new Date().toLocaleDateString('es-ES'),
         fecha_caducidad: data.fecha_caducidad,
         estado: data.estado || 'ACTIVA',
-        fecha_ultima_modificacion: nowIso
+        fecha_ultima_modificacion: nowSpain
     };
 
     if (!db.tarjetasRegalo) db.tarjetasRegalo = [];
@@ -107,7 +107,7 @@ function createGiftCard(data) {
     if (pool) {
         pool.query(
             `INSERT INTO tarjetas_regalo(id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado, fecha_ultima_modificacion)
-             VALUES($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP) ON CONFLICT(codigo) DO NOTHING`,
+             VALUES($1, $2, $3, $4, $5, $6, $7, (NOW() AT TIME ZONE 'Europe/Madrid')) ON CONFLICT(codigo) DO NOTHING`,
             [nuevaTarjeta.id, nuevaTarjeta.codigo, nuevaTarjeta.comprador_nombre, nuevaTarjeta.comprador_telefono, nuevaTarjeta.fecha_compra, nuevaTarjeta.fecha_caducidad, nuevaTarjeta.estado]
         ).catch(err => console.error("Error PostgreSQL INSERT tarjetas_regalo:", err.message));
     }

@@ -44,6 +44,10 @@ if (process.env.DATABASE_URL) {
     });
     console.log("🗄️ Modo Base de Datos: PostgreSQL Conectado.");
 
+    pool.on('connect', (client) => {
+        client.query("SET TIMEZONE TO 'Europe/Madrid'").catch(err => console.error("Error configurando Timezone Europe/Madrid:", err.message));
+    });
+
     // Auto-migración
     pool.query(`
         CREATE TABLE IF NOT EXISTS clientes (
@@ -54,7 +58,7 @@ if (process.env.DATABASE_URL) {
             email VARCHAR(150) DEFAULT 'N/A',
             idioma VARCHAR(50) DEFAULT 'es',
             nacionalidad VARCHAR(100) DEFAULT 'España',
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
 
         DO $$ 
@@ -143,9 +147,10 @@ if (process.env.DATABASE_URL) {
             fecha_compra VARCHAR(20),
             fecha_caducidad VARCHAR(20),
             estado VARCHAR(20) DEFAULT 'ACTIVA',
-            fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
-        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid');
+        ALTER TABLE tarjetas_regalo ALTER COLUMN fecha_ultima_modificacion SET DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid');
 
         CREATE TABLE IF NOT EXISTS bot_texts (
             id SERIAL PRIMARY KEY,
