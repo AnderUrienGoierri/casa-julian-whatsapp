@@ -35,7 +35,7 @@ function getDayOfWeekFromDateStr(dateStr) {
     const month = parseInt(match[2], 10) - 1;
     const year = parseInt(match[3], 10);
     if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-    const d = new Date(year, month, day);
+    const d = new Date(year, month, day, 12, 0, 0);
     return d.getDay();
 }
 
@@ -51,7 +51,8 @@ function checkRestaurantClosedDate(dateStr) {
     if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
 
     // 1. Descanso semanal del restaurante: Lunes (dayOfWeek === 1) para CUALQUIER año
-    const dateObj = new Date(year, month - 1, day);
+    // Se usa las 12:00:00 del mediodía para evitar cualquier desfasaje por zona horaria
+    const dateObj = new Date(year, month - 1, day, 12, 0, 0);
     const dayOfWeek = dateObj.getDay();
     if (dayOfWeek === 1) {
         return { closed: true, reason: 'monday', date: dateStr };
