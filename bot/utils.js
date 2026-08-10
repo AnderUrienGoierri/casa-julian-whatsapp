@@ -57,17 +57,8 @@ function checkRestaurantClosedDate(dateStr) {
         return { closed: true, reason: 'monday', date: dateStr };
     }
 
-    // 2. Periodos de vacaciones del restaurante:
-    // Periodo A: 12 de Enero - 29 de Enero
-    if (month === 1 && day >= 12 && day <= 29) {
-        return { closed: true, reason: 'vacation', date: dateStr };
-    }
-    // Periodo B: 23 de Marzo - 29 de Marzo
-    if (month === 3 && day >= 23 && day <= 29) {
-        return { closed: true, reason: 'vacation', date: dateStr };
-    }
-    // Periodo C: 24 de Agosto - 8 de Septiembre
-    if ((month === 8 && day >= 24) || (month === 9 && day <= 8)) {
+    // 2. Único periodo de vacaciones del restaurante: Del 24 de Agosto al 7 de Septiembre (ambos inclusive)
+    if ((month === 8 && day >= 24) || (month === 9 && day <= 7)) {
         return { closed: true, reason: 'vacation', date: dateStr };
     }
 

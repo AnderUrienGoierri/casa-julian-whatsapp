@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-10-CMS-V116-STRICT-MONDAY-AND-VACATION-CALENDAR-CHECKS';
+const DEPLOY_VERSION = 'v2026-08-10-CMS-V117-VACATION-AUG24-SEP07-ONLY-AND-MONDAYS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
