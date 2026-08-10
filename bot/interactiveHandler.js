@@ -1164,14 +1164,42 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'btn_finish_fechas':
+        case 'btn_finish_fechas': {
+            const currentState = userStates.get(from) || { data: {} };
+            currentState.data = currentState.data || {};
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            const fechas = currentState.data.menuTrad.fechas || [];
+
+            if (fechas.length === 0) {
+                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                break;
+            }
+
+            currentState.step = 'menu_trad_step5b_ninos';
+            userStates.set(from, currentState);
+
+            let promptBody = `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
+            if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
+            else if (lang === 'en') promptBody = `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
+
+            const buttons = [
+                { id: 'btn_mt_ninos_0', title: '0 niños' },
+                { id: 'btn_mt_ninos_1', title: '1 niño' },
+                { id: 'btn_mt_ninos_2', title: '2 niños' }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
+            break;
+        }
+
         case 'btn_add_fecha': {
             const currentState = userStates.get(from) || { data: {} };
-            if (!currentState.step || !currentState.step.startsWith('menu_trad_step5')) {
-                currentState.step = 'menu_trad_step5_dias';
-                userStates.set(from, currentState);
-            }
-            await handleTextMessage(from, buttonId);
+            currentState.step = 'menu_trad_step5_dias';
+            userStates.set(from, currentState);
+
+            let msg = `📅 *Indícanos la siguiente fecha de preferencia (formato DD/MM/AAAA):*`;
+            if (lang === 'eu') msg = `📅 *Eman hurrengo data hobetsia (DD/MM/AAAA formatuan):*`;
+            else if (lang === 'en') msg = `📅 *Please specify the next preferred date (DD/MM/AAAA format):*`;
+            await sendMessage(from, msg);
             break;
         }
 
