@@ -1075,19 +1075,21 @@ async function handleButtonResponse(from, buttonId) {
 
         case 'btn_finish_fechas':
         case 'btn_add_fecha': {
-            const currentState = userStates.get(from);
-            if (currentState && currentState.step === 'menu_trad_step5_dias') {
-                await handleTextMessage(from, buttonId);
+            const currentState = userStates.get(from) || { data: {} };
+            if (!currentState.step || !currentState.step.startsWith('menu_trad_step5')) {
+                currentState.step = 'menu_trad_step5_dias';
+                userStates.set(from, currentState);
             }
+            await handleTextMessage(from, buttonId);
             break;
         }
 
         case 'btn_fechas_confirm_si':
         case 'btn_fechas_confirm_no': {
-            const currentState = userStates.get(from);
-            if (currentState && currentState.step === 'menu_trad_step5_fechas_confirm') {
-                await handleTextMessage(from, buttonId);
-            }
+            const currentState = userStates.get(from) || { data: {} };
+            currentState.step = 'menu_trad_step5_fechas_confirm';
+            userStates.set(from, currentState);
+            await handleTextMessage(from, buttonId);
             break;
         }
 

@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-07-CMS-V104-ALLOW-DISPONIBLE-GIFT-CARDS';
+const DEPLOY_VERSION = 'v2026-08-10-CMS-V105-FIX-BTN-FINISH-FECHAS-FLOW';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
