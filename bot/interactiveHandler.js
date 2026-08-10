@@ -549,6 +549,7 @@ async function handleListResponse(from, listId) {
         }
 
         case 'opt_cancelacion':
+        case 'btn_go_cancelacion':
             userStates.set(from, { step: 'cancelacion_datos_actuales', data: {} });
             await sendMessage(from, getTranslation(lang, 'cancelDataPrompt'));
             break;

@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-10-CMS-V119-VERIFIED-MONDAYS-AND-VACATIONS-CALENDAR-BLOCK';
+const DEPLOY_VERSION = 'v2026-08-10-CMS-V120-FAQ-CANCEL-BTN-AND-REMOVE-MOD-EXIT-BTN';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

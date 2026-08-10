@@ -35,13 +35,20 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
     const responseMsg = getTranslation(lang, msgKey);
 
     if (responseMsg) {
+        if (faqNum === '5') { // Option 5: Cancelación
+            const cancelBtnTitle = (lang === 'eu' ? 'Erreserba ezeztatu' : (lang === 'en' ? 'Cancel booking' : 'Cancelar reserva'));
+            const buttons = [
+                { id: 'btn_go_cancelacion', title: cancelBtnTitle.slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, responseMsg, buttons);
+            return;
+        }
+
         if (faqNum === '6') { // Option 6: Reducción comensales
             const modBtnTitle = (lang === 'eu' ? 'Erreserba aldatu' : (lang === 'en' ? 'Modify booking' : 'Modificar reserva'));
-            const menuBtnTitle = (lang === 'eu' ? 'Menura itzuli' : (lang === 'en' ? 'Exit to menu' : 'Salir al menú'));
 
             const buttons = [
-                { id: 'btn_go_modificacion', title: modBtnTitle.slice(0, 20) },
-                { id: 'btn_volver_menu', title: menuBtnTitle.slice(0, 20) }
+                { id: 'btn_go_modificacion', title: modBtnTitle.slice(0, 20) }
             ];
             await sendInteractiveButtons(from, responseMsg, buttons);
             return;
