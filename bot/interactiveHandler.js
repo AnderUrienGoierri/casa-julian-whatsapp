@@ -232,7 +232,7 @@ async function processMenuTradReservation(from, lang) {
         idioma: chatLang,
         reservationId: resRecord.id,
         successMsgKey: 'menuTradicionSuccessMsg'
-    });
+    }, userStates);
 }
 
 async function handleAllergiesListSelection(from, listId, lang) {

@@ -1,15 +1,17 @@
 const { sendMessage, sendInteractiveButtons } = require('../whatsappApi');
 const { getTranslation } = require('../i18n');
+const { userStates: defaultUserStates } = require('./stateManager');
 
 /**
  * Solicita confirmación interactiva al cliente antes de enviar la alerta a recepción.
  */
-async function requestUserConfirmation(from, lang, pendingAlertData, userStates) {
-    const state = userStates.get(from) || { lang: lang };
+async function requestUserConfirmation(from, lang, pendingAlertData, userStatesParam) {
+    const activeStates = userStatesParam || defaultUserStates;
+    const state = activeStates.get(from) || { lang: lang };
     state.step = 'confirmacion_solicitud';
     state.data = state.data || {};
     state.data.pendingAlert = pendingAlertData;
-    userStates.set(from, state);
+    activeStates.set(from, state);
 
     // 1. Enviar primero al cliente un mensaje con el resumen detallado de su solicitud
     const summaryHeader = getTranslation(lang, 'requestSummaryHeader');

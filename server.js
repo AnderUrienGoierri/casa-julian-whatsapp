@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-10-CMS-V108-DIRECT-SELF-CONTAINED-BTN-HANDLERS';
+const DEPLOY_VERSION = 'v2026-08-10-CMS-V109-FIX-CONFIRMATION-USERSTATES-BUG';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
