@@ -308,28 +308,23 @@ async function handleTextMessage(from, text) {
                 await sendMessage(from, cardVerifiedMsg);
                 await sendMessage(from, getTranslation(lang, 'menuTradStep2Nombre'));
             } else {
-                let notFoundMsg = `⚠️ *Tarjeta regalo no encontrada en el sistema.* No hemos localizado ninguna tarjeta activa con el código *"${cardInput}"*.\n\nNuestro equipo revisará su consulta manualmente y le responderá a la menor brevedad posible.`;
+                let notFoundMsg = `⚠️ *Tarjeta regalo no encontrada en el sistema.* No hemos localizado ninguna tarjeta activa con el código *"${cardInput}"*.\n\nPor favor, comprueba el código e introdúcelo de nuevo a continuación:`;
                 if (lang === 'eu') {
-                    notFoundMsg = `⚠️ *Opari-txartela ez da sisteman aurkitu.* Ez dugu *"${cardInput}"* kodearekin opari-txartel aktiborik aurkitu.\n\nGure taldeak zure kontsulta eskuz aztertuko du eta ahalik eta azkienez erantzungo dizu.`;
+                    notFoundMsg = `⚠️ *Opari-txartela ez da sisteman aurkitu.* Ez dugu *"${cardInput}"* kodearekin opari-txartel aktiborik aurkitu.\n\nMesedez, egiaztatu sartutako kodea eta idatzi berriro jarraian:`;
                 } else if (lang === 'en') {
-                    notFoundMsg = `⚠️ *Gift card not found in system.* We could not locate an active card with code *"${cardInput}"*.\n\nOur team will review your inquiry manually and reply as soon as possible.`;
+                    notFoundMsg = `⚠️ *Gift card not found in system.* We could not locate an active card with code *"${cardInput}"*.\n\nPlease check the code and type it again below:`;
                 }
+
+                currentState.step = 'menu_trad_step1_tarjeta';
+                userStates.set(from, currentState);
 
                 await sendMessage(from, notFoundMsg);
-                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                userStates.delete(from);
 
-                try {
-                    await sendInternalStaffAlertInSpanish(
-                        'CONSULTA TARJETA REGALO NO ENCONTRADA',
-                        from,
-                        `📄 *Código ingresado:* ${cardInput}`,
-                        null,
-                        from
-                    );
-                } catch (err) {
-                    console.error("Error enviando alerta recepción:", err.message);
-                }
+                const buttons = [
+                    { id: 'btn_volver_menu', title: getTranslation(lang, 'btnVolverMenu').slice(0, 20) }
+                ];
+                const optHeader = (lang === 'eu' ? 'Edo hautatu aukera bat:' : (lang === 'en' ? 'Or select an option:' : 'O selecciona una opción:'));
+                await sendInteractiveButtons(from, optHeader, buttons);
             }
             break;
         }
