@@ -38,8 +38,9 @@ function getSpainIsoTimestamp() {
 // Conexión a PostgreSQL con Auto-Migración de columnas
 let pool = null;
 if (process.env.DATABASE_URL) {
+    const sanitizedDbUrl = process.env.DATABASE_URL.replace(/sslmode=(require|prefer|verify-ca)/gi, 'sslmode=verify-full');
     pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
+        connectionString: sanitizedDbUrl,
         ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
     });
     console.log("🗄️ Modo Base de Datos: PostgreSQL Conectado.");
