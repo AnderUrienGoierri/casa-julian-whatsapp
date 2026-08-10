@@ -80,7 +80,7 @@ const translations = {
         "reservaIntro": "Para reservar haga la solicitud en casajulian.eus. Procederemos a revisar la disponibilidad para el día y hora indicado. De lo contrario, ¿querrá añadirse a la lista de espera?",
         "btnSolicitarReserva": "Solicitar reserva",
         "btnAddListaEspera": "Añadir a la lista",
-        "webReservaLinkMsg": "🔗 *Solicitar Reserva Online - Casa Julián*\n\nPara solicitar tu reserva directamente en la web oficial de Casa Julián, entra en:\n👉 [Solicitar Reserva en la Web Oficial](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)",
+        "webReservaLinkMsg": "🔗 *Solicitar Reserva Online - Casa Julián*\n\nPara realizar tu reserva directamente en la web oficial de Casa Julián (o inscribirte en la lista de espera si la fecha deseada está completa), entra en:\n\n👉 [Solicitar Reserva / Lista de Espera Web](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)",
         "waitlistInitPrompt": "📝 *Lista de Espera*\n\n¿Cuenta con un *Menú Tradición* (tarjeta regalo)?",
         "waitlistStep1Nombre": "📝 *Lista de Espera (1/7)*\n\nPor favor, indícanos tu *nombre y apellidos*:",
         "waitlistStep1bDni": "📝 *Lista de Espera*\n\nPor favor, indícanos tu *DNI o Pasaporte* (o pulsa \"Omitir DNI/Pasaporte\" si no deseas indicarlo):",
