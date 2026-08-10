@@ -427,17 +427,17 @@ async function handleTextMessage(from, text) {
                     await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
                     break;
                 }
-                currentState.step = 'menu_trad_step5_fechas_confirm';
+                currentState.step = 'menu_trad_step5b_ninos';
                 userStates.set(from, currentState);
 
-                const datesStr = currentState.data.menuTrad.fechas.join(', ');
-                let promptBody = `📌 *Has indicado las siguientes fechas de preferencia:* ${datesStr}\n\n¿Es correcto?`;
-                if (lang === 'eu') promptBody = `📌 *Data hobetsi hauek adierazi dituzu:* ${datesStr}\n\nZuzena da?`;
-                else if (lang === 'en') promptBody = `📌 *You specified the following preferred dates:* ${datesStr}\n\nIs this correct?`;
+                let promptBody = `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
+                if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
+                else if (lang === 'en') promptBody = `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
 
                 const buttons = [
-                    { id: 'btn_fechas_confirm_si', title: 'Sí' },
-                    { id: 'btn_fechas_confirm_no', title: 'No' }
+                    { id: 'btn_mt_ninos_0', title: '0 niños' },
+                    { id: 'btn_mt_ninos_1', title: '1 niño' },
+                    { id: 'btn_mt_ninos_2', title: '2 niños' }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
                 break;
@@ -474,17 +474,22 @@ async function handleTextMessage(from, text) {
             userStates.set(from, currentState);
 
             if (currentState.data.menuTrad.fechas.length >= 5) {
-                currentState.step = 'menu_trad_step5_fechas_confirm';
+                currentState.step = 'menu_trad_step5b_ninos';
                 userStates.set(from, currentState);
 
                 const datesStr = currentState.data.menuTrad.fechas.join(', ');
-                let promptBody = `📌 *Has indicado el máximo de 5 fechas de preferencia:* ${datesStr}\n\n¿Es correcto?`;
-                if (lang === 'eu') promptBody = `📌 *Gehienezko 5 data hobetsiak adierazi dituzu:* ${datesStr}\n\nZuzena da?`;
-                else if (lang === 'en') promptBody = `📌 *You specified the maximum 5 preferred dates:* ${datesStr}\n\nIs this correct?`;
+                let maxHeader = `📌 *Has indicado el máximo de 5 fechas de preferencia:* ${datesStr}\n\n`;
+                if (lang === 'eu') maxHeader = `📌 *Gehienezko 5 data hobetsiak adierazi dituzu:* ${datesStr}\n\n`;
+                else if (lang === 'en') maxHeader = `📌 *You specified the maximum 5 preferred dates:* ${datesStr}\n\n`;
+
+                let promptBody = maxHeader + `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
+                if (lang === 'eu') promptBody = maxHeader + `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
+                else if (lang === 'en') promptBody = maxHeader + `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
 
                 const buttons = [
-                    { id: 'btn_fechas_confirm_si', title: 'Sí' },
-                    { id: 'btn_fechas_confirm_no', title: 'No' }
+                    { id: 'btn_mt_ninos_0', title: '0 niños' },
+                    { id: 'btn_mt_ninos_1', title: '1 niño' },
+                    { id: 'btn_mt_ninos_2', title: '2 niños' }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
             } else if (currentState.data.menuTrad.fechas.length > 0) {
