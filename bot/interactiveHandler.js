@@ -1165,7 +1165,31 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_finish_fechas': {
             const currentState = userStates.get(from) || { data: {} };
             if (currentState.step === 'mod_val_dia') {
-                await handleTextMessage(from, 'btn_finish_mod_fechas');
+                currentState.data = currentState.data || {};
+                currentState.data.modFechas = currentState.data.modFechas || [];
+
+                if (currentState.data.modFechas.length === 0) {
+                    await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                    break;
+                }
+
+                const reservationId = currentState.data.reservationId || null;
+                const nombreCliente = currentState.data.nombreCliente || null;
+                const telefonoReserva = currentState.data.telefonoReserva || from.replace(/\D/g, '');
+                const reservaActual = currentState.data.reservaActual || 'No especificada';
+
+                const datesStr = currentState.data.modFechas.join(', ');
+                const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'FECHA(S) DE PREFERENCIA', datesStr, lang);
+
+                await requestUserConfirmation(from, lang, {
+                    tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                    reservationId: reservationId,
+                    isModification: true,
+                    detalleMod: detalleMod,
+                    nombreCliente: nombreCliente,
+                    telefonoReserva: telefonoReserva,
+                    successMsgKey: 'modSuccessMsg'
+                });
                 break;
             }
             currentState.data = currentState.data || {};
@@ -1520,9 +1544,38 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'btn_add_mod_fecha':
-        case 'btn_finish_mod_fechas': {
+        case 'btn_add_mod_fecha': {
             await handleTextMessage(from, buttonId);
+            break;
+        }
+
+        case 'btn_finish_mod_fechas': {
+            const currentState = userStates.get(from) || { data: {} };
+            currentState.data = currentState.data || {};
+            currentState.data.modFechas = currentState.data.modFechas || [];
+
+            if (currentState.data.modFechas.length === 0) {
+                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                break;
+            }
+
+            const reservationId = currentState.data.reservationId || null;
+            const nombreCliente = currentState.data.nombreCliente || null;
+            const telefonoReserva = currentState.data.telefonoReserva || from.replace(/\D/g, '');
+            const reservaActual = currentState.data.reservaActual || 'No especificada';
+
+            const datesStr = currentState.data.modFechas.join(', ');
+            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'FECHA(S) DE PREFERENCIA', datesStr, lang);
+
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                reservationId: reservationId,
+                isModification: true,
+                detalleMod: detalleMod,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoReserva,
+                successMsgKey: 'modSuccessMsg'
+            });
             break;
         }
 
