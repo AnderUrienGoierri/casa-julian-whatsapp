@@ -185,8 +185,7 @@ async function processMenuTradReservation(from, lang) {
 
     let detalleMenuTrad = '';
     if (chatLang === 'eu') {
-        detalleMenuTrad = `🆔 *Erreserba ID:* ${resRecord.id}\n` +
-                                `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
+        detalleMenuTrad = `👤 *Izen-abizenak:* ${mt.nombre || 'Ez zehaztua'}\n` +
                                 `🎁 *Opari-Txartel Zenbakia:* ${mt.tarjeta || 'Ez zehaztua'}\n` +
                                 `👥 *Jankideak:* ${mt.comensales || 2}\n` +
                                 `👶 *Haurrak (<12 urte):* ${mt.ninos || 0}\n` +
@@ -198,8 +197,7 @@ async function processMenuTradReservation(from, lang) {
                                 `📱 *Bidaltzailearen WhatsApp-a:* ${from}\n` +
                                 `📋 *Eskaera:* TRADIZIO MENUA ERRESERBA (OPARI TXARTELA)`;
     } else if (chatLang === 'en') {
-        detalleMenuTrad = `🆔 *Reservation ID:* ${resRecord.id}\n` +
-                                `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
+        detalleMenuTrad = `👤 *Full Name:* ${mt.nombre || 'Not specified'}\n` +
                                 `🎁 *Gift Card No.:* ${mt.tarjeta || 'Not specified'}\n` +
                                 `👥 *Guests:* ${mt.comensales || 2}\n` +
                                 `👶 *Children (<12 yrs):* ${mt.ninos || 0}\n` +
@@ -211,8 +209,7 @@ async function processMenuTradReservation(from, lang) {
                                 `📱 *Sender WhatsApp:* ${from}\n` +
                                 `📋 *Request:* TRADITION MENU BOOKING (GIFT CARD)`;
     } else {
-        detalleMenuTrad = `🆔 *ID Reserva:* ${resRecord.id}\n` +
-                                `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
+        detalleMenuTrad = `👤 *Nombre:* ${mt.nombre || 'No especificado'}\n` +
                                 `🎁 *Nº Tarjeta Regalo:* ${mt.tarjeta || 'No especificado'}\n` +
                                 `👥 *Comensales:* ${mt.comensales || 2}\n` +
                                 `👶 *Niños (<12 años):* ${mt.ninos || 0}\n` +
