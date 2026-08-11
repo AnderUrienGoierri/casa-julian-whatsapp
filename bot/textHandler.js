@@ -292,14 +292,12 @@ async function handleTextMessage(from, text) {
 
                 if (lang === 'eu') {
                     cardVerifiedMsg = `🎁 *OPARI-TXARTELA EGOKI EGIAZTATU DA*\n\n` +
-                        `✅ *Kodea:* ${card.codigo}\n` +
-                        `👤 *Eroslea / Jabea:* ${card.comprador_nombre || 'Zehaztu gabea'}\n` +
+                        `✅ *Kodea:* ${card.codigo}\n` +        
                         `📅 *Noiz arte baliogarria:* ${card.fecha_caducidad}\n` +
                         `👥 *Tradizio Menuko jankideak:* 2 pertsona txartel bakoitzeko`;
                 } else if (lang === 'en') {
                     cardVerifiedMsg = `🎁 *GIFT CARD VERIFIED SUCCESSFULLY*\n\n` +
                         `✅ *Code:* ${card.codigo}\n` +
-                        `👤 *Buyer / Holder:* ${card.comprador_nombre || 'Not specified'}\n` +
                         `📅 *Valid until:* ${card.fecha_caducidad}\n` +
                         `👥 *Tradition Menu Guests:* 2 people per card`;
                 }
