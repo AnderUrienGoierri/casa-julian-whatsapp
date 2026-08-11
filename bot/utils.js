@@ -86,20 +86,17 @@ function formatModificationDetail(nombreCliente, telefonoReserva, from, reservaA
     let detailStr = '';
 
     if (lang === 'eu') {
-        detailStr = `🆔 *Berrespen-kodea:* Ez da berretsi (Jatetxeak aztertzeko zain)\n` +
-                    `👤 *Bezeroaren izena:* ${nombreCliente || 'Zehaztugabea'}\n` +
+        detailStr = `👤 *Bezeroaren izena:* ${nombreCliente || 'Zehaztugabea'}\n` +
                     `📞 *Telefonoa:* ${telefonoReserva || from}\n` +
                     `📌 *Uneko erreserba:* ${reservaActual}\n` +
                     `✏️ *Eskatutako aldaketa (${campoMod}):* ${valorMod}`;
     } else if (lang === 'en') {
-        detailStr = `🆔 *Confirmation Code:* Not confirmed (Pending restaurant review)\n` +
-                    `👤 *Guest Name:* ${nombreCliente || 'Unspecified'}\n` +
+        detailStr = `👤 *Guest Name:* ${nombreCliente || 'Unspecified'}\n` +
                     `📞 *Phone:* ${telefonoReserva || from}\n` +
                     `📌 *Current Reservation:* ${reservaActual}\n` +
                     `✏️ *Requested Change (${campoMod}):* ${valorMod}`;
     } else {
-        detailStr = `🆔 *Código de Confirmación:* No confirmada (Pendiente de revisión por el restaurante)\n` +
-                    `👤 *Nombre del Cliente:* ${nombreCliente || 'No especificado'}\n` +
+        detailStr = `👤 *Nombre del Cliente:* ${nombreCliente || 'No especificado'}\n` +
                     `📞 *Teléfono:* ${telefonoReserva || from}\n` +
                     `📌 *Reserva Actual:* ${reservaActual}\n` +
                     `✏️ *Modificación Solicitada (${campoMod}):* ${valorMod}`;
