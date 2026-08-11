@@ -186,8 +186,6 @@ async function sendHowManyGuestsPrompt(from, lang, userStates) {
         { id: 'btn_mt_comensales_2', title: '2 comensales' },
         { id: 'btn_mt_comensales_3', title: '3 comensales' },
         { id: 'btn_mt_comensales_4', title: '4 comensales' },
-        { id: 'btn_mt_comensales_5', title: '5 comensales' },
-        { id: 'btn_mt_comensales_6', title: '6 comensales' }
     ];
     await sendInteractiveButtons(from, promptBody, buttons);
 }
