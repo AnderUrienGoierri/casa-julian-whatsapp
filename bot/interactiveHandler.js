@@ -1600,5 +1600,6 @@ module.exports = {
     handleMenuTradDaySelection,
     handleWaitlistSlotSelection,
     sendConsultaAbiertaSummary,
-    handleNationalitySelection
+    handleNationalitySelection,
+    processMenuTradReservation
 };

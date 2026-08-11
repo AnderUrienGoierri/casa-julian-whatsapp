@@ -50,7 +50,8 @@ const {
     handleWaitlistDaySelection,
     handleWaitlistSlotSelection,
     sendConsultaAbiertaSummary,
-    handleNationalitySelection
+    handleNationalitySelection,
+    processMenuTradReservation
 } = require('./interactiveHandler');
 
 function formatCancellationDetail(reservaFound, queryText, from, lang) {
@@ -250,6 +251,27 @@ async function handleTextMessage(from, text) {
             userStates.set(from, currentState);
 
             await sendAllergiesList(from, lang, 'waitlistStep6Alergias', []);
+            break;
+        }
+
+        case 'espera_step6_alergias': {
+            currentState.data.waitlist = currentState.data.waitlist || {};
+            const cleanText = text.trim();
+            const lowerText = cleanText.toLowerCase();
+
+            if (['no', 'ninguno', 'ninguna', 'none', '0', 'sin alergias', 'sin alergia', 'ez'].includes(lowerText)) {
+                currentState.data.waitlist.alergias = 'NO';
+                currentState.data.waitlist.selectedAllergies = [];
+            } else {
+                const prev = currentState.data.waitlist.selectedAllergies || [];
+                if (!prev.includes(cleanText)) prev.push(cleanText);
+                currentState.data.waitlist.selectedAllergies = prev;
+                currentState.data.waitlist.alergias = prev.join(', ');
+            }
+            currentState.step = 'espera_step7_idioma';
+            userStates.set(from, currentState);
+
+            await sendFormLanguageList(from, lang);
             break;
         }
 
@@ -600,6 +622,26 @@ async function handleTextMessage(from, text) {
             userStates.set(from, currentState);
 
             await sendAllergiesList(from, lang, 'menuTradStep6Alergias', []);
+            break;
+        }
+
+        case 'menu_trad_step6_alergias': {
+            currentState.data.menuTrad = currentState.data.menuTrad || {};
+            const cleanText = text.trim();
+            const lowerText = cleanText.toLowerCase();
+
+            if (['no', 'ninguno', 'ninguna', 'none', '0', 'sin alergias', 'sin alergia', 'ez'].includes(lowerText)) {
+                currentState.data.menuTrad.alergias = 'NO';
+                currentState.data.menuTrad.selectedAllergies = [];
+            } else {
+                const prev = currentState.data.menuTrad.selectedAllergies || [];
+                if (!prev.includes(cleanText)) prev.push(cleanText);
+                currentState.data.menuTrad.selectedAllergies = prev;
+                currentState.data.menuTrad.alergias = prev.join(', ');
+            }
+            userStates.set(from, currentState);
+
+            await processMenuTradReservation(from, lang);
             break;
         }
 
