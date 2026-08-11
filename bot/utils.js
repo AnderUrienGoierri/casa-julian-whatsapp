@@ -197,7 +197,27 @@ function getInvalidNameMsg(lang = 'es') {
     }
 }
 
-function validateSingleDate(dateStr, lang = 'es') {
+function isWithin24Hours(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return false;
+    const match = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+    if (!match) return false;
+
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const year = parseInt(match[3], 10);
+
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
+
+    const resDateObj = new Date(year, month - 1, day, 12, 0, 0);
+    const now = new Date();
+
+    const diffMs = resDateObj.getTime() - now.getTime();
+    const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+
+    return diffMs <= twentyFourHoursMs;
+}
+
+function validateSingleDate(dateStr, lang = 'es', options = {}) {
     if (!dateStr || typeof dateStr !== 'string') {
         return { isValid: false, reason: 'format', date: dateStr || '' };
     }
@@ -233,6 +253,16 @@ function validateSingleDate(dateStr, lang = 'es') {
         return { isValid: false, reason: 'past', date: formattedDateStr };
     }
 
+    if (options.checkMax6Months) {
+        const maxDate = new Date();
+        maxDate.setMonth(maxDate.getMonth() + 6);
+        maxDate.setHours(23, 59, 59, 999);
+
+        if (inputDateObj > maxDate) {
+            return { isValid: false, reason: 'max_6_months', date: formattedDateStr };
+        }
+    }
+
     const dayOfWeek = inputDateObj.getDay();
     const closedDetails = getClosedDateDetails(year, month, day, dayOfWeek, formattedDateStr);
     if (closedDetails) {
@@ -244,6 +274,16 @@ function validateSingleDate(dateStr, lang = 'es') {
 
 function getDateValidationErrorMsg(validation, lang = 'es') {
     const d = validation?.date || '';
+
+    if (validation.reason === 'max_6_months') {
+        if (lang === 'eu') {
+            return `⚠️ *Gehienez 6 hilabeteko aldez aurretik bakarrik egin daitezke erreserbak.*\n\nMesedez, idatzi datozen 6 hilabeteen barruko data bat (adibidez: EG/HI/URTE):`;
+        } else if (lang === 'en') {
+            return `⚠️ *Reservations can only be made up to a maximum of 6 months in advance.*\n\nPlease enter a date within the next 6 months (example: DD/MM/YYYY):`;
+        } else {
+            return `⚠️ *Solo se podrán hacer reservas con un máximo de 6 meses de antelación.*\n\nPor favor, indica una fecha dentro de los próximos 6 meses (ejemplo: DD/MM/AAAA):`;
+        }
+    }
 
     if (validation.reason === 'past') {
         if (lang === 'eu') {
@@ -322,5 +362,6 @@ module.exports = {
     isValidPersonName,
     getInvalidNameMsg,
     validateSingleDate,
-    getDateValidationErrorMsg
+    getDateValidationErrorMsg,
+    isWithin24Hours
 };

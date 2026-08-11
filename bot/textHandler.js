@@ -43,7 +43,8 @@ const {
     isValidPersonName,
     getInvalidNameMsg,
     validateSingleDate,
-    getDateValidationErrorMsg
+    getDateValidationErrorMsg,
+    isWithin24Hours
 } = require('./utils');
 
 const {
@@ -334,7 +335,7 @@ async function handleTextMessage(from, text) {
             }
 
             for (const cand of candidates) {
-                const val = validateSingleDate(cand, lang);
+                const val = validateSingleDate(cand, lang, { checkMax6Months: true });
                 if (!val.isValid) {
                     await sendMessage(from, getDateValidationErrorMsg(val, lang));
                 } else if (isDinner) {
@@ -613,9 +614,17 @@ async function handleTextMessage(from, text) {
             if (modTipo === 'comensales') {
                 currentState.step = 'mod_val_comensales';
                 userStates.set(from, currentState);
-                let promptMsg = `📌 *Modificación de comensales para ${nombreCliente} (Reserva fecha: ${fechaReservaOriginal})*\n\nIndica el nuevo número de comensales deseado (máx. 6):`;
-                if (lang === 'eu') promptMsg = `📌 *Kide kopuruaren aldaketa ${nombreCliente} izenean (${fechaReservaOriginal} erreserba-data)*\n\nIdatzi kide kopuru berria (geh. 6):`;
-                else if (lang === 'en') promptMsg = `📌 *Guest count modification for ${nombreCliente} (Reservation date: ${fechaReservaOriginal})*\n\nEnter the new number of guests (max. 6):`;
+
+                let notice24h = '';
+                if (isWithin24Hours(fechaReservaOriginal)) {
+                    if (lang === 'eu') notice24h = '\n\n⚠️ *Kide kopurua txikitzeak kargu gehigarriak ekar ditzake.*';
+                    else if (lang === 'en') notice24h = '\n\n⚠️ *Reductions in the number of guests may be subject to additional charges.*';
+                    else notice24h = '\n\n⚠️ *Las disminuciones en el número de comensales pueden verse sometidas a cargos adicionales.*';
+                }
+
+                let promptMsg = `📌 *Modificación de comensales para ${nombreCliente} (Reserva fecha: ${fechaReservaOriginal})*${notice24h}\n\nIndica el nuevo número de comensales deseado (máx. 6):`;
+                if (lang === 'eu') promptMsg = `📌 *Kide kopuruaren aldaketa ${nombreCliente} izenean (${fechaReservaOriginal} erreserba-data)*${notice24h}\n\nIdatzi kide kopuru berria (geh. 6):`;
+                else if (lang === 'en') promptMsg = `📌 *Guest count modification for ${nombreCliente} (Reservation date: ${fechaReservaOriginal})*${notice24h}\n\nEnter the new number of guests (max. 6):`;
                 await sendMessage(from, promptMsg);
             } else if (modTipo === 'dia') {
                 currentState.step = 'mod_val_dia';
@@ -932,11 +941,18 @@ async function handleTextMessage(from, text) {
             const currentState = userStates.get(from) || { data: {} };
             const cancelNombre = currentState?.data?.cancelNombre || 'No especificado';
 
+            let cancelNotice24h = '';
+            if (isWithin24Hours(fechaIngresada)) {
+                if (lang === 'eu') cancelNotice24h = '\n\n⚠️ *Erreserba 24 ordu baino gutxiagoko aldez aurretik ezeztatuz gero, 45€-ko kargua ezarriko da kide bakoitzeko.*';
+                else if (lang === 'en') cancelNotice24h = '\n\n⚠️ *In case of cancelling the reservation with less than 24 hours notice, a fee of €45 per guest will apply.*';
+                else cancelNotice24h = '\n\n⚠️ *En el caso de cancelar la reserva con menos de 24 horas de antelación, se aplicará un cargo de 45€ por comensal.*';
+            }
+
             const detalleCancelacion = 
                 `👤 *Nombre del Titular:* ${cancelNombre}\n` +
                 `📅 *Fecha de la Reserva a Cancelar:* ${fechaIngresada}\n` +
                 `📱 *WhatsApp Remitente:* ${from}\n` +
-                `📋 *Solicitud:* SOLICITUD CANCELACIÓN DE RESERVA`;
+                `📋 *Solicitud:* SOLICITUD CANCELACIÓN DE RESERVA${cancelNotice24h}`;
 
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD CANCELACIÓN DE RESERVA',
