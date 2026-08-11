@@ -299,6 +299,9 @@ async function handleTextMessage(from, text) {
             currentState.data.menuTrad = currentState.data.menuTrad || {};
             currentState.data.menuTrad.fechas = currentState.data.menuTrad.fechas || [];
 
+            const isDinner = currentState.data.menuTrad.tipoServicio === 'Cena' || 
+                             ['20:00', '20:30', '21:00', '21:30'].includes(currentState.data.menuTrad.horario);
+
             if (cleanInput === 'btn_finish_fechas' || ['fin', 'finalizar', 'listo', 'ok', 'terminar', 'hecho'].includes(cleanInput)) {
                 if (currentState.data.menuTrad.fechas.length === 0) {
                     await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
