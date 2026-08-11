@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V138-MOSTRAR-TURNOS-DISPONIBLES-AL-PULSAR-ANADIR-OTRO-TURNO';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V139-CORREGIR-EVENTO-BOTON-ANADIR-OTRO-TURNO';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

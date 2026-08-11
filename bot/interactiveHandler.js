@@ -1464,7 +1464,12 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'btn_add_mod_hora':
+        case 'btn_add_mod_hora': {
+            const currentState = userStates.get(from) || { data: {} };
+            await sendModHoraOptions(from, lang, currentState);
+            break;
+        }
+
         case 'btn_add_mod_fecha': {
             await handleTextMessage(from, buttonId);
             break;

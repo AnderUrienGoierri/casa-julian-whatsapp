@@ -812,7 +812,7 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
-            if (cleanInput === 'btn_add_mod_hora' || cleanInput.includes('añadir') || cleanInput.includes('gehitu') || cleanInput.includes('add')) {
+            if (cleanInput === 'btn_add_mod_hora' || cleanInput.includes('añadir') || cleanInput.includes('anadir') || cleanInput.includes('gehitu') || cleanInput.includes('add') || cleanInput.includes('+')) {
                 await sendModHoraOptions(from, lang, currentState);
                 break;
             }
