@@ -1464,8 +1464,40 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'btn_add_mod_hora':
         case 'btn_add_mod_fecha': {
             await handleTextMessage(from, buttonId);
+            break;
+        }
+
+        case 'btn_finish_horas':
+        case 'btn_finish_mod_horas': {
+            const currentState = userStates.get(from) || { data: {} };
+            currentState.data = currentState.data || {};
+            currentState.data.modHoras = currentState.data.modHoras || [];
+
+            if (currentState.data.modHoras.length === 0) {
+                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                break;
+            }
+
+            const reservationId = currentState.data.reservationId || null;
+            const nombreCliente = currentState.data.nombreCliente || null;
+            const telefonoReserva = currentState.data.telefonoReserva || from.replace(/\D/g, '');
+            const reservaActual = currentState.data.reservaActual || 'No especificada';
+
+            const timesStr = currentState.data.modHoras.join(', ');
+            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA DE PREFERENCIA / TURNO', timesStr, lang);
+
+            await requestUserConfirmation(from, lang, {
+                tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                reservationId: reservationId,
+                isModification: true,
+                detalleMod: detalleMod,
+                nombreCliente: nombreCliente,
+                telefonoReserva: telefonoReserva,
+                successMsgKey: 'modSuccessMsg'
+            });
             break;
         }
 

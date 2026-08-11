@@ -636,6 +636,7 @@ async function handleTextMessage(from, text) {
                 await sendMessage(from, getTranslation(lang, 'modDiaPrompt'));
             } else if (modTipo === 'hora') {
                 currentState.step = 'mod_val_hora';
+                currentState.data.modHoras = [];
                 userStates.set(from, currentState);
                 await sendModHoraOptions(from, lang, currentState);
             } else {
@@ -775,62 +776,129 @@ async function handleTextMessage(from, text) {
         }
 
         case 'mod_val_hora': {
-            const rawInput = text.trim();
-            if (rawInput.length < 1) {
-                await sendModHoraOptions(from, lang, currentState);
+            const cleanInput = text.trim().toLowerCase();
+            currentState.data = currentState.data || {};
+            currentState.data.modHoras = currentState.data.modHoras || [];
+
+            const isFinishCommand = cleanInput === 'btn_finish_mod_horas' ||
+                                    cleanInput === 'btn_finish_horas' ||
+                                    cleanInput.includes('finalizar') ||
+                                    cleanInput.includes('terminar') ||
+                                    ['fin', 'listo', 'ok', 'hecho'].includes(cleanInput);
+
+            if (isFinishCommand) {
+                if (currentState.data.modHoras.length === 0) {
+                    await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+                    break;
+                }
+
+                const reservationId = currentState?.data?.reservationId || null;
+                const nombreCliente = currentState?.data?.nombreCliente || null;
+                const telefonoReserva = currentState?.data?.telefonoReserva || from.replace(/\D/g, '');
+                const reservaActual = currentState?.data?.reservaActual || 'No especificada';
+
+                const timesStr = currentState.data.modHoras.join(', ');
+                const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA DE PREFERENCIA / TURNO', timesStr, lang);
+
+                await requestUserConfirmation(from, lang, {
+                    tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                    reservationId: reservationId,
+                    isModification: true,
+                    detalleMod: detalleMod,
+                    nombreCliente: nombreCliente,
+                    telefonoReserva: telefonoReserva,
+                    successMsgKey: 'modSuccessMsg'
+                });
+                break;
+            }
+
+            if (cleanInput === 'btn_add_mod_hora' || cleanInput.includes('añadir') || cleanInput.includes('gehitu') || cleanInput.includes('add')) {
+                let msg = `🕐 *Indícanos el siguiente turno de preferencia (ej: 13:30, 14:00, 20:00):*`;
+                if (lang === 'eu') msg = `🕐 *Eman hurrengo txanda hobetsia (adibidez: 13:30, 14:00, 20:00):*`;
+                else if (lang === 'en') msg = `🕐 *Please specify the next preferred time slot (e.g. 13:30, 14:00, 20:00):*`;
+                await sendMessage(from, msg);
                 break;
             }
 
             const fechaStr = currentState?.data?.fechaReservaOriginal || currentState?.data?.fecha || (Array.isArray(currentState?.data?.modFechas) && currentState.data.modFechas.length > 0 ? currentState.data.modFechas[0] : null);
 
-            const validation = validateAndParseModShifts(rawInput, fechaStr, lang);
-            if (!validation.isValid) {
-                let errMsg = '';
-                if (validation.reason === 'dinner_not_allowed') {
-                    const dayNames = {
-                        es: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
-                        eu: ['igandea', 'astelehena', 'asteartea', 'asteazkena', 'osteguna', 'ostirala', 'larunbata'],
-                        en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-                    };
-                    const dayOfWeek = getDayOfWeekFromDateStr(fechaStr);
-                    const dayName = (dayNames[lang] || dayNames.es)[dayOfWeek] || '';
+            const parts = text.split(/[,y\/]+/i).map(p => p.trim()).filter(Boolean);
 
-                    if (lang === 'eu') {
-                        errMsg = `⚠️ Casa Juliánen afariak *ostiral eta larunbatetan* bakarrik ematen dira. *${fechaStr || ''}* data *${dayName}* da.\n\nMesedez, aukeratu bazkariko txanda zehaztu bat: *12:30, 13:00, 13:30, 14:00, 15:15*`;
-                    } else if (lang === 'en') {
-                        errMsg = `⚠️ At Casa Julián, dinners are only served on *Fridays and Saturdays*. The date *${fechaStr || ''}* is a *${dayName}*.\n\nPlease select one of the predefined lunch shifts: *12:30, 13:00, 13:30, 14:00, 15:15*`;
+            for (const p of parts) {
+                const validation = validateAndParseModShifts(p, fechaStr, lang);
+                if (!validation.isValid) {
+                    let errMsg = '';
+                    if (validation.reason === 'dinner_not_allowed') {
+                        const dayNames = {
+                            es: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+                            eu: ['igandea', 'astelehena', 'asteartea', 'asteazkena', 'osteguna', 'ostirala', 'larunbata'],
+                            en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                        };
+                        const dayOfWeek = getDayOfWeekFromDateStr(fechaStr);
+                        const dayName = (dayNames[lang] || dayNames.es)[dayOfWeek] || '';
+
+                        if (lang === 'eu') {
+                            errMsg = `⚠️ Casa Juliánen afariak *ostiral eta larunbatetan* bakarrik ematen dira. *${fechaStr || ''}* data *${dayName}* da.\n\nMesedez, aukeratu bazkariko txanda zehaztu bat: *12:30, 13:00, 13:30, 14:00, 15:15*`;
+                        } else if (lang === 'en') {
+                            errMsg = `⚠️ At Casa Julián, dinners are only served on *Fridays and Saturdays*. The date *${fechaStr || ''}* is a *${dayName}*.\n\nPlease select one of the predefined lunch shifts: *12:30, 13:00, 13:30, 14:00, 15:15*`;
+                        } else {
+                            errMsg = `⚠️ En Asador Casa Julián las cenas únicamente se sirven los *viernes y sábados*. La fecha *${fechaStr || ''}* cae en *${dayName}*.\n\nPor favor, selecciona uno de los turnos de comida predefinidos: *12:30, 13:00, 13:30, 14:00, 15:15*`;
+                        }
                     } else {
-                        errMsg = `⚠️ En Asador Casa Julián las cenas únicamente se sirven los *viernes y sábados*. La fecha *${fechaStr || ''}* cae en *${dayName}*.\n\nPor favor, selecciona uno de los turnos de comida predefinidos: *12:30, 13:00, 13:30, 14:00, 15:15*`;
+                        if (lang === 'eu') {
+                            errMsg = `⚠️ *${validation.invalidTime || p}* ordua ez da Casa Juliánen txanda zehaztu bat.\n\nMesedez, aukeratu ordutegi zehaztu hauetako bat:\n• *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Afaria:* 20:00, 20:30, 21:00, 21:30 (Ostiral eta Larunbatetan bakarrik)`;
+                        } else if (lang === 'en') {
+                            errMsg = `⚠️ The time *${validation.invalidTime || p}* is not a predefined shift at Casa Julián.\n\nPlease select one of the predefined times:\n• *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Dinner:* 20:00, 20:30, 21:00, 21:30 (Fridays & Saturdays only)`;
+                        } else {
+                            errMsg = `⚠️ La hora *${validation.invalidTime || p}* no es un turno predefinido en Asador Casa Julián.\n\nPor favor, elige uno de los turnos predefinidos del restaurante:\n• *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Cena:* 20:00, 20:30, 21:00, 21:30 (solo Viernes y Sábados)`;
+                        }
                     }
+                    await sendMessage(from, errMsg);
                 } else {
-                    if (lang === 'eu') {
-                        errMsg = `⚠️ *${validation.invalidTime}* ordua ez da Casa Juliánen txanda zehaztu bat.\n\nMesedez, aukeratu ordutegi zehaztu hauetako bat:\n• *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Afaria:* 20:00, 20:30, 21:00, 21:30 (Ostiral eta Larunbatetan bakarrik)`;
-                    } else if (lang === 'en') {
-                        errMsg = `⚠️ The time *${validation.invalidTime}* is not a predefined shift at Casa Julián.\n\nPlease select one of the predefined times:\n• *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Dinner:* 20:00, 20:30, 21:00, 21:30 (Fridays & Saturdays only)`;
-                    } else {
-                        errMsg = `⚠️ La hora *${validation.invalidTime}* no es un turno predefinido en Asador Casa Julián.\n\nPor favor, elige uno de los turnos predefinidos del restaurante:\n• *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Cena:* 20:00, 20:30, 21:00, 21:30 (solo Viernes y Sábados)`;
+                    const validTimeStr = validation.formatted;
+                    if (!currentState.data.modHoras.includes(validTimeStr) && currentState.data.modHoras.length < 5) {
+                        currentState.data.modHoras.push(validTimeStr);
                     }
                 }
-                await sendMessage(from, errMsg);
-                break;
             }
 
-            const reservationId = currentState?.data?.reservationId || null;
-            const nombreCliente = currentState?.data?.nombreCliente || null;
-            const telefonoReserva = currentState?.data?.telefonoReserva || from.replace(/\D/g, '');
-            const reservaActual = currentState?.data?.reservaActual || 'No especificada';
+            userStates.set(from, currentState);
 
-            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA DE PREFERENCIA / TURNO', validation.formatted, lang);
+            if (currentState.data.modHoras.length >= 5) {
+                const reservationId = currentState?.data?.reservationId || null;
+                const nombreCliente = currentState?.data?.nombreCliente || null;
+                const telefonoReserva = currentState?.data?.telefonoReserva || from.replace(/\D/g, '');
+                const reservaActual = currentState?.data?.reservaActual || 'No especificada';
 
-            await requestUserConfirmation(from, lang, {
-                tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
-                reservationId: reservationId,
-                isModification: true,
-                detalleMod: detalleMod,
-                nombreCliente: nombreCliente,
-                telefonoReserva: telefonoReserva,
-                successMsgKey: 'modSuccessMsg'
-            });
+                const timesStr = currentState.data.modHoras.join(', ');
+                const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA DE PREFERENCIA / TURNO', timesStr, lang);
+
+                await requestUserConfirmation(from, lang, {
+                    tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',
+                    reservationId: reservationId,
+                    isModification: true,
+                    detalleMod: detalleMod,
+                    nombreCliente: nombreCliente,
+                    telefonoReserva: telefonoReserva,
+                    successMsgKey: 'modSuccessMsg'
+                });
+            } else if (currentState.data.modHoras.length > 0) {
+                const count = currentState.data.modHoras.length;
+                const timesListStr = currentState.data.modHoras.map(h => `• ${h}`).join('\n');
+                
+                let promptBody = `📌 *Nuevos turnos de preferencia guardados (${count}/5):*\n${timesListStr}\n\n¿Deseas añadir otro turno o finalizar la selección?`;
+                if (lang === 'eu') {
+                    promptBody = `📌 *Gorde diren txanda hobetsi berriak (${count}/5):*\n${timesListStr}\n\nBeste txanda bat gehitu edo hautapena amaitu nahi duzu?`;
+                } else if (lang === 'en') {
+                    promptBody = `📌 *New preferred time slots saved (${count}/5):*\n${timesListStr}\n\nWould you like to add another time slot or finish selection?`;
+                }
+
+                const buttons = [
+                    { id: 'btn_add_mod_hora', title: getTranslation(lang, 'btnAddOtroTurno').slice(0, 20) },
+                    { id: 'btn_finish_mod_horas', title: getTranslation(lang, 'btnFinalizarTurnos').slice(0, 20) }
+                ];
+                await sendInteractiveButtons(from, promptBody, buttons);
+            }
             break;
         }
 
