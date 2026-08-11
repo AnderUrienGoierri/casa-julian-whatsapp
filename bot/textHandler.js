@@ -1088,17 +1088,14 @@ async function handleTextMessage(from, text) {
                 let btnExit = '';
 
                 if (lang === 'eu') {
-                    promptBody = `¿Erreserba egin nahi duzu txartel honekin edo menura itzuli?`;
-                    btnRes = `📅 Erreserbatu`;
-                    btnExit = `🏠 Menura itzuli`;
+                    promptBody = `¿Erreserba egin nahi duzu txartel honekin?`;
+                    btnRes = `📅 Erreserbatu`;                    
                 } else if (lang === 'en') {
-                    promptBody = `Would you like to book a table with this card or return to the main menu?`;
+                    promptBody = `Would you like to book a table with this card?`;
                     btnRes = `📅 Book Table`;
-                    btnExit = `🏠 Main Menu`;
                 } else {
-                    promptBody = `¿Deseas reservar tu mesa con esta tarjeta o volver al menú principal?`;
+                    promptBody = `¿Deseas reservar tu mesa con esta tarjeta?`;
                     btnRes = `📅 Reservar`;
-                    btnExit = `🏠 Salir al menú`;
                 }
 
                 const buttons = [
