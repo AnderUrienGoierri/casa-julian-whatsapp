@@ -1048,25 +1048,16 @@ async function handleTextMessage(from, text) {
                 if (lang === 'eu') {
                     msg = `🎁 *OPARI-TXARTELAREN EGIAZTAPENA*\n\n` +
                           `✅ *Kodea:* ${card.codigo}\n` +
-                          `👤 *Jabea / Emptlea:* ${card.comprador_nombre || 'Zehaztu gabea'}\n` +
                           `📅 *Iraungitze data:* ${card.fecha_caducidad}\n` +
                           `📌 *Egoera:* ${card.estado || 'AKTIBOA'}`;
                 } else if (lang === 'en') {
                     msg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
                           `✅ *Code:* ${card.codigo}\n` +
-                          `👤 *Holder / Buyer:* ${card.comprador_nombre || 'Not specified'}\n` +
                           `📅 *Expiration Date:* ${card.fecha_caducidad}\n` +
                           `📌 *Status:* ${card.estado || 'ACTIVE'}`;
-                } else if (lang === 'fr') {
-                    msg = `🎁 *VÉRIFICATION DE CARTE CADEAU*\n\n` +
-                          `✅ *Code :* ${card.codigo}\n` +
-                          `👤 *Titulaire / Acheteur :* ${card.comprador_nombre || 'Non spécifié'}\n` +
-                          `📅 *Date d'expiration :* ${card.fecha_caducidad}\n` +
-                          `📌 *Statut :* ${card.estado || 'ACTIF'}`;
                 } else {
                     msg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
                           `✅ *Código:* ${card.codigo}\n` +
-                          `👤 *Titular / Comprador:* ${card.comprador_nombre || 'No especificado'}\n` +
                           `📅 *Fecha de Caducidad:* ${card.fecha_caducidad}\n` +
                           `📌 *Estado:* ${card.estado || 'ACTIVA'}`;
                 }
@@ -1085,7 +1076,6 @@ async function handleTextMessage(from, text) {
 
                 let promptBody = '';
                 let btnRes = '';
-                let btnExit = '';
 
                 if (lang === 'eu') {
                     promptBody = `¿Erreserba egin nahi duzu txartel honekin?`;
@@ -1099,8 +1089,7 @@ async function handleTextMessage(from, text) {
                 }
 
                 const buttons = [
-                    { id: 'btn_card_gestion_reservar', title: btnRes.slice(0, 20) },
-                    { id: 'btn_salir_menu', title: btnExit.slice(0, 20) }
+                    { id: 'btn_card_gestion_reservar', title: btnRes.slice(0, 20) }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
             } else {

@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V130-ALERGIAS-ENTRADA-TEXTO-DIRECTA';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V131-QUITAR-TITULAR-Y-BOTON-SALIR-MENU-CADUCIDAD';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

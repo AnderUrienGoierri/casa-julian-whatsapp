@@ -719,22 +719,20 @@ async function handleButtonResponse(from, buttonId) {
 
             let promptBody = '';
             let btnRes = '';
-            let btnExit = '';
 
             if (lang === 'eu') {
-                promptBody = `¿Erreserba egin nahi duzu txartel honekin edo menura itzuli?`;
+                promptBody = `¿Erreserba egin nahi duzu txartel honekin?`;
                 btnRes = `📅 Erreserbatu`;
             } else if (lang === 'en') {
-                promptBody = `Would you like to book a table with this card or return to the main menu?`;
+                promptBody = `Would you like to book a table with this card?`;
                 btnRes = `📅 Book Table`;
             } else {
-                promptBody = `¿Deseas reservar tu mesa con esta tarjeta o volver al menú principal?`;
+                promptBody = `¿Deseas reservar tu mesa con esta tarjeta?`;
                 btnRes = `📅 Reservar`;
             }
 
             const buttons = [
-                { id: 'btn_card_gestion_reservar', title: btnRes.slice(0, 20) },
-                { id: 'btn_salir_menu', title: btnExit.slice(0, 20) }
+                { id: 'btn_card_gestion_reservar', title: btnRes.slice(0, 20) }
             ];
             await sendInteractiveButtons(from, promptBody, buttons);
             break;
