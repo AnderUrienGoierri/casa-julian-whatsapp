@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V143-VALIDAR-FECHAS-EN-MODIFICACION-Y-CANCELACION-INICIAL';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V144-DIAS-FESTIVOS-Y-VACACIONES-INTEGRADOS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

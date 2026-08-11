@@ -39,6 +39,52 @@ function getDayOfWeekFromDateStr(dateStr) {
     return d.getDay();
 }
 
+function getClosedDateDetails(year, month, day, dayOfWeek, dateStr) {
+    // 1. Lunes siempre cerrado por descanso semanal
+    if (dayOfWeek === 1) {
+        return { closed: true, reason: 'monday', date: dateStr };
+    }
+
+    // 2. Calendario 2026:
+    if (year === 2026) {
+        // Vacaciones 2026: 24 de agosto al 8 de septiembre
+        if ((month === 8 && day >= 24) || (month === 9 && day <= 8)) {
+            return { closed: true, reason: 'vacation_2026', date: dateStr };
+        }
+        // 12 de octubre festivo
+        if (month === 10 && day === 12) {
+            return { closed: true, reason: 'holiday_12_oct', date: dateStr };
+        }
+        // 24, 25 y 31 de diciembre festivos
+        if (month === 12 && (day === 24 || day === 25 || day === 31)) {
+            return { closed: true, reason: `holiday_${day}_dec_2026`, date: dateStr };
+        }
+    }
+
+    // 3. Calendario 2027:
+    if (year === 2027) {
+        // 1, 5, 6 de enero festivos
+        if (month === 1 && (day === 1 || day === 5 || day === 6)) {
+            return { closed: true, reason: `holiday_${day}_jan_2027`, date: dateStr };
+        }
+        // Vacaciones 2027: 18 al 31 de enero
+        if (month === 1 && day >= 18 && day <= 31) {
+            return { closed: true, reason: 'vacation_2027', date: dateStr };
+        }
+        // 10 de febrero cerrado (Carnaval)
+        if (month === 2 && day === 10) {
+            return { closed: true, reason: 'holiday_carnaval_2027', date: dateStr };
+        }
+    }
+
+    // Regla general para vacaciones estivales (24 agosto - 8 septiembre) si no coincide año explícito
+    if ((month === 8 && day >= 24) || (month === 9 && day <= 8)) {
+        return { closed: true, reason: 'vacation_2026', date: dateStr };
+    }
+
+    return null;
+}
+
 function checkRestaurantClosedDate(dateStr) {
     if (!dateStr || typeof dateStr !== 'string') return null;
     const match = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
@@ -50,20 +96,10 @@ function checkRestaurantClosedDate(dateStr) {
 
     if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
 
-    // 1. Descanso semanal del restaurante: Lunes (dayOfWeek === 1) para CUALQUIER año
-    // Se usa las 12:00:00 del mediodía para evitar cualquier desfasaje por zona horaria
     const dateObj = new Date(year, month - 1, day, 12, 0, 0);
     const dayOfWeek = dateObj.getDay();
-    if (dayOfWeek === 1) {
-        return { closed: true, reason: 'monday', date: dateStr };
-    }
 
-    // 2. Único periodo de vacaciones del restaurante: Del 24 de Agosto al 7 de Septiembre (ambos inclusive)
-    if ((month === 8 && day >= 24) || (month === 9 && day <= 7)) {
-        return { closed: true, reason: 'vacation', date: dateStr };
-    }
-
-    return null;
+    return getClosedDateDetails(year, month, day, dayOfWeek, dateStr);
 }
 
 function isValidEmail(email) {
@@ -78,116 +114,74 @@ function getInvalidEmailMsg(lang) {
     } else if (lang === 'en') {
         return '⚠️ *Invalid email address.* Please enter a valid email (e.g. *nombre@ejemplo.com*), or skip using the button:';
     } else {
-        return '⚠️ *Email no válido.* Por favor, introduce un email correcto (ej. *nombre@ejemplo.com*), o pulsa el botón para omitirlo:';
+        return '⚠️ *Dirección de email no válida.* Por favor, introduce un email válido (ej: *nombre@ejemplo.com*), o pulsa para omitir:';
     }
 }
 
-function formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, campoMod, valorMod, lang = 'es') {
-    let detailStr = '';
+function formatModificationDetail(nombreCliente, telefonoReserva, senderPhone, reservaActual, labelCampo, nuevoValor, lang = 'es') {
+    const titleLabel = lang === 'eu' ? 'RESERBA ALDATZEKO ESKAERA' : (lang === 'en' ? 'RESERVATION MODIFICATION REQUEST' : 'SOLICITUD MODIFICACIÓN DE RESERVA');
+    const holderLabel = lang === 'eu' ? 'Titularraren izena:' : (lang === 'en' ? 'Holder Name:' : 'Nombre del Titular:');
+    const phoneLabel = lang === 'eu' ? 'Telefonoa:' : (lang === 'en' ? 'Phone:' : 'Teléfono Reserva:');
+    const senderLabel = lang === 'eu' ? 'Bidaltzailearen WhatsApp-a:' : (lang === 'en' ? 'Sender WhatsApp:' : 'WhatsApp Remitente:');
+    const currentResLabel = lang === 'eu' ? 'Egungo erreserba:' : (lang === 'en' ? 'Current reservation:' : 'Reserva Actual:');
+    const modLabel = lang === 'eu' ? 'Aldatu nahi den eremua:' : (lang === 'en' ? 'Field to modify:' : 'Campo a Modificar:');
+    const valLabel = lang === 'eu' ? 'Balio berria:' : (lang === 'en' ? 'New value:' : 'Nuevo Valor:');
+    const requestTypeLabel = lang === 'eu' ? 'Eskaera:' : (lang === 'en' ? 'Request:' : 'Solicitud:');
 
-    if (lang === 'eu') {
-        detailStr = `👤 *Bezeroaren izena:* ${nombreCliente || 'Zehaztugabea'}\n` +
-                    `📞 *Telefonoa:* ${telefonoReserva || from}\n` +
-                    `📌 *Uneko erreserba:* ${reservaActual}\n` +
-                    `✏️ *Eskatutako aldaketa (${campoMod}):* ${valorMod}`;
-    } else if (lang === 'en') {
-        detailStr = `👤 *Guest Name:* ${nombreCliente || 'Unspecified'}\n` +
-                    `📞 *Phone:* ${telefonoReserva || from}\n` +
-                    `📌 *Current Reservation:* ${reservaActual}\n` +
-                    `✏️ *Requested Change (${campoMod}):* ${valorMod}`;
-    } else {
-        detailStr = `👤 *Nombre del Cliente:* ${nombreCliente || 'No especificado'}\n` +
-                    `📞 *Teléfono:* ${telefonoReserva || from}\n` +
-                    `📌 *Reserva Actual:* ${reservaActual}\n` +
-                    `✏️ *Modificación Solicitada (${campoMod}):* ${valorMod}`;
-    }
-
-    return detailStr;
+    return (
+        `👤 *${holderLabel}* ${nombreCliente || 'No especificado'}\n` +
+        `📞 *${phoneLabel}* ${telefonoReserva || 'No especificado'}\n` +
+        `📱 *${senderLabel}* ${senderPhone}\n` +
+        `📌 *${currentResLabel}* ${reservaActual}\n` +
+        `✏️ *${modLabel}* ${labelCampo}\n` +
+        `🆕 *${valLabel}* ${nuevoValor}\n` +
+        `📋 *${requestTypeLabel}* ${titleLabel}`
+    );
 }
 
-function validateAndParseModShifts(text, fechaStr, lang = 'es') {
-    if (!text || typeof text !== 'string') {
-        return { isValid: false, invalidTime: '', reason: 'invalid_shift' };
-    }
+function validateAndParseModShifts(textStr, predefinedShifts = []) {
+    if (!textStr || typeof textStr !== 'string') return { validShifts: [], invalidShifts: [] };
+    const parts = textStr.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
 
-    const cleanText = text.trim();
-    const lowerText = cleanText.toLowerCase();
+    const validShifts = [];
+    const invalidShifts = [];
 
-    if (['sin preferencia', 'hobespenik ez', 'no preference', 'sin preferia'].includes(lowerText)) {
-        return { isValid: true, formatted: 'Sin preferencia' };
-    }
+    const allowed = predefinedShifts.map(s => s.trim());
 
-    const parts = cleanText.split(/[,y\/]+/i).map(p => p.trim()).filter(Boolean);
-
-    const validLunch = ['12:30', '13:00', '13:30', '14:00', '15:15'];
-    const validDinner = ['20:00', '20:30', '21:00', '21:30'];
-
-    const dayOfWeek = fechaStr ? getDayOfWeekFromDateStr(fechaStr) : null;
-    const isDinnerAllowed = (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === null);
-
-    const parsedTimes = [];
-
-    for (let part of parts) {
-        const match = part.match(/(\d{1,2})[:\.]?(\d{2})/);
-        if (!match) {
-            return {
-                isValid: false,
-                invalidTime: part,
-                reason: 'invalid_shift'
-            };
-        }
-
-        let hours = match[1].padStart(2, '0');
-        let minutes = match[2];
-        let normalizedTime = `${hours}:${minutes}`;
-
-        if (validLunch.includes(normalizedTime)) {
-            parsedTimes.push(normalizedTime);
-        } else if (validDinner.includes(normalizedTime)) {
-            if (!isDinnerAllowed) {
-                return {
-                    isValid: false,
-                    invalidTime: normalizedTime,
-                    reason: 'dinner_not_allowed'
-                };
+    for (const part of parts) {
+        const timeMatch = part.match(/(\d{1,2})[:\.](\d{2})/);
+        if (timeMatch) {
+            const h = timeMatch[1].padStart(2, '0');
+            const m = timeMatch[2];
+            const formatted = `${h}:${m}`;
+            if (allowed.includes(formatted)) {
+                if (!validShifts.includes(formatted)) validShifts.push(formatted);
+            } else {
+                if (!invalidShifts.includes(part)) invalidShifts.push(part);
             }
-            parsedTimes.push(normalizedTime);
         } else {
-            return {
-                isValid: false,
-                invalidTime: part,
-                reason: 'invalid_shift'
-            };
+            if (!invalidShifts.includes(part)) invalidShifts.push(part);
         }
     }
 
-    if (parsedTimes.length === 0) {
-        return {
-            isValid: false,
-            invalidTime: cleanText,
-            reason: 'invalid_shift'
-        };
-    }
-
-    return {
-        isValid: true,
-        formatted: parsedTimes.join(', ')
-    };
+    return { validShifts, invalidShifts };
 }
 
 function isValidPersonName(text) {
     if (!text || typeof text !== 'string') return false;
     const cleanText = text.trim();
 
-    if (cleanText.length < 2) return false;
+    if (cleanText.length < 2 || cleanText.length > 50) return false;
+    if (/\d/.test(cleanText)) return false;
 
-    const dates = parseAndValidateDates(cleanText);
-    if (dates.length > 0) return false;
+    const lower = cleanText.toLowerCase();
+    const bannedKeywords = [
+        'lunes', 'martes', 'miercoles', 'miércoles', 'jueves', 'viernes', 'sabado', 'sábado', 'domingo',
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+        'cancelar', 'modificar', 'reserva', 'mesa', 'comida', 'cena', 'hoy', 'mañana', 'manana'
+    ];
 
-    if (/\b\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}\b/.test(cleanText)) return false;
-
-    if (/^\d+$/.test(cleanText)) return false;
-
+    if (bannedKeywords.some(kw => lower.includes(kw))) return false;
     if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑàèìòùÀÈÌÒÙäëïöüÄËÏÖÜçÇ]/.test(cleanText)) return false;
 
     return true;
@@ -240,12 +234,9 @@ function validateSingleDate(dateStr, lang = 'es') {
     }
 
     const dayOfWeek = inputDateObj.getDay();
-    if (dayOfWeek === 1) {
-        return { isValid: false, reason: 'monday', date: formattedDateStr };
-    }
-
-    if ((month === 8 && day >= 24) || (month === 9 && day <= 7)) {
-        return { isValid: false, reason: 'vacation', date: formattedDateStr };
+    const closedDetails = getClosedDateDetails(year, month, day, dayOfWeek, formattedDateStr);
+    if (closedDetails) {
+        return { isValid: false, reason: closedDetails.reason, date: formattedDateStr };
     }
 
     return { isValid: true, formatted: formattedDateStr, date: formattedDateStr };
@@ -266,21 +257,47 @@ function getDateValidationErrorMsg(validation, lang = 'es') {
 
     if (validation.reason === 'monday') {
         if (lang === 'eu') {
-            return `⚠️ *${d}* data astelehena da (jatetxearen asteko atseden eguna).\n\nMesedez, idatzi beste data bat (adibidez: EG/HI/URTE):`;
+            return `⚠️ *${d}* data astelehena da (jatetxearen asteko atseden eguna, astelehenetan beti itxita).\n\nMesedez, idatzi beste data bat (adibidez: EG/HI/URTE):`;
         } else if (lang === 'en') {
-            return `⚠️ The date *${d}* is on a Monday (restaurant weekly day off).\n\nPlease enter another date (example: DD/MM/YYYY):`;
+            return `⚠️ The date *${d}* is on a Monday (restaurant weekly day off, closed every Monday).\n\nPlease enter another date (example: DD/MM/YYYY):`;
         } else {
-            return `⚠️ La fecha *${d}* cae en lunes (día de descanso semanal del restaurante).\n\nPor favor, indica otra fecha (ejemplo: DD/MM/AAAA):`;
+            return `⚠️ La fecha *${d}* cae en lunes (día de descanso semanal del restaurante, cerrado todos los lunes).\n\nPor favor, indica otra fecha (ejemplo: DD/MM/AAAA):`;
         }
     }
 
-    if (validation.reason === 'vacation') {
+    if (validation.reason && validation.reason.startsWith('vacation')) {
+        let period = 'del 24 de agosto al 8 de septiembre de 2026';
+        if (validation.reason === 'vacation_2027') {
+            period = 'del 18 de enero al 31 de enero de 2027';
+        }
+
         if (lang === 'eu') {
-            return `⚠️ *${d}* data jatetxearen oporraldiarekin bat dator (abuztuaren 24tik irailaren 7ra).\n\nMesedez, idatzi beste data bat (adibidez: EG/HI/URTE):`;
+            return `⚠️ *${d}* data jatetxearen oporraldiarekin bat dator (${period}).\n\nMesedez, idatzi beste data bat (adibidez: EG/HI/URTE):`;
         } else if (lang === 'en') {
-            return `⚠️ The date *${d}* falls within the restaurant vacation period (August 24th to September 7th).\n\nPlease enter another date (example: DD/MM/YYYY):`;
+            return `⚠️ The date *${d}* falls within the restaurant vacation period (${period}).\n\nPlease enter another date (example: DD/MM/YYYY):`;
         } else {
-            return `⚠️ La fecha *${d}* coincide con el periodo de vacaciones del restaurante (del 24 de agosto al 7 de septiembre).\n\nPor favor, indica otra fecha (ejemplo: DD/MM/AAAA):`;
+            return `⚠️ La fecha *${d}* coincide con el periodo de vacaciones del restaurante (${period}).\n\nPor favor, indica otra fecha (ejemplo: DD/MM/AAAA):`;
+        }
+    }
+
+    if (validation.reason && validation.reason.startsWith('holiday')) {
+        let desc = 'día festivo cerrado por el restaurante';
+        if (validation.reason.includes('carnaval')) {
+            desc = '10 de febrero (Carnaval, cerrado)';
+        } else if (validation.reason.includes('12_oct')) {
+            desc = '12 de octubre (Festivo, cerrado)';
+        } else if (validation.reason.includes('dec')) {
+            desc = 'Festivo navideño (24, 25 o 31 de diciembre, cerrado)';
+        } else if (validation.reason.includes('jan_2027')) {
+            desc = 'Festivo de Año Nuevo / Reyes (1, 5 o 6 de enero, cerrado)';
+        }
+
+        if (lang === 'eu') {
+            return `⚠️ *${d}* data jaieguna da edo jatetxea itxita dago (${desc}).\n\nMesedez, idatzi beste data bat (adibidez: EG/HI/URTE):`;
+        } else if (lang === 'en') {
+            return `⚠️ The date *${d}* is a holiday and the restaurant is closed (${desc}).\n\nPlease enter another date (example: DD/MM/YYYY):`;
+        } else {
+            return `⚠️ La fecha *${d}* es un día festivo en el que el restaurante permanece cerrado (${desc}).\n\nPor favor, indica otra fecha (ejemplo: DD/MM/AAAA):`;
         }
     }
 
@@ -296,6 +313,7 @@ function getDateValidationErrorMsg(validation, lang = 'es') {
 module.exports = {
     parseAndValidateDates,
     getDayOfWeekFromDateStr,
+    getClosedDateDetails,
     checkRestaurantClosedDate,
     isValidEmail,
     getInvalidEmailMsg,
