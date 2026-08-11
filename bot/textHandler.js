@@ -327,46 +327,40 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
-            const newDates = parseAndValidateDates(text);
-
-            if (newDates.length === 0) {
-                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+            const candidates = text.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
+            if (candidates.length === 0) {
+                await sendMessage(from, getDateValidationErrorMsg({ isValid: false, reason: 'format', date: text }, lang));
                 break;
             }
 
-            const isDinner = currentState.data.menuTrad.tipoServicio === 'Cena' || 
-                             ['20:00', '20:30', '21:00', '21:30'].includes(currentState.data.menuTrad.horario);
-
-            for (const d of newDates) {
-                const closedCheck = checkRestaurantClosedDate(d);
-                if (closedCheck) {
-                    const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
-                    const msgText = getTranslation(lang, msgKey).replace('{date}', d);
-                    await sendMessage(from, msgText);
+            for (const cand of candidates) {
+                const val = validateSingleDate(cand, lang);
+                if (!val.isValid) {
+                    await sendMessage(from, getDateValidationErrorMsg(val, lang));
                 } else if (isDinner) {
-                    const dayOfWeek = getDayOfWeekFromDateStr(d);
+                    const dayOfWeek = getDayOfWeekFromDateStr(val.formatted);
                     if (dayOfWeek !== 5 && dayOfWeek !== 6) {
                         const dayNames = {
                             es: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
                             eu: ['igandea', 'astelehena', 'asteartea', 'asteazkena', 'osteguna', 'ostirala', 'larunbata'],
                             en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
                         };
-                        const dayName = (dayNames[lang] || dayNames.es)[dayOfWeek];
-                        let msgText = `⚠️ En Asador Casa Julián las cenas únicamente se sirven los *viernes y sábados*. La fecha *${d}* cae en *${dayName}*. Por favor, indícanos otra fecha:`;
+                        const dayName = (dayNames[lang] || dayNames.es)[dayOfWeek] || '';
+                        let dinnerErr = `⚠️ En Asador Casa Julián las cenas únicamente se sirven los *viernes y sábados*. La fecha *${val.formatted}* cae en *${dayName}*.\n\nPor favor, indica una fecha de viernes o sábado para cena:`;
                         if (lang === 'eu') {
-                            msgText = `⚠️ Asador Casa Juliánen afariak *ostiral eta larunbatetan* bakarrik ematen dira. *${d}* data *${dayName}* da. Mesedez, adierazi beste data bat:`;
+                            dinnerErr = `⚠️ Casa Juliánen afariak *ostiral eta larunbatetan* bakarrik ematen dira. *${val.formatted}* data *${dayName}* da.\n\nMesedez, adierazi ostiral edo larunbateko data bat afaria egiteko:`;
                         } else if (lang === 'en') {
-                            msgText = `⚠️ At Asador Casa Julián, dinners are only served on *Fridays and Saturdays*. The date *${d}* is a *${dayName}*. Please specify another date:`;
+                            dinnerErr = `⚠️ At Casa Julián, dinners are only served on *Fridays and Saturdays*. The date *${val.formatted}* is a *${dayName}*.\n\nPlease specify a Friday or Saturday date for dinner:`;
                         }
-                        await sendMessage(from, msgText);
+                        await sendMessage(from, dinnerErr);
                     } else {
-                        if (!currentState.data.menuTrad.fechas.includes(d) && currentState.data.menuTrad.fechas.length < 5) {
-                            currentState.data.menuTrad.fechas.push(d);
+                        if (!currentState.data.menuTrad.fechas.includes(val.formatted) && currentState.data.menuTrad.fechas.length < 5) {
+                            currentState.data.menuTrad.fechas.push(val.formatted);
                         }
                     }
                 } else {
-                    if (!currentState.data.menuTrad.fechas.includes(d) && currentState.data.menuTrad.fechas.length < 5) {
-                        currentState.data.menuTrad.fechas.push(d);
+                    if (!currentState.data.menuTrad.fechas.includes(val.formatted) && currentState.data.menuTrad.fechas.length < 5) {
+                        currentState.data.menuTrad.fechas.push(val.formatted);
                     }
                 }
             }
@@ -601,21 +595,13 @@ async function handleTextMessage(from, text) {
         }
 
         case 'modificacion_fecha_reserva': {
-            const rawText = text.trim();
-            const parsedDates = parseAndValidateDates(rawText);
-            if (parsedDates.length === 0) {
-                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+            const val = validateSingleDate(text, lang);
+            if (!val.isValid) {
+                await sendMessage(from, getDateValidationErrorMsg(val, lang));
                 break;
             }
 
-            const fechaReservaOriginal = parsedDates[0];
-            const closedCheck = checkRestaurantClosedDate(fechaReservaOriginal);
-            if (closedCheck) {
-                const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
-                const msgText = getTranslation(lang, msgKey).replace('{date}', fechaReservaOriginal);
-                await sendMessage(from, msgText);
-                break;
-            }
+            const fechaReservaOriginal = val.formatted;
 
             const nombreCliente = currentState.data?.nombreCliente || 'Cliente';
             const telefonoCliente = currentState.data?.telefonoReserva || from.replace(/\D/g, '');
