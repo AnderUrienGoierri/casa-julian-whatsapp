@@ -269,9 +269,9 @@ async function handleTextMessage(from, text) {
                 const invalidStates = ['CADUCADA', 'USADA', 'CANJEADA', 'CANCELADA', 'PENDIENTE RESERVA', 'INACTIVA', 'DESACTIVADA'];
                 const isCardActive = !invalidStates.includes(statusUpper);
                 if (!isCardActive) {
-                    let inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* se encuentra actualmente en estado: *${card.estado}* y no puede usarse para reservar en este momento.`;
-                    if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela *${card.estado}* egoeran dago eta ezin da erabili erreserba egiteko une honetan.`;
-                    else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* is currently in state: *${card.estado}* and cannot be used for booking right now.`;
+                    let inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* se encuentra actualmente en estado: *${card.estado}* y no puede usarse para reservar en este momento. Por favor, introduce otro código de tarjeta regalo:`;
+                    if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela *${card.estado}* egoeran dago eta ezin da erabili erreserba egiteko une honetan. Mesedez, sartu beste opari-txartel baten kodea:`;
+                    else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* is currently in state: *${card.estado}* and cannot be used for booking right now. Please enter another gift card code:`;
                     await sendMessage(from, inactiveMsg);
                     break;
                 }
