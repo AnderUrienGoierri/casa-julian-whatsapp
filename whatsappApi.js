@@ -175,6 +175,51 @@ async function sendCtaUrlButton(to, bodyText, buttonTitle, url, headerText = nul
 }
 
 /**
+ * Envía una plantilla de mensaje aprobada por Meta WhatsApp (HSM Template con botones URL/CTA).
+ */
+async function sendTemplateMessage(to, templateName, languageCode = 'es', components = []) {
+    if (interceptSimMessage(to, { type: 'template', templateName, languageCode, components })) {
+        return { success: true, simulated: true };
+    }
+
+    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
+        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+        return;
+    }
+
+    try {
+        const payload = {
+            messaging_product: 'whatsapp',
+            to: to,
+            type: 'template',
+            template: {
+                name: templateName,
+                language: {
+                    code: languageCode
+                }
+            }
+        };
+
+        if (components && components.length > 0) {
+            payload.template.components = components;
+        }
+
+        const response = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            data: payload
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error enviando plantilla de WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+    }
+}
+
+/**
  * Envía un mensaje de Lista Interactiva (permite hasta 10 opciones ordenadas en secciones).
  */
 async function sendInteractiveList(to, bodyText, buttonText, sections) {
@@ -517,6 +562,7 @@ module.exports = {
     sendInteractiveButtons,
     sendInteractiveList,
     sendCtaUrlButton,
+    sendTemplateMessage,
     sendImageMessage,
     sendVideoMessage,
     sendDocumentMessage,

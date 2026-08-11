@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V151-ENLACE-EXACTO-SECCION-RESERVAS-IFRAME';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V152-SOPORTE-PLANTILLAS-META-BOTON-URL';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
