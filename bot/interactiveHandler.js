@@ -23,7 +23,10 @@ const {
     handleRegalarMenuTradicion,
     sendGiftCardOptions,
     handleMenuTradSlotSelection,
-    sendMenuTradDaysList
+    sendMenuTradDaysList,
+    sendConfirmTwoGuestsPrompt,
+    sendHowManyGuestsPrompt,
+    sendMenuTradChildrenPrompt
 } = require('./giftCardFlow');
 const {
     sendModHoraOptions,
@@ -1181,19 +1184,23 @@ async function handleButtonResponse(from, buttonId) {
                 break;
             }
 
-            currentState.step = 'menu_trad_step5a_comensales';
-            userStates.set(from, currentState);
+            await sendConfirmTwoGuestsPrompt(from, lang, userStates);
+            break;
+        }
 
-            let promptBody = `👥 *¿Cuántos comensales (personas en total) acudirán a la reserva?*\n\n(La tarjeta regalo suele ser para 2 comensales, pero puedes indicar si seréis más personas):`;
-            if (lang === 'eu') promptBody = `👥 *Zenbat jankide (pertsona guztira) etorriko dira erreserbara?*\n\n(Normalean opari-txartela 2 jankiderentzat izaten da, baina gehiago bazarete aukeratu dezakezu):`;
-            else if (lang === 'en') promptBody = `👥 *How many guests (total people) will attend the reservation?*\n\n(The gift card is usually for 2 guests, but you can specify if more people will attend):`;
+        case 'btn_confirm_2_comensales_si': {
+            const state = userStates.get(from) || { data: {} };
+            state.data = state.data || {};
+            state.data.menuTrad = state.data.menuTrad || {};
+            state.data.menuTrad.comensales = 2;
+            userStates.set(from, state);
 
-            const buttons = [
-                { id: 'btn_mt_comensales_2', title: '2 comensales' },
-                { id: 'btn_mt_comensales_3', title: '3 comensales' },
-                { id: 'btn_mt_comensales_4', title: '4 comensales' }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
+            await sendMenuTradChildrenPrompt(from, lang, userStates);
+            break;
+        }
+
+        case 'btn_confirm_2_comensales_no': {
+            await sendHowManyGuestsPrompt(from, lang, userStates);
             break;
         }
 
@@ -1205,19 +1212,9 @@ async function handleButtonResponse(from, buttonId) {
             state.data = state.data || {};
             state.data.menuTrad = state.data.menuTrad || {};
             state.data.menuTrad.comensales = count;
-            state.step = 'menu_trad_step5b_ninos';
             userStates.set(from, state);
 
-            let promptBody = `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
-            if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
-            else if (lang === 'en') promptBody = `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
-
-            const buttons = [
-                { id: 'btn_mt_ninos_0', title: '0 niños' },
-                { id: 'btn_mt_ninos_1', title: '1 niño' },
-                { id: 'btn_mt_ninos_2', title: '2 niños' }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
+            await sendMenuTradChildrenPrompt(from, lang, userStates);
             break;
         }
 
