@@ -246,7 +246,7 @@ const translations = {
         "faq12Title": "12. Mascotas",
         "faq12Desc": "Admisión de mascotas.",
         "faq12Msg": "No aceptamos mascotas.",
-        "thanksClosingMsg": "¡Gracias por contactar con nosotros! Esperamos haber resuelto tu consulta. Si necesitas cualquier otra cosa, estaremos encantados de ayudarte. ¡Te esperamos en Casa Julián!\n🌐 https://casajulian.eus\n\n📍 *DIRECCIÓN:*\nSanta Klara Kalea 6, 20400 Tolosa, Gipuzkoa.\n\n📞 *ATENCIÓN TELEFÓNICA:*\n☎️ +34 943 67 14 17\nMartes a Domingo: 11:00h a 12:30h & 15:30h a 17:00h",
+        "thanksClosingMsg": "¡Gracias por contactar con nosotros! Esperamos haber resuelto tu consulta. Si necesitas cualquier otra cosa, estaremos encantados de ayudarte. ¡Te esperamos en Casa Julián!\n🌐 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi \n\n📍 *DIRECCIÓN:*\nSanta Klara Kalea 6, 20400 Tolosa, Gipuzkoa.\n\n📞 *ATENCIÓN TELEFÓNICA:*\n☎️ +34 943 67 14 17\nMartes a Domingo: 11:00h a 12:30h & 15:30h a 17:00h",
         "requestSummaryHeader": "📋 *RESUMEN DE TU SOLICITUD ENVIADA:*",
         "confirmPrompt": "❓ *¿Deseas enviar y confirmar esta solicitud al restaurante?*",
         "confirmYesBtn": "Sí, enviar",
