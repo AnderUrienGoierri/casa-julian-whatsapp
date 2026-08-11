@@ -38,7 +38,8 @@ const {
     getDayOfWeekFromDateStr,
     isValidEmail,
     getInvalidEmailMsg,
-    formatModificationDetail
+    formatModificationDetail,
+    validateAndParseModShifts
 } = require('./utils');
 
 const {
@@ -933,12 +934,46 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
+            const fechaStr = currentState?.data?.fechaReservaOriginal || currentState?.data?.fecha || (Array.isArray(currentState?.data?.modFechas) && currentState.data.modFechas.length > 0 ? currentState.data.modFechas[0] : null);
+
+            const validation = validateAndParseModShifts(rawInput, fechaStr, lang);
+            if (!validation.isValid) {
+                let errMsg = '';
+                if (validation.reason === 'dinner_not_allowed') {
+                    const dayNames = {
+                        es: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+                        eu: ['igandea', 'astelehena', 'asteartea', 'asteazkena', 'osteguna', 'ostirala', 'larunbata'],
+                        en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                    };
+                    const dayOfWeek = getDayOfWeekFromDateStr(fechaStr);
+                    const dayName = (dayNames[lang] || dayNames.es)[dayOfWeek] || '';
+
+                    if (lang === 'eu') {
+                        errMsg = `⚠️ Casa Juliánen afariak *ostiral eta larunbatetan* bakarrik ematen dira. *${fechaStr || ''}* data *${dayName}* da.\n\nMesedez, aukeratu bazkariko txanda zehaztu bat: *12:30, 13:00, 13:30, 14:00, 15:15*`;
+                    } else if (lang === 'en') {
+                        errMsg = `⚠️ At Casa Julián, dinners are only served on *Fridays and Saturdays*. The date *${fechaStr || ''}* is a *${dayName}*.\n\nPlease select one of the predefined lunch shifts: *12:30, 13:00, 13:30, 14:00, 15:15*`;
+                    } else {
+                        errMsg = `⚠️ En Asador Casa Julián las cenas únicamente se sirven los *viernes y sábados*. La fecha *${fechaStr || ''}* cae en *${dayName}*.\n\nPor favor, selecciona uno de los turnos de comida predefinidos: *12:30, 13:00, 13:30, 14:00, 15:15*`;
+                    }
+                } else {
+                    if (lang === 'eu') {
+                        errMsg = `⚠️ *${validation.invalidTime}* ordua ez da Casa Juliánen txanda zehaztu bat.\n\nMesedez, aukeratu ordutegi zehaztu hauetako bat:\n• *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Afaria:* 20:00, 20:30, 21:00, 21:30 (Ostiral eta Larunbatetan bakarrik)`;
+                    } else if (lang === 'en') {
+                        errMsg = `⚠️ The time *${validation.invalidTime}* is not a predefined shift at Casa Julián.\n\nPlease select one of the predefined times:\n• *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Dinner:* 20:00, 20:30, 21:00, 21:30 (Fridays & Saturdays only)`;
+                    } else {
+                        errMsg = `⚠️ La hora *${validation.invalidTime}* no es un turno predefinido en Asador Casa Julián.\n\nPor favor, elige uno de los turnos predefinidos del restaurante:\n• *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Cena:* 20:00, 20:30, 21:00, 21:30 (solo Viernes y Sábados)`;
+                    }
+                }
+                await sendMessage(from, errMsg);
+                break;
+            }
+
             const reservationId = currentState?.data?.reservationId || null;
             const nombreCliente = currentState?.data?.nombreCliente || null;
             const telefonoReserva = currentState?.data?.telefonoReserva || from.replace(/\D/g, '');
             const reservaActual = currentState?.data?.reservaActual || 'No especificada';
 
-            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA DE PREFERENCIA / TURNO', rawInput, lang);
+            const detalleMod = formatModificationDetail(nombreCliente, telefonoReserva, from, reservaActual, 'HORA DE PREFERENCIA / TURNO', validation.formatted, lang);
 
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'SOLICITUD MODIFICACIÓN DE RESERVA',

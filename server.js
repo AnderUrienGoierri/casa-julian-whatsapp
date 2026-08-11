@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V133-PROCESAR-DIRECTAMENTE-FINALIZAR-FECHAS-MODIFICACION';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V134-VALIDAR-TURNOS-PREDEFINIDOS-MODIFICACION-HORA';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

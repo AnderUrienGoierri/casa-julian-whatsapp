@@ -108,11 +108,82 @@ function formatModificationDetail(nombreCliente, telefonoReserva, from, reservaA
     return detailStr;
 }
 
+function validateAndParseModShifts(text, fechaStr, lang = 'es') {
+    if (!text || typeof text !== 'string') {
+        return { isValid: false, invalidTime: '', reason: 'invalid_shift' };
+    }
+
+    const cleanText = text.trim();
+    const lowerText = cleanText.toLowerCase();
+
+    if (['sin preferencia', 'hobespenik ez', 'no preference', 'sin preferia'].includes(lowerText)) {
+        return { isValid: true, formatted: 'Sin preferencia' };
+    }
+
+    const parts = cleanText.split(/[,y\/]+/i).map(p => p.trim()).filter(Boolean);
+
+    const validLunch = ['12:30', '13:00', '13:30', '14:00', '15:15'];
+    const validDinner = ['20:00', '20:30', '21:00', '21:30'];
+
+    const dayOfWeek = fechaStr ? getDayOfWeekFromDateStr(fechaStr) : null;
+    const isDinnerAllowed = (dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === null);
+
+    const parsedTimes = [];
+
+    for (let part of parts) {
+        const match = part.match(/(\d{1,2})[:\.]?(\d{2})/);
+        if (!match) {
+            return {
+                isValid: false,
+                invalidTime: part,
+                reason: 'invalid_shift'
+            };
+        }
+
+        let hours = match[1].padStart(2, '0');
+        let minutes = match[2];
+        let normalizedTime = `${hours}:${minutes}`;
+
+        if (validLunch.includes(normalizedTime)) {
+            parsedTimes.push(normalizedTime);
+        } else if (validDinner.includes(normalizedTime)) {
+            if (!isDinnerAllowed) {
+                return {
+                    isValid: false,
+                    invalidTime: normalizedTime,
+                    reason: 'dinner_not_allowed'
+                };
+            }
+            parsedTimes.push(normalizedTime);
+        } else {
+            return {
+                isValid: false,
+                invalidTime: part,
+                reason: 'invalid_shift'
+            };
+        }
+    }
+
+    if (parsedTimes.length === 0) {
+        return {
+            isValid: false,
+            invalidTime: cleanText,
+            reason: 'invalid_shift'
+        };
+    }
+
+    return {
+        isValid: true,
+        formatted: parsedTimes.join(', ')
+    };
+}
+
 module.exports = {
     parseAndValidateDates,
     getDayOfWeekFromDateStr,
     checkRestaurantClosedDate,
     isValidEmail,
     getInvalidEmailMsg,
-    formatModificationDetail
+    formatModificationDetail,
+    validateAndParseModShifts
 };
