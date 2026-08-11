@@ -66,7 +66,8 @@ async function handleNationalitySelection(from, listId, lang) {
         const promptBody = getTranslation(lang, 'menuTradStep3Tipo');
         const buttons = [
             { id: 'menu_trad_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
-            { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) }
+            { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) },
+            { id: 'menu_trad_tipo_sin_preferencia', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
         ];
         await sendInteractiveButtons(from, promptBody, buttons);
         return;
@@ -888,6 +889,20 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
+        case 'wl_tipo_sin_pref':
+        case 'wl_tipo_sin_preferencia': {
+            const state = userStates.get(from) || { data: {} };
+            state.data.waitlist = state.data.waitlist || {};
+            state.data.waitlist.tipoServicio = 'Sin preferencia';
+            state.data.waitlist.horario = 'Sin preferencia';
+            state.data.waitlist.fechas = [];
+            state.step = 'espera_step4_dias';
+            userStates.set(from, state);
+
+            await sendDaysList(from, lang, 'waitlistStep4Dia1', []);
+            break;
+        }
+
         case 'wl_cena_viernes':
         case 'wl_cena_sabado':
         case 'wl_cena_skip': {
@@ -1362,7 +1377,8 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'menu_trad_tipo_sin_pref': {
+        case 'menu_trad_tipo_sin_pref':
+        case 'menu_trad_tipo_sin_preferencia': {
             const state = userStates.get(from) || { data: {} };
             state.data.menuTrad = state.data.menuTrad || {};
             state.data.menuTrad.tipoServicio = 'Sin preferencia';

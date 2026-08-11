@@ -187,7 +187,8 @@ async function handleTextMessage(from, text) {
             const promptBody = getTranslation(lang, 'waitlistStep3Tipo');
             const buttons = [
                 { id: 'wl_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
-                { id: 'wl_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) }
+                { id: 'wl_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) },
+                { id: 'wl_tipo_sin_preferencia', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
             ];
             await sendInteractiveButtons(from, promptBody, buttons);
             break;
@@ -197,8 +198,10 @@ async function handleTextMessage(from, text) {
             const lowerText = text.trim().toLowerCase();
             if (lowerText.includes('comida') || lowerText.includes('bazkari') || lowerText.includes('lunch')) {
                 await handleButtonResponse(from, 'wl_tipo_comida');
-            } else {
+            } else if (lowerText.includes('cena') || lowerText.includes('afari') || lowerText.includes('dinner')) {
                 await handleButtonResponse(from, 'wl_tipo_cena');
+            } else {
+                await handleButtonResponse(from, 'wl_tipo_sin_preferencia');
             }
             break;
         }
@@ -338,7 +341,8 @@ async function handleTextMessage(from, text) {
             const promptBody = getTranslation(lang, 'menuTradStep3Tipo');
             const buttons = [
                 { id: 'menu_trad_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
-                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) }
+                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) },
+                { id: 'menu_trad_tipo_sin_preferencia', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
             ];
             await sendInteractiveButtons(from, promptBody, buttons);
             break;
@@ -381,7 +385,8 @@ async function handleTextMessage(from, text) {
             const promptBody = getTranslation(lang, 'menuTradStep3Tipo');
             const buttons = [
                 { id: 'menu_trad_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
-                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) }
+                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) },
+                { id: 'menu_trad_tipo_sin_preferencia', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
             ];
             await sendInteractiveButtons(from, promptBody, buttons);
             break;
