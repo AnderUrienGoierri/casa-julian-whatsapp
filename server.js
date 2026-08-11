@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V148-BOTON-CTA-URL-RESERVA-WEB-Y-LIMPIEZA-ENLACE-DESPEDIDA';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V149-ENLACE-LIMPIO-RESERVA-WEB';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
