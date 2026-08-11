@@ -178,14 +178,16 @@ async function sendHowManyGuestsPrompt(from, lang, userStates) {
     currentState.step = 'menu_trad_step5a_comensales';
     userStates.set(from, currentState);
 
-    let promptBody = `👥 *¿Cuántos comensales (personas en total) acudirán a la reserva?*\n\n(La tarjeta regalo suele ser para 2 comensales, pero puedes indicar si seréis más personas):`;
-    if (lang === 'eu') promptBody = `👥 *Zenbat jankide (pertsona guztira) etorriko dira erreserbara?*\n\n(Normalean opari-txartela 2 jankiderentzat izaten da, baina gehiago bazarete aukeratu dezakezu):`;
-    else if (lang === 'en') promptBody = `👥 *How many guests (total people) will attend the reservation?*\n\n(The gift card is usually for 2 guests, but you can specify if more people will attend):`;
+    let promptBody = `👥 *¿Cuántos comensales (personas en total) acudirán a la reserva (Máx. 6 personas)?*\n\n(La tarjeta regalo suele ser para 2 comensales, pero puedes indicar si seréis más personas):`;
+    if (lang === 'eu') promptBody = `👥 *Zenbat jankide (pertsona guztira) etorriko dira erreserbara (Gehienez 6 lagun)?*\n\n(Normalean opari-txartela 2 jankiderentzat izaten da, baina gehiago bazarete aukeratu dezakezu):`;
+    else if (lang === 'en') promptBody = `👥 *How many guests (total people) will attend the reservation (Max. 6 people)?*\n\n(The gift card is usually for 2 guests, but you can specify if more people will attend):`;
 
     const buttons = [
         { id: 'btn_mt_comensales_2', title: '2 comensales' },
         { id: 'btn_mt_comensales_3', title: '3 comensales' },
-        { id: 'btn_mt_comensales_4', title: '4 comensales' }
+        { id: 'btn_mt_comensales_4', title: '4 comensales' },
+        { id: 'btn_mt_comensales_5', title: '5 comensales' },
+        { id: 'btn_mt_comensales_6', title: '6 comensales' }
     ];
     await sendInteractiveButtons(from, promptBody, buttons);
 }
