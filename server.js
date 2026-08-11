@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V140-ELIMINAR-CODIGO-CONFIRMACION-DE-RESUMEN-MODIFICACION';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V141-ELIMINAR-CODIGO-CONFIRMACION-DE-EMAILS-NOTIFICACION';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

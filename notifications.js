@@ -92,6 +92,9 @@ function formatDetailsAsHtmlTable(datosDetallados) {
     let rowsHtml = '';
     lines.forEach((line, index) => {
         const cleanLine = line.replace(/\*/g, '').trim();
+        if (cleanLine.includes('Código de Confirmación') || cleanLine.includes('Codigo de Confirmacion') || cleanLine.includes('Berrespen-kodea') || cleanLine.includes('Confirmation Code')) {
+            return;
+        }
         let key = '';
         let value = '';
 
@@ -289,12 +292,17 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
     const nombreDisplay = nombreCliente ? nombreCliente : 'Ver detalles abajo';
     const telDisplay = telefonoReserva ? telefonoReserva : telefonoCliente;
 
+    const cleanDatosDetallados = (datosDetallados || '')
+        .split('\n')
+        .filter(l => !l.includes('Código de Confirmación') && !l.includes('Codigo de Confirmacion') && !l.includes('Berrespen-kodea') && !l.includes('Confirmation Code'))
+        .join('\n');
+
     const alertMessage = `${categoryInfo.banner}\n\n` +
         `🏷️ *Categoría:* ${categoryInfo.colorTag}\n` +
         `👤 *Nombre Cliente:* ${nombreDisplay}\n` +
         `📞 *Teléfono Cliente:* ${telDisplay}\n` +
         `⏰ *Fecha Registro:* ${timestamp}\n\n` +
-        `📝 *Datos Recibidos:*\n${datosDetallados}`;
+        `📝 *Datos Recibidos:*\n${cleanDatosDetallados}`;
 
     console.log(`\n================ [NOTIFICACIÓN INTERNA PARA PERSONAL EN ESPAÑOL] ================`);
     console.log(categoryInfo.banner);
