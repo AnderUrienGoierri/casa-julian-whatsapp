@@ -698,19 +698,16 @@ async function handleButtonResponse(from, buttonId) {
             if (lang === 'eu') {
                 cadMsg = `🎁 *OPARI-TXARTELAREN EGIAZTAPENA*\n\n` +
                          `✅ *Kodea:* ${cardCode}\n` +
-                         `👤 *Jabea / Emptlea:* ${cardComprador}\n` +
                          `📅 *Iraungitze data:* ${cardExpiry}\n` +
                          `📌 *Egoera:* ${cardStatus}`;
             } else if (lang === 'en') {
                 cadMsg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
                          `✅ *Code:* ${cardCode}\n` +
-                         `👤 *Holder / Buyer:* ${cardComprador}\n` +
                          `📅 *Expiration Date:* ${cardExpiry}\n` +
                          `📌 *Status:* ${cardStatus}`;
             } else {
                 cadMsg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
                          `✅ *Código:* ${cardCode}\n` +
-                         `👤 *Titular / Comprador:* ${cardComprador}\n` +
                          `📅 *Fecha de Caducidad:* ${cardExpiry}\n` +
                          `📌 *Estado:* ${cardStatus}`;
             }
@@ -727,15 +724,12 @@ async function handleButtonResponse(from, buttonId) {
             if (lang === 'eu') {
                 promptBody = `¿Erreserba egin nahi duzu txartel honekin edo menura itzuli?`;
                 btnRes = `📅 Erreserbatu`;
-                btnExit = `🏠 Menura itzuli`;
             } else if (lang === 'en') {
                 promptBody = `Would you like to book a table with this card or return to the main menu?`;
                 btnRes = `📅 Book Table`;
-                btnExit = `🏠 Main Menu`;
             } else {
                 promptBody = `¿Deseas reservar tu mesa con esta tarjeta o volver al menú principal?`;
                 btnRes = `📅 Reservar`;
-                btnExit = `🏠 Salir al menú`;
             }
 
             const buttons = [
