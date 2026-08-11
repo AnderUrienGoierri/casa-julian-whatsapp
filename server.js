@@ -31,8 +31,13 @@ app.get('/', (req, res) => {
     res.send('🔥 Asador Casa Julian - Servidor de WhatsApp Bot 24/7 Activo');
 });
 
+// Endpoint acortador / redirección limpia a la sección de reservas de Casa Julián
+app.get('/reserva', (req, res) => {
+    res.redirect(301, 'https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi');
+});
+
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V149-ENLACE-LIMPIO-RESERVA-WEB';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V150-FORMATO-VISUAL-ENLACE-RESERVA-WEB';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
