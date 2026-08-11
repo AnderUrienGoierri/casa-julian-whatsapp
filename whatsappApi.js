@@ -120,6 +120,61 @@ async function sendInteractiveButtons(to, text, buttons) {
 }
 
 /**
+ * Envía un mensaje interactivo con un botón de tipo URL / Enlace Externo (CTA URL Button).
+ */
+async function sendCtaUrlButton(to, bodyText, buttonTitle, url, headerText = null) {
+    if (interceptSimMessage(to, { type: 'cta_url', bodyText, buttonTitle, url, headerText })) {
+        return { success: true, simulated: true };
+    }
+
+    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
+        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+        return;
+    }
+
+    const interactiveObj = {
+        type: "cta_url",
+        body: { text: bodyText },
+        action: {
+            name: "cta_url",
+            parameters: {
+                display_text: buttonTitle,
+                url: url
+            }
+        }
+    };
+
+    if (headerText) {
+        interactiveObj.header = {
+            type: "text",
+            text: headerText
+        };
+    }
+
+    try {
+        const response = await axios({
+            method: 'POST',
+            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                messaging_product: 'whatsapp',
+                to: to,
+                type: 'interactive',
+                interactive: interactiveObj
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error enviando boton CTA URL:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        const fallbackText = `${headerText ? '🔗 *' + headerText + '*\n\n' : ''}${bodyText}\n\n👉 ${url}`;
+        return await sendMessage(to, fallbackText);
+    }
+}
+
+/**
  * Envía un mensaje de Lista Interactiva (permite hasta 10 opciones ordenadas en secciones).
  */
 async function sendInteractiveList(to, bodyText, buttonText, sections) {
@@ -461,6 +516,7 @@ module.exports = {
     sendMessage,
     sendInteractiveButtons,
     sendInteractiveList,
+    sendCtaUrlButton,
     sendImageMessage,
     sendVideoMessage,
     sendDocumentMessage,

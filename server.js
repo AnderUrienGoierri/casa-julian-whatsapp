@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V147-CORREGIR-DECLARACION-ISDINNER-PASO-FECHAS-TARJETA-REGALO';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V148-BOTON-CTA-URL-RESERVA-WEB-Y-LIMPIEZA-ENLACE-DESPEDIDA';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
