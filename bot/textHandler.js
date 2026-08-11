@@ -742,9 +742,9 @@ async function handleTextMessage(from, text) {
             currentState.step = 'modificacion_fecha_reserva';
             userStates.set(from, currentState);
 
-            let promptFecha = `📅 *Indícanos la fecha actual de la reserva que deseas modificar:*`;
-            if (lang === 'eu') promptFecha = `📅 *Mesedez, adierazi aldatu nahi duzun erreserbaren egungo data:*`;
-            else if (lang === 'en') promptFecha = `📅 *Please specify the current date of the reservation you wish to modify:*`;
+            let promptFecha = `📅 *Indícanos la fecha actual de la reserva que deseas modificar:* (ejemplo:DD/MM/AAAA):`;
+            if (lang === 'eu') promptFecha = `📅 *Mesedez, adierazi aldatu nahi duzun erreserbaren egungo data:* (adibidez: DD/MM/AAAA):`;
+            else if (lang === 'en') promptFecha = `📅 *Please specify the current date of the reservation you wish to modify:* (example: DD/MM/AAAA):`;
 
             await sendMessage(from, promptFecha);
             break;
@@ -966,11 +966,11 @@ async function handleTextMessage(from, text) {
             currentState.step = 'cancelacion_paso2_fecha';
             userStates.set(from, currentState);
 
-            let promptFecha = `📅 *Indícanos la fecha actual de la reserva que deseas cancelar* (ejemplo: 15/09/2026):`;
+            let promptFecha = `📅 *Indícanos la fecha actual de la reserva que deseas cancelar* (ejemplo: DD/MM/AAAA):`;
             if (lang === 'eu') {
-                promptFecha = `📅 *Indíka iezaguzu ezeztatu nahi duzun erreserbaren egungo data* (adibidez: 15/09/2026):`;
+                promptFecha = `📅 *Indíka iezaguzu ezeztatu nahi duzun erreserbaren egungo data* (adibidez: DD/MM/AAAA):`;
             } else if (lang === 'en') {
-                promptFecha = `📅 *Please enter the current date of the reservation you wish to cancel* (example: 15/09/2026):`;
+                promptFecha = `📅 *Please enter the current date of the reservation you wish to cancel* (example: DD/MM/AAAA):`;
             }
 
             await sendMessage(from, promptFecha);
