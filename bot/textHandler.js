@@ -116,184 +116,22 @@ async function handleTextMessage(from, text) {
             break;
         }
 
-        case 'espera_step0_init': {
-            const lowerText = text.trim().toLowerCase();
-            if (['si', 'sí', 'bai', 'yes', 's'].includes(lowerText)) {
-                await handleButtonResponse(from, 'waitlist_init_si');
-            } else {
-                await handleButtonResponse(from, 'waitlist_init_no');
-            }
-            break;
-        }
-
-        case 'espera_step1_nombre': {
-            const rawName = text.trim();
-            if (!isValidPersonName(rawName)) {
-                await sendMessage(from, getInvalidNameMsg(lang));
-                break;
-            }
-            currentState.data.waitlist = currentState.data.waitlist || {};
-            currentState.data.waitlist.nombre = rawName;
-            currentState.data.waitlist.dni = null;
-            currentState.data.waitlist.email = 'N/A';
-            currentState.data.waitlist.nacionalidad = 'España';
-            currentState.step = 'espera_step2_comensales';
-            userStates.set(from, currentState);
-
-            await sendMessage(from, getTranslation(lang, 'waitlistStep2Comensales'));
-            break;
-        }
-
-        case 'espera_step1b2_email': {
-            currentState.data.waitlist = currentState.data.waitlist || {};
-            const cleanEmail = text.trim();
-            if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_email'].includes(cleanEmail.toLowerCase())) {
-                currentState.data.waitlist.email = 'N/A';
-                currentState.step = 'espera_step1c_nac';
-                userStates.set(from, currentState);
-                await sendNationalityList(from, lang);
-            } else if (!isValidEmail(cleanEmail)) {
-                const errMsg = getInvalidEmailMsg(lang);
-                const buttons = [
-                    { id: 'btn_skip_email', title: getTranslation(lang, 'btnOmitirEmail').slice(0, 20) }
-                ];
-                await sendMessage(from, errMsg);
-                await sendInteractiveButtons(from, getTranslation(lang, 'waitlistStep1b2Email'), buttons);
-            } else {
-                currentState.data.waitlist.email = cleanEmail.toLowerCase();
-                currentState.step = 'espera_step1c_nac';
-                userStates.set(from, currentState);
-                await sendNationalityList(from, lang);
-            }
-            break;
-        }
-
-        case 'espera_step1c_nac': {
-            currentState.data.waitlist = currentState.data.waitlist || {};
-            let nac = text.trim();
-            if (['omitir', 'utzi', 'skip', 'otro', 'nac_otro'].includes(nac.toLowerCase())) {
-                nac = lang === 'eu' ? 'Beste bat / Sin especificar' : (lang === 'en' ? 'Other / Unspecified' : 'Otro / Sin especificar');
-            }
-            currentState.data.waitlist.nacionalidad = nac;
-            currentState.step = 'espera_step2_comensales';
-            userStates.set(from, currentState);
-            await sendMessage(from, getTranslation(lang, 'waitlistStep2Comensales'));
-            break;
-        }
-
-        case 'espera_step2_comensales': {
-            currentState.data.waitlist = currentState.data.waitlist || {};
-            const cleanTextVal = text.trim();
-            const numComensales = parseInt(cleanTextVal, 10);
-
-            if (isNaN(numComensales) || numComensales < 1 || numComensales > 6) {
-                const errMsg = getTranslation(lang, 'maxComensalesErrorMsg');
-                await sendMessage(from, errMsg);
-                await sendMessage(from, getTranslation(lang, 'waitlistStep2Comensales'));
-                break;
-            }
-
-            currentState.data.waitlist.comensales = numComensales;
-            currentState.step = 'espera_step3_tipo';
-            userStates.set(from, currentState);
-
-            const promptBody = getTranslation(lang, 'waitlistStep3Tipo');
-            const buttons = [
-                { id: 'wl_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
-                { id: 'wl_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) },
-                { id: 'wl_tipo_sin_preferencia', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
-            ];
-            await sendInteractiveButtons(from, promptBody, buttons);
-            break;
-        }
-
-        case 'espera_step3_tipo': {
-            const lowerText = text.trim().toLowerCase();
-            if (lowerText.includes('comida') || lowerText.includes('bazkari') || lowerText.includes('lunch')) {
-                await handleButtonResponse(from, 'wl_tipo_comida');
-            } else if (lowerText.includes('cena') || lowerText.includes('afari') || lowerText.includes('dinner')) {
-                await handleButtonResponse(from, 'wl_tipo_cena');
-            } else {
-                await handleButtonResponse(from, 'wl_tipo_sin_preferencia');
-            }
-            break;
-        }
-
-        case 'espera_step3_hora': {
-            const timeClean = text.trim().replace('.', ':');
-            await handleWaitlistSlotSelection(from, 'wl_slot_' + timeClean.replace(':', ''), lang);
-            break;
-        }
-
-        case 'espera_step4_cena': {
-            const lowerText = text.trim().toLowerCase();
-            if (lowerText.includes('viernes') || lowerText.includes('ostirala') || lowerText.includes('friday')) {
-                await handleButtonResponse(from, 'wl_cena_viernes');
-            } else {
-                await handleButtonResponse(from, 'wl_cena_sabado');
-            }
-            break;
-        }
-
+        case 'espera_step0_init':
+        case 'espera_step1_nombre':
+        case 'espera_step1b2_email':
+        case 'espera_step1c_nac':
+        case 'espera_step2_comensales':
+        case 'espera_step3_tipo':
+        case 'espera_step3_hora':
+        case 'espera_step4_cena':
         case 'espera_step4_dia1':
         case 'espera_step4_dia2':
         case 'espera_step4_dia3':
-        case 'espera_step4_dias': {
-            const rawDay = text.trim().toLowerCase();
-            await handleButtonResponse(from, 'wl_day_' + rawDay);
-            break;
-        }
-
-        case 'espera_step5_ninos': {
-            currentState.data.waitlist = currentState.data.waitlist || {};
-            let numNinos = 0;
-            const cleanTextVal = text.trim().toLowerCase();
-
-            if (!['no', 'ninguno', 'ninguna', 'none', '0', 'omitir', 'skip'].includes(cleanTextVal)) {
-                numNinos = parseInt(cleanTextVal, 10) || 0;
-            }
-
-            currentState.data.waitlist.ninos = numNinos;
-            currentState.step = 'espera_step6_alergias';
-            currentState.data.waitlist.selectedAllergies = [];
-            userStates.set(from, currentState);
-
-            await sendAllergiesList(from, lang, 'waitlistStep6Alergias', []);
-            break;
-        }
-
-        case 'espera_step6_alergias': {
-            currentState.data.waitlist = currentState.data.waitlist || {};
-            const cleanText = text.trim();
-            const lowerText = cleanText.toLowerCase();
-
-            if (['no', 'ninguno', 'ninguna', 'none', '0', 'sin alergias', 'sin alergia', 'ez'].includes(lowerText)) {
-                currentState.data.waitlist.alergias = 'NO';
-                currentState.data.waitlist.selectedAllergies = [];
-            } else {
-                const prev = currentState.data.waitlist.selectedAllergies || [];
-                if (!prev.includes(cleanText)) prev.push(cleanText);
-                currentState.data.waitlist.selectedAllergies = prev;
-                currentState.data.waitlist.alergias = prev.join(', ');
-            }
-            currentState.step = 'espera_step7_idioma';
-            userStates.set(from, currentState);
-
-            await sendFormLanguageList(from, lang);
-            break;
-        }
-
+        case 'espera_step4_dias':
+        case 'espera_step5_ninos':
+        case 'espera_step6_alergias':
         case 'espera_step6_alergia_custom': {
-            currentState.data.waitlist = currentState.data.waitlist || {};
-            currentState.data.waitlist.selectedAllergies = currentState.data.waitlist.selectedAllergies || [];
-            const customVal = text.trim();
-            if (customVal && !currentState.data.waitlist.selectedAllergies.includes(customVal)) {
-                currentState.data.waitlist.selectedAllergies.push(customVal);
-            }
-            currentState.step = 'espera_step6_alergias';
-            userStates.set(from, currentState);
-
-            await sendAllergiesList(from, lang, 'waitlistStep6Alergias', currentState.data.waitlist.selectedAllergies);
+            await handleButtonResponse(from, 'btn_add_lista_espera');
             break;
         }
 

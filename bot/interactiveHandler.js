@@ -652,12 +652,14 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_reserva_sin_tarjeta':
         case 'btn_reserva_web':
         case 'btn_solicitar_reserva':
-        case 'btn_add_lista_espera': {
-            let webMsg = `🔗 *Solicitar Reserva Online - Casa Julián*\n\nPara realizar tu reserva directamente en la web oficial de Casa Julián (o inscribirte en la lista de espera si la fecha deseada está completa), entra en:\n\n👉 [Solicitar Reserva / Lista de Espera Web](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
+        case 'btn_add_lista_espera':
+        case 'btn_go_lista_espera':
+        case 'opt_lista_espera': {
+            let webMsg = `🔗 *Solicitar Reserva / Lista de Espera Online - Casa Julián*\n\nPara realizar tu reserva directamente en la web oficial de Casa Julián (o inscribirte en la lista de espera si la fecha deseada está completa), entra en:\n\n👉 [Solicitar Reserva / Lista de Espera Web](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             if (lang === 'eu') {
-                webMsg = `🔗 *Online Erreserba Eskatu - Casa Julián*\n\nZure erreserba zuzenean Casa Julián-eko webgune ofizialean egiteko (edo itxaron-zerrendan izena emateko nahi duzun data beteta badago), sartu hemen:\n\n👉 [Erreserba Eskatu / Webgune Ofiziala](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
+                webMsg = `🔗 *Online Erreserba Eskatu / Itxaron-Zerrenda - Casa Julián*\n\nZure erreserba zuzenean Casa Julián-eko webgune ofizialean egiteko (edo itxaron-zerrendan izena emateko nahi duzun data beteta badago), sartu hemen:\n\n👉 [Erreserba Eskatu / Webgune Ofiziala](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             } else if (lang === 'en') {
-                webMsg = `🔗 *Request Online Booking - Casa Julián*\n\nTo make your reservation directly on Casa Julián's official website (or join the waitlist if your preferred date is full), please visit:\n\n👉 [Book Online / Official Website](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
+                webMsg = `🔗 *Request Online Booking / Waitlist - Casa Julián*\n\nTo make your reservation directly on Casa Julián's official website (or join the waitlist if your preferred date is full), please visit:\n\n👉 [Book Online / Official Website](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
             }
             await sendMessage(from, webMsg);
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
@@ -819,99 +821,17 @@ async function handleButtonResponse(from, buttonId) {
             await sendMessage(from, getTranslation(lang, 'menuTradicionCaducidadPrompt'));
             break;
 
-        case 'waitlist_init_no': {
-            let waitlistMsg = `📝 *Lista de Espera*\n\nPara inscribirte en la lista de espera, por favor realiza tu solicitud a través de nuestra web oficial:\n\n👉 [Inscribirse en Lista de Espera Web](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
-            if (lang === 'eu') {
-                waitlistMsg = `📝 *Itxaron Zerrenda*\n\nItxaron zerrendan izena emateko, mesedez egin zure eskaera gure webgune ofizialean:\n\n👉 [Eman izena Webgune Ofizialean](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
-            } else if (lang === 'en') {
-                waitlistMsg = `📝 *Waitlist*\n\nTo join our waitlist, please submit your request through our official website:\n\n👉 [Join Waitlist on Official Website](https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi)`;
-            }
-            await sendMessage(from, waitlistMsg);
-            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-            userStates.delete(from);
-            break;
-        }
-
-        case 'wl_tipo_comida': {
-            const state = userStates.get(from) || { data: {} };
-            state.data.waitlist = state.data.waitlist || {};
-            state.data.waitlist.tipoServicio = 'Comida';
-            state.step = 'espera_step3_hora';
-            userStates.set(from, state);
-
-            const bodyText = getTranslation(lang, 'waitlistStep3HoraComida');
-            const buttonText = getTranslation(lang, 'menuButtonText');
-            const sections = [
-                {
-                    title: "Turnos Comida",
-                    rows: [
-                        { id: "wl_slot_1230", title: "12:30", description: "Turno comida 12:30" },
-                        { id: "wl_slot_1300", title: "13:00", description: "Turno comida 13:00" },
-                        { id: "wl_slot_1330", title: "13:30", description: "Turno comida 13:30" },
-                        { id: "wl_slot_1400", title: "14:00", description: "Turno comida 14:00" },
-                        { id: "wl_slot_1515", title: "15:15", description: "Turno comida 15:15" }
-                    ]
-                }
-            ];
-            await sendInteractiveList(from, bodyText, buttonText, sections);
-            break;
-        }
-
-        case 'wl_tipo_cena': {
-            const state = userStates.get(from) || { data: {} };
-            state.data.waitlist = state.data.waitlist || {};
-            state.data.waitlist.tipoServicio = 'Cena';
-            state.step = 'espera_step3_hora';
-            userStates.set(from, state);
-
-            const bodyText = getTranslation(lang, 'waitlistStep3HoraCena');
-            const buttonText = getTranslation(lang, 'menuButtonText');
-            const sections = [
-                {
-                    title: "Turnos Cena",
-                    rows: [
-                        { id: "wl_slot_2000", title: "20:00", description: "Turno cena 20:00 (Vie-Sáb)" },
-                        { id: "wl_slot_2030", title: "20:30", description: "Turno cena 20:30 (Vie-Sáb)" },
-                        { id: "wl_slot_2100", title: "21:00", description: "Turno cena 21:00 (Vie-Sáb)" },
-                        { id: "wl_slot_2130", title: "21:30", description: "Turno cena 21:30 (Vie-Sáb)" }
-                    ]
-                }
-            ];
-            await sendInteractiveList(from, bodyText, buttonText, sections);
-            break;
-        }
-
+        case 'waitlist_init_no':
+        case 'waitlist_init_si':
+        case 'waitlist_menu_si':
+        case 'wl_tipo_comida':
+        case 'wl_tipo_cena':
         case 'wl_tipo_sin_pref':
-        case 'wl_tipo_sin_preferencia': {
-            const state = userStates.get(from) || { data: {} };
-            state.data.waitlist = state.data.waitlist || {};
-            state.data.waitlist.tipoServicio = 'Sin preferencia';
-            state.data.waitlist.horario = 'Sin preferencia';
-            state.data.waitlist.fechas = [];
-            state.step = 'espera_step4_dias';
-            userStates.set(from, state);
-
-            await sendDaysList(from, lang, 'waitlistStep4Dia1', []);
-            break;
-        }
-
+        case 'wl_tipo_sin_preferencia':
         case 'wl_cena_viernes':
         case 'wl_cena_sabado':
         case 'wl_cena_skip': {
-            const state = userStates.get(from) || { data: {} };
-            state.data.waitlist = state.data.waitlist || {};
-            
-            if (buttonId === 'wl_cena_skip') {
-                state.data.waitlist.dias = 'Sin preferencia';
-            } else {
-                const rawDay = buttonId.replace('wl_cena_', '');
-                const dayLabel = getTranslation(lang, 'day' + rawDay.charAt(0).toUpperCase() + rawDay.slice(1));
-                state.data.waitlist.dias = dayLabel;
-            }
-            state.step = 'espera_step5_ninos';
-            userStates.set(from, state);
-
-            await sendWaitlistNinosPrompt(from, lang);
+            await handleButtonResponse(from, 'btn_add_lista_espera');
             break;
         }
 
