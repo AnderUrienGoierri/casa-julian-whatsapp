@@ -813,10 +813,7 @@ async function handleTextMessage(from, text) {
             }
 
             if (cleanInput === 'btn_add_mod_hora' || cleanInput.includes('añadir') || cleanInput.includes('gehitu') || cleanInput.includes('add')) {
-                let msg = `🕐 *Indícanos el siguiente turno de preferencia (ej: 13:30, 14:00, 20:00):*`;
-                if (lang === 'eu') msg = `🕐 *Eman hurrengo txanda hobetsia (adibidez: 13:30, 14:00, 20:00):*`;
-                else if (lang === 'en') msg = `🕐 *Please specify the next preferred time slot (e.g. 13:30, 14:00, 20:00):*`;
-                await sendMessage(from, msg);
+                await sendModHoraOptions(from, lang, currentState);
                 break;
             }
 
