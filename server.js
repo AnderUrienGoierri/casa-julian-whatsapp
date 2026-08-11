@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V134-VALIDAR-TURNOS-PREDEFINIDOS-MODIFICACION-HORA';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V135-RECHAZAR-FECHAS-COMO-NOMBRE-TITULAR';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

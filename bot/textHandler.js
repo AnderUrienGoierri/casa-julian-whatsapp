@@ -39,7 +39,9 @@ const {
     isValidEmail,
     getInvalidEmailMsg,
     formatModificationDetail,
-    validateAndParseModShifts
+    validateAndParseModShifts,
+    isValidPersonName,
+    getInvalidNameMsg
 } = require('./utils');
 
 const {
@@ -125,8 +127,13 @@ async function handleTextMessage(from, text) {
         }
 
         case 'espera_step1_nombre': {
+            const rawName = text.trim();
+            if (!isValidPersonName(rawName)) {
+                await sendMessage(from, getInvalidNameMsg(lang));
+                break;
+            }
             currentState.data.waitlist = currentState.data.waitlist || {};
-            currentState.data.waitlist.nombre = text.trim();
+            currentState.data.waitlist.nombre = rawName;
             currentState.data.waitlist.dni = null;
             currentState.data.waitlist.email = 'N/A';
             currentState.data.waitlist.nacionalidad = 'España';
@@ -357,8 +364,13 @@ async function handleTextMessage(from, text) {
         }
 
         case 'menu_trad_step2_nombre': {
+            const rawName = text.trim();
+            if (!isValidPersonName(rawName)) {
+                await sendMessage(from, getInvalidNameMsg(lang));
+                break;
+            }
             currentState.data.menuTrad = currentState.data.menuTrad || {};
-            currentState.data.menuTrad.nombre = text.trim();
+            currentState.data.menuTrad.nombre = rawName;
             currentState.data.menuTrad.dni = null;
             currentState.data.menuTrad.email = 'N/A';
             currentState.data.menuTrad.nacionalidad = 'España';
@@ -729,11 +741,8 @@ async function handleTextMessage(from, text) {
             const nombreCliente = text.trim();
             const telefonoCliente = from.replace(/\D/g, '');
 
-            if (nombreCliente.length < 2) {
-                let promptMsg = `⚠️ *Por favor, indícanos el nombre del titular para la modificación:*`;
-                if (lang === 'eu') promptMsg = `⚠️ *Mesedez, idatzi titularraren izena aldatzeko:*`;
-                else if (lang === 'en') promptMsg = `⚠️ *Please provide the reservation name for the modification:*`;
-                await sendMessage(from, promptMsg);
+            if (!isValidPersonName(nombreCliente)) {
+                await sendMessage(from, getInvalidNameMsg(lang));
                 break;
             }
 
@@ -990,8 +999,8 @@ async function handleTextMessage(from, text) {
         case 'cancelacion_datos_actuales':
         case 'cancelacion_paso1_nombre': {
             const nombreIngresado = text.trim();
-            if (!nombreIngresado) {
-                await sendMessage(from, getTranslation(lang, 'cancelDataPrompt'));
+            if (!isValidPersonName(nombreIngresado)) {
+                await sendMessage(from, getInvalidNameMsg(lang));
                 break;
             }
 

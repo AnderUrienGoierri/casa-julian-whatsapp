@@ -178,6 +178,34 @@ function validateAndParseModShifts(text, fechaStr, lang = 'es') {
     };
 }
 
+function isValidPersonName(text) {
+    if (!text || typeof text !== 'string') return false;
+    const cleanText = text.trim();
+
+    if (cleanText.length < 2) return false;
+
+    const dates = parseAndValidateDates(cleanText);
+    if (dates.length > 0) return false;
+
+    if (/\b\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}\b/.test(cleanText)) return false;
+
+    if (/^\d+$/.test(cleanText)) return false;
+
+    if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑàèìòùÀÈÌÒÙäëïöüÄËÏÖÜçÇ]/.test(cleanText)) return false;
+
+    return true;
+}
+
+function getInvalidNameMsg(lang = 'es') {
+    if (lang === 'eu') {
+        return `⚠️ Data bat edo formatu baliogabe bat idatzi duzu izen baten ordez.\n\nMesedez, idatzi titularraren *Izen-Abizen* osoak testu moduan (adibidez: *Ander Urien*):`;
+    } else if (lang === 'en') {
+        return `⚠️ You entered a date or an invalid format instead of a name.\n\nPlease enter the reservation holder's *Full Name* as text (e.g. *Ander Urien*):`;
+    } else {
+        return `⚠️ Has introducido una fecha o un formato no válido en lugar de un nombre.\n\nPor favor, indícanos el *Nombre y Apellidos* del titular en formato texto (ej: *Ander Urien*):`;
+    }
+}
+
 module.exports = {
     parseAndValidateDates,
     getDayOfWeekFromDateStr,
@@ -185,5 +213,7 @@ module.exports = {
     isValidEmail,
     getInvalidEmailMsg,
     formatModificationDetail,
-    validateAndParseModShifts
+    validateAndParseModShifts,
+    isValidPersonName,
+    getInvalidNameMsg
 };
