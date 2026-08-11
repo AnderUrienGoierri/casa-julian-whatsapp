@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V131-QUITAR-TITULAR-Y-BOTON-SALIR-MENU-CADUCIDAD';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V132-CORREGIR-FINALIZAR-FECHAS-MODIFICACION-RESERVA';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

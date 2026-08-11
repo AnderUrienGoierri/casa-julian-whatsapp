@@ -832,7 +832,13 @@ async function handleTextMessage(from, text) {
             currentState.data = currentState.data || {};
             currentState.data.modFechas = currentState.data.modFechas || [];
 
-            if (cleanInput === 'btn_finish_mod_fechas' || ['fin', 'finalizar', 'listo', 'ok', 'terminar', 'hecho'].includes(cleanInput)) {
+            const isFinishCommand = cleanInput === 'btn_finish_mod_fechas' ||
+                                    cleanInput === 'btn_finish_fechas' ||
+                                    cleanInput.includes('finalizar') ||
+                                    cleanInput.includes('terminar') ||
+                                    ['fin', 'listo', 'ok', 'hecho'].includes(cleanInput);
+
+            if (isFinishCommand) {
                 if (currentState.data.modFechas.length === 0) {
                     await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
                     break;
@@ -858,7 +864,7 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
-            if (cleanInput === 'btn_add_mod_fecha') {
+            if (cleanInput === 'btn_add_mod_fecha' || cleanInput.includes('añadir') || cleanInput.includes('gehitu') || cleanInput.includes('add')) {
                 let msg = `📅 *Indícanos la siguiente fecha de preferencia (formato DD/MM/AAAA):*`;
                 if (lang === 'eu') msg = `📅 *Eman hurrengo data hobetsia (DD/MM/AAAA formatuan):*`;
                 else if (lang === 'en') msg = `📅 *Please specify the next preferred date (DD/MM/AAAA format):*`;

@@ -1164,6 +1164,10 @@ async function handleButtonResponse(from, buttonId) {
 
         case 'btn_finish_fechas': {
             const currentState = userStates.get(from) || { data: {} };
+            if (currentState.step === 'mod_val_dia') {
+                await handleTextMessage(from, 'btn_finish_mod_fechas');
+                break;
+            }
             currentState.data = currentState.data || {};
             currentState.data.menuTrad = currentState.data.menuTrad || {};
             const fechas = currentState.data.menuTrad.fechas || [];
