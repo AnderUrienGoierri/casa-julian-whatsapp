@@ -287,7 +287,6 @@ async function handleTextMessage(from, text) {
 
                 let cardVerifiedMsg = `🎁 *TARJETA REGALO VERIFICADA CORRECTAMENTE*\n\n` +
                     `✅ *Código:* ${card.codigo}\n` +
-                    `👤 *Comprador / Titular:* ${card.comprador_nombre || 'No especificado'}\n` +
                     `📅 *Válida hasta:* ${card.fecha_caducidad}\n` +
                     `👥 *Comensales del Menú Tradición:* 2 personas por tarjeta`;
 
