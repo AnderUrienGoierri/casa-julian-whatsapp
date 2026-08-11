@@ -64,6 +64,11 @@ async function handleMenuTradSlotSelection(from, slotId, lang, userStates) {
         const rawTime = slotId.replace('mt_slot_', '');
         const timeClean = rawTime.replace(/(\d{2})(\d{2})/, '$1:$2');
         state.data.menuTrad.horario = timeClean;
+        if (['20:00', '20:30', '21:00', '21:30'].includes(timeClean)) {
+            state.data.menuTrad.tipoServicio = 'Cena';
+        } else if (['12:30', '13:00', '13:30', '14:00', '15:15'].includes(timeClean)) {
+            state.data.menuTrad.tipoServicio = 'Comida';
+        }
     }
 
     state.data.menuTrad.fechas = [];

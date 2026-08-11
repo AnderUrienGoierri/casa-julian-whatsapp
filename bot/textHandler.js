@@ -32,6 +32,7 @@ const {
 const {
     parseAndValidateDates,
     checkRestaurantClosedDate,
+    getDayOfWeekFromDateStr,
     isValidEmail,
     getInvalidEmailMsg,
     formatModificationDetail
@@ -455,12 +456,36 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
+            const isDinner = currentState.data.menuTrad.tipoServicio === 'Cena' || 
+                             ['20:00', '20:30', '21:00', '21:30'].includes(currentState.data.menuTrad.horario);
+
             for (const d of newDates) {
                 const closedCheck = checkRestaurantClosedDate(d);
                 if (closedCheck) {
                     const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
                     const msgText = getTranslation(lang, msgKey).replace('{date}', d);
                     await sendMessage(from, msgText);
+                } else if (isDinner) {
+                    const dayOfWeek = getDayOfWeekFromDateStr(d);
+                    if (dayOfWeek !== 5 && dayOfWeek !== 6) {
+                        const dayNames = {
+                            es: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
+                            eu: ['igandea', 'astelehena', 'asteartea', 'asteazkena', 'osteguna', 'ostirala', 'larunbata'],
+                            en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+                        };
+                        const dayName = (dayNames[lang] || dayNames.es)[dayOfWeek];
+                        let msgText = `⚠️ En Asador Casa Julián las cenas únicamente se sirven los *viernes y sábados*. La fecha *${d}* cae en *${dayName}*. Por favor, indícanos otra fecha:`;
+                        if (lang === 'eu') {
+                            msgText = `⚠️ Asador Casa Juliánen afariak *ostiral eta larunbatetan* bakarrik ematen dira. *${d}* data *${dayName}* da. Mesedez, adierazi beste data bat:`;
+                        } else if (lang === 'en') {
+                            msgText = `⚠️ At Asador Casa Julián, dinners are only served on *Fridays and Saturdays*. The date *${d}* is a *${dayName}*. Please specify another date:`;
+                        }
+                        await sendMessage(from, msgText);
+                    } else {
+                        if (!currentState.data.menuTrad.fechas.includes(d) && currentState.data.menuTrad.fechas.length < 5) {
+                            currentState.data.menuTrad.fechas.push(d);
+                        }
+                    }
                 } else {
                     if (!currentState.data.menuTrad.fechas.includes(d) && currentState.data.menuTrad.fechas.length < 5) {
                         currentState.data.menuTrad.fechas.push(d);
