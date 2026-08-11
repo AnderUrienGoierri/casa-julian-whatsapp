@@ -41,7 +41,9 @@ const {
     formatModificationDetail,
     validateAndParseModShifts,
     isValidPersonName,
-    getInvalidNameMsg
+    getInvalidNameMsg,
+    validateSingleDate,
+    getDateValidationErrorMsg
 } = require('./utils');
 
 const {
@@ -721,22 +723,19 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
-            const newDates = parseAndValidateDates(text);
-
-            if (newDates.length === 0) {
-                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+            const candidates = text.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
+            if (candidates.length === 0) {
+                await sendMessage(from, getDateValidationErrorMsg({ isValid: false, reason: 'format', date: text }, lang));
                 break;
             }
 
-            for (const d of newDates) {
-                const closedCheck = checkRestaurantClosedDate(d);
-                if (closedCheck) {
-                    const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
-                    const msgText = getTranslation(lang, msgKey).replace('{date}', d);
-                    await sendMessage(from, msgText);
+            for (const cand of candidates) {
+                const val = validateSingleDate(cand, lang);
+                if (!val.isValid) {
+                    await sendMessage(from, getDateValidationErrorMsg(val, lang));
                 } else {
-                    if (!currentState.data.modFechas.includes(d) && currentState.data.modFechas.length < 5) {
-                        currentState.data.modFechas.push(d);
+                    if (!currentState.data.modFechas.includes(val.formatted) && currentState.data.modFechas.length < 5) {
+                        currentState.data.modFechas.push(val.formatted);
                     }
                 }
             }
@@ -926,20 +925,13 @@ async function handleTextMessage(from, text) {
 
         case 'cancelacion_paso2_fecha':
         case 'cancelacion_verificar_datos': {
-            const rawDates = parseAndValidateDates(text);
-            if (rawDates.length === 0) {
-                await sendMessage(from, getTranslation(lang, 'invalidDateFormatMsg'));
+            const val = validateSingleDate(text, lang);
+            if (!val.isValid) {
+                await sendMessage(from, getDateValidationErrorMsg(val, lang));
                 break;
             }
 
-            const fechaIngresada = rawDates[0];
-            const closedCheck = checkRestaurantClosedDate(fechaIngresada);
-            if (closedCheck) {
-                const msgKey = closedCheck.reason === 'vacation' ? 'closedVacationMsg' : 'closedMondayMsg';
-                const msgText = getTranslation(lang, msgKey).replace('{date}', fechaIngresada);
-                await sendMessage(from, msgText);
-                break;
-            }
+            const fechaIngresada = val.formatted;
 
             const currentState = userStates.get(from) || { data: {} };
             const cancelNombre = currentState?.data?.cancelNombre || 'No especificado';

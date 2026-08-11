@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-11-CMS-V141-ELIMINAR-CODIGO-CONFIRMACION-DE-EMAILS-NOTIFICACION';
+const DEPLOY_VERSION = 'v2026-08-11-CMS-V142-VALIDAR-FECHAS-PASADAS-LUNES-VACACIONES-TEXTO-E-INFORMAR-MOTIVO';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
