@@ -1471,7 +1471,13 @@ async function handleButtonResponse(from, buttonId) {
         }
 
         case 'btn_add_mod_fecha': {
-            await handleTextMessage(from, buttonId);
+            let msg = `📅 *Fechas de Preferencia para Modificación*\n\nPor favor, indícanos tus fechas de preferencia deseada para la modificación (puedes indicar hasta 5 fechas de preferencia, ej: 15/08/2026, 16/08/2026):`;
+            if (lang === 'eu') {
+                msg = `📅 *Aldaketarako Hobetsitako Datak*\n\nMesedez, adierazi aldatzeko hobetsitako datak (gehienez 5 data adieraz ditzakezu, adib: 15/08/2026, 16/08/2026):`;
+            } else if (lang === 'en') {
+                msg = `📅 *Preferred Dates for Modification*\n\nPlease specify your preferred dates for modification (you can specify up to 5 dates, e.g. 15/08/2026, 16/08/2026):`;
+            }
+            await sendMessage(from, msg);
             break;
         }
 
