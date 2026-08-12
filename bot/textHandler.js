@@ -13,9 +13,7 @@ const {
     showLocationOrMainMenu,
     sendLocationMenu,
     sendMainMenu,
-    sendFaqMenu,
-    sendNationalityList,
-    sendFormLanguageList
+    sendFaqMenu
 } = require('./menus');
 const { handleFaqSelection } = require('./faq');
 const { requestUserConfirmation } = require('./confirmation');
@@ -233,9 +231,6 @@ async function handleTextMessage(from, text) {
             const cleanEmail = text.trim();
             if (['omitir', 'utzi', 'skip', 'no', 'btn_skip_email'].includes(cleanEmail.toLowerCase())) {
                 currentState.data.menuTrad.email = 'N/A';
-                currentState.step = 'menu_trad_step2c_nac';
-                userStates.set(from, currentState);
-                await sendNationalityList(from, lang);
             } else if (!isValidEmail(cleanEmail)) {
                 const errMsg = getInvalidEmailMsg(lang);
                 const buttons = [
@@ -243,12 +238,21 @@ async function handleTextMessage(from, text) {
                 ];
                 await sendMessage(from, errMsg);
                 await sendInteractiveButtons(from, getTranslation(lang, 'menuTradStep2b2Email'), buttons);
+                break;
             } else {
                 currentState.data.menuTrad.email = cleanEmail.toLowerCase();
-                currentState.step = 'menu_trad_step2c_nac';
-                userStates.set(from, currentState);
-                await sendNationalityList(from, lang);
             }
+
+            currentState.step = 'menu_trad_step3_tipo';
+            userStates.set(from, currentState);
+
+            const promptBody = getTranslation(lang, 'menuTradStep3Tipo');
+            const buttons = [
+                { id: 'menu_trad_tipo_comida', title: getTranslation(lang, 'btnComida').slice(0, 20) },
+                { id: 'menu_trad_tipo_cena', title: getTranslation(lang, 'btnCena').slice(0, 20) },
+                { id: 'menu_trad_tipo_sin_preferencia', title: getTranslation(lang, 'btnSinPreferencia').slice(0, 20) }
+            ];
+            await sendInteractiveButtons(from, promptBody, buttons);
             break;
         }
 

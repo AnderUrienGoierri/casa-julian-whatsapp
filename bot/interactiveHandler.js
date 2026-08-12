@@ -15,9 +15,7 @@ const {
     showLocationOrMainMenu,
     sendLocationMenu,
     sendMainMenu,
-    sendFaqMenu,
-    sendNationalityList,
-    sendFormLanguageList
+    sendFaqMenu
 } = require('./menus');
 const { handleFaqSelection } = require('./faq');
 const { requestUserConfirmation } = require('./confirmation');

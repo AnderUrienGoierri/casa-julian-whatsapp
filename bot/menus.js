@@ -117,64 +117,10 @@ async function sendFaqMenu(from, lang, userStates) {
     await sendInteractiveList(from, bodyText, buttonText, sections);
 }
 
-/**
- * Envía la lista desplegable interactiva de Nacionalidad.
- */
-async function sendNationalityList(from, lang) {
-    const bodyText = getTranslation(lang, 'listNacBody');
-    const buttonText = getTranslation(lang, 'listNacBtn').slice(0, 20);
-
-    const sections = [
-        {
-            title: getTranslation(lang, 'listNacHeader').slice(0, 24),
-            rows: [
-                { id: 'nac_skip', title: getTranslation(lang, 'nacSkipTitle').slice(0, 24), description: getTranslation(lang, 'nacSkipDesc').slice(0, 72) },
-                { id: 'nac_es', title: getTranslation(lang, 'nacEs').slice(0, 24) },
-                { id: 'nac_fr', title: getTranslation(lang, 'nacFr').slice(0, 24) },
-                { id: 'nac_uk', title: getTranslation(lang, 'nacUk').slice(0, 24) },
-                { id: 'nac_us', title: getTranslation(lang, 'nacUs').slice(0, 24), description: getTranslation(lang, 'nacUsDesc').slice(0, 72) },
-                { id: 'nac_de', title: getTranslation(lang, 'nacDe').slice(0, 24) },
-                { id: 'nac_it', title: getTranslation(lang, 'nacIt').slice(0, 24) },
-                { id: 'nac_pt', title: getTranslation(lang, 'nacPt').slice(0, 24) },
-                { id: 'nac_mx', title: getTranslation(lang, 'nacMx').slice(0, 24) },
-                { id: 'nac_otro', title: getTranslation(lang, 'nacOtro').slice(0, 24), description: getTranslation(lang, 'nacOtroDesc').slice(0, 72) }
-            ]
-        }
-    ];
-
-    await sendInteractiveList(from, bodyText, buttonText, sections);
-}
-
-/**
- * Envía la lista desplegable interactiva de Idiomas para formularios.
- */
-async function sendFormLanguageList(from, lang) {
-    const bodyText = getTranslation(lang, 'waitlistStep7Idioma');
-    const buttonText = (getTranslation(lang, 'listLangBtn') || 'Hautatu Hizkuntza').slice(0, 20);
-
-    const rows = [
-        { id: 'form_lang_skip', title: getTranslation(lang, 'formLangSkipTitle').slice(0, 24), description: getTranslation(lang, 'formLangSkipDesc').slice(0, 72) },
-        { id: 'form_lang_es', title: '🇪🇸 ES Español', description: 'Español' },
-        { id: 'form_lang_eu', title: '🇪🇺 EU Euskara', description: 'Euskara' },
-        { id: 'form_lang_en', title: '🇬🇧 EN English', description: 'English' }
-    ];
-
-    const sections = [
-        {
-            title: "Harreman-hizkuntza / Idioma",
-            rows: rows
-        }
-    ];
-
-    await sendInteractiveList(from, bodyText, buttonText, sections);
-}
-
 module.exports = {
     sendLanguageMenu,
     showLocationOrMainMenu,
     sendLocationMenu,
     sendMainMenu,
-    sendFaqMenu,
-    sendNationalityList,
-    sendFormLanguageList
+    sendFaqMenu
 };
