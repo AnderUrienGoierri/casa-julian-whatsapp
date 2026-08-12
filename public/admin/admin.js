@@ -400,10 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'opt1Title', 'opt1Desc',
             'opt2Title', 'opt2Desc',
             'opt3Title', 'opt3Desc',
-            'opt3bTitle', 'opt3bDesc',
-            'opt4Title', 'opt4Desc',
+            'optConsultaAbiertaTitle', 'optConsultaAbiertaDesc',
             'opt5Title', 'opt5Desc',
-            'opt6Title', 'opt6Desc',
             'thanksClosingMsg'
         ];
 

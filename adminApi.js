@@ -63,6 +63,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                     { id: 'opt_quiero_reservar', titleKey: 'opt1Title', descKey: 'opt1Desc' },
                     { id: 'opt_modificacion', titleKey: 'opt2Title', descKey: 'opt2Desc' },
                     { id: 'opt_cancelacion', titleKey: 'opt3Title', descKey: 'opt3Desc' },
+                    { id: 'opt_consulta_abierta', titleKey: 'optConsultaAbiertaTitle', descKey: 'optConsultaAbiertaDesc' },
                     { id: 'opt_otras_cuestiones', titleKey: 'opt5Title', descKey: 'opt5Desc' }
                 ]
             },
@@ -132,18 +133,17 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             // 4. Menu Principal
             mainMenuHeader: 'main', menuButtonText: 'main',
             opt1Title: 'main', opt1Desc: 'main', opt2Title: 'main', opt2Desc: 'main',
-            opt3Title: 'main', opt3Desc: 'main', opt3bTitle: 'main', opt3bDesc: 'main',
-            opt4Title: 'main', opt4Desc: 'main', opt5Title: 'main', opt5Desc: 'main',
-            opt6Title: 'main', opt6Desc: 'main',
+            opt3Title: 'main', opt3Desc: 'main', optConsultaAbiertaTitle: 'main', optConsultaAbiertaDesc: 'main',
+            opt5Title: 'main', opt5Desc: 'main',
 
             // 5. Reservas & Lista de Espera
             reservaIntro: 'reserva', btnSolicitarReserva: 'reserva', btnAddListaEspera: 'reserva',
             webReservaLinkMsg: 'reserva', reservaCardPrompt: 'reserva', reservaCardBtnSi: 'reserva', reservaCardBtnNo: 'reserva',
             reservaNoCardPrompt: 'reserva', btnReservaWeb: 'reserva', btnReservaWaitlist: 'reserva', waitlistInitPrompt: 'reserva',
-            waitlistStep1Nombre: 'reserva', waitlistStep1bDni: 'reserva', waitlistStep1b2Email: 'reserva', waitlistStep1cNac: 'reserva',
+            waitlistStep1Nombre: 'reserva', waitlistStep1bDni: 'reserva', waitlistStep1b2Email: 'reserva',
             waitlistStep2Comensales: 'reserva', waitlistStep3Tipo: 'reserva', waitlistStep3HoraComida: 'reserva', waitlistStep3HoraCena: 'reserva',
             waitlistStep4Dia1: 'reserva', waitlistStep4Dia2: 'reserva', waitlistStep4Dia3: 'reserva', waitlistStep4CenaDia: 'reserva',
-            waitlistStep5Ninos: 'reserva', waitlistStep5NinosPrompt: 'reserva', waitlistStep6Alergias: 'reserva', waitlistStep7Idioma: 'reserva',
+            waitlistStep5Ninos: 'reserva', waitlistStep5NinosPrompt: 'reserva', waitlistStep6Alergias: 'reserva',
             waitlistSuccessMsg: 'reserva',
             
             // 5b. Modificaciones
@@ -158,16 +158,16 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             cancelDataPrompt: 'cancel', cancelReservationNotFoundMsg: 'cancel', cancelReservationVerifyPrompt: 'cancel',
             cancelReservationVerifyWithDetailsPrompt: 'cancel', cancelReservationMismatchMsg: 'cancel', cancelSuccessMsg: 'cancel',
 
-            btnOmitirDni: 'reserva', btnOmitirEmail: 'reserva', btnNacEs: 'reserva', btnNacFr: 'reserva', btnNacUk: 'reserva', btnNacOtro: 'reserva',
+            btnOmitirDni: 'reserva', btnOmitirEmail: 'reserva',
             btnNinos0: 'reserva', btnNinos1: 'reserva', btnNinos2: 'reserva', requestSummaryHeader: 'reserva', confirmPrompt: 'reserva',
             confirmYesBtn: 'reserva', confirmNoBtn: 'reserva', confirmCancelledMsg: 'reserva',
 
             // 6. Menu Tradicion
             menuTradicionTitle: 'tradicion', menuTradicionOptRegalar: 'tradicion', menuTradicionOptReservar: 'tradicion', menuTradicionOptCaducidad: 'tradicion',
             regalarMenuCaption: 'tradicion', regalarMenuMsg: 'tradicion', menuTradStep1Tarjeta: 'tradicion', menuTradStep2Nombre: 'tradicion',
-            menuTradStep2bDni: 'tradicion', menuTradStep2b2Email: 'tradicion', menuTradStep2cNac: 'tradicion', menuTradStep3Tipo: 'tradicion',
+            menuTradStep2bDni: 'tradicion', menuTradStep2b2Email: 'tradicion', menuTradStep3Tipo: 'tradicion',
             menuTradStep4HoraComida: 'tradicion', menuTradStep4HoraCena: 'tradicion', menuTradStep5Dia1: 'tradicion', menuTradStep5Dia2: 'tradicion',
-            menuTradStep5Dia3: 'tradicion', menuTradStep5CenaDia: 'tradicion', menuTradStep6Alergias: 'tradicion', menuTradStep7Idioma: 'tradicion',
+            menuTradStep5Dia3: 'tradicion', menuTradStep5CenaDia: 'tradicion', menuTradStep6Alergias: 'tradicion',
             menuTradCardVerified: 'tradicion', menuTradCardNotFound: 'tradicion', menuTradicionFormPrompt: 'tradicion', menuTradicionSuccessMsg: 'tradicion',
             menuTradicionCaducidadPrompt: 'tradicion', menuTradicionCaducidadMsg: 'tradicion', menuTradMoreCardsPrompt: 'tradicion',
             btnMtAddMismaMesa: 'tradicion', btnMtOtraMesa: 'tradicion', btnMtContinuar: 'tradicion', menuTradAddSameTablePrompt: 'tradicion',
@@ -220,7 +220,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                 id: 'cu_3_menu_principal',
                 title: 'Caso de Uso 3: Menú Principal de Servicios de Casa Julián',
                 category: 'main',
-                keys: ['mainMenuHeader', 'menuButtonText', 'opt1Title', 'opt1Desc', 'opt2Title', 'opt2Desc', 'opt3Title', 'opt3Desc', 'opt4Title', 'opt4Desc', 'opt5Title', 'opt5Desc', 'opt6Title', 'opt6Desc']
+                keys: ['mainMenuHeader', 'menuButtonText', 'opt1Title', 'opt1Desc', 'opt2Title', 'opt2Desc', 'opt3Title', 'opt3Desc', 'optConsultaAbiertaTitle', 'optConsultaAbiertaDesc', 'opt5Title', 'opt5Desc']
             },
             {
                 order: 4,

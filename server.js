@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V165-ELIMINAR-PESTANA-FAQS-Y-PURGAR-CLAVES-INUTILIZADAS';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V166-SEPARAR-CATEGORIAS-MAIN-FAQ-Y-PURGAR-MENSAJES-OBSOLETOS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
