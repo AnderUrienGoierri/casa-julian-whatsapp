@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Modo comparativo (ES, EU, EN)
                 const languages = [
                     { code: 'es', flag: '🇪🇸', name: 'Español' },
-                    { code: 'eu', flag: '🚩', name: 'Euskara' },
+                    { code: 'eu', flag: '🇪🇺', name: 'Euskara' },
                     { code: 'en', flag: '🇬🇧', name: 'English' }
                 ];
                 
@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="key-title ${colorClass}" style="padding:2px 6px; border-radius:4px;">${displayTitle}</span>
                         <span class="flow-badge">${category.toUpperCase()}</span>
                         <span class="status-badge ${isDisabled ? 'badge-off' : 'badge-on'}">${isDisabled ? '🔴 SILENCIADO / OCULTO' : '🟢 ACTIVO'}</span>
-                        <span class="flow-badge" style="background:#2b3245; border: 1px solid rgba(212,175,55,0.3); color: var(--accent-gold);">${currentLangFilter === 'all' ? '🌐 VISTA COMPARATIVA (ES/EU/EN)' : (currentLangFilter === 'es' ? '🇪🇸 ESPAÑOL' : (currentLangFilter === 'eu' ? '🚩 EUSKARA' : '🇬🇧 ENGLISH'))}</span>
+                        <span class="flow-badge" style="background:#2b3245; border: 1px solid rgba(212,175,55,0.3); color: var(--accent-gold);">${currentLangFilter === 'all' ? '🌐 VISTA COMPARATIVA (ES/EU/EN)' : (currentLangFilter === 'es' ? '🇪🇸 ESPAÑOL' : (currentLangFilter === 'eu' ? '🇪🇺 EUSKARA' : '🇬🇧 ENGLISH'))}</span>
                     </div>
                 </div>
                 ${bodyHtml}
