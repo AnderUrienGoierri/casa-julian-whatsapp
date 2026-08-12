@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V179-INCLUIR-FECHAS-VALIDAS-GUARDADAS-EN-EL-RESUMEN-DE-ERRORES';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V180-ENUMERAR-TODOS-LOS-PASOS-DE-RESERVA-MENU-TRADICION-DEL-1-AL-7';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

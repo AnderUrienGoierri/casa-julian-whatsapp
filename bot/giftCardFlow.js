@@ -152,16 +152,20 @@ async function sendConfirmTwoGuestsPrompt(from, lang, userStates, datesHeader = 
     currentState.step = 'menu_trad_step5_confirm_2_comensales';
     userStates.set(from, currentState);
 
-    let promptBody = datesHeader + `¿Confirmas que seréis dos comensales?`;
+    let prefix = `🎁 *Menú Tradición (5/7)*\n\n`;
+    if (lang === 'eu') prefix = `🎁 *Tradizio Menua (5/7)*\n\n`;
+    else if (lang === 'en') prefix = `🎁 *Tradition Menu (5/7)*\n\n`;
+
+    let promptBody = datesHeader + prefix + `¿Confirmas que seréis dos comensales?`;
     let titleSi = 'Sí';
     let titleNo = 'No';
 
     if (lang === 'eu') {
-        promptBody = datesHeader + `Bi jankide izango zaretela ziurtatzen duzu?`;
+        promptBody = datesHeader + prefix + `Bi jankide izango zaretela ziurtatzen duzu?`;
         titleSi = 'Bai';
         titleNo = 'Ez';
     } else if (lang === 'en') {
-        promptBody = datesHeader + `Do you confirm that you will be two guests?`;
+        promptBody = datesHeader + prefix + `Do you confirm that you will be two guests?`;
         titleSi = 'Yes';
         titleNo = 'No';
     }
@@ -181,9 +185,9 @@ async function sendHowManyGuestsPrompt(from, lang, userStates) {
     currentState.step = 'menu_trad_step5a_comensales';
     userStates.set(from, currentState);
 
-    let promptBody = `👥 *¿Cuántos comensales (personas en total) acudirán a la reserva (Máx. 6 personas)?*\n\n(La tarjeta regalo suele ser para 2 comensales, pero puedes indicar si seréis más personas):`;
-    if (lang === 'eu') promptBody = `👥 *Zenbat jankide (pertsona guztira) etorriko dira erreserbara (Gehienez 6 lagun)?*\n\n(Normalean opari-txartela 2 jankiderentzat izaten da, baina gehiago bazarete aukeratu dezakezu):`;
-    else if (lang === 'en') promptBody = `👥 *How many guests (total people) will attend the reservation (Max. 6 people)?*\n\n(The gift card is usually for 2 guests, but you can specify if more people will attend):`;
+    let promptBody = `🎁 *Menú Tradición (5/7)*\n\n👥 *¿Cuántos comensales (personas en total) acudirán a la reserva (Máx. 6 personas)?*\n\n(La tarjeta regalo suele ser para 2 comensales, pero puedes indicar si seréis más personas):`;
+    if (lang === 'eu') promptBody = `🎁 *Tradizio Menua (5/7)*\n\n👥 *Zenbat jankide (pertsona guztira) etorriko dira erreserbara (Gehienez 6 lagun)?*\n\n(Normalean opari-txartela 2 jankiderentzat izaten da, baina gehiago bazarete aukeratu dezakezu):`;
+    else if (lang === 'en') promptBody = `🎁 *Tradition Menu (5/7)*\n\n👥 *How many guests (total people) will attend the reservation (Max. 6 people)?*\n\n(The gift card is usually for 2 guests, but you can specify if more people will attend):`;
 
     const buttons = [
         { id: 'btn_mt_comensales_2', title: '2 comensales' },
@@ -201,9 +205,9 @@ async function sendMenuTradChildrenPrompt(from, lang, userStates) {
     state.step = 'menu_trad_step5b_ninos';
     userStates.set(from, state);
 
-    let promptBody = `👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
-    if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
-    else if (lang === 'en') promptBody = `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
+    let promptBody = `🎁 *Menú Tradición (6/7)*\n\n👶 *¿Cuántos niños (<12 años) acudirán a la reserva?*\n\nSelecciona una opción o escribe la cantidad en texto (0 si ninguno):`;
+    if (lang === 'eu') promptBody = `🎁 *Tradizio Menua (6/7)*\n\n👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
+    else if (lang === 'en') promptBody = `🎁 *Tradition Menu (6/7)*\n\n👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
 
     const buttons = [
         { id: 'btn_mt_ninos_0', title: '0 niños' },
