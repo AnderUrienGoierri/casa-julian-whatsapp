@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let adminToken = localStorage.getItem('casa_julian_admin_token') || '';
     let currentStructure = null;
     let currentLang = 'es';
+    let currentLangFilter = 'es';
     let currentCategoryFilter = 'all';
     let isTestMode = false;
 
@@ -349,20 +350,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 2. RENDERIZAR GRID DE TEXTOS CON BOTONES DESACTIVAR / OCULTAR / ELIMINAR + ADJUNTOS (TAB 2)
+    // 2. RENDERIZAR GRID DE TEXTOS CON BOTONES DESACTIVAR / OCULTAR / ELIMINAR + ADJUNTOS (TAB 2)
     function renderTextsGrid() {
         const container = document.getElementById('texts-list-container');
         if (!container || !currentStructure) return;
 
-        const langTexts = currentStructure.staticTranslations[currentLang] || {};
-        const staticEsTexts = currentStructure.staticTranslations['es'] || {};
-        const dynamicLangTexts = (currentStructure.dynamicTexts && currentStructure.dynamicTexts[currentLang]) || {};
         const categoryMap = currentStructure.categoryMap || {};
         const disabledKeys = currentStructure.disabledKeys || {};
         const attachments = currentStructure.attachments || {};
+        const staticEsTexts = currentStructure.staticTranslations['es'] || {};
 
         container.innerHTML = '';
         
-        const allKeys = [...new Set([...Object.keys(langTexts), ...Object.keys(dynamicLangTexts)])];
+        const allKeys = [...new Set([
+            ...Object.keys(staticEsTexts),
+            ...Object.keys((currentStructure.staticTranslations && currentStructure.staticTranslations['eu']) || {}),
+            ...Object.keys((currentStructure.staticTranslations && currentStructure.staticTranslations['en']) || {}),
+            ...Object.keys((currentStructure.dynamicTexts && currentStructure.dynamicTexts['es']) || {}),
+            ...Object.keys((currentStructure.dynamicTexts && currentStructure.dynamicTexts['eu']) || {}),
+            ...Object.keys((currentStructure.dynamicTexts && currentStructure.dynamicTexts['en']) || {})
+        ])];
 
         // Añadir claves especiales de medios (imagen bienvenida, sticker) si no están ya
         const specialMediaKeys = [
@@ -375,16 +382,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!categoryMap[smk.key]) categoryMap[smk.key] = smk.category;
         });
 
-        // Orden de prioridad secuencial para una presentación impecable en el CMS
+        // Orden de prioridad secuencial (sólo idiomas soportados: es, eu, en)
         const keyOrderPriority = [
             'welcomeImageUrl',
             'welcomeStickerUrl',
             'welcomeMessage',
             'welcomeLanguageBtn',
             'welcomeLanguagePrompt',
-            'lang_es', 'lang_eu', 'lang_en', 'lang_fr', 'lang_de', 'lang_nl',
-            'lang_ar', 'lang_it', 'lang_pl', 'lang_ro', 'lang_be', 'lang_ko',
-            'lang_zh', 'lang_ja', 'lang_ru',
+            'lang_es', 'lang_eu', 'lang_en',
             'selectLocationTitle',
             'selectLocationBody',
             'locPaisVasco',
@@ -414,8 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
         allKeys.forEach(key => {
             const specialMedia = specialMediaKeys.find(s => s.key === key);
             const isMediaOnly = specialMedia && specialMedia.mediaOnly;
-            const staticVal = langTexts[key] || staticEsTexts[key] || '';
-            const currentVal = dynamicLangTexts[key] !== undefined ? dynamicLangTexts[key] : staticVal;
             const category = getCategoryForKey(key);
             const colorClass = getBadgeColorClass(key);
             const isDisabled = !!disabledKeys[key];
@@ -426,12 +429,56 @@ document.addEventListener('DOMContentLoaded', () => {
             card.id = `text-card-${key}`;
             card.setAttribute('data-category', category);
 
-            // Construir sección de adjunto o media predeterminado en uso
             const att = getEffectiveAttachment(key, attachments);
             const attachmentPreviewHtml = renderMediaPreviewHtml(key, att);
-
-            // Construir título especial para claves multimedia
             const displayTitle = specialMedia ? specialMedia.label : key;
+
+            let bodyHtml = '';
+            if (isMediaOnly) {
+                bodyHtml = `<div style="padding:8px; font-size:0.82rem; color:var(--text-muted); background:#181b22; border-radius:6px;">Este campo es exclusivamente multimedia. Usa <strong>📎 Añadir Adjunto</strong> para configurar el medio en este paso.</div>`;
+            } else if (currentLangFilter === 'all') {
+                // Modo comparativo (ES, EU, EN)
+                const languages = [
+                    { code: 'es', flag: '🇪🇸', name: 'Español' },
+                    { code: 'eu', flag: '🚩', name: 'Euskara' },
+                    { code: 'en', flag: '🇬🇧', name: 'English' }
+                ];
+                
+                bodyHtml = `<div class="comparative-lang-box" style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">`;
+                languages.forEach(l => {
+                    const lStatic = (currentStructure.staticTranslations[l.code] && currentStructure.staticTranslations[l.code][key]) || staticEsTexts[key] || '';
+                    const lDyn = (currentStructure.dynamicTexts[l.code] && currentStructure.dynamicTexts[l.code][key]);
+                    const lVal = lDyn !== undefined ? lDyn : lStatic;
+                    
+                    bodyHtml += `
+                        <div class="lang-field-row" style="background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                <span style="font-weight:600; font-size:0.85rem; color:var(--accent-gold);">${l.flag} ${l.name} (${l.code.toUpperCase()})</span>
+                                <span class="char-counter-${l.code}" style="font-size:0.75rem; color:var(--text-muted);">${lVal.length} caracteres</span>
+                            </div>
+                            <textarea data-key="${key}" data-lang="${l.code}" style="width:100%; min-height:60px;">${lVal}</textarea>
+                            <div style="text-align:right; margin-top:4px;">
+                                <button class="btn-primary btn-save-lang-text" data-key="${key}" data-lang="${l.code}" style="padding: 3px 10px; font-size: 0.78rem;">💾 Guardar ${l.code.toUpperCase()}</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                bodyHtml += `</div>`;
+            } else {
+                // Modo idioma único (es, eu, en)
+                const activeLang = currentLangFilter;
+                const staticVal = (currentStructure.staticTranslations[activeLang] && currentStructure.staticTranslations[activeLang][key]) || staticEsTexts[key] || '';
+                const currentVal = (currentStructure.dynamicTexts && currentStructure.dynamicTexts[activeLang] && currentStructure.dynamicTexts[activeLang][key] !== undefined)
+                    ? currentStructure.dynamicTexts[activeLang][key]
+                    : staticVal;
+
+                bodyHtml = `<textarea data-key="${key}" data-lang="${activeLang}">${currentVal}</textarea>`;
+            }
+
+            const activeLangSingle = currentLangFilter === 'all' ? 'es' : currentLangFilter;
+            const currentValSingle = (currentStructure.dynamicTexts && currentStructure.dynamicTexts[activeLangSingle] && currentStructure.dynamicTexts[activeLangSingle][key] !== undefined)
+                ? currentStructure.dynamicTexts[activeLangSingle][key]
+                : ((currentStructure.staticTranslations[activeLangSingle] && currentStructure.staticTranslations[activeLangSingle][key]) || staticEsTexts[key] || '');
 
             card.innerHTML = `
                 <div class="text-card-header" style="align-items:center;">
@@ -439,44 +486,63 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="key-title ${colorClass}" style="padding:2px 6px; border-radius:4px;">${displayTitle}</span>
                         <span class="flow-badge">${category.toUpperCase()}</span>
                         <span class="status-badge ${isDisabled ? 'badge-off' : 'badge-on'}">${isDisabled ? '🔴 SILENCIADO / OCULTO' : '🟢 ACTIVO'}</span>
+                        <span class="flow-badge" style="background:#2b3245; border: 1px solid rgba(212,175,55,0.3); color: var(--accent-gold);">${currentLangFilter === 'all' ? '🌐 VISTA COMPARATIVA (ES/EU/EN)' : (currentLangFilter === 'es' ? '🇪🇸 ESPAÑOL' : (currentLangFilter === 'eu' ? '🚩 EUSKARA' : '🇬🇧 ENGLISH'))}</span>
                     </div>
                 </div>
-                ${isMediaOnly
-                    ? `<div style="padding:8px; font-size:0.82rem; color:var(--text-muted); background:#181b22; border-radius:6px;">Este campo es exclusivamente multimedia. Usa <strong>📎 Añadir Adjunto</strong> para configurar la imagen/sticker/vídeo que el bot envía en este paso.</div>`
-                    : `<textarea data-key="${key}">${currentVal}</textarea>`
-                }
+                ${bodyHtml}
                 ${attachmentPreviewHtml}
                 <div class="text-card-footer" style="margin-top:8px;">
-                    ${isMediaOnly ? '<span></span>' : `<span class="char-counter">${currentVal.length} caracteres</span>`}
+                    ${isMediaOnly || currentLangFilter === 'all' ? '<span></span>' : `<span class="char-counter">${currentValSingle.length} caracteres</span>`}
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <button class="btn-attachment btn-add-attachment" data-key="${key}" title="Añadir o cambiar adjunto multimedia (imagen, vídeo, audio, PDF, sticker)">📎 Añadir Adjunto</button>
+                        <button class="btn-attachment btn-add-attachment" data-key="${key}" title="Añadir o cambiar adjunto multimedia">📎 Añadir Adjunto</button>
                         <button class="btn-secondary btn-toggle-status" data-key="${key}" title="${isDisabled ? 'Activar este mensaje en el bot' : 'Ocultar/Silenciar este mensaje en el bot'}">
                             ${isDisabled ? '👁️ Activar' : '🙈 Ocultar'}
                         </button>
                         ${isCustomKey ? `<button class="btn-danger btn-delete-key" data-key="${key}" title="Eliminar clave personalizada">🗑️ Eliminar</button>` : ''}
-                        ${!isMediaOnly ? `<button class="btn-primary btn-save-text" data-key="${key}">💾 Guardar</button>` : ''}
+                        ${(!isMediaOnly && currentLangFilter !== 'all') ? `<button class="btn-primary btn-save-text" data-key="${key}">💾 Guardar [${currentLangFilter.toUpperCase()}]</button>` : ''}
                     </div>
                 </div>
             `;
 
             if (!isMediaOnly) {
-                const textarea = card.querySelector('textarea');
-                textarea.addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    card.querySelector('.char-counter').textContent = `${val.length} caracteres`;
-                    if (!isTestMode) updateLiveSimulator(key, val);
-                });
-
-                textarea.addEventListener('focus', () => {
-                    if (!isTestMode) updateLiveSimulator(key, textarea.value);
-                });
-
-                // Guardar texto
-                const saveBtn = card.querySelector('.btn-save-text');
-                if (saveBtn) {
-                    saveBtn.addEventListener('click', () => {
-                        saveText(key, textarea.value);
+                if (currentLangFilter === 'all') {
+                    card.querySelectorAll('textarea').forEach(ta => {
+                        const lCode = ta.getAttribute('data-lang');
+                        ta.addEventListener('input', (e) => {
+                            const val = e.target.value;
+                            const counter = card.querySelector(`.char-counter-${lCode}`);
+                            if (counter) counter.textContent = `${val.length} caracteres`;
+                        });
                     });
+
+                    card.querySelectorAll('.btn-save-lang-text').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const lCode = btn.getAttribute('data-lang');
+                            const ta = card.querySelector(`textarea[data-lang="${lCode}"]`);
+                            if (ta) saveText(key, ta.value, category, lCode);
+                        });
+                    });
+                } else {
+                    const textarea = card.querySelector('textarea');
+                    if (textarea) {
+                        textarea.addEventListener('input', (e) => {
+                            const val = e.target.value;
+                            const charCounter = card.querySelector('.char-counter');
+                            if (charCounter) charCounter.textContent = `${val.length} caracteres`;
+                            if (!isTestMode) updateLiveSimulator(key, val);
+                        });
+
+                        textarea.addEventListener('focus', () => {
+                            if (!isTestMode) updateLiveSimulator(key, textarea.value);
+                        });
+
+                        const saveBtn = card.querySelector('.btn-save-text');
+                        if (saveBtn) {
+                            saveBtn.addEventListener('click', () => {
+                                saveText(key, textarea.value, category, currentLangFilter);
+                            });
+                        }
+                    }
                 }
             }
 
@@ -524,8 +590,9 @@ document.addEventListener('DOMContentLoaded', () => {
         cards.forEach(card => {
             const cardCategory = (card.getAttribute('data-category') || 'main').toLowerCase();
             const cardKey = (card.id || '').replace('text-card-', '').toLowerCase();
-            const textarea = card.querySelector('textarea');
-            const cardText = textarea ? textarea.value.toLowerCase() : '';
+            const textareas = card.querySelectorAll('textarea');
+            let cardText = '';
+            textareas.forEach(ta => { cardText += ' ' + ta.value.toLowerCase(); });
             const cardTitle = (card.querySelector('.key-title') ? card.querySelector('.key-title').textContent : '').toLowerCase();
 
             const matchesCategory = (currentCategoryFilter === 'all') || (cardCategory === currentCategoryFilter.toLowerCase());
@@ -553,6 +620,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentCategoryFilter = chip.getAttribute('data-cat') || 'all';
             filterTexts();
+        });
+    }
+
+    // Event listeners para los chips de filtro de idioma
+    const langFiltersContainer = document.getElementById('lang-filters');
+    if (langFiltersContainer) {
+        langFiltersContainer.addEventListener('click', (e) => {
+            const chip = e.target.closest('.filter-chip');
+            if (!chip) return;
+
+            langFiltersContainer.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+
+            currentLangFilter = chip.getAttribute('data-lang-filter') || 'es';
+            if (currentLangFilter !== 'all') {
+                currentLang = currentLangFilter;
+                if (currentLangSelect) currentLangSelect.value = currentLang;
+            }
+            renderTextsGrid();
         });
     }
 
@@ -773,7 +859,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // GUARDAR TEXTO EN SERVIDOR
-    async function saveText(key, text, category = 'general') {
+    async function saveText(key, text, category = 'general', targetLang = currentLangFilter) {
+        const langToUse = (targetLang && targetLang !== 'all') ? targetLang : currentLang;
         try {
             const res = await fetch('/api/admin/update-text', {
                 method: 'POST',
@@ -781,17 +868,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'x-admin-token': adminToken
                 },
-                body: JSON.stringify({ lang: currentLang, key, text, category })
+                body: JSON.stringify({ lang: langToUse, key, text, category })
             });
 
             const data = await res.json();
             if (data.success) {
-                if (!currentStructure.dynamicTexts[currentLang]) {
-                    currentStructure.dynamicTexts[currentLang] = {};
+                if (!currentStructure.dynamicTexts[langToUse]) {
+                    currentStructure.dynamicTexts[langToUse] = {};
                 }
-                currentStructure.dynamicTexts[currentLang][key] = text;
+                currentStructure.dynamicTexts[langToUse][key] = text;
                 await reloadStructureData();
-                alert(`✅ Guardado correctamente para [${currentLang.toUpperCase()}]: ${key}`);
+                alert(`✅ Guardado correctamente para [${langToUse.toUpperCase()}]: ${key}`);
             } else {
                 alert(`❌ Error guardando texto: ${data.error}`);
             }

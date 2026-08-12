@@ -49,19 +49,8 @@
                     <label for="current-lang-select">🌐 Idioma de Edición:</label>
                     <select id="current-lang-select" class="custom-select">
                         <option value="es">Español 🇪🇸</option>
-                        <option value="eu">Euskara</option>
+                        <option value="eu">Euskara 🇪🇺</option>
                         <option value="en">English 🇬🇧</option>
-                        <option value="fr">Français 🇫🇷</option>
-                        <option value="de">Deutsch 🇩🇪</option>
-                        <option value="it">Italiano 🇮🇹</option>
-                        <option value="pt">Português 🇵🇹</option>
-                        <option value="nl">Nederlands 🇳🇱</option>
-                        <option value="pl">Polski 🇵🇱</option>
-                        <option value="ro">Română 🇷🇴</option>
-                        <option value="ko">한국어 🇰🇷</option>
-                        <option value="zh">中文 🇨🇳</option>
-                        <option value="ja">日本語 🇯🇵</option>
-                        <option value="ar">العربية 🇸🇦</option>
                     </select>
                 </div>
                 <button id="logout-btn" class="btn-secondary">🔒 Cerrar Sesión</button>
@@ -119,7 +108,16 @@
                             <button class="filter-chip" data-cat="faq">Preguntas Frecuentes</button>
                             <button class="filter-chip" data-cat="closing">Cierre & Despedida</button>
                         </div>
-                        <button id="add-text-btn" class="btn-primary">+ Añadir Mensaje Personalizado</button>
+                        <div class="lang-filter-bar" style="margin-top: 10px; padding: 8px 12px; background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
+                            <span style="font-weight: 600; color: var(--accent-gold); font-size: 0.88rem; display: flex; align-items: center; gap: 4px;">🌐 Filtrar Idioma:</span>
+                            <div class="category-filters" id="lang-filters" style="margin: 0;">
+                                <button class="filter-chip active" data-lang-filter="es">🇪🇸 Español</button>
+                                <button class="filter-chip" data-lang-filter="eu">🚩 Euskara</button>
+                                <button class="filter-chip" data-lang-filter="en">🇬🇧 English</button>
+                                <button class="filter-chip" data-lang-filter="all">🌐 Ver Todos (Comparativo ES / EU / EN)</button>
+                            </div>
+                        </div>
+                        <button id="add-text-btn" class="btn-primary" style="margin-top: 8px;">+ Añadir Mensaje Personalizado</button>
                     </div>
 
                     <div id="texts-list-container" class="texts-grid">
