@@ -546,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Ocultar / Silenciar / Activar clave
             card.querySelector('.btn-toggle-status').addEventListener('click', async () => {
-                await toggleKeyStatus(key, !isDisabled);
+                await toggleKeyStatus(key, !isDisabled, displayTitle || key);
             });
 
             // Eliminar clave personalizada
@@ -803,7 +803,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ALTERNAR ESTADO OCULTO / ACTIVO DE CLAVE
-    async function toggleKeyStatus(key, isDisabled) {
+    async function toggleKeyStatus(key, isDisabled, keyTitle = null) {
+        const targetStateText = isDisabled ? 'SILENCIAR / OCULTAR' : 'ACTIVAR';
+        const displayLabel = keyTitle || key;
+        const confirmMsg = `¿Estás seguro de que deseas cambiar el estado a "${targetStateText}" para el mensaje "${displayLabel}" en el chatbot?`;
+        
+        if (!confirm(confirmMsg)) {
+            return;
+        }
+
         try {
             const res = await fetch('/api/admin/toggle-key-status', {
                 method: 'POST',
@@ -1058,7 +1066,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             card.querySelector('.btn-toggle-faq').addEventListener('click', async () => {
-                await toggleKeyStatus(faqItem.msgKey, !isDisabled);
+                await toggleKeyStatus(faqItem.msgKey, !isDisabled, titleVal || faqItem.msgKey);
             });
 
             card.querySelector('.btn-add-faq-att').addEventListener('click', () => {

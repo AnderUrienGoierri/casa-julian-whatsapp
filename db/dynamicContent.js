@@ -70,11 +70,27 @@ function ensureDraftAndPublished(db) {
         changed = true;
     }
     if (!db.publishedDisabledKeys) {
-        db.publishedDisabledKeys = db.disabledKeys ? JSON.parse(JSON.stringify(db.disabledKeys)) : {};
+        db.publishedDisabledKeys = db.disabledKeys ? JSON.parse(JSON.stringify(db.disabledKeys)) : { welcomeImageUrl: true, welcomeStickerUrl: true };
+        changed = true;
+    }
+    if (db.publishedDisabledKeys.welcomeImageUrl === undefined) {
+        db.publishedDisabledKeys.welcomeImageUrl = true;
+        changed = true;
+    }
+    if (db.publishedDisabledKeys.welcomeStickerUrl === undefined) {
+        db.publishedDisabledKeys.welcomeStickerUrl = true;
         changed = true;
     }
     if (!db.draftDisabledKeys) {
         db.draftDisabledKeys = db.disabledKeys ? JSON.parse(JSON.stringify(db.disabledKeys)) : JSON.parse(JSON.stringify(db.publishedDisabledKeys));
+        changed = true;
+    }
+    if (db.draftDisabledKeys.welcomeImageUrl === undefined) {
+        db.draftDisabledKeys.welcomeImageUrl = true;
+        changed = true;
+    }
+    if (db.draftDisabledKeys.welcomeStickerUrl === undefined) {
+        db.draftDisabledKeys.welcomeStickerUrl = true;
         changed = true;
     }
     if (!db.publishedCustomRules) {
