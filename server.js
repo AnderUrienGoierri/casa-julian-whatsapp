@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V156-INCLUIR-TODAS-LAS-VACACIONES-Y-FESTIVOS-2026-2027';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V157-CORREGIR-BLOQUEO-MODIFICACION-HORA-RESERVA';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

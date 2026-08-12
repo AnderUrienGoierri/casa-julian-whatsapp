@@ -140,13 +140,18 @@ function formatModificationDetail(nombreCliente, telefonoReserva, senderPhone, r
 }
 
 function validateAndParseModShifts(textStr, predefinedShifts = []) {
-    if (!textStr || typeof textStr !== 'string') return { validShifts: [], invalidShifts: [] };
+    if (!textStr || typeof textStr !== 'string') return { validShifts: [], invalidShifts: [], isValid: false };
     const parts = textStr.split(/[\n,;]+/).map(p => p.trim()).filter(Boolean);
 
     const validShifts = [];
     const invalidShifts = [];
 
-    const allowed = predefinedShifts.map(s => s.trim());
+    let allowed = [];
+    if (Array.isArray(predefinedShifts)) {
+        allowed = predefinedShifts.map(s => String(s).trim());
+    } else if (typeof predefinedShifts === 'string') {
+        allowed = [predefinedShifts.trim()];
+    }
 
     for (const part of parts) {
         const timeMatch = part.match(/(\d{1,2})[:\.](\d{2})/);
@@ -154,7 +159,7 @@ function validateAndParseModShifts(textStr, predefinedShifts = []) {
             const h = timeMatch[1].padStart(2, '0');
             const m = timeMatch[2];
             const formatted = `${h}:${m}`;
-            if (allowed.includes(formatted)) {
+            if (allowed.length === 0 || allowed.includes(formatted)) {
                 if (!validShifts.includes(formatted)) validShifts.push(formatted);
             } else {
                 if (!invalidShifts.includes(part)) invalidShifts.push(part);
@@ -164,7 +169,12 @@ function validateAndParseModShifts(textStr, predefinedShifts = []) {
         }
     }
 
-    return { validShifts, invalidShifts };
+    return { 
+        validShifts, 
+        invalidShifts, 
+        isValid: validShifts.length > 0 && invalidShifts.length === 0,
+        formatted: validShifts.join(', ')
+    };
 }
 
 function isValidPersonName(text) {
