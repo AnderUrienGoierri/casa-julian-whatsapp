@@ -368,7 +368,17 @@ async function handleTextMessage(from, text) {
 
             if (invalidItems.length > 0) {
                 const combinedErrorMsg = formatCombinedDateErrorMsg(invalidItems, lang);
-                await sendMessage(from, combinedErrorMsg);
+                const validFechasCount = currentState.data.menuTrad.fechas ? currentState.data.menuTrad.fechas.length : 0;
+
+                if (validFechasCount > 0) {
+                    const btnFinishTitle = (lang === 'eu' ? '✅ Datak amaitu' : (lang === 'en' ? '✅ Finish dates' : '✅ Finalizar fechas'));
+                    const buttons = [
+                        { id: 'btn_finish_fechas', title: btnFinishTitle.slice(0, 20) }
+                    ];
+                    await sendInteractiveButtons(from, combinedErrorMsg, buttons);
+                } else {
+                    await sendMessage(from, combinedErrorMsg);
+                }
                 break;
             }
 
@@ -382,11 +392,18 @@ async function handleTextMessage(from, text) {
             } else if (currentState.data.menuTrad.fechas.length > 0) {
                 const count = currentState.data.menuTrad.fechas.length;
                 const datesListStr = currentState.data.menuTrad.fechas.map(f => `• ${f}`).join('\n');
-                const promptBody = `📌 *Fechas de preferencia guardadas (${count}/5):*\n${datesListStr}\n\n¿Deseas añadir otra fecha o finalizar la selección?`;
+                let savedHeader = `📌 *Nuevas fechas de preferencia guardadas (${count}/5):*`;
+                if (lang === 'eu') savedHeader = `📌 *Berezitako data berriak gorde dira (${count}/5):*`;
+                else if (lang === 'en') savedHeader = `📌 *New preferred dates saved (${count}/5):*`;
+
+                const promptBody = `${savedHeader}\n${datesListStr}\n\n¿Deseas añadir otra fecha o finalizar la selección?`;
+
+                const btnAddTitle = (lang === 'eu' ? '+ Data bat gehitu' : (lang === 'en' ? '+ Add another date' : '+ Añadir otra fecha'));
+                const btnFinishTitle = (lang === 'eu' ? '✅ Datak amaitu' : (lang === 'en' ? '✅ Finish dates' : '✅ Finalizar fechas'));
 
                 const buttons = [
-                    { id: 'btn_add_fecha', title: getTranslation(lang, 'btnAddOtraFecha').slice(0, 20) },
-                    { id: 'btn_finish_fechas', title: getTranslation(lang, 'btnFinalizarFechas').slice(0, 20) }
+                    { id: 'btn_add_fecha', title: btnAddTitle.slice(0, 20) },
+                    { id: 'btn_finish_fechas', title: btnFinishTitle.slice(0, 20) }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
             }
@@ -780,7 +797,17 @@ async function handleTextMessage(from, text) {
 
             if (invalidItems.length > 0) {
                 const combinedErrorMsg = formatCombinedDateErrorMsg(invalidItems, lang);
-                await sendMessage(from, combinedErrorMsg);
+                const validFechasCount = currentState.data.modFechas ? currentState.data.modFechas.length : 0;
+
+                if (validFechasCount > 0) {
+                    const btnFinishTitle = (lang === 'eu' ? '✅ Datak amaitu' : (lang === 'en' ? '✅ Finish dates' : '✅ Finalizar fechas'));
+                    const buttons = [
+                        { id: 'btn_finish_mod_fechas', title: btnFinishTitle.slice(0, 20) }
+                    ];
+                    await sendInteractiveButtons(from, combinedErrorMsg, buttons);
+                } else {
+                    await sendMessage(from, combinedErrorMsg);
+                }
                 break;
             }
 
@@ -805,11 +832,18 @@ async function handleTextMessage(from, text) {
             } else if (currentState.data.modFechas.length > 0) {
                 const count = currentState.data.modFechas.length;
                 const datesListStr = currentState.data.modFechas.map(f => `• ${f}`).join('\n');
-                const promptBody = `📌 *Nuevas fechas de preferencia guardadas (${count}/5):*\n${datesListStr}\n\n¿Deseas añadir otra fecha o finalizar la selección?`;
+                let savedHeader = `📌 *Nuevas fechas de preferencia guardadas (${count}/5):*`;
+                if (lang === 'eu') savedHeader = `📌 *Berezitako data berriak gorde dira (${count}/5):*`;
+                else if (lang === 'en') savedHeader = `📌 *New preferred dates saved (${count}/5):*`;
+
+                const promptBody = `${savedHeader}\n${datesListStr}\n\n¿Deseas añadir otra fecha o finalizar la selección?`;
+
+                const btnAddTitle = (lang === 'eu' ? '+ Data bat gehitu' : (lang === 'en' ? '+ Add another date' : '+ Añadir otra fecha'));
+                const btnFinishTitle = (lang === 'eu' ? '✅ Datak amaitu' : (lang === 'en' ? '✅ Finish dates' : '✅ Finalizar fechas'));
 
                 const buttons = [
-                    { id: 'btn_add_mod_fecha', title: getTranslation(lang, 'btnAddOtraFecha').slice(0, 20) },
-                    { id: 'btn_finish_mod_fechas', title: getTranslation(lang, 'btnFinalizarFechas').slice(0, 20) }
+                    { id: 'btn_add_mod_fecha', title: btnAddTitle.slice(0, 20) },
+                    { id: 'btn_finish_mod_fechas', title: btnFinishTitle.slice(0, 20) }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
             }

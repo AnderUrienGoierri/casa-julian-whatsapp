@@ -1076,7 +1076,7 @@ async function handleButtonResponse(from, buttonId) {
 
         case 'btn_finish_fechas': {
             const currentState = userStates.get(from) || { data: {} };
-            if (currentState.step === 'mod_val_dia') {
+            if (currentState.step === 'mod_val_dia' || currentState.step === 'mod_fechas_multiples') {
                 currentState.data = currentState.data || {};
                 currentState.data.modFechas = currentState.data.modFechas || [];
 
@@ -1447,8 +1447,18 @@ async function handleButtonResponse(from, buttonId) {
             if (pending && pending.reservationId) {
                 db.cancelReservation(pending.reservationId);
             }
-            await sendMessage(from, getTranslation(lang, 'confirmCancelledMsg'));
-            userStates.delete(from);
+
+            const cancelledMsg = getTranslation(lang, 'confirmCancelledMsg');
+            const btnFinishTitle = (lang === 'eu' ? 'Amaitu' : (lang === 'en' ? 'Finish' : 'Terminar'));
+            const btnMainMenuTitle = (lang === 'eu' ? 'Menu Nagusia' : (lang === 'en' ? 'Main Menu' : 'Menú principal'));
+
+            const flowButtons = [
+                { id: 'btn_flow_finish', title: btnFinishTitle.slice(0, 20) },
+                { id: 'btn_flow_main_menu', title: btnMainMenuTitle.slice(0, 20) }
+            ];
+
+            await sendInteractiveButtons(from, cancelledMsg, flowButtons);
+            userStates.set(from, { step: 'post_request_options', data: {} });
             break;
         }
 
