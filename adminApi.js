@@ -121,10 +121,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             // 1. Bienvenida y Seleccion de Idioma
             welcomeImageUrl: 'welcome', welcomeStickerUrl: 'welcome', welcomeMessage: 'welcome',
             welcomeLanguagePrompt: 'welcome', welcomeLanguageBtn: 'welcome',
-            lang_es: 'welcome', lang_eu: 'welcome', lang_en: 'welcome', lang_fr: 'welcome',
-            lang_de: 'welcome', lang_nl: 'welcome', lang_ar: 'welcome', lang_it: 'welcome',
-            lang_pl: 'welcome', lang_ro: 'welcome', lang_be: 'welcome', lang_ko: 'welcome',
-            lang_zh: 'welcome', lang_ja: 'welcome', lang_ru: 'welcome',
+            lang_es: 'welcome', lang_eu: 'welcome', lang_en: 'welcome',
 
             // 2. Seleccion de Ubicacion del Restaurante (Tolosa / Madrid)
             selectLocationTitle: 'location', selectLocationBody: 'location', locPaisVasco: 'location', locMadrid: 'location', madridMsg: 'location',
@@ -206,9 +203,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                     'welcomeMessage',
                     'welcomeLanguagePrompt',
                     'welcomeLanguageBtn',
-                    'lang_es', 'lang_eu', 'lang_en', 'lang_fr', 'lang_de', 'lang_nl',
-                    'lang_sa', 'lang_pt', 'lang_it', 'lang_ca', 'lang_gl', 'lang_zh',
-                    'lang_ja', 'lang_ru'
+                    'lang_es', 'lang_eu', 'lang_en'
                 ]
             },
             {

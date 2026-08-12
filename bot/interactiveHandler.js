@@ -861,18 +861,7 @@ async function handleButtonResponse(from, buttonId) {
         case 'form_lang_es':
         case 'form_lang_eu':
         case 'form_lang_en':
-        case 'form_lang_fr':
-        case 'form_lang_de':
-        case 'form_lang_it':
-        case 'form_lang_pt':
-        case 'form_lang_skip':
-        case 'form_lang_nl':
-        case 'form_lang_ca':
-        case 'form_lang_gl':
-        case 'form_lang_ru':
-        case 'form_lang_zh':
-        case 'form_lang_ja':
-        case 'form_lang_ar': {
+        case 'form_lang_skip': {
             const selectedLang = buttonId === 'form_lang_skip' ? null : buttonId.replace('form_lang_', '');
             const chatLang = userLanguages.get(from) || 'es';
             const currentState = userStates.get(from);
