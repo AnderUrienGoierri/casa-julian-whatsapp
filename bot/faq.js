@@ -1,4 +1,4 @@
-const { sendMessage, sendImageMessage, sendInteractiveButtons } = require('../whatsappApi');
+const { sendMessage, sendImageMessage, sendInteractiveButtons, sendTemplateMessage } = require('../whatsappApi');
 const { getTranslation } = require('../i18n');
 
 /**
@@ -29,6 +29,26 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
         } catch (e) {
             console.error("⚠️ Error enviando imagen de la carta por WhatsApp:", e.message);
         }
+    }
+
+    // Opción 8: Regalar Menú Tradición
+    if (faqNum === '8') {
+        const templateRes = await sendTemplateMessage(from, 'comprar_menu_tradicion', lang);
+        if (!templateRes || !templateRes.messages) {
+            const responseMsg = getTranslation(lang, 'faq8Msg');
+            await sendMessage(from, responseMsg);
+        }
+        return;
+    }
+
+    // Opción 9: Ubicación en Google Maps
+    if (faqNum === '9') {
+        const templateRes = await sendTemplateMessage(from, 'ubicacion_google_maps', lang);
+        if (!templateRes || !templateRes.messages) {
+            const responseMsg = getTranslation(lang, 'faq9Msg');
+            await sendMessage(from, responseMsg);
+        }
+        return;
     }
 
     const msgKey = `faq${faqNum}Msg`;

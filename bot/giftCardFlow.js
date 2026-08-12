@@ -1,4 +1,4 @@
-const { sendMessage, sendImageMessage, sendInteractiveButtons, sendInteractiveList } = require('../whatsappApi');
+const { sendMessage, sendImageMessage, sendInteractiveButtons, sendInteractiveList, sendTemplateMessage } = require('../whatsappApi');
 const { getTranslation } = require('../i18n');
 
 /**
@@ -15,8 +15,11 @@ async function handleRegalarMenuTradicion(from, lang, userStates) {
         console.error("⚠️ Error enviando imagen de Menú Tradición por WhatsApp:", e.message);
     }
 
-    const messageText = getTranslation(lang, 'regalarMenuMsg');
-    await sendMessage(from, messageText);
+    const templateRes = await sendTemplateMessage(from, 'comprar_menu_tradicion', lang);
+    if (!templateRes || !templateRes.messages) {
+        const messageText = getTranslation(lang, 'regalarMenuMsg');
+        await sendMessage(from, messageText);
+    }
     await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
     userStates.delete(from);
 }
