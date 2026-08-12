@@ -367,10 +367,10 @@ async function handleTextMessage(from, text) {
             userStates.set(from, currentState);
 
             if (invalidItems.length > 0) {
-                const combinedErrorMsg = formatCombinedDateErrorMsg(invalidItems, lang);
-                const validFechasCount = currentState.data.menuTrad.fechas ? currentState.data.menuTrad.fechas.length : 0;
+                const validFechas = currentState.data.menuTrad.fechas || [];
+                const combinedErrorMsg = formatCombinedDateErrorMsg(invalidItems, lang, validFechas);
 
-                if (validFechasCount > 0) {
+                if (validFechas.length > 0) {
                     const btnFinishTitle = (lang === 'eu' ? '✅ Datak amaitu' : (lang === 'en' ? '✅ Finish dates' : '✅ Finalizar fechas'));
                     const buttons = [
                         { id: 'btn_finish_fechas', title: btnFinishTitle.slice(0, 20) }
@@ -796,10 +796,10 @@ async function handleTextMessage(from, text) {
             userStates.set(from, currentState);
 
             if (invalidItems.length > 0) {
-                const combinedErrorMsg = formatCombinedDateErrorMsg(invalidItems, lang);
-                const validFechasCount = currentState.data.modFechas ? currentState.data.modFechas.length : 0;
+                const validFechas = currentState.data.modFechas || [];
+                const combinedErrorMsg = formatCombinedDateErrorMsg(invalidItems, lang, validFechas);
 
-                if (validFechasCount > 0) {
+                if (validFechas.length > 0) {
                     const btnFinishTitle = (lang === 'eu' ? '✅ Datak amaitu' : (lang === 'en' ? '✅ Finish dates' : '✅ Finalizar fechas'));
                     const buttons = [
                         { id: 'btn_finish_mod_fechas', title: btnFinishTitle.slice(0, 20) }

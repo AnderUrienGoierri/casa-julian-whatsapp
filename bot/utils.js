@@ -338,8 +338,19 @@ function getConciseDateReason(val, lang = 'es') {
     return 'Formato o fecha no válida';
 }
 
-function formatCombinedDateErrorMsg(invalidList, lang = 'es') {
+function formatCombinedDateErrorMsg(invalidList, lang = 'es', validFechas = []) {
     if (!invalidList || invalidList.length === 0) return '';
+
+    let savedSection = '';
+    if (validFechas && validFechas.length > 0) {
+        const count = validFechas.length;
+        const validListStr = validFechas.map(f => `• ${f}`).join('\n');
+        let savedHeader = `📌 *Nuevas fechas de preferencia guardadas (${count}/5):*`;
+        if (lang === 'eu') savedHeader = `📌 *Berezitako data berriak gorde dira (${count}/5):*`;
+        else if (lang === 'en') savedHeader = `📌 *New preferred dates saved (${count}/5):*`;
+
+        savedSection = `${savedHeader}\n${validListStr}\n\n`;
+    }
 
     let header = '⚠️ *Las siguientes fechas no son válidas:*';
     let footer = 'Por favor, indica fechas válidas en formato DD/MM/AAAA (ej: 15/09/2026):';
@@ -354,7 +365,7 @@ function formatCombinedDateErrorMsg(invalidList, lang = 'es') {
 
     const itemsStr = invalidList.map(item => `• *${item.date || ''}*: ${getConciseDateReason(item, lang)}`).join('\n');
 
-    return `${header}\n${itemsStr}\n\n${footer}`;
+    return `${savedSection}${header}\n${itemsStr}\n\n${footer}`;
 }
 
 function getDateValidationErrorMsg(validation, lang = 'es') {

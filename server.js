@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V178-VALIDAR-LIMITE-MAXIMO-6-MESES-EN-TODAS-LAS-MODIFICACIONES-Y-RESERVAS';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V179-INCLUIR-FECHAS-VALIDAS-GUARDADAS-EN-EL-RESUMEN-DE-ERRORES';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
