@@ -275,7 +275,8 @@ function validateSingleDate(dateStr, lang = 'es', options = {}) {
         return { isValid: false, reason: 'past', date: formattedDateStr };
     }
 
-    if (options.checkMax6Months) {
+    const checkMax6Months = options.checkMax6Months !== false;
+    if (checkMax6Months) {
         const maxDate = new Date();
         maxDate.setMonth(maxDate.getMonth() + 6);
         maxDate.setHours(23, 59, 59, 999);
