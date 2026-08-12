@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V154-ACTUALIZAR-MENSAJE-SERVICIO-TAXI-INDICAR-ENTRADA';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V155-ACORTAR-MENSAJE-DE-CIERRE-SIN-ENLACE-DIRECCION-TELEFONO';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
