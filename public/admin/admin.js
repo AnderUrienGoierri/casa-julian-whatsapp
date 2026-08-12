@@ -1363,7 +1363,7 @@ document.addEventListener('DOMContentLoaded', () => {
             simListTrigger.style.display = 'block';
             document.getElementById('sim-list-btn-text').textContent = '🌐 Seleccionar Idioma';
         } else if (key === 'selectLocationTitle' || key === 'selectLocationBody') {
-            const titleText = dynamicLangTexts['selectLocationTitle'] || langTexts['selectLocationTitle'] || '📍 *Ubicación del Restaurante*';
+            const titleText = dynamicLangTexts['selectLocationTitle'] || langTexts['selectLocationTitle'] || '📍 *Seleccionar restaurante*';
             const bodyText = dynamicLangTexts['selectLocationBody'] || langTexts['selectLocationBody'] || '¿En cuál de nuestros restaurantes estás interesado?';
             simBody.textContent = `${titleText}\n\n${bodyText}`;
 

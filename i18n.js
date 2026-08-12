@@ -39,7 +39,7 @@ const translations = {
         "faq9Desc": "Dónde aparcar cerca del restaurante.",
         "faq9Msg": "🚗 *Parking y Aparcamiento*\n\nRecomendamos aparcar en el Parking Público subterráneo de la Plaza Euskal Herria (a 3 minutos a pie de Casa Julián).",
         "menuButtonText": "Ver Opciones",
-        "selectLocationTitle": "📍 *Ubicación del Restaurante*",
+        "selectLocationTitle": "📍 *Seleccionar restaurante*",
         "selectLocationBody": "¿En cuál de nuestros restaurantes estás interesado?",
         "locPaisVasco": "Tolosa (Euskadi)",
         "locMadrid": "Madrid (CA Madrid)",
@@ -229,7 +229,7 @@ const translations = {
     "eu": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
         "menuButtonText": "Aukerak Ikusi",
-        "selectLocationTitle": "📍 *Jatetxearen Kokapena*",
+        "selectLocationTitle": "📍 *Jatetxea aukeratu*",
         "selectLocationBody": "Gure zein jatetxetan zaude interesatuta?",
         "locPaisVasco": "Tolosa (Euskadi)",
         "locMadrid": "Madril (Madril K.A.)",
@@ -434,7 +434,7 @@ const translations = {
     "en": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
         "menuButtonText": "View Options",
-        "selectLocationTitle": "📍 *Restaurant Location*",
+        "selectLocationTitle": "📍 *Select restaurant*",
         "selectLocationBody": "Which of our restaurants are you interested in?",
         "locPaisVasco": "Tolosa (Euskadi)",
         "locMadrid": "Madrid (Madrid)",
