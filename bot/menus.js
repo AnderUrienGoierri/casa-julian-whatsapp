@@ -15,10 +15,10 @@ async function sendLanguageMenu(from, userLanguages, userStates) {
 
     let welcomeMsgText = getTranslation('es', 'welcomeMessage', from);
     if (!welcomeMsgText || welcomeMsgText.includes('FR:') || welcomeMsgText.includes('🇫🇷') || welcomeMsgText.includes('Bienvenue')) {
-        welcomeMsgText = "🥩🔥 *¡Bienvenido/a a Casa Julián de Tolosa! / Ongi etorri!* 🥩🔥\n\n" +
-            "*ES:* ¡Bienvenido/a! ¿En qué idioma deseas continuar?\n" +
-            "*EU:* Ongi etorri! Zein hizkuntzatan jarraitu nahi duzu?\n" +
-            "*EN:* Welcome! Which language would you like to continue in?";
+        welcomeMsgText = "🔥🥩🔥 *Casa Julián Tolosa* 🔥🥩🔥\n\n" +
+            "🇪🇸 *ES:* ¡Bienvenido/a! ¿En qué idioma deseas continuar?\n" +
+            "🇪🇺 *EU:* Ongi etorri! Zein hizkuntzatan jarraitu nahi duzu?\n" +
+            "🇬🇧 *EN:* Welcome! Which language would you like to continue in?";
     }
     const bodyText = welcomeMsgText;
     
