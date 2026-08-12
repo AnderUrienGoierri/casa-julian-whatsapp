@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V173-ENVIAR-CABECERA-Y-BOTONES-TERMINAR-MENU-PRINCIPAL-TRAS-CONFIRMAR';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V174-ELIMINAR-CABECERA-DUPLICADA-EN-CONFIRMACION-SOLICITUD';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

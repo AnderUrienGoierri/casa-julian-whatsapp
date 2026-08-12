@@ -1394,12 +1394,6 @@ async function handleButtonResponse(from, buttonId) {
 
                     try {
                         const finalMsg = customSuccessMsg || getTranslation(lang, pending.successMsgKey || 'modSuccessMsg');
-                        
-                        let confirmHeader = '✅ *Solicitud enviada exitosamente*';
-                        if (lang === 'eu') confirmHeader = '✅ *Eskaera ondo bidali da*';
-                        else if (lang === 'en') confirmHeader = '✅ *Request submitted successfully*';
-
-                        await sendMessage(from, confirmHeader);
 
                         const btnFinishTitle = (lang === 'eu' ? 'Amaitu' : (lang === 'en' ? 'Finish' : 'Terminar'));
                         const btnMainMenuTitle = (lang === 'eu' ? 'Menu Nagusia' : (lang === 'en' ? 'Main Menu' : 'Menú principal'));
