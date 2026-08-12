@@ -209,22 +209,34 @@ function getInvalidNameMsg(lang = 'es') {
 
 function isWithin24Hours(dateStr) {
     if (!dateStr || typeof dateStr !== 'string') return false;
-    const match = dateStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
-    if (!match) return false;
+    const cleanStr = dateStr.trim();
+    let day, month, year;
 
-    const day = parseInt(match[1], 10);
-    const month = parseInt(match[2], 10);
-    const year = parseInt(match[3], 10);
+    const matchDMY = cleanStr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+    const matchYMD = cleanStr.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);
+
+    if (matchDMY) {
+        day = parseInt(matchDMY[1], 10);
+        month = parseInt(matchDMY[2], 10);
+        year = parseInt(matchDMY[3], 10);
+    } else if (matchYMD) {
+        year = parseInt(matchYMD[1], 10);
+        month = parseInt(matchYMD[2], 10);
+        day = parseInt(matchYMD[3], 10);
+    } else {
+        return false;
+    }
 
     if (isNaN(day) || isNaN(month) || isNaN(year)) return false;
 
-    const resDateObj = new Date(year, month - 1, day, 12, 0, 0);
     const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const resDateStart = new Date(year, month - 1, day, 0, 0, 0);
 
-    const diffMs = resDateObj.getTime() - now.getTime();
-    const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+    const diffDays = Math.round((resDateStart.getTime() - todayStart.getTime()) / 86400000);
 
-    return diffMs <= twentyFourHoursMs;
+    // Si la reserva es para hoy, mañana (siguiente día) o anterior, aplica la advertencia de antelación
+    return diffDays <= 1;
 }
 
 function validateSingleDate(dateStr, lang = 'es', options = {}) {
