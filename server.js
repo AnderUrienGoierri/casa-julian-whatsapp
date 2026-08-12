@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V161-FILTRO-IDIOMAS-Y-VISTA-COMPARATIVA-CMS-ADMIN';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V162-CACHE-BUSTER-DESPLIEGUE-ADMIN-IDIOMAS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
