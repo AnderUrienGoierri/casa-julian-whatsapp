@@ -42,6 +42,7 @@ const {
     getInvalidNameMsg,
     validateSingleDate,
     getDateValidationErrorMsg,
+    formatCombinedDateErrorMsg,
     isWithin24Hours
 } = require('./utils');
 
@@ -341,26 +342,16 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
+            const invalidItems = [];
+
             for (const cand of candidates) {
                 const val = validateSingleDate(cand, lang, { checkMax6Months: true });
                 if (!val.isValid) {
-                    await sendMessage(from, getDateValidationErrorMsg(val, lang));
+                    invalidItems.push(val);
                 } else if (isDinner) {
                     const dayOfWeek = getDayOfWeekFromDateStr(val.formatted);
                     if (dayOfWeek !== 5 && dayOfWeek !== 6) {
-                        const dayNames = {
-                            es: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
-                            eu: ['igandea', 'astelehena', 'asteartea', 'asteazkena', 'osteguna', 'ostirala', 'larunbata'],
-                            en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-                        };
-                        const dayName = (dayNames[lang] || dayNames.es)[dayOfWeek] || '';
-                        let dinnerErr = `⚠️ En Asador Casa Julián las cenas únicamente se sirven los *viernes y sábados*. La fecha *${val.formatted}* cae en *${dayName}*.\n\nPor favor, indica una fecha de viernes o sábado para cena:`;
-                        if (lang === 'eu') {
-                            dinnerErr = `⚠️ Casa Juliánen afariak *ostiral eta larunbatetan* bakarrik ematen dira. *${val.formatted}* data *${dayName}* da.\n\nMesedez, adierazi ostiral edo larunbateko data bat afaria egiteko:`;
-                        } else if (lang === 'en') {
-                            dinnerErr = `⚠️ At Casa Julián, dinners are only served on *Fridays and Saturdays*. The date *${val.formatted}* is a *${dayName}*.\n\nPlease specify a Friday or Saturday date for dinner:`;
-                        }
-                        await sendMessage(from, dinnerErr);
+                        invalidItems.push({ isValid: false, reason: 'dinner_days', date: val.formatted });
                     } else {
                         if (!currentState.data.menuTrad.fechas.includes(val.formatted) && currentState.data.menuTrad.fechas.length < 5) {
                             currentState.data.menuTrad.fechas.push(val.formatted);
@@ -374,6 +365,12 @@ async function handleTextMessage(from, text) {
             }
 
             userStates.set(from, currentState);
+
+            if (invalidItems.length > 0) {
+                const combinedErrorMsg = formatCombinedDateErrorMsg(invalidItems, lang);
+                await sendMessage(from, combinedErrorMsg);
+                break;
+            }
 
             if (currentState.data.menuTrad.fechas.length >= 5) {
                 const datesStr = currentState.data.menuTrad.fechas.join(', ');
@@ -766,10 +763,12 @@ async function handleTextMessage(from, text) {
                 break;
             }
 
+            const invalidItems = [];
+
             for (const cand of candidates) {
                 const val = validateSingleDate(cand, lang);
                 if (!val.isValid) {
-                    await sendMessage(from, getDateValidationErrorMsg(val, lang));
+                    invalidItems.push(val);
                 } else {
                     if (!currentState.data.modFechas.includes(val.formatted) && currentState.data.modFechas.length < 5) {
                         currentState.data.modFechas.push(val.formatted);
@@ -778,6 +777,12 @@ async function handleTextMessage(from, text) {
             }
 
             userStates.set(from, currentState);
+
+            if (invalidItems.length > 0) {
+                const combinedErrorMsg = formatCombinedDateErrorMsg(invalidItems, lang);
+                await sendMessage(from, combinedErrorMsg);
+                break;
+            }
 
             if (currentState.data.modFechas.length >= 5) {
                 const reservationId = currentState?.data?.reservationId || null;

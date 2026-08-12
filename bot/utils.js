@@ -294,81 +294,78 @@ function validateSingleDate(dateStr, lang = 'es', options = {}) {
     return { isValid: true, formatted: formattedDateStr, date: formattedDateStr };
 }
 
-function getDateValidationErrorMsg(validation, lang = 'es') {
-    const d = validation?.date || '';
-
-    if (validation.reason === 'max_6_months') {
-        if (lang === 'eu') {
-            return `⚠️ *Gehienez 6 hilabeteko aldez aurretik bakarrik egin daitezke erreserbak.*\n\nMesedez, idatzi datozen 6 hilabeteen barruko data bat (adibidez: EG/HI/URTE):`;
-        } else if (lang === 'en') {
-            return `⚠️ *Reservations can only be made up to a maximum of 6 months in advance.*\n\nPlease enter a date within the next 6 months (example: DD/MM/YYYY):`;
-        } else {
-            return `⚠️ *Solo se podrán hacer reservas con un máximo de 6 meses de antelación.*\n\nPor favor, indica una fecha dentro de los próximos 6 meses (ejemplo: DD/MM/AAAA):`;
-        }
+function getConciseDateReason(val, lang = 'es') {
+    const reason = val?.reason || 'format';
+    if (reason === 'max_6_months') {
+        if (lang === 'eu') return 'Gehienez 6 hilabeteko aldez aurretik';
+        if (lang === 'en') return 'Max 6 months in advance';
+        return 'Máximo 6 meses de antelación';
     }
-
-    if (validation.reason === 'past') {
-        if (lang === 'eu') {
-            return `⚠️ *${d}* data gaurkoa baino lehenagokoa da. Ezin da erreserbarik, aldaketarik edo ezeztapenik egin igarotako datetan.\n\nMesedez, idatzi gaur osteko data bat (adibidez: EG/HI/URTE):`;
-        } else if (lang === 'en') {
-            return `⚠️ The date *${d}* is in the past. Reservations, modifications or cancellations cannot be made for past dates.\n\nPlease enter a date after today (example: DD/MM/YYYY):`;
-        } else {
-            return `⚠️ La fecha *${d}* es anterior a la fecha actual. No se pueden realizar reservas, modificaciones o cancelaciones para fechas pasadas.\n\nPor favor, indica una fecha posterior a hoy (ejemplo: DD/MM/AAAA):`;
-        }
+    if (reason === 'past') {
+        if (lang === 'eu') return 'Igarotako data';
+        if (lang === 'en') return 'Past date';
+        return 'Fecha pasada';
     }
-
-    if (validation.reason === 'monday') {
-        if (lang === 'eu') {
-            return `⚠️ *${d}* data astelehena da (jatetxearen asteko atseden eguna, astelehenetan beti itxita).\n\nMesedez, idatzi beste data bat (adibidez: EG/HI/URTE):`;
-        } else if (lang === 'en') {
-            return `⚠️ The date *${d}* is on a Monday (restaurant weekly day off, closed every Monday).\n\nPlease enter another date (example: DD/MM/YYYY):`;
-        } else {
-            return `⚠️ La fecha *${d}* cae en lunes (día de descanso semanal del restaurante, cerrado todos los lunes).\n\nPor favor, indica otra fecha (ejemplo: DD/MM/AAAA):`;
-        }
+    if (reason === 'monday') {
+        if (lang === 'eu') return 'Astelehena (itxita atsedenagatik)';
+        if (lang === 'en') return 'Monday (weekly rest day)';
+        return 'Lunes (cerrado por descanso)';
     }
-
-    if (validation.reason && validation.reason.startsWith('vacation')) {
-        let period = 'del 24 de agosto al 8 de septiembre de 2026';
-        if (validation.reason === 'vacation_2027') {
-            period = 'del 18 de enero al 31 de enero de 2027';
+    if (reason && reason.startsWith('vacation')) {
+        let period = '24 abuztua - 8 iraila';
+        if (lang === 'es') period = '24 ago - 8 sep';
+        if (lang === 'en') period = 'Aug 24 - Sep 8';
+        if (reason === 'vacation_2027') {
+            period = lang === 'eu' ? '18-31 urtarrila' : (lang === 'en' ? 'Jan 18-31' : '18-31 ene');
         }
-
-        if (lang === 'eu') {
-            return `⚠️ *${d}* data jatetxearen oporraldiarekin bat dator (${period}).\n\nMesedez, idatzi beste data bat (adibidez: EG/HI/URTE):`;
-        } else if (lang === 'en') {
-            return `⚠️ The date *${d}* falls within the restaurant vacation period (${period}).\n\nPlease enter another date (example: DD/MM/YYYY):`;
-        } else {
-            return `⚠️ La fecha *${d}* coincide con el periodo de vacaciones del restaurante (${period}).\n\nPor favor, indica otra fecha (ejemplo: DD/MM/AAAA):`;
-        }
+        if (lang === 'eu') return `Oporraldia (${period})`;
+        if (lang === 'en') return `Vacation period (${period})`;
+        return `Vacaciones del restaurante (${period})`;
     }
-
-    if (validation.reason && validation.reason.startsWith('holiday')) {
-        let desc = 'día festivo cerrado por el restaurante';
-        if (validation.reason.includes('carnaval')) {
-            desc = '10 de febrero (Carnaval, cerrado)';
-        } else if (validation.reason.includes('12_oct')) {
-            desc = '12 de octubre (Festivo, cerrado)';
-        } else if (validation.reason.includes('dec')) {
-            desc = 'Festivo navideño (24, 25 o 31 de diciembre, cerrado)';
-        } else if (validation.reason.includes('jan_2027')) {
-            desc = 'Festivo de Año Nuevo / Reyes (1, 5 o 6 de enero, cerrado)';
-        }
-
-        if (lang === 'eu') {
-            return `⚠️ *${d}* data jaieguna da edo jatetxea itxita dago (${desc}).\n\nMesedez, idatzi beste data bat (adibidez: EG/HI/URTE):`;
-        } else if (lang === 'en') {
-            return `⚠️ The date *${d}* is a holiday and the restaurant is closed (${desc}).\n\nPlease enter another date (example: DD/MM/YYYY):`;
-        } else {
-            return `⚠️ La fecha *${d}* es un día festivo en el que el restaurante permanece cerrado (${desc}).\n\nPor favor, indica otra fecha (ejemplo: DD/MM/AAAA):`;
-        }
+    if (reason && reason.startsWith('holiday')) {
+        if (lang === 'eu') return 'Jai-eguna (itxita)';
+        if (lang === 'en') return 'Public holiday (closed)';
+        return 'Día festivo (cerrado)';
     }
+    if (reason === 'dinner_days') {
+        if (lang === 'eu') return 'Afariak ostiral eta larunbatetan bakarrik';
+        if (lang === 'en') return 'Dinners only on Friday & Saturday';
+        return 'Cenas solo viernes y sábados';
+    }
+    if (lang === 'eu') return 'Formatu edo data baliogabea';
+    if (lang === 'en') return 'Invalid date or format';
+    return 'Formato o fecha no válida';
+}
+
+function formatCombinedDateErrorMsg(invalidList, lang = 'es') {
+    if (!invalidList || invalidList.length === 0) return '';
+
+    let header = '⚠️ *Las siguientes fechas no son válidas:*';
+    let footer = 'Por favor, indica fechas válidas en formato DD/MM/AAAA (ej: 15/09/2026):';
 
     if (lang === 'eu') {
-        return `⚠️ Sartutako testua ("*${d}*") ez da data baliogarria.\n\nMesedez, idatzi data egoki bat egun/hilabete/urte formatuan (adibidez: *15/09/2026*):`;
+        header = '⚠️ *Hurrengo datak ez dira baliozkoak:*';
+        footer = 'Mesedez, adierazi data baliozkoak DD/MM/AAAA formatuan (adib: 15/09/2026):';
     } else if (lang === 'en') {
-        return `⚠️ The entered text ("*${d}*") is not a valid date.\n\nPlease enter a valid date in day/month/year format (example: *15/09/2026*):`;
+        header = '⚠️ *The following dates are not valid:*';
+        footer = 'Please enter valid dates in DD/MM/YYYY format (e.g. 15/09/2026):';
+    }
+
+    const itemsStr = invalidList.map(item => `• *${item.date || ''}*: ${getConciseDateReason(item, lang)}`).join('\n');
+
+    return `${header}\n${itemsStr}\n\n${footer}`;
+}
+
+function getDateValidationErrorMsg(validation, lang = 'es') {
+    const d = validation?.date || '';
+    const reasonText = getConciseDateReason(validation, lang);
+
+    if (lang === 'eu') {
+        return `⚠️ *${d}* data ez da baliozkoa (${reasonText}).\n\nMesedez, idatzi beste data bat (adibidez: 15/09/2026):`;
+    } else if (lang === 'en') {
+        return `⚠️ The date *${d}* is not valid (${reasonText}).\n\nPlease enter another date (example: 15/09/2026):`;
     } else {
-        return `⚠️ El texto introducido ("*${d}*") no es una fecha válida.\n\nPor favor, introduce una fecha válida en formato día/mes/año (ejemplo: *15/09/2026*):`;
+        return `⚠️ La fecha *${d}* no es válida (${reasonText}).\n\nPor favor, indica otra fecha (ejemplo: 15/09/2026):`;
     }
 }
 
@@ -385,5 +382,7 @@ module.exports = {
     getInvalidNameMsg,
     validateSingleDate,
     getDateValidationErrorMsg,
+    getConciseDateReason,
+    formatCombinedDateErrorMsg,
     isWithin24Hours
 };

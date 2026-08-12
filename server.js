@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V175-INCLUIR-TITULO-SOLICITUD-ENVIADA-EXITOSAMENTE-EN-MENSAJES-DE-RESPUESTA';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V176-AGRUPAR-ERRORES-DE-VALIDACION-DE-FECHAS-EN-UN-UNICO-MENSAJE-CORTO';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
