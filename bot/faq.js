@@ -12,23 +12,20 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
 
     const faqNum = faqId.replace('faq_', '');
 
-    // Opción 1: Ver carta -> Enviar la imagen oficial de la carta (media/carta.png)
+    // Opción 1 / Ver carta -> Plantilla / enlace web a la carta sin imagen
     if (faqNum === '1' || faqNum === '12' || faqId === 'faq_carta') {
-        const serverBaseUrl = process.env.RENDER_EXTERNAL_URL || 'https://casa-julian-whatsapp-bot.onrender.com';
-        const imageUrl = `${serverBaseUrl}/media/carta.png`;
-        let caption = "📜 *Carta & Precios - Asador Casa Julián de Tolosa*";
-        if (lang === 'eu') {
-            caption = "📜 *Karta eta Prezioak - Tolosako Casa Julián Erretegia*";
-        } else if (lang === 'en') {
-            caption = "📜 *Menu & Prices - Asador Casa Julián Tolosa*";
+        const templateRes = await sendTemplateMessage(from, 'ver_carta_web', lang);
+        if (!templateRes || !templateRes.messages) {
+            let msg = `📜 *Carta & Precios - Asador Casa Julián de Tolosa*\n\nPuedes consultar nuestra carta completa y actualizada directamente en nuestra web oficial:\n\n🌐 https://casajulian.eus/#:~:text=CARTA`;
+            if (lang === 'eu') {
+                msg = `📜 *Karta eta Prezioak - Tolosako Casa Julián Erretegia*\n\nGure karta eguneratua zuzenean webgune ofizialean kontsulta dezakezu:\n\n🌐 https://casajulian.eus/#:~:text=CARTA`;
+            } else if (lang === 'en') {
+                msg = `📜 *Menu & Prices - Asador Casa Julián Tolosa*\n\nYou can view our full updated menu and prices directly on our official website:\n\n🌐 https://casajulian.eus/#:~:text=CARTA`;
+            }
+            await sendMessage(from, msg);
         }
-
-        try {
-            await sendImageMessage(from, imageUrl, caption);
-            return;
-        } catch (e) {
-            console.error("⚠️ Error enviando imagen de la carta por WhatsApp:", e.message);
-        }
+        await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+        return;
     }
 
     // Opción 8: Regalar Menú Tradición
