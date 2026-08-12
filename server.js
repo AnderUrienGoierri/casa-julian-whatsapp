@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V157-CORREGIR-BLOQUEO-MODIFICACION-HORA-RESERVA';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V158-CAMBIAR-TEXTO-BOTON-FINALIZAR-TURNOS-A-FINALIZAR';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
