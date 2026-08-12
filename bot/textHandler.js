@@ -1026,6 +1026,16 @@ async function handleTextMessage(from, text) {
             break;
         }
 
+        case 'post_request_options': {
+            const cleanTextVal = text.trim().toLowerCase();
+            if (cleanTextVal.includes('menu') || cleanTextVal.includes('menú') || cleanTextVal.includes('nagusia')) {
+                await handleButtonResponse(from, 'btn_flow_main_menu');
+            } else {
+                await handleButtonResponse(from, 'btn_flow_finish');
+            }
+            break;
+        }
+
         case 'menu_tradicion_formulario_reserva':
             await requestUserConfirmation(from, lang, {
                 tipoAccion: 'RESERVA MENÚ TRADICIÓN (TARJETA REGALO)',

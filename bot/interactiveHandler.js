@@ -1394,13 +1394,27 @@ async function handleButtonResponse(from, buttonId) {
 
                     try {
                         const finalMsg = customSuccessMsg || getTranslation(lang, pending.successMsgKey || 'modSuccessMsg');
-                        await sendMessage(from, finalMsg);
-                        await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                        
+                        let confirmHeader = '✅ *Solicitud enviada exitosamente*';
+                        if (lang === 'eu') confirmHeader = '✅ *Eskaera ondo bidali da*';
+                        else if (lang === 'en') confirmHeader = '✅ *Request submitted successfully*';
+
+                        await sendMessage(from, confirmHeader);
+
+                        const btnFinishTitle = (lang === 'eu' ? 'Amaitu' : (lang === 'en' ? 'Finish' : 'Terminar'));
+                        const btnMainMenuTitle = (lang === 'eu' ? 'Menu Nagusia' : (lang === 'en' ? 'Main Menu' : 'Menú principal'));
+
+                        const flowButtons = [
+                            { id: 'btn_flow_finish', title: btnFinishTitle.slice(0, 20) },
+                            { id: 'btn_flow_main_menu', title: btnMainMenuTitle.slice(0, 20) }
+                        ];
+
+                        await sendInteractiveButtons(from, finalMsg, flowButtons);
+                        userStates.set(from, { step: 'post_request_options', data: {} });
                     } catch (clientMsgErr) {
                         console.error("⚠️ Error enviando respuesta WhatsApp al cliente:", clientMsgErr.message);
+                        userStates.delete(from);
                     }
-                    
-                    userStates.delete(from);
                 } catch (err) {
                     console.error("⚠️ Error procesando confirmación:", err.message, err.stack);
                 }
@@ -1409,6 +1423,27 @@ async function handleButtonResponse(from, buttonId) {
                 await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
                 userStates.delete(from);
             }
+            break;
+        }
+
+        case 'btn_flow_finish':
+        case 'Terminar':
+        case 'terminar':
+        case 'Amaitu':
+        case 'Finish': {
+            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+            userStates.delete(from);
+            break;
+        }
+
+        case 'btn_flow_main_menu':
+        case 'Menú principal':
+        case 'menu principal':
+        case 'Menu principal':
+        case 'Menu Nagusia':
+        case 'Main Menu': {
+            userStates.delete(from);
+            await sendMainMenu(from, userLanguages, userStates);
             break;
         }
 
