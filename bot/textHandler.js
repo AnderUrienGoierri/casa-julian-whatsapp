@@ -554,12 +554,37 @@ async function handleTextMessage(from, text) {
         }
 
         case 'consulta_abierta_opciones': {
-            const cleanTextVal = text.trim().toLowerCase();
-            if (cleanTextVal.includes('otra') || cleanTextVal.includes('añadir') || cleanTextVal.includes('anadir') || cleanTextVal.includes('gehitu') || cleanTextVal.includes('add') || cleanTextVal.includes('mas') || cleanTextVal.includes('más')) {
-                await handleButtonResponse(from, 'btn_consulta_otra');
-            } else {
+            const consultaTexto = text.trim();
+            const cleanTextVal = consultaTexto.toLowerCase();
+
+            // 1. Si el cliente escribe/pulsa "Enviar solicitud" o "Submit request" o "Bidali eskaera"
+            if (cleanTextVal === 'enviar' || cleanTextVal === 'enviar solicitud' || cleanTextVal === 'submit' || cleanTextVal === 'submit request' || cleanTextVal === 'bidali' || cleanTextVal === 'bidali eskaera' || cleanTextVal.includes('enviar solicitud') || cleanTextVal.includes('submit request') || cleanTextVal.includes('bidali eskaera')) {
                 await handleButtonResponse(from, 'btn_consulta_enviar');
+                break;
             }
+
+            // 2. Si el cliente escribe/pulsa "Otra consulta" o "Add inquiry"
+            if (cleanTextVal === 'otra consulta' || cleanTextVal === 'otra' || cleanTextVal === 'añadir' || cleanTextVal === 'anadir' || cleanTextVal === 'gehitu' || cleanTextVal === 'add' || cleanTextVal === 'add inquiry' || cleanTextVal === 'beste galdera bat') {
+                await handleButtonResponse(from, 'btn_consulta_otra');
+                break;
+            }
+
+            // 3. Si el cliente escribe directamente su siguiente consulta como texto
+            if (consultaTexto.length < 3) {
+                let msg = `⚠️ Por favor, escribe tu consulta detalladamente o pulsa [Enviar solicitud] para finalizar:`;
+                if (lang === 'eu') msg = `⚠️ Mesedez, idatzi zure galdera xehetasunez edo sakatu [Bidali eskaera] amaitzeko:`;
+                else if (lang === 'en') msg = `⚠️ Please enter your question in detail or tap [Submit request] to finish:`;
+                await sendMessage(from, msg);
+                break;
+            }
+
+            currentState.data = currentState.data || {};
+            currentState.data.consultas = currentState.data.consultas || [];
+            currentState.data.consultas.push(consultaTexto);
+            currentState.step = 'consulta_abierta_opciones';
+            userStates.set(from, currentState);
+
+            await sendConsultaAbiertaSummary(from, lang, currentState.data.consultas);
             break;
         }
 

@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V169-TRADUCCION-OPCION-4-CONSULTA-ABIERTA-INGLES-EUSKERA';
+const DEPLOY_VERSION = 'v2026-08-12-CMS-V170-CONSULTA-ABIERTA-PERMITIR-TEXTO-DIRECTO-SIN-PULSAR-OTRA-CONSULTA';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

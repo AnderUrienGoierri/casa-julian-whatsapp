@@ -505,11 +505,11 @@ async function sendConsultaAbiertaSummary(from, lang, consultas = []) {
     const inquiriesFormatted = consultas.map((q, idx) => `${idx + 1}. ${q}`).join('\n');
 
     if (lang === 'eu') {
-        summaryText = `📋 *Zure erregistratutako galdera(k):*\n${inquiriesFormatted}\n\nNahi al duzu beste galdera bat gehitu edo eskaera bidali?`;
+        summaryText = `📋 *Zure erregistratutako galdera(k):*\n${inquiriesFormatted}\n\nZuzenean beste galdera bat idatz dezakezu, [Beste galdera bat] sakatu edo [Bidali eskaera] sakatu zure eskaera amaitzeko.`;
     } else if (lang === 'en') {
-        summaryText = `📋 *Your registered inquiry/inquiries:*\n${inquiriesFormatted}\n\nWould you like to add another question or submit your request?`;
+        summaryText = `📋 *Your registered inquiry/inquiries:*\n${inquiriesFormatted}\n\nYou can type another question directly, tap [Add inquiry], or tap [Submit request] to complete your request.`;
     } else {
-        summaryText = `📋 *Tu(s) consulta(s) registrada(s):*\n${inquiriesFormatted}\n\n¿Deseas añadir otra consulta o enviar tu solicitud?`;
+        summaryText = `📋 *Tu(s) consulta(s) registrada(s):*\n${inquiriesFormatted}\n\nPuedes escribir directamente otra consulta, pulsar [Otra consulta] o pulsar [Enviar solicitud] para finalizar tu solicitud.`;
     }
 
     const btnAddTitle = (lang === 'eu' ? 'Beste galdera bat' : (lang === 'en' ? 'Add inquiry' : 'Otra consulta'));
@@ -1550,7 +1550,11 @@ async function handleButtonResponse(from, buttonId) {
             break;
         }
 
-        case 'btn_consulta_enviar': {
+        case 'btn_consulta_enviar':
+        case 'Enviar solicitud':
+        case 'enviar solicitud':
+        case 'Bidali eskaera':
+        case 'Submit request': {
             const state = userStates.get(from) || { data: {} };
 
             const consultas = (state.data && Array.isArray(state.data.consultas) && state.data.consultas.length > 0)
