@@ -18,49 +18,43 @@ async function sendModHoraOptions(from, lang, state) {
         if (isWeekend) {
             msg = `🕐 *Ordu Berriaren Aukeraketa Erreserba Aldatzeko*\n\n` +
                   `📅 Erreserba-data: *${fechaStr || 'Zehaztua'}* (Ostirala / Larunbata)\n\n` +
-                  `📌 *Eskuragarri dauden txanda berriak:*\n` +
+                  `✍️ *Mesedez, idatzi zure ordu hobetsia(k)* (txanda bat edo gehiago idatz ditzakezu malgutasun handiagoa izateko, adibidez: *13:30, 14:00* edo *20:00*):\n\n` +
                   `☀️ *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n` +
-                  `🌙 *Afaria:* 20:00, 20:30, 21:00, 21:30\n\n` +
-                  `✍️ *Mesedez, idatzi zure ordu hobetsia(k)* (txanda bat edo gehiago idatz ditzakezu malgutasun handiagoa izateko, adibidez: *13:30, 14:00* edo *20:00*):`;
+                  `🌙 *Afaria:* 20:00, 20:30, 21:00, 21:30`;
         } else {
             msg = `🕐 *Ordu Berriaren Aukeraketa Erreserba Aldatzeko*\n\n` +
                   `📅 Erreserba-data: *${fechaStr || 'Zehaztua'}*\n` +
                   `*(Igandetik ostegunera bazkari zerbitzua bakarrik eskaintzen da)*\n\n` +
-                  `📌 *Eskuragarri dauden bazkari txanda berriak:*\n` +
-                  `☀️ *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n\n` +
-                  `✍️ *Mesedez, idatzi zure ordu hobetsia(k)* (txanda bat edo gehiago idatz ditzakezu malgutasun handiagoa izateko, adibidez: *13:30, 14:00*):`;
+                  `✍️ *Mesedez, idatzi zure ordu hobetsia(k)* (txanda bat edo gehiago idatz ditzakezu malgutasun handiagoa izateko, adibidez: *13:30, 14:00*):\n\n` +
+                  `☀️ *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15`;
         }
     } else if (lang === 'en') {
         if (isWeekend) {
             msg = `🕐 *Select New Time Slot for Modification*\n\n` +
                   `📅 Reservation date: *${fechaStr || 'Specified'}* (Friday / Saturday)\n\n` +
-                  `📌 *Available turn/time options:*\n` +
+                  `✍️ *Please enter your preferred time slot(s)* (you can enter one or more available shifts for flexibility, e.g.: *13:30, 14:00* or *20:00*):\n\n` +
                   `☀️ *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n` +
-                  `🌙 *Dinner:* 20:00, 20:30, 21:00, 21:30\n\n` +
-                  `✍️ *Please enter your preferred time slot(s)* (you can enter one or more available shifts for flexibility, e.g.: *13:30, 14:00* or *20:00*):`;
+                  `🌙 *Dinner:* 20:00, 20:30, 21:00, 21:30`;
         } else {
             msg = `🕐 *Select New Time Slot for Modification*\n\n` +
                   `📅 Reservation date: *${fechaStr || 'Specified'}*\n` +
                   `*(Sunday to Thursday we offer lunch service exclusively)*\n\n` +
-                  `📌 *Available lunch turn/time options:*\n` +
-                  `☀️ *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n\n` +
-                  `✍️ *Please enter your preferred time slot(s)* (you can enter one or more available shifts for flexibility, e.g.: *13:30, 14:00*):`;
+                  `✍️ *Please enter your preferred time slot(s)* (you can enter one or more available shifts for flexibility, e.g.: *13:30, 14:00*):\n\n` +
+                  `☀️ *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15`;
         }
     } else {
         if (isWeekend) {
             msg = `🕐 *Selección de Turno Horario para Modificación*\n\n` +
                   `📅 Fecha de reserva: *${fechaStr || 'Especificada'}* (Viernes / Sábado)\n\n` +
-                  `📌 *Turnos disponibles para elegir:*\n` +
+                  `✍️ *Por favor, escribe la hora o turnos de preferencia deseados* (puedes indicar uno o varios turnos posibles para mayor flexibilidad, ej: *13:30, 14:00* o *20:00*):\n\n` +
                   `☀️ *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n` +
-                  `🌙 *Cena:* 20:00, 20:30, 21:00, 21:30\n\n` +
-                  `✍️ *Por favor, escribe la hora o turnos de preferencia deseados* (puedes indicar uno o varios turnos posibles para mayor flexibilidad, ej: *13:30, 14:00* o *20:00*):`;
+                  `🌙 *Cena:* 20:00, 20:30, 21:00, 21:30`;
         } else {
             msg = `🕐 *Selección de Turno Horario para Modificación*\n\n` +
                   `📅 Fecha de reserva: *${fechaStr || 'Especificada'}*\n` +
                   `*(De domingo a jueves el restaurante ofrece exclusivamente servicio de comidas)*\n\n` +
-                  `📌 *Turnos de comida disponibles para elegir:*\n` +
-                  `☀️ *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n\n` +
-                  `✍️ *Por favor, escribe la hora o turnos de preferencia deseados* (puedes indicar uno o varios turnos posibles para mayor flexibilidad, ej: *13:30, 14:00*):`;
+                  `✍️ *Por favor, escribe la hora o turnos de preferencia deseados* (puedes indicar uno o varios turnos posibles para mayor flexibilidad, ej: *13:30, 14:00*):\n\n` +
+                  `☀️ *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15`;
         }
     }
 

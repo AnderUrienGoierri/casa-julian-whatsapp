@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-13-CMS-V183-CORREGIR-TEXTO-ASADEROS-A-ASADORES-EN-MADRID-MSG';
+const DEPLOY_VERSION = 'v2026-08-13-CMS-V184-MOVER-LISTA-DE-TURNOS-AL-FINAL-EN-SELECCION-DE-HORA-DE-MODIFICACION';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
