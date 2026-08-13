@@ -44,9 +44,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const ruleResponseInput = document.getElementById('rule-response-input');
     const customRulesBody = document.getElementById('custom-rules-body');
 
-    // VERIFICAR AUTENTICACIÓN INICIAL
+    // VERIFICAR AUTENTICACIÓN INICIAL - validar el token guardado con la API
     if (adminToken) {
-        initDashboard();
+        // Validar token contra el servidor antes de arrancar el dashboard
+        fetch('/api/admin/solicitudes', { headers: { 'x-admin-token': adminToken } })
+            .then(res => {
+                if (res.status === 401) {
+                    // Token inválido o caducado → limpiar y mostrar login
+                    localStorage.removeItem('casa_julian_admin_token');
+                    localStorage.removeItem('casa_julian_user_role');
+                    adminToken = '';
+                    showLoginModal();
+                } else {
+                    initDashboard();
+                }
+            })
+            .catch(() => {
+                // Error de red → mostrar login igual
+                showLoginModal();
+            });
     } else {
         showLoginModal();
     }
@@ -78,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success && data.token) {
                 adminToken = data.token;
                 localStorage.setItem('casa_julian_admin_token', adminToken);
+                localStorage.setItem('casa_julian_user_role', data.role || 'admin');
                 initDashboard();
             } else {
                 loginError.textContent = data.error || 'Contraseña incorrecta.';
@@ -129,6 +146,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // INICIALIZAR DASHBOARD Y CARGAR ESTRUCTURA
     async function initDashboard() {
         hideLoginModal();
+
+        // Aplicar restricciones visuales por rol de usuario
+        const role = localStorage.getItem('casa_julian_user_role') || 'admin';
+        if (role === 'recepcion') {
+            document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') !== 'tab-inbox') {
+                    btn.style.display = 'none';
+                }
+            });
+            // Activar pestaña inbox
+            const inboxTabBtn = document.querySelector('.tabs-nav .tab-btn[data-tab="tab-inbox"]');
+            if (inboxTabBtn) inboxTabBtn.click();
+        } else {
+            // Mostrar todas las pestañas para el rol admin
+            document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
+                btn.style.display = 'inline-block';
+            });
+        }
+
         try {
             await fetchSolicitudes();
             if (!inboxPollingInterval) {
