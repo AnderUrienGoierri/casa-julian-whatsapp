@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-12-CMS-V181-ACTUALIZAR-ENCABEZADO-SALUDO-INICIAL-A-CASA-JULIAN-TOLOSA';
+const DEPLOY_VERSION = 'v2026-08-13-CMS-V182-DEJAR-SOLO-EL-TITULO-EN-EL-MENSAJE-DE-BIENVENIDA';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
