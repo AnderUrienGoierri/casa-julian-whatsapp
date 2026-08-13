@@ -154,6 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
                 btn.style.display = (btn.getAttribute('data-tab') === 'tab-inbox') ? 'inline-block' : 'none';
             });
+            // Ocultar el simulador de móvil (no necesario para recepción)
+            document.body.classList.add('mode-recepcion');
             // Activar la pestaña inbox directamente
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const inboxContent = document.getElementById('tab-inbox');

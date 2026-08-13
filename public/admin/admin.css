@@ -994,3 +994,23 @@ select.input-dark {
     object-fit: cover;
 }
 
+/* ============================================================
+   MODO RECEPCIÓN: Ocultar simulador de móvil y expandir editor
+   ============================================================ */
+body.mode-recepcion .simulator-section {
+    display: none !important;
+}
+
+body.mode-recepcion .main-layout {
+    grid-template-columns: 1fr !important;
+}
+
+body.mode-recepcion .editor-section {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+body.mode-recepcion .inbox-cards-grid {
+    max-width: 960px;
+    margin: 0 auto;
+}
