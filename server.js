@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-13-CMS-V185-CAMBIAR-ENCABEZADO-DE-RESUMEN-DE-SOLICITUD';
+const DEPLOY_VERSION = 'v2026-08-13-CMS-V186-IMPLEMENTAR-PANEL-WEB-PROPIO-BANDEJA-DE-RECEPCION-Y-RESPUESTAS-WHATSAPP';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

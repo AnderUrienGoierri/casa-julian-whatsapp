@@ -206,6 +206,21 @@ if (process.env.DATABASE_URL) {
             url_path VARCHAR(255) NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
+
+        CREATE TABLE IF NOT EXISTS solicitudes (
+            id VARCHAR(100) PRIMARY KEY,
+            tipo_accion VARCHAR(150) NOT NULL,
+            categoria VARCHAR(100) NOT NULL,
+            categoria_label VARCHAR(150) NOT NULL,
+            telefono_cliente VARCHAR(50) NOT NULL,
+            nombre_cliente VARCHAR(150) DEFAULT 'Cliente Casa Julián',
+            telefono_reserva VARCHAR(50),
+            datos_detallados TEXT,
+            estado VARCHAR(50) DEFAULT 'PENDIENTE',
+            respuesta_staff TEXT,
+            fecha_respuesta TIMESTAMP WITH TIME ZONE,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
+        );
     `).catch(err => console.error("⚠️ Error en Auto-Migración de BD:", err.message));
 }
 

@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 const { sendMessage } = require('./whatsappApi');
+const { createSolicitud } = require('./database');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
@@ -313,6 +314,20 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
     console.log(`⏰ FECHA: ${timestamp}`);
     console.log(`📝 DATOS RECIBIDOS:\n${datosDetallados}`);
     console.log(`=================================================================================\n`);
+
+    // 0. Registrar la solicitud categorizada en la base de datos para la Bandeja de Recepción del Panel Web
+    try {
+        await createSolicitud({
+            tipoAccion,
+            telefonoCliente,
+            datosDetallados: cleanDatosDetallados,
+            nombreCliente,
+            telefonoReserva
+        });
+        console.log(`   └─ ✅ Solicitud guardada en la Base de Datos para el Panel de Recepción.`);
+    } catch (dbErr) {
+        console.error("⚠️ Error guardando solicitud en Base de Datos:", dbErr.message);
+    }
 
     // 1. Enviar alerta WhatsApp en tiempo real al teléfono del restaurante/maitre (34671652717)
     try {

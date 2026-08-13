@@ -1,29 +1,50 @@
 const express = require('express');
 const router = express.Router();
 const { getTranslation, translations } = require('./i18n');
-const { getDynamicTexts, saveDynamicText, getMenuItems, saveMenuItems } = require('./database');
-const { getSimMessages, clearSimMessages } = require('./whatsappApi');
+const { 
+    getDynamicTexts, 
+    saveDynamicText, 
+    getMenuItems, 
+    saveMenuItems,
+    getAllSolicitudes,
+    updateSolicitudStatus,
+    deleteSolicitud,
+    getCategoryTagInfo
+} = require('./database');
+const { getSimMessages, clearSimMessages, sendMessage } = require('./whatsappApi');
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'julian2026';
-// Token estático basado en hash simple de contraseña
-const VALID_TOKEN = Buffer.from(`admin_casa_julian_${ADMIN_PASSWORD}`).toString('base64');
+const RECEPCION_PASSWORD = process.env.RECEPCION_PASSWORD || 'recepcion';
+
+const VALID_ADMIN_TOKEN = Buffer.from(`admin_casa_julian_${ADMIN_PASSWORD}`).toString('base64');
+const VALID_RECEPCION_TOKEN = Buffer.from(`recepcion_casa_julian_${RECEPCION_PASSWORD}`).toString('base64');
+const VALID_TOKEN = VALID_ADMIN_TOKEN;
 
 // Middleware de autenticación
 function requireAdminAuth(req, res, next) {
     const authHeader = req.headers['x-admin-token'] || req.headers['authorization'] || req.query.token;
-    if (authHeader === VALID_TOKEN || authHeader === `Bearer ${VALID_TOKEN}`) {
+    const tokenStr = (authHeader || '').replace('Bearer ', '').trim();
+    if (tokenStr === VALID_ADMIN_TOKEN || tokenStr === VALID_RECEPCION_TOKEN || tokenStr === VALID_TOKEN) {
+        req.userRole = (tokenStr === VALID_RECEPCION_TOKEN) ? 'recepcion' : 'admin';
         return next();
     }
-    return res.status(401).json({ error: 'No autorizado. Token de administrador inválido o no proporcionado.' });
+    return res.status(401).json({ error: 'No autorizado. Token de administración o recepción inválido.' });
 }
 
 // 1. Login
 router.post('/login', (req, res) => {
     const { password } = req.body || {};
-    if (password === ADMIN_PASSWORD) {
-        return res.json({ success: true, token: VALID_TOKEN });
+    const inputPass = (password || '').toString().trim();
+
+    if (inputPass === RECEPCION_PASSWORD || inputPass.toLowerCase() === 'recepcion' || inputPass.toLowerCase() === 'recepción') {
+        return res.json({ success: true, token: VALID_RECEPCION_TOKEN, role: 'recepcion' });
     }
-    return res.status(401).json({ success: false, error: 'Contraseña de administrador incorrecta.' });
+
+    if (inputPass === ADMIN_PASSWORD) {
+        return res.json({ success: true, token: VALID_ADMIN_TOKEN, role: 'admin' });
+    }
+
+    return res.status(401).json({ success: false, error: 'Contraseña de acceso incorrecta.' });
 });
 
 // 2. Obtener estructura completa y datos del chatbot
@@ -545,6 +566,82 @@ router.post('/delete-attachment', requireAdminAuth, async (req, res) => {
         });
 
         return res.json({ success: true });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// =========================================================================
+// ENDPOINTS DE BANDEJA DE RECEPCIÓN (SOLICITUDES Y ATENCIÓN DIRECTA)
+// =========================================================================
+
+// 14. Obtener todas las solicitudes recibidas de clientes
+router.get('/solicitudes', requireAdminAuth, async (req, res) => {
+    try {
+        const list = await getAllSolicitudes();
+        return res.json({ success: true, solicitudes: list });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 15. Responder manualmente a una solicitud enviando WhatsApp directo al cliente
+router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { respuestaText, nuevoEstado } = req.body || {};
+        if (!respuestaText || !respuestaText.trim()) {
+            return res.status(400).json({ error: 'El mensaje de respuesta no puede estar vacío.' });
+        }
+
+        const list = await getAllSolicitudes();
+        const sol = list.find(s => s.id === id);
+        if (!sol) {
+            return res.status(404).json({ error: 'Solicitud no encontrada.' });
+        }
+
+        const targetPhone = sol.telefonoCliente || sol.telefonoReserva;
+        if (!targetPhone) {
+            return res.status(400).json({ error: 'No se encontró un teléfono de cliente válido para enviar el WhatsApp.' });
+        }
+
+        // Envío directo de WhatsApp vía WhatsApp Cloud API
+        await sendMessage(targetPhone, respuestaText.trim());
+
+        const statusToSet = (nuevoEstado || 'RESPONDIDA').trim().toUpperCase();
+        const updated = await updateSolicitudStatus(id, statusToSet, respuestaText.trim());
+
+        return res.json({
+            success: true,
+            message: `✅ Mensaje de WhatsApp enviado con éxito al cliente (+${targetPhone}).`,
+            solicitud: updated
+        });
+    } catch (e) {
+        console.error("⚠️ Error respondiendo solicitud por WhatsApp:", e.message);
+        return res.status(500).json({ error: `Error enviando mensaje de WhatsApp: ${e.message}` });
+    }
+});
+
+// 16. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, ARCHIVADA)
+router.post('/solicitudes/:id/estado', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estado } = req.body || {};
+        if (!estado) return res.status(400).json({ error: 'El estado es requerido.' });
+
+        const updated = await updateSolicitudStatus(id, estado.trim().toUpperCase());
+        return res.json({ success: true, solicitud: updated });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 17. Eliminar una solicitud por ID
+router.delete('/solicitudes/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const success = await deleteSolicitud(id);
+        return res.json({ success });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }

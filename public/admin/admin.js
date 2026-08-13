@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetEl = document.getElementById(tabId);
             if (targetEl) targetEl.classList.add('active');
 
+            if (tabId === 'tab-inbox') fetchSolicitudes();
             if (tabId === 'tab-flow') renderUseCasesFlow();
             if (tabId === 'tab-texts') renderTextsGrid();
             if (tabId === 'tab-menu') renderMenuTable();
@@ -129,6 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initDashboard() {
         hideLoginModal();
         try {
+            await fetchSolicitudes();
+            if (!inboxPollingInterval) {
+                inboxPollingInterval = setInterval(fetchSolicitudes, 15000);
+            }
+
             const res = await fetch('/api/admin/structure', {
                 headers: { 'x-admin-token': adminToken }
             });
@@ -1532,5 +1538,334 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             whatsappScreen.scrollTop = whatsappScreen.scrollHeight;
         }, 50);
+    }
+
+    // =========================================================================
+    // LÓGICA DE BANDEJA DE RECEPCIÓN Y SOLICITUDES EN TIEMPO REAL (INBOX)
+    // =========================================================================
+    let allSolicitudes = [];
+    let currentInboxCatFilter = 'all';
+    let currentInboxStatusFilter = 'all';
+    let currentInboxSearch = '';
+    let activeReplySolicitud = null;
+    let inboxPollingInterval = null;
+
+    const refreshInboxBtn = document.getElementById('refresh-inbox-btn');
+    const searchInboxInput = document.getElementById('search-inbox-input');
+    const inboxCardsContainer = document.getElementById('inbox-cards-container');
+    const inboxCountBadge = document.getElementById('inbox-count-badge');
+    const replyModal = document.getElementById('reply-modal');
+    const closeReplyModalBtn = document.getElementById('close-reply-modal-btn');
+    const cancelReplyBtn = document.getElementById('cancel-reply-btn');
+    const replyForm = document.getElementById('reply-form');
+    const replyClientName = document.getElementById('reply-client-name');
+    const replyClientPhone = document.getElementById('reply-client-phone');
+    const replySolicitudSummary = document.getElementById('reply-solicitud-summary');
+    const replySolicitudId = document.getElementById('reply-solicitud-id');
+    const replyMessageText = document.getElementById('reply-message-text');
+    const replyErrorMsg = document.getElementById('reply-error-msg');
+
+    // Cargar Solicitudes desde Backend
+    async function fetchSolicitudes() {
+        if (!adminToken) return;
+        try {
+            const res = await fetch('/api/admin/solicitudes', {
+                headers: { 'x-admin-token': adminToken }
+            });
+            if (res.status === 401) return;
+            const data = await res.json();
+            if (data.success && Array.isArray(data.solicitudes)) {
+                allSolicitudes = data.solicitudes;
+                renderInboxCards();
+            }
+        } catch (err) {
+            console.error("⚠️ Error cargando solicitudes del buzón:", err);
+        }
+    }
+
+    // Filtrar y Renderizar Tarjetas de Solicitudes
+    function renderInboxCards() {
+        if (!inboxCardsContainer) return;
+
+        let filtered = [...allSolicitudes];
+
+        // 1. Filtrar por categoría
+        if (currentInboxCatFilter !== 'all') {
+            filtered = filtered.filter(s => s.categoria === currentInboxCatFilter);
+        }
+
+        // 2. Filtrar por estado
+        if (currentInboxStatusFilter !== 'all') {
+            filtered = filtered.filter(s => s.estado === currentInboxStatusFilter);
+        }
+
+        // 3. Filtrar por texto de búsqueda
+        if (currentInboxSearch.trim()) {
+            const q = currentInboxSearch.toLowerCase().trim();
+            filtered = filtered.filter(s => 
+                (s.nombreCliente || '').toLowerCase().includes(q) ||
+                (s.telefonoCliente || '').toLowerCase().includes(q) ||
+                (s.telefonoReserva || '').toLowerCase().includes(q) ||
+                (s.datosDetallados || '').toLowerCase().includes(q) ||
+                (s.tipoAccion || '').toLowerCase().includes(q)
+            );
+        }
+
+        // Actualizar Badge de Contador Pendientes
+        const pendingCount = allSolicitudes.filter(s => s.estado === 'PENDIENTE').length;
+        if (inboxCountBadge) {
+            inboxCountBadge.textContent = pendingCount;
+            inboxCountBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        }
+
+        if (filtered.length === 0) {
+            inboxCardsContainer.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 20px; background: rgba(15, 23, 42, 0.4); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px;">
+                    <div style="font-size: 2.5rem; margin-bottom: 8px;">📥</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: #fff;">No hay solicitudes que coincidan con los filtros</div>
+                    <p style="font-size: 0.85rem; margin-top: 4px;">Las nuevas peticiones enviadas por los clientes desde WhatsApp aparecerán aquí automáticamente.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(sol => {
+            const dateStr = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
+            
+            // Badge de Categoría
+            let catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
+            if (sol.categoria === 'reservas_menu_tradicion') {
+                catTagHtml = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">🎁 Reservas Menú Tradición</span>`;
+            } else if (sol.categoria === 'mod_comensales') {
+                catTagHtml = `<span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">👥 Mod. Comensales</span>`;
+            } else if (sol.categoria === 'mod_dia') {
+                catTagHtml = `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">📅 Mod. Día</span>`;
+            } else if (sol.categoria === 'mod_hora') {
+                catTagHtml = `<span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">🕐 Mod. Hora</span>`;
+            } else if (sol.categoria === 'cancelacion') {
+                catTagHtml = `<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">❌ Cancelaciones</span>`;
+            } else if (sol.categoria === 'consulta_abierta') {
+                catTagHtml = `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">💬 Consultas Abiertas</span>`;
+            } else if (sol.categoria === 'reserva_online') {
+                catTagHtml = `<span class="badge" style="background: rgba(220, 38, 38, 0.15); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">🔴 Reserva Online</span>`;
+            }
+
+            // Badge de Estado
+            let statusBadgeHtml = `<span style="background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">⏳ PENDIENTE</span>`;
+            if (sol.estado === 'RESPONDIDA') {
+                statusBadgeHtml = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">💬 RESPONDIDA</span>`;
+            } else if (sol.estado === 'CONFIRMADA') {
+                statusBadgeHtml = `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">✅ CONFIRMADA</span>`;
+            } else if (sol.estado === 'RECHAZADA') {
+                statusBadgeHtml = `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">🚫 RECHAZADA</span>`;
+            }
+
+            const phoneFormatted = sol.telefonoCliente || sol.telefonoReserva || 'Desconocido';
+
+            html += `
+                <div class="table-card solicitud-card" data-id="${sol.id}" style="padding: 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.08); background: rgba(30, 41, 59, 0.5); border-radius: 12px; transition: transform 0.15s ease;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${catTagHtml}
+                            ${statusBadgeHtml}
+                        </div>
+                        <span style="font-size: 0.78rem; color: var(--text-muted);">⏰ ${dateStr}</span>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 10px;">
+                        <div style="font-size: 1.6rem; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 50%;">👤</div>
+                        <div>
+                            <div style="font-size: 1rem; font-weight: 700; color: #ffffff;">${sol.nombreCliente || 'Cliente'}</div>
+                            <div style="font-size: 0.85rem; color: var(--accent-gold); font-family: monospace;">📞 WhatsApp: +${phoneFormatted}</div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">📝 Contenido del Resumen Recibido:</div>
+                        <pre style="margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 0.85rem; color: #e2e8f0; max-height: 180px; overflow-y: auto;">${sol.datosDetallados || 'Sin detalles'}</pre>
+                    </div>
+
+                    ${sol.respuestaStaff ? `
+                        <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; border-radius: 4px; padding: 10px; margin-bottom: 12px; font-size: 0.83rem;">
+                            <div style="color: #38bdf8; font-weight: 700; margin-bottom: 2px;">💬 Respuesta enviada por Recepción (${sol.fechaRespuesta ? new Date(sol.fechaRespuesta).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : ''}):</div>
+                            <div style="color: #cbd5e1; white-space: pre-wrap;">${sol.respuestaStaff}</div>
+                        </div>
+                    ` : ''}
+
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                        <button class="btn-primary btn-reply-solicitud" data-id="${sol.id}" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-size: 0.85rem; padding: 7px 14px; font-weight: 700;">📲 Responder por WhatsApp</button>
+                        <button class="btn-secondary btn-confirm-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.85rem; padding: 7px 12px;">🟢 Confirmar</button>
+                        <button class="btn-secondary btn-reject-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.85rem; padding: 7px 12px;">🚫 Rechazar</button>
+                        <button class="btn-danger btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.85rem; padding: 7px 10px;" title="Eliminar solicitud">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        inboxCardsContainer.innerHTML = html;
+
+        // Registrar Event Listeners en los Botones
+        document.querySelectorAll('.btn-reply-solicitud').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const solId = btn.getAttribute('data-id');
+                const sol = allSolicitudes.find(s => s.id === solId);
+                if (sol) openReplyModal(sol);
+            });
+        });
+
+        document.querySelectorAll('.btn-confirm-solicitud').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const solId = btn.getAttribute('data-id');
+                const sol = allSolicitudes.find(s => s.id === solId);
+                if (sol) {
+                    const defaultConfirmText = `✅ Hola ${sol.nombreCliente || ''}, tu solicitud para Asador Casa Julián de Tolosa ha sido CONFIRMADA. ¡Esperamos darte la bienvenida pronto!`;
+                    openReplyModal(sol, defaultConfirmText, 'CONFIRMADA');
+                }
+            });
+        });
+
+        document.querySelectorAll('.btn-reject-solicitud').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const solId = btn.getAttribute('data-id');
+                const sol = allSolicitudes.find(s => s.id === solId);
+                if (sol) {
+                    const defaultRejectText = `⚠️ Hola ${sol.nombreCliente || ''}, lo sentimos pero no disponemos de mesa o disponibilidad para el turno/fecha solicitados en Casa Julián de Tolosa. Por favor indícanos otra alternativa si lo deseas.`;
+                    openReplyModal(sol, defaultRejectText, 'RECHAZADA');
+                }
+            });
+        });
+
+        document.querySelectorAll('.btn-delete-solicitud').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const solId = btn.getAttribute('data-id');
+                if (confirm("¿Seguro que deseas eliminar este registro de solicitud?")) {
+                    try {
+                        await fetch(`/api/admin/solicitudes/${solId}`, {
+                            method: 'DELETE',
+                            headers: { 'x-admin-token': adminToken }
+                        });
+                        await fetchSolicitudes();
+                    } catch (e) {
+                        alert("Error al eliminar solicitud: " + e.message);
+                    }
+                }
+            });
+        });
+    }
+
+    // Abrir Modal de Respuesta Manual
+    function openReplyModal(sol, prefilledText = '', targetStatus = 'RESPONDIDA') {
+        activeReplySolicitud = sol;
+        replySolicitudId.value = sol.id;
+        replyClientName.textContent = `Cliente: ${sol.nombreCliente || 'Cliente Casa Julián'}`;
+        replyClientPhone.textContent = `Teléfono WhatsApp: +${sol.telefonoCliente || sol.telefonoReserva || ''}`;
+        replySolicitudSummary.textContent = sol.datosDetallados || sol.tipoAccion || '';
+        replyMessageText.value = prefilledText || `Hola ${sol.nombreCliente || ''}, respecto a tu solicitud enviada a Casa Julián de Tolosa...`;
+        replyErrorMsg.style.display = 'none';
+        replyModal.setAttribute('data-target-status', targetStatus);
+        replyModal.style.display = 'flex';
+    }
+
+    function closeReplyModal() {
+        replyModal.style.display = 'none';
+        activeReplySolicitud = null;
+    }
+
+    if (closeReplyModalBtn) closeReplyModalBtn.addEventListener('click', closeReplyModal);
+    if (cancelReplyBtn) cancelReplyBtn.addEventListener('click', closeReplyModal);
+    if (refreshInboxBtn) refreshInboxBtn.addEventListener('click', fetchSolicitudes);
+
+    // Eventos de Filtrado en Toolbar Inbox
+    document.querySelectorAll('#inbox-category-filters .filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('#inbox-category-filters .filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentInboxCatFilter = chip.getAttribute('data-inbox-cat');
+            renderInboxCards();
+        });
+    });
+
+    document.querySelectorAll('#inbox-status-filters .filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('#inbox-status-filters .filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentInboxStatusFilter = chip.getAttribute('data-inbox-status');
+            renderInboxCards();
+        });
+    });
+
+    if (searchInboxInput) {
+        searchInboxInput.addEventListener('input', (e) => {
+            currentInboxSearch = e.target.value;
+            renderInboxCards();
+        });
+    }
+
+    // Plantillas de Respuesta Rápida
+    document.querySelectorAll('.template-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!activeReplySolicitud) return;
+            const tType = btn.getAttribute('data-template');
+            const name = activeReplySolicitud.nombreCliente || '';
+            if (tType === 'confirm') {
+                replyMessageText.value = `✅ Hola ${name}, tu solicitud para Asador Casa Julián de Tolosa ha sido CONFIRMADA. ¡Esperamos darte la bienvenida pronto!`;
+                replyModal.setAttribute('data-target-status', 'CONFIRMADA');
+            } else if (tType === 'reject') {
+                replyMessageText.value = `⚠️ Hola ${name}, lo sentimos pero no disponemos de mesa o disponibilidad para el turno/fecha solicitados en Casa Julián de Tolosa. Por favor indícanos otra alternativa si lo deseas.`;
+                replyModal.setAttribute('data-target-status', 'RECHAZADA');
+            } else if (tType === 'info') {
+                replyMessageText.value = `💬 Hola ${name}, hemos recibido tu consulta. Nos ponemos en contacto contigo para indicarte que...`;
+                replyModal.setAttribute('data-target-status', 'RESPONDIDA');
+            }
+        });
+    });
+
+    // Envío del Formulario de Respuesta por WhatsApp
+    if (replyForm) {
+        replyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const solId = replySolicitudId.value;
+            const text = replyMessageText.value.trim();
+            const targetStatus = replyModal.getAttribute('data-target-status') || 'RESPONDIDA';
+
+            if (!solId || !text) {
+                replyErrorMsg.textContent = "Por favor escribe un mensaje de respuesta.";
+                replyErrorMsg.style.display = 'block';
+                return;
+            }
+
+            const submitBtn = document.getElementById('send-reply-submit-btn');
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/admin/solicitudes/${solId}/responder`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': adminToken
+                    },
+                    body: JSON.stringify({
+                        respuestaText: text,
+                        nuevoEstado: targetStatus
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    closeReplyModal();
+                    alert(data.message || "✅ WhatsApp enviado con éxito al cliente.");
+                    await fetchSolicitudes();
+                } else {
+                    replyErrorMsg.textContent = data.error || "Error al enviar WhatsApp al cliente.";
+                    replyErrorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                replyErrorMsg.textContent = "Error de conexión: " + err.message;
+                replyErrorMsg.style.display = 'block';
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
     }
 });

@@ -79,6 +79,14 @@ const {
     findExistingWaitlistEntry
 } = require('./db/waitlist');
 
+const {
+    getCategoryTagInfo,
+    createSolicitud,
+    getAllSolicitudes,
+    updateSolicitudStatus,
+    deleteSolicitud
+} = require('./db/solicitudes');
+
 module.exports = {
     pool,
     DB_PATH,
@@ -141,5 +149,10 @@ module.exports = {
     removeFromWaitlist,
     getWaitlistEntry,
     cancelWaitlistEntry,
-    findExistingWaitlistEntry
+    findExistingWaitlistEntry,
+    getCategoryTagInfo,
+    createSolicitud,
+    getAllSolicitudes,
+    updateSolicitudStatus,
+    deleteSolicitud
 };
