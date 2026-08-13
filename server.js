@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-13-CMS-V182-DEJAR-SOLO-EL-TITULO-EN-EL-MENSAJE-DE-BIENVENIDA';
+const DEPLOY_VERSION = 'v2026-08-13-CMS-V183-CORREGIR-TEXTO-ASADEROS-A-ASADORES-EN-MADRID-MSG';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

@@ -43,7 +43,7 @@ const translations = {
         "selectLocationBody": "¿En cuál de nuestros restaurantes estás interesado?",
         "locPaisVasco": "Tolosa (Euskadi)",
         "locMadrid": "Madrid (CA Madrid)",
-        "madridMsg": "Está contactando con el asador ubicado en el País Vasco. Para contactar con los asaderos de Madrid:\n\n*Cava Baja:* +34 925 94 28 94 (Whatsapp)\n*Calle Ibiza:* +34 925 94 28 91 (Whatsapp)",
+        "madridMsg": "Está contactando con el asador ubicado en el País Vasco. Para contactar con los asadores de Madrid:\n\n*Cava Baja:* +34 925 94 28 94 (Whatsapp)\n*Calle Ibiza:* +34 925 94 28 91 (Whatsapp)",
         "mainMenuHeader": "DÍGANOS EN QUÉ LE PODEMOS AYUDAR:",
         "opt1Title": "1. Hacer una reserva",
         "opt1Desc": "Solicitar reserva online, tarjeta regalo o lista de espera.",
