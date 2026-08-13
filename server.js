@@ -37,7 +37,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-13-CMS-V188-MEJORAR-LOGIN-CON-SELECTOR-DE-ROL-Y-VALIDACION-DE-TOKEN';
+const DEPLOY_VERSION = 'v2026-08-13-CMS-V189-ROL-RECEPCION-VE-SOLO-BUZON-ROL-ADMIN-VE-SOLO-PANEL-CMS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });

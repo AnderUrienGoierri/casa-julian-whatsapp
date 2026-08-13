@@ -150,33 +150,42 @@ document.addEventListener('DOMContentLoaded', () => {
         // Aplicar restricciones visuales por rol de usuario
         const role = localStorage.getItem('casa_julian_user_role') || 'admin';
         if (role === 'recepcion') {
+            // RECEPCIÓN: Solo Buzón de Solicitudes → ocultar todas las demás pestañas
             document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
-                if (btn.getAttribute('data-tab') !== 'tab-inbox') {
-                    btn.style.display = 'none';
-                }
+                btn.style.display = (btn.getAttribute('data-tab') === 'tab-inbox') ? 'inline-block' : 'none';
             });
-            // Activar pestaña inbox
-            const inboxTabBtn = document.querySelector('.tabs-nav .tab-btn[data-tab="tab-inbox"]');
-            if (inboxTabBtn) inboxTabBtn.click();
-        } else {
-            // Mostrar todas las pestañas para el rol admin
-            document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
-                btn.style.display = 'inline-block';
-            });
-        }
-
-        try {
+            // Activar la pestaña inbox directamente
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            const inboxContent = document.getElementById('tab-inbox');
+            if (inboxContent) inboxContent.classList.add('active');
+            // Cargar solicitudes y empezar polling
             await fetchSolicitudes();
             if (!inboxPollingInterval) {
                 inboxPollingInterval = setInterval(fetchSolicitudes, 15000);
             }
+            // No cargar estructura del bot (no necesaria para recepción)
+            return;
+        }
 
+        // ADMINISTRACIÓN: Todas las pestañas EXCEPTO Buzón de Recepción
+        document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
+            btn.style.display = (btn.getAttribute('data-tab') === 'tab-inbox') ? 'none' : 'inline-block';
+        });
+        // Activar primera pestaña visible (tab-flow)
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        const flowContent = document.getElementById('tab-flow');
+        if (flowContent) flowContent.classList.add('active');
+        const flowTabBtn = document.querySelector('.tabs-nav .tab-btn[data-tab="tab-flow"]');
+        if (flowTabBtn) { flowTabBtn.classList.add('active'); }
+
+        try {
             const res = await fetch('/api/admin/structure', {
                 headers: { 'x-admin-token': adminToken }
             });
 
             if (res.status === 401) {
                 localStorage.removeItem('casa_julian_admin_token');
+                localStorage.removeItem('casa_julian_user_role');
                 showLoginModal();
                 return;
             }
