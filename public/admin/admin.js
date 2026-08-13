@@ -1647,8 +1647,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 catTagHtml = `<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">❌ Cancelaciones</span>`;
             } else if (sol.categoria === 'consulta_abierta') {
                 catTagHtml = `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">💬 Consultas Abiertas</span>`;
-            } else if (sol.categoria === 'reserva_online') {
-                catTagHtml = `<span class="badge" style="background: rgba(220, 38, 38, 0.15); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">🔴 Reserva Online</span>`;
             }
 
             // Badge de Estado

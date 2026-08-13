@@ -131,9 +131,17 @@ function getCategoryTagInfo(tipoAccion, datosDetallados) {
  * Crea y guarda una nueva solicitud enviada por un cliente desde el chatbot.
  */
 async function createSolicitud({ tipoAccion, telefonoCliente, datosDetallados, nombreCliente = null, telefonoReserva = null }) {
+    const tagInfo = getCategoryTagInfo(tipoAccion, datosDetallados);
+    
+    // Las Reservas Online y Lista de Espera se autogestionan vía TheFork / Web Oficial.
+    // Se descartan de esta bandeja de entrada.
+    if (tagInfo.key === 'reserva_online' || tagInfo.key === 'lista_espera') {
+        console.log(`   └─ ℹ️ Solicitud de tipo "${tagInfo.key}" ignorada (gestionada externa por TheFork/Web).`);
+        return null;
+    }
+
     const id = `SOL-${Date.now()}`;
     const timestamp = getSpainIsoTimestamp();
-    const tagInfo = getCategoryTagInfo(tipoAccion, datosDetallados);
 
     const nuevaSolicitud = {
         id,
