@@ -1817,15 +1817,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const rows = [];
 
         lines.forEach(line => {
-            // Reconocer patrones como: "👤 *Nombre:* jadi jdboe" o "*Nº Tarjeta Regalo:* MT-2026-073" o "Servicio: Comida"
-            const match = line.match(/^([\p{Emoji}\u200d\uFE0F\s]*)\*?([^\*:]+)\*?:\s*(.*)$/u);
-            if (match) {
-                const icon = match[1].trim() || '📌';
-                const label = match[2].trim();
-                let val = match[3].trim().replace(/\*+/g, '');
-                rows.push({ icon, label, val });
+            let cleanLine = line.trim();
+            let emoji = '📌';
+            
+            // Detectar emoji al inicio de la línea (incluye emojis compuestos)
+            const emojiMatch = cleanLine.match(/^([\p{Emoji}\u200d\uFE0F]+)\s*/u);
+            if (emojiMatch) {
+                emoji = emojiMatch[1];
+                cleanLine = cleanLine.substring(emojiMatch[0].length).trim();
+            }
+
+            // Buscar dos puntos que dividen el nombre del campo del valor
+            const colonIdx = cleanLine.indexOf(':');
+            if (colonIdx > -1) {
+                let rawLabel = cleanLine.substring(0, colonIdx);
+                let rawVal = cleanLine.substring(colonIdx + 1);
+
+                // Quitar TODOS los asteriscos, guiones bajos o tildes del nombre del campo y del valor
+                let label = rawLabel.replace(/[\*\_\~]/g, '').trim();
+                let val = rawVal.replace(/[\*\_\~]/g, '').trim();
+
+                rows.push({ icon: emoji, label, val });
             } else {
-                rows.push({ icon: '📋', label: 'Info', val: line.replace(/\*+/g, '') });
+                let cleanVal = cleanLine.replace(/[\*\_\~]/g, '').trim();
+                rows.push({ icon: emoji, label: 'Detalle', val: cleanVal });
             }
         });
 
@@ -1847,7 +1862,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     : `<span style="color: #94a3b8;">${r.val || 'Ninguna'}</span>`;
             } else if (labelLower.includes('estado')) {
                 valHtml = `<span class="badge-status-pill">${r.val}</span>`;
-            } else if (labelLower.includes('comensal') || labelLower.includes('personas') || labelLower.includes('adultos')) {
+            } else if (labelLower.includes('comensal') || labelLower.includes('personas') || labelLower.includes('adultos') || labelLower.includes('niños') || labelLower.includes('ninos')) {
                 valHtml = `<span style="font-weight: 700; color: #38bdf8;">${r.val}</span>`;
             } else if (labelLower.includes('servicio')) {
                 valHtml = `<span style="color: #34d399; font-weight: 700;">${r.val}</span>`;
