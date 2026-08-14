@@ -9,7 +9,12 @@ const {
     getAllSolicitudes,
     updateSolicitudStatus,
     deleteSolicitud,
-    getCategoryTagInfo
+    getCategoryTagInfo,
+    getGiftCard,
+    updateGiftCardStatus,
+    extractGiftCardCodeFromText,
+    getAllGiftCards,
+    isCardExpired
 } = require('./database');
 const { getSimMessages, clearSimMessages, sendMessage } = require('./whatsappApi');
 
@@ -643,6 +648,25 @@ router.post('/solicitudes/:id/concluir', requireAdminAuth, async (req, res) => {
         }
 
         const finalStatus = (estadoFinal || 'CONFIRMADA').trim().toUpperCase();
+        
+        // Transición de ciclo de vida de Tarjetas Regalo (si aplica)
+        const cardCode = extractGiftCardCodeFromText(sol.datosDetallados);
+        if (cardCode) {
+            if (finalStatus === 'CONFIRMADA' || finalStatus === 'RESUELTA') {
+                console.log(`🎁 Solicitud ${id} confirmada: Tarjeta regalo ${cardCode} pasa a 'RESERVADA'.`);
+                await updateGiftCardStatus(cardCode, 'RESERVADA');
+            } else if (finalStatus === 'CANCELADA' || finalStatus === 'RECHAZADA') {
+                const card = await getGiftCard(cardCode);
+                if (card && isCardExpired(card.fecha_caducidad)) {
+                    console.log(`🎁 Solicitud ${id} cancelada: Tarjeta regalo ${cardCode} está caducada -> 'CADUCADA'.`);
+                    await updateGiftCardStatus(cardCode, 'CADUCADA');
+                } else {
+                    console.log(`🎁 Solicitud ${id} cancelada: Tarjeta regalo ${cardCode} vuelve a 'DISPONIBLE'.`);
+                    await updateGiftCardStatus(cardCode, 'DISPONIBLE');
+                }
+            }
+        }
+
         // Reactiva el bot (enAtencionHumana = false)
         const updated = await updateSolicitudStatus(
             id, 
@@ -662,26 +686,58 @@ router.post('/solicitudes/:id/concluir', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 17. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, ARCHIVADA)
+// 17. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, CANCELADA, ARCHIVADA)
 router.post('/solicitudes/:id/estado', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { estado } = req.body || {};
         if (!estado) return res.status(400).json({ error: 'El estado es requerido.' });
 
-        const updated = await updateSolicitudStatus(id, estado.trim().toUpperCase());
+        const targetStatus = estado.trim().toUpperCase();
+        const list = await getAllSolicitudes();
+        const sol = list.find(s => s.id === id);
+
+        // Transición de ciclo de vida de Tarjetas Regalo (si aplica)
+        if (sol) {
+            const cardCode = extractGiftCardCodeFromText(sol.datosDetallados);
+            if (cardCode) {
+                if (targetStatus === 'CONFIRMADA' || targetStatus === 'RESUELTA') {
+                    console.log(`🎁 Solicitud ${id} estado cambiado a ${targetStatus}: Tarjeta ${cardCode} pasa a 'RESERVADA'.`);
+                    await updateGiftCardStatus(cardCode, 'RESERVADA');
+                } else if (targetStatus === 'CANCELADA' || targetStatus === 'RECHAZADA') {
+                    const card = await getGiftCard(cardCode);
+                    if (card && isCardExpired(card.fecha_caducidad)) {
+                        await updateGiftCardStatus(cardCode, 'CADUCADA');
+                    } else {
+                        await updateGiftCardStatus(cardCode, 'DISPONIBLE');
+                    }
+                }
+            }
+        }
+
+        const updated = await updateSolicitudStatus(id, targetStatus);
         return res.json({ success: true, solicitud: updated });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
 });
 
-// 17. Eliminar una solicitud por ID
+// 18. Eliminar una solicitud por ID
 router.delete('/solicitudes/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const success = await deleteSolicitud(id);
         return res.json({ success });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 19. Obtener lista completa de tarjetas regalo con estados y fecha de caducidad a 6 meses
+router.get('/tarjetas-regalo', requireAdminAuth, async (req, res) => {
+    try {
+        const cards = await getAllGiftCards();
+        return res.json({ success: true, tarjetas: cards });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }

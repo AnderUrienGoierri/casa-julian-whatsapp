@@ -43,7 +43,11 @@ const {
 const {
     getGiftCard,
     updateGiftCardStatus,
-    createGiftCard
+    createGiftCard,
+    getAllGiftCards,
+    calculateSixMonthsValidity,
+    isCardExpired,
+    extractGiftCardCodeFromText
 } = require('./db/giftCards');
 
 const {
@@ -125,6 +129,10 @@ module.exports = {
     getGiftCard,
     updateGiftCardStatus,
     createGiftCard,
+    getAllGiftCards,
+    calculateSixMonthsValidity,
+    isCardExpired,
+    extractGiftCardCodeFromText,
     getDynamicTexts,
     saveDynamicText,
     getMenuItems,

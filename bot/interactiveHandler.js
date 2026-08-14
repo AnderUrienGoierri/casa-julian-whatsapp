@@ -1371,9 +1371,13 @@ async function handleButtonResponse(from, buttonId) {
                         } else {
                             await db.updateReservationStatus(pending.reservationId, 'PENDIENTE CANCELACION');
                         }
-                    } else if (pending.tarjetaCodigo) {
-                        const codes = pending.tarjetaCodigo.split(',').map(c => c.trim()).filter(Boolean);
+                    }
+                    
+                    const targetCardCode = pending.tarjetaCodigo || db.extractGiftCardCodeFromText(pending.detalleMod);
+                    if (targetCardCode) {
+                        const codes = targetCardCode.split(',').map(c => c.trim()).filter(Boolean);
                         for (const code of codes) {
+                            console.log(`🎁 [confirm_yes] Tarjeta ${code} pasa a 'PENDIENTE RESERVA'.`);
                             await db.updateGiftCardStatus(code, 'PENDIENTE RESERVA');
                         }
                     }

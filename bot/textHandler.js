@@ -142,13 +142,30 @@ async function handleTextMessage(from, text) {
             const card = await db.getGiftCard(cardInput);
 
             if (card) {
-                const statusUpper = (card.estado || 'ACTIVA').toString().trim().toUpperCase();
-                const invalidStates = ['CADUCADA', 'USADA', 'CANJEADA', 'CANCELADA', 'PENDIENTE RESERVA', 'INACTIVA', 'DESACTIVADA'];
-                const isCardActive = !invalidStates.includes(statusUpper);
-                if (!isCardActive) {
-                    let inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* se encuentra actualmente en estado: *${card.estado}* y no puede usarse para reservar en este momento. Por favor, introduce otro código de tarjeta regalo:`;
-                    if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela *${card.estado}* egoeran dago eta ezin da erabili erreserba egiteko une honetan. Mesedez, sartu beste opari-txartel baten kodea:`;
-                    else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* is currently in state: *${card.estado}* and cannot be used for booking right now. Please enter another gift card code:`;
+                const statusUpper = (card.estado || 'DISPONIBLE').toString().trim().toUpperCase();
+                
+                if (statusUpper !== 'DISPONIBLE' && statusUpper !== 'ACTIVA') {
+                    let inactiveMsg = '';
+                    if (statusUpper === 'CADUCADA') {
+                        inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* está *CADUCADA* (plazo máximo de 6 meses superado, válida hasta ${card.fecha_caducidad}). Por favor, introduce otro código:`;
+                        if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela *IRAUNGITA* dago (6 hilabeteko epea igaro da, ${card.fecha_caducidad} arte baliogarria zen). Mesedez, sartu beste kode bat:`;
+                        else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* is *EXPIRED* (6-month validity period passed, valid until ${card.fecha_caducidad}). Please enter another code:`;
+                    } else if (statusUpper === 'PENDIENTE RESERVA') {
+                        inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* ya tiene una solicitud de reserva *PENDIENTE DE CONFIRMAR* con recepción. Por favor, introduce otro código:`;
+                        if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartelak badu dagoeneko harrerarekin *BERRESTEN EGOTEAN* dagoen erreserba eskaera bat. Mesedez, sartu beste kode bat:`;
+                        else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* already has a booking request *PENDING CONFIRMATION* with reception. Please enter another code:`;
+                    } else if (statusUpper === 'RESERVADA') {
+                        inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* ya se encuentra *RESERVADA* para un servicio. Por favor, introduce otro código:`;
+                        if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela dagoeneko zerbitzu baterako *ERRESERBATUTA* dago. Mesedez, sartu beste kode bat:`;
+                        else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* is already *RESERVED* for a confirmed service. Please enter another code:`;
+                    } else if (statusUpper === 'CONSUMIDA' || statusUpper === 'USADA' || statusUpper === 'CANJEADA') {
+                        inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* ya ha sido *CONSUMIDA* en el restaurante. Por favor, introduce otro código:`;
+                        if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela jatetxean *KONTSUMITUTA* dago dagoeneko. Mesedez, sartu beste kode bat:`;
+                        else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* has already been *CONSUMED* at the restaurant. Please enter another code:`;
+                    } else {
+                        inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* se encuentra en estado *${card.estado}* y no puede usarse para reservar. Por favor, introduce otro código:`;
+                    }
+
                     await sendMessage(from, inactiveMsg);
                     break;
                 }
@@ -164,18 +181,21 @@ async function handleTextMessage(from, text) {
 
                 let cardVerifiedMsg = `🎁 *TARJETA REGALO VERIFICADA CORRECTAMENTE*\n\n` +
                     `✅ *Código:* ${card.codigo}\n` +
-                    `📅 *Válida hasta:* ${card.fecha_caducidad}\n` +
+                    `📅 *Válida hasta:* ${card.fecha_caducidad} (plazo 6 meses)\n` +
+                    `📌 *Estado:* DISPONIBLE\n` +
                     `👥 *Comensales del Menú Tradición:* 2 personas por tarjeta`;
 
                 if (lang === 'eu') {
                     cardVerifiedMsg = `🎁 *OPARI-TXARTELA EGOKI EGIAZTATU DA*\n\n` +
                         `✅ *Kodea:* ${card.codigo}\n` +        
-                        `📅 *Noiz arte baliogarria:* ${card.fecha_caducidad}\n` +
+                        `📅 *Noiz arte baliogarria:* ${card.fecha_caducidad} (6 hilabeteko epea)\n` +
+                        `📌 *Egoera:* ESKURAGARRI\n` +
                         `👥 *Tradizio Menuko jankideak:* 2 pertsona txartel bakoitzeko`;
                 } else if (lang === 'en') {
                     cardVerifiedMsg = `🎁 *GIFT CARD VERIFIED SUCCESSFULLY*\n\n` +
                         `✅ *Code:* ${card.codigo}\n` +
-                        `📅 *Valid until:* ${card.fecha_caducidad}\n` +
+                        `📅 *Valid until:* ${card.fecha_caducidad} (6-month period)\n` +
+                        `📌 *Status:* AVAILABLE\n` +
                         `👥 *Tradition Menu Guests:* 2 people per card`;
                 }
 
