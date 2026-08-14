@@ -1,8 +1,8 @@
 # Comportamiento del Modo Bot y Atención Humana
 
-**Proyecto:** Asador Casa Julián de Tolosa — WhatsApp Bot & Panel CMS  
-**Versión:** V200 — Regla definitiva de handover a agente humano  
-**Fecha:** 14 de Agosto de 2026  
+**Proyecto:** Asador Casa Julián de Tolosa — WhatsApp Bot & Panel CMS
+**Versión:** V200 — Regla definitiva de handover a agente humano
+**Fecha:** 14 de Agosto de 2026
 
 ---
 
@@ -16,16 +16,16 @@ El bot **NUNCA** se silencia de forma automática por acciones del cliente (ni a
 
 ## 2. Tabla de Comportamiento Detallado
 
-| Situación | ¿Quién actúa? | Comportamiento del Bot | Estado `en_atencion_humana` |
-|---|---|---|---|
-| Cliente envía una solicitud (tarjeta regalo, reserva, cancelación, modificación...) | Cliente | ✅ **Bot ACTIVO** — el cliente puede seguir navegando libremente | `false` |
-| Cliente pulsa cualquier botón de menú del chatbot | Cliente | ✅ **Bot RESPONDE** — si había modo humano activo, se desactiva y el bot retoma el control | `false` (forzado) |
-| Cliente selecciona una opción de lista desplegable | Cliente | ✅ **Bot RESPONDE** — igual que los botones | `false` (forzado) |
-| Cliente escribe texto libre por teclado, sin modo humano activo | Cliente | ✅ **Bot RESPONDE** — el bot gestiona el texto con normalidad | `false` |
-| Cliente escribe texto libre por teclado, **con modo humano activo** | Cliente | ⏸️ **Bot en silencio** — el mensaje se guarda en el hilo de Recepción del Panel Web | `true` (ya activado por Recepción) |
-| Recepción pulsa **`👤 Activar Atención Humana`** en el panel | Recepción | 🔴 **Bot PAUSADO** — conversación privada entre Recepción y el cliente | `true` |
-| Recepción escribe un mensaje y pulsa **`📲 ENVIAR WHATSAPP`** | Recepción | 🔴 **Bot PAUSADO** — el envío activa automáticamente la atención humana | `true` |
-| Recepción pulsa **`✅ Concluir Gestión & Reactivar Bot`** | Recepción | ✅ **Bot REACTIVADO** — el cliente vuelve al flujo normal del chatbot | `false` |
+| Situación                                                                             | ¿Quién actúa? | Comportamiento del Bot                                                                            | Estado`en_atencion_humana`          |
+| -------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Cliente envía una solicitud (tarjeta regalo, reserva, cancelación, modificación...) | Cliente          | ✅**Bot ACTIVO** — el cliente puede seguir navegando libremente                            | `false`                             |
+| Cliente pulsa cualquier botón de menú del chatbot                                    | Cliente          | ✅**Bot RESPONDE** — si había modo humano activo, se desactiva y el bot retoma el control | `false` (forzado)                   |
+| Cliente selecciona una opción de lista desplegable                                    | Cliente          | ✅**Bot RESPONDE** — igual que los botones                                                 | `false` (forzado)                   |
+| Cliente escribe texto libre por teclado, sin modo humano activo                        | Cliente          | ✅**Bot RESPONDE** — el bot gestiona el texto con normalidad                               | `false`                             |
+| Cliente escribe texto libre por teclado,**con modo humano activo**               | Cliente          | ⏸️**Bot en silencio** — el mensaje se guarda en el hilo de Recepción del Panel Web      | `true` (ya activado por Recepción) |
+| Recepción pulsa**`👤 Activar Atención Humana`** en el panel                  | Recepción       | 🔴**Bot PAUSADO** — conversación privada entre Recepción y el cliente                    | `true`                              |
+| Recepción escribe un mensaje y pulsa**`📲 ENVIAR WHATSAPP`**                  | Recepción       | 🔴**Bot PAUSADO** — el envío activa automáticamente la atención humana                  | `true`                              |
+| Recepción pulsa**`✅ Concluir Gestión & Reactivar Bot`**                     | Recepción       | ✅**Bot REACTIVADO** — el cliente vuelve al flujo normal del chatbot                       | `false`                             |
 
 ---
 
@@ -50,15 +50,18 @@ El bot **NUNCA** se silencia de forma automática por acciones del cliente (ni a
 ## 4. Reglas de Activación del Modo Humano
 
 ### ✅ ACTIVA el modo humano (`en_atencion_humana = true`):
+
 - Recepción pulsa el botón **`👤 Activar Atención Humana`** en el panel.
 - Recepción escribe un mensaje en el chat de la solicitud y pulsa **`📲 ENVIAR WHATSAPP`**.
 
 ### ✅ DESACTIVA el modo humano (`en_atencion_humana = false`):
+
 - Recepción pulsa **`✅ Concluir Gestión & Reactivar Bot`**.
 - El cliente pulsa **cualquier botón o selecciona cualquier opción de lista** del chatbot (automático).
 - El cliente escribe exactamente: `#bot`, `/menu`, `menu`, `menú`, o `volver al bot` (escape manual).
 
 ### ❌ NO activa ni desactiva el modo humano:
+
 - El cliente envía una solicitud (tarjeta regalo, modificación, cancelación, consulta...).
 - El cliente escribe texto libre por teclado (si el modo humano **no** estaba ya activo).
 - Cualquier interacción interna del bot (menús, confirmaciones, etc.).
@@ -103,14 +106,14 @@ if (activeSolicitud) {
 
 ## 6. Estados de una Solicitud
 
-| Estado | Descripción |
-|---|---|
-| `PENDIENTE` | Solicitud recibida, sin gestionar |
-| `EN_GESTION` | Recepción ha respondido al cliente al menos una vez |
+| Estado         | Descripción                                                  |
+| -------------- | ------------------------------------------------------------- |
+| `PENDIENTE`  | Solicitud recibida, sin gestionar                             |
+| `EN_GESTION` | Recepción ha respondido al cliente al menos una vez          |
 | `RESPONDIDA` | Solicitud respondida y pendiente de confirmación del cliente |
-| `CONFIRMADA` | Gestión concluida con éxito |
-| `RECHAZADA` | Solicitud rechazada por el restaurante |
-| `RESUELTA` | Consulta o incidencia resuelta |
+| `CONFIRMADA` | Gestión concluida con éxito                                 |
+| `RECHAZADA`  | Solicitud rechazada por el restaurante                        |
+| `RESUELTA`   | Consulta o incidencia resuelta                                |
 
 ---
 

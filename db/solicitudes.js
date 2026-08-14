@@ -257,13 +257,61 @@ async function getAllSolicitudes() {
 
 /**
  * Comprueba si un cliente tiene una solicitud activa en Modo Atención Humana (bot pausado).
+ * IMPORTANTE: Consulta SIEMPRE PostgreSQL directamente. Si PG no está disponible, devuelve null
+ * (bot activo por defecto) para evitar falsos positivos con datos obsoletos del fallback db.json.
  */
 async function getActiveHumanHandoverSolicitud(telefono) {
     if (!telefono) return null;
     const cleanTel = telefono.toString().replace(/\D/g, '');
-    const all = await getAllSolicitudes();
-    return all.find(s => 
-        (s.enAtencionHumana === true || s.en_atencion_humana === true) && 
+
+    // Consulta directa a PostgreSQL (fuente de verdad)
+    if (pool) {
+        try {
+            const res = await pool.query(
+                `SELECT * FROM solicitudes 
+                 WHERE en_atencion_humana = true 
+                 AND estado IN ('PENDIENTE', 'EN_GESTION', 'RESPONDIDA')
+                 AND (telefono_cliente = $1 OR telefono_reserva = $1)
+                 LIMIT 1`,
+                [cleanTel]
+            );
+            if (res.rows && res.rows.length > 0) {
+                const r = res.rows[0];
+                let parsedMensajes = [];
+                try {
+                    parsedMensajes = typeof r.mensajes === 'string' ? JSON.parse(r.mensajes) : (r.mensajes || []);
+                } catch (e) {
+                    parsedMensajes = [];
+                }
+                return {
+                    id: r.id,
+                    tipoAccion: r.tipo_accion,
+                    categoria: r.categoria,
+                    categoriaLabel: r.categoria_label,
+                    telefonoCliente: r.telefono_cliente,
+                    nombreCliente: r.nombre_cliente,
+                    telefonoReserva: r.telefono_reserva,
+                    datosDetallados: r.datos_detallados,
+                    estado: r.estado,
+                    enAtencionHumana: true,
+                    mensajes: parsedMensajes,
+                    created_at: r.created_at
+                };
+            }
+            return null; // Sin solicitud activa en modo humano
+        } catch (e) {
+            // Si PostgreSQL falla, devolvemos null (bot activo) — no usamos el fallback db.json
+            // para evitar bloqueos erróneos con datos obsoletos
+            console.warn(`⚠️ [handover] PostgreSQL no disponible, bot activo por defecto: ${e.message}`);
+            return null;
+        }
+    }
+
+    // Sin pool PostgreSQL configurado: consulta al db.json (solo en entorno local sin PG)
+    const db = loadDb();
+    const list = db.solicitudes || [];
+    return list.find(s =>
+        (s.enAtencionHumana === true) &&
         (s.estado === 'PENDIENTE' || s.estado === 'EN_GESTION' || s.estado === 'RESPONDIDA') &&
         (s.telefonoCliente === cleanTel || s.telefonoReserva === cleanTel)
     ) || null;
