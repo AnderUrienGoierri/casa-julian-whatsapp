@@ -24,7 +24,6 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
             }
             await sendMessage(from, msg);
         }
-        await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
         return;
     }
 
