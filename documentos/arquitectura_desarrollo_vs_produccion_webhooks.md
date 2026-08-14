@@ -7,6 +7,7 @@ Este documento detalla el funcionamiento del túnel local en desarrollo, la tran
 ## 1. ¿Por qué se utiliza un túnel (`localtunnel` / `ngrok`) en Desarrollo?
 
 Cuando un cliente escribe un mensaje en WhatsApp:
+
 1. El mensaje llega primero a los servidores mundiales de **Meta (WhatsApp Cloud API)**.
 2. Meta necesita enviar ese mensaje por internet a nuestro servidor mediante una petición HTTP (*Webhook*).
 3. Durante la fase de desarrollo, el servidor del bot se está ejecutando dentro de tu ordenador personal en `http://localhost:3000`. Como `localhost` es una dirección privada e invisible desde internet, Meta no puede enviar datos a tu PC directamente.
@@ -32,11 +33,11 @@ En el entorno de producción (cuando el sistema esté desplegado de forma defini
 
 El personal de recepción y los administradores **no tendrán ninguna carga técnica**:
 
-| Aspecto | Comportamiento |
-|---|---|
-| **Disponibilidad** | El bot y el servidor estarán activos **24 horas al día, 365 días al año** de forma ininterrumpida. |
-| **Acceso al Buzón & CMS** | Recepción solo abrirá un enlace web en su navegador habitual (ej: `https://whatsapp.casajulian.com/admin/`). |
-| **Intervención Técnica** | **Cero**. No tendrán que abrir terminales, ni ejecutar comandos, ni configurar puertos o túneles. |
+| Aspecto                             | Comportamiento                                                                                                                    |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Disponibilidad**            | El bot y el servidor estarán activos**24 horas al día, 365 días al año** de forma ininterrumpida.                       |
+| **Acceso al Buzón & CMS**    | Recepción solo abrirá un enlace web en su navegador habitual (ej:`https://whatsapp.casajulian.com/admin/`).                   |
+| **Intervención Técnica**    | **Cero**. No tendrán que abrir terminales, ni ejecutar comandos, ni configurar puertos o túneles.                         |
 | **Actualizaciones y Estados** | Las notificaciones sonoras, el buzón de solicitudes y el cambio entre Modo Bot y Modo Humano funcionan de manera 100% autónoma. |
 
 ---
