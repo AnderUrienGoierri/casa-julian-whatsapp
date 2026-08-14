@@ -187,7 +187,7 @@ async function sendTemplateMessage(to, templateName, languageCode = 'es', compon
         return;
     }
 
-    try {
+    async function trySend(code) {
         const payload = {
             messaging_product: 'whatsapp',
             to: to,
@@ -195,7 +195,7 @@ async function sendTemplateMessage(to, templateName, languageCode = 'es', compon
             template: {
                 name: templateName,
                 language: {
-                    code: languageCode
+                    code: code
                 }
             }
         };
@@ -214,8 +214,23 @@ async function sendTemplateMessage(to, templateName, languageCode = 'es', compon
             data: payload
         });
         return response.data;
+    }
+
+    try {
+        return await trySend(languageCode);
     } catch (error) {
-        console.error("Error enviando plantilla de WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        const errCode = error.response?.data?.error?.code;
+        // Si el idioma solicitado no existe en Meta (#132001), intentar fallback a 'en' o 'es'
+        if (errCode === 132001) {
+            const fallbackCode = (languageCode === 'en' ? 'es' : 'en');
+            try {
+                return await trySend(fallbackCode);
+            } catch (fallbackError) {
+                console.error(`Error enviando plantilla ${templateName} (intento ${languageCode} y ${fallbackCode}):`, fallbackError.response ? JSON.stringify(fallbackError.response.data, null, 2) : fallbackError.message);
+            }
+        } else {
+            console.error("Error enviando plantilla de WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        }
     }
 }
 
