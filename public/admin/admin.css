@@ -1289,6 +1289,54 @@ body.mode-recepcion .inbox-cards-grid {
     transform: scale(1.03);
 }
 
+.minimized-unread-badge {
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 12px;
+    animation: pulseUnread 1.2s infinite;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+    white-space: nowrap;
+}
+
+.minimized-floating-bar.has-unread {
+    border: 1.5px solid #ef4444 !important;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.6) !important;
+    animation: bounceWidget 0.8s ease infinite alternate;
+}
+
+.solicitud-card.has-unread-msg {
+    border-color: #22c55e !important;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.35) !important;
+}
+
+.card-unread-pill {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #ffffff;
+    font-size: 0.74rem;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    animation: pulseUnread 1.4s infinite;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+}
+
+@keyframes pulseUnread {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1.06); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+@keyframes bounceWidget {
+    from { transform: translateY(0); }
+    to { transform: translateY(-8px); }
+}
+
 .btn-close-mini {
     background: rgba(255, 255, 255, 0.1);
     border: none;

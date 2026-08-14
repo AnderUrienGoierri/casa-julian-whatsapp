@@ -188,10 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const inboxContent = document.getElementById('tab-inbox');
             if (inboxContent) inboxContent.classList.add('active');
-            // Cargar solicitudes y empezar polling
+            // Cargar solicitudes y empezar polling en tiempo real cada 3.5s
             await fetchSolicitudes();
             if (!inboxPollingInterval) {
-                inboxPollingInterval = setInterval(fetchSolicitudes, 15000);
+                inboxPollingInterval = setInterval(fetchSolicitudes, 3500);
             }
             // No cargar estructura del bot (no necesaria para recepción)
             return;
@@ -1616,10 +1616,112 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // LÓGICA DE BANDEJA DE RECEPCIÓN Y SOLICITUDES EN TIEMPO REAL (INBOX)
+    // LÓGICA DE BANDEJA DE RECEPCIÓN Y NOTIFICACIONES EN TIEMPO REAL (INBOX)
     // =========================================================================
 
-    // Cargar Solicitudes desde Backend
+    // Variables de Estado de Notificaciones y Rastreo de Mensajes
+    let knownSolicitudMsgCounts = {};
+    let isFirstSolicitudesFetch = true;
+    let unreadSolicitudIds = new Set();
+    let titleFlashInterval = null;
+    const baseDocumentTitle = document.title || 'Panel de Administración & Editor Visual - Casa Julián Chatbot';
+
+    // 🔔 Reproducir Sonido de Notificación Doble Tono estilo WhatsApp (Web Audio API)
+    function playWhatsAppNotificationChime() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            const now = ctx.currentTime;
+
+            // Tono 1: Campana suave y clara (E5 -> A5)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(659.25, now);
+            osc1.frequency.exponentialRampToValueAtTime(880, now + 0.1);
+
+            gain1.gain.setValueAtTime(0.35, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.28);
+
+            // Tono 2: Resonancia armónica brillante (A5 -> E6)
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880, now + 0.12);
+            osc2.frequency.exponentialRampToValueAtTime(1318.51, now + 0.22);
+
+            gain2.gain.setValueAtTime(0.4, now + 0.12);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(now + 0.12);
+            osc2.stop(now + 0.45);
+        } catch (e) {
+            console.warn("⚠️ Audio notification error:", e);
+        }
+    }
+
+    // 📢 Parpadeo Dinámico del Título de la Pestaña en el Navegador
+    function startTitleFlash(alertText) {
+        if (titleFlashInterval) clearInterval(titleFlashInterval);
+        let toggle = false;
+        titleFlashInterval = setInterval(() => {
+            document.title = toggle ? `🔔 ${alertText}` : `(1) 💬 ¡NUEVO WHATSAPP!`;
+            toggle = !toggle;
+        }, 900);
+    }
+
+    function stopTitleFlash() {
+        if (titleFlashInterval) {
+            clearInterval(titleFlashInterval);
+            titleFlashInterval = null;
+            document.title = baseDocumentTitle;
+        }
+    }
+
+    window.addEventListener('focus', () => {
+        if (unreadSolicitudIds.size === 0) {
+            stopTitleFlash();
+        }
+    });
+
+    // Solicitar permiso de Notificaciones de Escritorio al primer click del usuario
+    window.addEventListener('click', () => {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    }, { once: true });
+
+    function triggerDesktopNotification(title, body) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                const notif = new Notification(title, {
+                    body: body,
+                    icon: '/favicon.ico',
+                    tag: 'casa-julian-incoming-msg'
+                });
+                notif.onclick = () => {
+                    window.focus();
+                    notif.close();
+                };
+            } catch (e) {
+                console.warn("⚠️ Notification error:", e);
+            }
+        }
+    }
+
+    // Cargar Solicitudes desde Backend y Detectar Mensajes Nuevos en Tiempo Real
     async function fetchSolicitudes() {
         if (!adminToken) return;
         try {
@@ -1630,6 +1732,70 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success && Array.isArray(data.solicitudes)) {
                 allSolicitudes = data.solicitudes;
+
+                let hasNewIncomingClientMsg = false;
+                let latestClientMsgInfo = null;
+
+                allSolicitudes.forEach(sol => {
+                    const msgList = Array.isArray(sol.mensajes) ? sol.mensajes : [];
+                    const msgCount = msgList.length;
+                    const prevCount = knownSolicitudMsgCounts[sol.id];
+
+                    if (!isFirstSolicitudesFetch) {
+                        if (prevCount !== undefined && msgCount > prevCount) {
+                            const lastMsg = msgList[msgCount - 1];
+                            if (lastMsg && lastMsg.emisor === 'cliente') {
+                                unreadSolicitudIds.add(sol.id);
+                                hasNewIncomingClientMsg = true;
+                                latestClientMsgInfo = {
+                                    clientName: sol.nombreCliente || 'Cliente',
+                                    text: lastMsg.texto || 'Nuevo mensaje',
+                                    solId: sol.id
+                                };
+                            }
+                        } else if (prevCount === undefined) {
+                            unreadSolicitudIds.add(sol.id);
+                            hasNewIncomingClientMsg = true;
+                            latestClientMsgInfo = {
+                                clientName: sol.nombreCliente || 'Cliente',
+                                text: sol.datosDetallados ? 'Nueva solicitud recibida' : 'Nueva consulta',
+                                solId: sol.id
+                            };
+                        }
+                    }
+
+                    knownSolicitudMsgCounts[sol.id] = msgCount;
+                });
+
+                isFirstSolicitudesFetch = false;
+
+                // Alerta Activa si entró un nuevo mensaje del cliente
+                if (hasNewIncomingClientMsg && latestClientMsgInfo) {
+                    playWhatsAppNotificationChime();
+                    startTitleFlash(`¡Nuevo mensaje de ${latestClientMsgInfo.clientName}!`);
+                    triggerDesktopNotification(
+                        `💬 WhatsApp de ${latestClientMsgInfo.clientName}`,
+                        latestClientMsgInfo.text
+                    );
+
+                    // Si la barra flotante minimizada está visible, encender indicador de nuevo mensaje
+                    const miniWidget = document.getElementById('minimized-chat-widget');
+                    const miniBadge = document.getElementById('minimized-unread-badge');
+                    if (miniWidget && miniWidget.style.display !== 'none') {
+                        miniWidget.classList.add('has-unread');
+                        if (miniBadge) miniBadge.style.display = 'inline-block';
+                    }
+
+                    // Si el modal está abierto con este mismo cliente, actualizar el chat en vivo
+                    if (activeReplySolicitud && activeReplySolicitud.id === latestClientMsgInfo.solId) {
+                        const updatedActiveSol = allSolicitudes.find(s => s.id === latestClientMsgInfo.solId);
+                        if (updatedActiveSol) {
+                            activeReplySolicitud = updatedActiveSol;
+                            renderChatThreadInModal(updatedActiveSol);
+                        }
+                    }
+                }
+
                 renderInboxCards();
             }
         } catch (err) {
@@ -1686,6 +1852,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
         filtered.forEach(sol => {
             const dateStr = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
+            const isUnread = unreadSolicitudIds.has(sol.id);
             
             // Badge de Categoría
             let catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
@@ -1721,15 +1888,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const msgList = Array.isArray(sol.mensajes) ? sol.mensajes : [];
             const msgCountStr = msgList.length > 0 ? `💬 ${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}` : '💬 1 mensaje';
+            const unreadPillHtml = isUnread ? `<span class="card-unread-pill">🔴 ¡Nuevo mensaje!</span>` : '';
 
-            // Tarjeta compacta profesional estilo WhatsApp Web (sin desplegar todo el resumen)
+            // Tarjeta compacta profesional estilo WhatsApp Web con indicador si tiene nuevo mensaje
             html += `
-                <div class="whatsapp-inbox-card solicitud-card" data-id="${sol.id}">
+                <div class="whatsapp-inbox-card solicitud-card ${isUnread ? 'has-unread-msg' : ''}" data-id="${sol.id}">
                     <div class="card-top-header">
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             ${catTagHtml}
                             ${statusBadgeHtml}
                             ${handoverBadgeHtml}
+                            ${unreadPillHtml}
                         </div>
                         <span style="font-size: 0.78rem; color: #94a3b8;">⏰ ${dateStr}</span>
                     </div>
@@ -1757,7 +1926,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Registrar Event Listeners: Al hacer click en cualquier parte de la tarjeta, abrir el modal
         document.querySelectorAll('.solicitud-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                // Si pulsó eliminar, no abrir el modal
                 if (e.target.closest('.btn-delete-solicitud')) return;
                 const solId = card.getAttribute('data-id');
                 const sol = allSolicitudes.find(s => s.id === solId);
@@ -1775,6 +1943,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             method: 'DELETE',
                             headers: { 'x-admin-token': adminToken }
                         });
+                        unreadSolicitudIds.delete(solId);
                         await fetchSolicitudes();
                     } catch (e) {
                         alert("Error al eliminar solicitud: " + e.message);
@@ -1820,7 +1989,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let cleanLine = line.trim();
             let emoji = '📌';
             
-            // Detectar emoji al inicio de la línea (incluye emojis compuestos)
+            // Detectar emoji al inicio de la línea
             const emojiMatch = cleanLine.match(/^([\p{Emoji}\u200d\uFE0F]+)\s*/u);
             if (emojiMatch) {
                 emoji = emojiMatch[1];
@@ -1833,7 +2002,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let rawLabel = cleanLine.substring(0, colonIdx);
                 let rawVal = cleanLine.substring(colonIdx + 1);
 
-                // Quitar TODOS los asteriscos, guiones bajos o tildes del nombre del campo y del valor
                 let label = rawLabel.replace(/[\*\_\~]/g, '').trim();
                 let val = rawVal.replace(/[\*\_\~]/g, '').trim();
 
@@ -1888,49 +2056,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
-    // Abrir Modal de Respuesta Manual y Chat
-    function openReplyModal(sol, prefilledText = '', targetStatus = 'EN_GESTION') {
-        activeReplySolicitud = sol;
-        replySolicitudId.value = sol.id;
-        replyClientName.textContent = `Cliente: ${sol.nombreCliente || 'Cliente Casa Julián'}`;
-        replyClientPhone.textContent = `📞 WhatsApp: +${sol.telefonoCliente || sol.telefonoReserva || ''}`;
-        
-        // Badge de Categoría en Modal
-        const catBadgeEl = document.getElementById('reply-category-badge');
-        if (catBadgeEl) {
-            catBadgeEl.textContent = sol.categoriaLabel || sol.tipoAccion || '📌 Solicitud';
-            if (sol.categoria === 'reservas_menu_tradicion') {
-                catBadgeEl.textContent = '🎁 Reservas Menú Tradición';
-                catBadgeEl.style.color = '#34d399';
-                catBadgeEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-            } else if (sol.categoria === 'cancelacion') {
-                catBadgeEl.textContent = '❌ Cancelación';
-                catBadgeEl.style.color = '#f87171';
-                catBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-            }
-        }
-
-        // Estado del Modo Humano
-        const handoverStatusEl = document.getElementById('reply-handover-status');
-        const isHandoverActive = sol.enAtencionHumana !== false && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
-        if (handoverStatusEl) {
-            handoverStatusEl.textContent = isHandoverActive ? '🟢 Modo Humano (Bot Pausado)' : '⚪ Bot Activo';
-            handoverStatusEl.style.background = isHandoverActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.2)';
-            handoverStatusEl.style.color = isHandoverActive ? '#34d399' : '#94a3b8';
-            handoverStatusEl.style.borderColor = isHandoverActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(100, 116, 139, 0.3)';
-        }
-
-        // Resumen estructurado en la barra lateral izquierda (Tabla estilizada)
-        const summaryEl = document.getElementById('reply-solicitud-summary');
-        const dateEl = document.getElementById('reply-solicitud-date');
-        if (summaryEl) {
-            summaryEl.innerHTML = renderSummaryTable(sol.datosDetallados);
-        }
-        if (dateEl) {
-            dateEl.textContent = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
-        }
-
-        // Renderizar Hilo de Mensajes con estilo WhatsApp (Formato de negritas WhatsApp activo)
+    // Helper: Renderizar Hilo de Chat en el Modal de Recepción
+    function renderChatThreadInModal(sol) {
         const threadContainer = document.getElementById('reply-chat-thread');
         const msgCountEl = document.getElementById('thread-msg-count');
         const msgList = Array.isArray(sol.mensajes) && sol.mensajes.length > 0 
@@ -1972,22 +2099,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 60);
         }
+    }
+
+    // Abrir Modal de Respuesta Manual y Chat
+    function openReplyModal(sol, prefilledText = '', targetStatus = 'EN_GESTION') {
+        activeReplySolicitud = sol;
+        
+        // Limpiar estado de no leído para esta solicitud
+        unreadSolicitudIds.delete(sol.id);
+        if (unreadSolicitudIds.size === 0) {
+            stopTitleFlash();
+        }
+
+        replySolicitudId.value = sol.id;
+        replyClientName.textContent = `Cliente: ${sol.nombreCliente || 'Cliente Casa Julián'}`;
+        replyClientPhone.textContent = `📞 WhatsApp: +${sol.telefonoCliente || sol.telefonoReserva || ''}`;
+        
+        // Badge de Categoría en Modal
+        const catBadgeEl = document.getElementById('reply-category-badge');
+        if (catBadgeEl) {
+            catBadgeEl.textContent = sol.categoriaLabel || sol.tipoAccion || '📌 Solicitud';
+            if (sol.categoria === 'reservas_menu_tradicion') {
+                catBadgeEl.textContent = '🎁 Reservas Menú Tradición';
+                catBadgeEl.style.color = '#34d399';
+                catBadgeEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            } else if (sol.categoria === 'cancelacion') {
+                catBadgeEl.textContent = '❌ Cancelación';
+                catBadgeEl.style.color = '#f87171';
+                catBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            }
+        }
+
+        // Estado del Modo Humano
+        const handoverStatusEl = document.getElementById('reply-handover-status');
+        const isHandoverActive = sol.enAtencionHumana !== false && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
+        if (handoverStatusEl) {
+            handoverStatusEl.textContent = isHandoverActive ? '🟢 Modo Humano (Bot Pausado)' : '⚪ Bot Activo';
+            handoverStatusEl.style.background = isHandoverActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.2)';
+            handoverStatusEl.style.color = isHandoverActive ? '#34d399' : '#94a3b8';
+            handoverStatusEl.style.borderColor = isHandoverActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(100, 116, 139, 0.3)';
+        }
+
+        // Resumen estructurado en la barra lateral izquierda (Tabla estilizada)
+        const summaryEl = document.getElementById('reply-solicitud-summary');
+        const dateEl = document.getElementById('reply-solicitud-date');
+        if (summaryEl) {
+            summaryEl.innerHTML = renderSummaryTable(sol.datosDetallados);
+        }
+        if (dateEl) {
+            dateEl.textContent = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
+        }
+
+        // Renderizar Hilo de Mensajes con estilo WhatsApp
+        renderChatThreadInModal(sol);
 
         replyMessageText.value = prefilledText || '';
         replyErrorMsg.style.display = 'none';
         replyModal.setAttribute('data-target-status', targetStatus);
         replyModal.style.display = 'flex';
 
-        // Ocultar widget minimizado si estaba visible
+        // Ocultar widget minimizado si estaba visible y quitar alerta
         const miniWidget = document.getElementById('minimized-chat-widget');
-        if (miniWidget) miniWidget.style.display = 'none';
+        const miniBadge = document.getElementById('minimized-unread-badge');
+        if (miniWidget) {
+            miniWidget.style.display = 'none';
+            miniWidget.classList.remove('has-unread');
+        }
+        if (miniBadge) miniBadge.style.display = 'none';
+
+        renderInboxCards();
     }
 
     function closeReplyModal() {
         replyModal.style.display = 'none';
         activeReplySolicitud = null;
         const miniWidget = document.getElementById('minimized-chat-widget');
-        if (miniWidget) miniWidget.style.display = 'none';
+        const miniBadge = document.getElementById('minimized-unread-badge');
+        if (miniWidget) {
+            miniWidget.style.display = 'none';
+            miniWidget.classList.remove('has-unread');
+        }
+        if (miniBadge) miniBadge.style.display = 'none';
     }
 
     function minimizeReplyModal() {
@@ -1996,9 +2188,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const miniWidget = document.getElementById('minimized-chat-widget');
         const miniName = document.getElementById('minimized-client-name');
         const miniPhone = document.getElementById('minimized-client-phone');
+        const miniBadge = document.getElementById('minimized-unread-badge');
         if (miniWidget) {
             if (miniName) miniName.textContent = `Cliente: ${activeReplySolicitud.nombreCliente || 'Cliente'}`;
             if (miniPhone) miniPhone.textContent = `📞 WhatsApp: +${activeReplySolicitud.telefonoCliente || activeReplySolicitud.telefonoReserva || ''}`;
+            const isUnread = unreadSolicitudIds.has(activeReplySolicitud.id);
+            if (isUnread) {
+                miniWidget.classList.add('has-unread');
+                if (miniBadge) miniBadge.style.display = 'inline-block';
+            } else {
+                miniWidget.classList.remove('has-unread');
+                if (miniBadge) miniBadge.style.display = 'none';
+            }
             miniWidget.style.display = 'flex';
         }
     }
