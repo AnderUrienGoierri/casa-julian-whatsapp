@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260814-V191">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260814-V193">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -84,46 +84,62 @@
     </script>
 
     <div id="reply-modal" class="modal-overlay" style="display: none;">
-        <div class="login-box" style="max-width: 620px; width: 92%;">
+        <div class="login-box" style="max-width: 680px; width: 94%;">
             <div class="login-header" style="text-align: left; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="restaurant-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">📲 Responder por WhatsApp</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="restaurant-badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">📲 Chat Directo WhatsApp</span>
+                        <span id="reply-handover-status" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">🟢 Modo Humano (Bot Pausado)</span>
+                    </div>
                     <button id="close-reply-modal-btn" style="background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer;">✕</button>
                 </div>
                 <h3 id="reply-client-name" style="margin: 8px 0 2px 0; font-size: 1.2rem; color: #ffffff;">Cliente: Juan Pérez</h3>
                 <p id="reply-client-phone" style="margin: 0; font-size: 0.85rem; color: var(--accent-gold);">Teléfono WhatsApp: +34 612 34 56 78</p>
             </div>
             
-            <form id="reply-form" style="margin-top: 16px;">
+            <form id="reply-form" style="margin-top: 14px;">
                 <input type="hidden" id="reply-solicitud-id" value="">
                 
-                <!-- Resumen de la Solicitud Recibida -->
-                <div style="margin-bottom: 14px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; max-height: 140px; overflow-y: auto;">
-                    <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">📝 Resumen de la Petición Recibida:</div>
-                    <pre id="reply-solicitud-summary" style="margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 0.85rem; color: #e2e8f0;"></pre>
+                <!-- Hilo de Conversación Completo (Mensajes entre Cliente y Recepción) -->
+                <div style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">💬 Hilo de Conversación con el Cliente:</span>
+                        <span id="thread-msg-count" style="font-size: 0.72rem; color: var(--accent-gold);">1 mensaje</span>
+                    </div>
+                    <div id="reply-chat-thread" style="background: #0b141a; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 12px; max-height: 220px; min-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Burbujas insertadas dinámicamente -->
+                    </div>
                 </div>
 
                 <!-- Plantillas de Respuesta Rápida -->
-                <div class="form-group">
-                    <label style="font-size: 0.82rem; font-weight: 600; color: var(--accent-gold);">⚡ Plantillas de Respuesta Rápida:</label>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
-                        <button type="button" class="btn-secondary template-btn" data-template="confirm">🟢 Confirmada</button>
-                        <button type="button" class="btn-secondary template-btn" data-template="reject">🟡 Sin Disponibilidad</button>
-                        <button type="button" class="btn-secondary template-btn" data-template="info">💬 Info Personalizada</button>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label style="font-size: 0.78rem; font-weight: 600; color: var(--accent-gold);">⚡ Plantillas Rápidas:</label>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                        <button type="button" class="btn-secondary template-btn" data-template="confirm" style="font-size: 0.75rem; padding: 4px 8px;">🟢 Confirmar Reserva</button>
+                        <button type="button" class="btn-secondary template-btn" data-template="alt_time" style="font-size: 0.75rem; padding: 4px 8px;">🕐 Proponer Otro Horario</button>
+                        <button type="button" class="btn-secondary template-btn" data-template="reject" style="font-size: 0.75rem; padding: 4px 8px;">🚫 Sin Disponibilidad</button>
                     </div>
                 </div>
 
                 <!-- Mensaje de Respuesta -->
-                <div class="form-group" style="margin-top: 12px;">
-                    <label for="reply-message-text" style="font-size: 0.85rem; font-weight: 600;">Mensaje de Respuesta por WhatsApp:</label>
-                    <textarea id="reply-message-text" rows="5" placeholder="Escribe el mensaje que se enviará al WhatsApp del cliente..." required style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: inherit; font-size: 0.9rem; margin-top: 6px;"></textarea>
+                <div class="form-group">
+                    <label for="reply-message-text" style="font-size: 0.82rem; font-weight: 600;">Escribir mensaje libre por WhatsApp:</label>
+                    <textarea id="reply-message-text" rows="3" placeholder="Escribe el mensaje que se enviará al WhatsApp del cliente..." required style="width: 100%; padding: 10px; border-radius: 8px; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: inherit; font-size: 0.88rem; margin-top: 4px; resize: vertical;"></textarea>
                 </div>
 
-                <div id="reply-error-msg" class="error-msg" style="display: none; margin-bottom: 12px;"></div>
+                <div id="reply-error-msg" class="error-msg" style="display: none; margin-bottom: 10px;"></div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
-                    <button type="button" id="cancel-reply-btn" class="btn-secondary">Cancelar</button>
-                    <button type="submit" id="send-reply-submit-btn" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700;">📲 ENVIAR WHATSAPP AL CLIENTE</button>
+                <!-- Botones de Acción -->
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+                    <button type="button" id="btn-concluir-gestion" class="btn-secondary" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.5); font-weight: 700; font-size: 0.82rem; padding: 8px 14px;">
+                        ✅ Concluir Gestión & Reactivar Bot
+                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" id="cancel-reply-btn" class="btn-secondary" style="font-size: 0.82rem; padding: 8px 12px;">Cerrar</button>
+                        <button type="submit" id="send-reply-submit-btn" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 700; font-size: 0.85rem; padding: 8px 16px;">
+                            📲 ENVIAR WHATSAPP
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -464,6 +480,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260814-V191"></script>
+    <script src="/admin/admin.js?v=20260814-V193"></script>
 </body>
 </html>

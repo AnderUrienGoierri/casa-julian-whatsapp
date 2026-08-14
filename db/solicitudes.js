@@ -143,6 +143,14 @@ async function createSolicitud({ tipoAccion, telefonoCliente, datosDetallados, n
     const id = `SOL-${Date.now()}`;
     const timestamp = getSpainIsoTimestamp();
 
+    const initialMensajes = [
+        {
+            emisor: 'cliente',
+            texto: datosDetallados || 'Solicitud inicial enviada.',
+            fecha: timestamp
+        }
+    ];
+
     const nuevaSolicitud = {
         id,
         tipoAccion,
@@ -156,6 +164,8 @@ async function createSolicitud({ tipoAccion, telefonoCliente, datosDetallados, n
         estado: 'PENDIENTE',
         respuestaStaff: null,
         fechaRespuesta: null,
+        enAtencionHumana: true,
+        mensajes: initialMensajes,
         created_at: timestamp
     };
 
@@ -163,8 +173,8 @@ async function createSolicitud({ tipoAccion, telefonoCliente, datosDetallados, n
         try {
             await pool.query(
                 `INSERT INTO solicitudes 
-                (id, tipo_accion, categoria, categoria_label, telefono_cliente, nombre_cliente, telefono_reserva, datos_detallados, estado, created_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+                (id, tipo_accion, categoria, categoria_label, telefono_cliente, nombre_cliente, telefono_reserva, datos_detallados, estado, en_atencion_humana, mensajes, created_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
                 [
                     nuevaSolicitud.id,
                     nuevaSolicitud.tipoAccion,
@@ -175,6 +185,8 @@ async function createSolicitud({ tipoAccion, telefonoCliente, datosDetallados, n
                     nuevaSolicitud.telefonoReserva,
                     nuevaSolicitud.datosDetallados,
                     nuevaSolicitud.estado,
+                    nuevaSolicitud.enAtencionHumana,
+                    JSON.stringify(nuevaSolicitud.mensajes),
                     nuevaSolicitud.created_at
                 ]
             );
@@ -192,27 +204,42 @@ async function createSolicitud({ tipoAccion, telefonoCliente, datosDetallados, n
 }
 
 /**
- * Obtiene todas las solicitudes ordenadas por fecha más reciente.
+ * Obtiene todas las solicitudes ordenadas por fecha más reciente con sus hilos de conversación.
  */
 async function getAllSolicitudes() {
     if (pool) {
         try {
             const res = await pool.query(`SELECT * FROM solicitudes ORDER BY created_at DESC`);
             if (res.rows && res.rows.length > 0) {
-                return res.rows.map(r => ({
-                    id: r.id,
-                    tipoAccion: r.tipo_accion,
-                    categoria: r.categoria,
-                    categoriaLabel: r.categoria_label,
-                    telefonoCliente: r.telefono_cliente,
-                    nombreCliente: r.nombre_cliente,
-                    telefonoReserva: r.telefono_reserva,
-                    datosDetallados: r.datos_detallados,
-                    estado: r.estado,
-                    respuestaStaff: r.respuesta_staff,
-                    fechaRespuesta: r.fecha_respuesta,
-                    created_at: r.created_at
-                }));
+                return res.rows.map(r => {
+                    let parsedMensajes = [];
+                    if (r.mensajes) {
+                        try {
+                            parsedMensajes = typeof r.mensajes === 'string' ? JSON.parse(r.mensajes) : r.mensajes;
+                        } catch (e) {
+                            parsedMensajes = [{ emisor: 'cliente', texto: r.datos_detallados, fecha: r.created_at }];
+                        }
+                    } else if (r.datos_detallados) {
+                        parsedMensajes = [{ emisor: 'cliente', texto: r.datos_detallados, fecha: r.created_at }];
+                    }
+
+                    return {
+                        id: r.id,
+                        tipoAccion: r.tipo_accion,
+                        categoria: r.categoria,
+                        categoriaLabel: r.categoria_label,
+                        telefonoCliente: r.telefono_cliente,
+                        nombreCliente: r.nombre_cliente,
+                        telefonoReserva: r.telefono_reserva,
+                        datosDetallados: r.datos_detallados,
+                        estado: r.estado,
+                        respuestaStaff: r.respuesta_staff,
+                        fechaRespuesta: r.fecha_respuesta,
+                        enAtencionHumana: r.en_atencion_humana !== false,
+                        mensajes: parsedMensajes,
+                        created_at: r.created_at
+                    };
+                });
             }
         } catch (e) {
             console.error("Error consultando solicitudes en Postgres:", e.message);
@@ -220,20 +247,95 @@ async function getAllSolicitudes() {
     }
 
     const db = loadDb();
-    return db.solicitudes || [];
+    const list = db.solicitudes || [];
+    return list.map(s => ({
+        ...s,
+        enAtencionHumana: s.enAtencionHumana !== false,
+        mensajes: s.mensajes || (s.datosDetallados ? [{ emisor: 'cliente', texto: s.datosDetallados, fecha: s.created_at }] : [])
+    }));
 }
 
 /**
- * Actualiza el estado y respuesta de una solicitud por su ID.
+ * Comprueba si un cliente tiene una solicitud activa en Modo Atención Humana (bot pausado).
  */
-async function updateSolicitudStatus(id, estado, respuestaStaff = null) {
-    const timestamp = getSpainIsoTimestamp();
+async function getActiveHumanHandoverSolicitud(telefono) {
+    if (!telefono) return null;
+    const cleanTel = telefono.toString().replace(/\D/g, '');
+    const all = await getAllSolicitudes();
+    return all.find(s => 
+        (s.enAtencionHumana === true || s.en_atencion_humana === true) && 
+        (s.estado === 'PENDIENTE' || s.estado === 'EN_GESTION' || s.estado === 'RESPONDIDA') &&
+        (s.telefonoCliente === cleanTel || s.telefonoReserva === cleanTel)
+    ) || null;
+}
+
+/**
+ * Añade un mensaje al hilo de conversación de una solicitud.
+ */
+async function appendMessageToSolicitud(id, { emisor, texto, fecha = null }) {
+    const timestamp = fecha || getSpainIsoTimestamp();
+    const nuevoMensaje = {
+        emisor: emisor || 'cliente',
+        texto: texto || '',
+        fecha: timestamp
+    };
+
+    const all = await getAllSolicitudes();
+    const sol = all.find(s => s.id === id);
+    if (!sol) return null;
+
+    const mensajesActualizados = Array.isArray(sol.mensajes) ? [...sol.mensajes, nuevoMensaje] : [nuevoMensaje];
 
     if (pool) {
         try {
             await pool.query(
-                `UPDATE solicitudes SET estado = $1, respuesta_staff = $2, fecha_respuesta = $3 WHERE id = $4`,
-                [estado, respuestaStaff, timestamp, id]
+                `UPDATE solicitudes SET mensajes = $1 WHERE id = $2`,
+                [JSON.stringify(mensajesActualizados), id]
+            );
+        } catch (e) {
+            console.error("Error actualizando mensajes de solicitud en Postgres:", e.message);
+        }
+    }
+
+    const db = loadDb();
+    if (db.solicitudes) {
+        const target = db.solicitudes.find(s => s.id === id);
+        if (target) {
+            target.mensajes = mensajesActualizados;
+            saveDb(db);
+        }
+    }
+
+    return { ...sol, mensajes: mensajesActualizados };
+}
+
+/**
+ * Actualiza el estado, respuesta y modo de atención humana de una solicitud por su ID.
+ */
+async function updateSolicitudStatus(id, estado, respuestaStaff = null, enAtencionHumana = null) {
+    const timestamp = getSpainIsoTimestamp();
+    const all = await getAllSolicitudes();
+    const sol = all.find(s => s.id === id);
+    if (!sol) return null;
+
+    let mensajesActualizados = Array.isArray(sol.mensajes) ? [...sol.mensajes] : [];
+    if (respuestaStaff) {
+        mensajesActualizados.push({
+            emisor: 'recepcion',
+            texto: respuestaStaff,
+            fecha: timestamp
+        });
+    }
+
+    const finalEnAtencion = (enAtencionHumana !== null) ? enAtencionHumana : (estado === 'CONFIRMADA' || estado === 'RECHAZADA' || estado === 'RESUELTA' ? false : sol.enAtencionHumana);
+
+    if (pool) {
+        try {
+            await pool.query(
+                `UPDATE solicitudes 
+                SET estado = $1, respuesta_staff = $2, fecha_respuesta = $3, en_atencion_humana = $4, mensajes = $5 
+                WHERE id = $6`,
+                [estado, respuestaStaff, timestamp, finalEnAtencion, JSON.stringify(mensajesActualizados), id]
             );
         } catch (e) {
             console.error("Error actualizando solicitud en Postgres:", e.message);
@@ -242,16 +344,18 @@ async function updateSolicitudStatus(id, estado, respuestaStaff = null) {
 
     const db = loadDb();
     if (db.solicitudes) {
-        const sol = db.solicitudes.find(s => s.id === id);
-        if (sol) {
-            sol.estado = estado;
-            if (respuestaStaff !== null) sol.respuestaStaff = respuestaStaff;
-            sol.fechaRespuesta = timestamp;
+        const target = db.solicitudes.find(s => s.id === id);
+        if (target) {
+            target.estado = estado;
+            if (respuestaStaff !== null) target.respuestaStaff = respuestaStaff;
+            target.fechaRespuesta = timestamp;
+            target.enAtencionHumana = finalEnAtencion;
+            target.mensajes = mensajesActualizados;
             saveDb(db);
-            return sol;
+            return target;
         }
     }
-    return null;
+    return sol;
 }
 
 /**
@@ -279,6 +383,8 @@ module.exports = {
     getCategoryTagInfo,
     createSolicitud,
     getAllSolicitudes,
+    getActiveHumanHandoverSolicitud,
+    appendMessageToSolicitud,
     updateSolicitudStatus,
     deleteSolicitud
 };

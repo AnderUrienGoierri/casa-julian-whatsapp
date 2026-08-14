@@ -83,6 +83,8 @@ const {
     getCategoryTagInfo,
     createSolicitud,
     getAllSolicitudes,
+    getActiveHumanHandoverSolicitud,
+    appendMessageToSolicitud,
     updateSolicitudStatus,
     deleteSolicitud
 } = require('./db/solicitudes');
@@ -153,6 +155,8 @@ module.exports = {
     getCategoryTagInfo,
     createSolicitud,
     getAllSolicitudes,
+    getActiveHumanHandoverSolicitud,
+    appendMessageToSolicitud,
     updateSolicitudStatus,
     deleteSolicitud
 };

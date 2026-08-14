@@ -36,6 +36,35 @@ async function processMessage(message) {
 async function handleUserMessage(from, body, type = 'text', interactiveData = null) {
     console.log(`\n📩 MENSAJE RECIBIDO de ${from} [Tipo: ${type}]: "${body}"`);
 
+    // 0. MODO ATENCIÓN HUMANA ACTIVO (Handover a Recepción)
+    try {
+        const activeSolicitud = await db.getActiveHumanHandoverSolicitud(from);
+        if (activeSolicitud) {
+            const cleanInput = (body || '').toString().trim().toLowerCase();
+            
+            // Si el cliente pide explícitamente volver al menú automático
+            if (cleanInput === '#bot' || cleanInput === '/menu' || cleanInput === 'menu' || cleanInput === 'menú' || cleanInput === 'volver al bot') {
+                console.log(`🤖 Cliente ${from} solicita salir del modo atención humana y volver al bot.`);
+                await db.updateSolicitudStatus(activeSolicitud.id, activeSolicitud.estado, null, false);
+                await sendMessage(from, "🤖 Has salido del modo de atención personalizada. Volviendo al menú principal de Casa Julián...");
+                await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+                return;
+            }
+
+            // Guardar el mensaje del cliente en el hilo de la solicitud para que Recepción lo vea
+            const mensajeTexto = (type === 'text') ? (body || '') : `[Opción seleccionada: ${body}]`;
+            await db.appendMessageToSolicitud(activeSolicitud.id, {
+                emisor: 'cliente',
+                texto: mensajeTexto
+            });
+
+            console.log(`💬 Mensaje de cliente (${from}) añadido al hilo de la solicitud [${activeSolicitud.id}]. Bot en silencio.`);
+            return; // ⏸️ EL BOT NO RESPONDE CON MENÚS NI INTERFIERE EN LA CONVERSACIÓN
+        }
+    } catch (handoverErr) {
+        console.error("⚠️ Error en interceptor de atención humana:", handoverErr.message);
+    }
+
     // Interceptar reglas dinámicas de palabras clave configuradas por el administrador
     if (type === 'text' && body) {
         try {

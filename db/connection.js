@@ -219,8 +219,13 @@ if (process.env.DATABASE_URL) {
             estado VARCHAR(50) DEFAULT 'PENDIENTE',
             respuesta_staff TEXT,
             fecha_respuesta TIMESTAMP WITH TIME ZONE,
+            en_atencion_humana BOOLEAN DEFAULT TRUE,
+            mensajes TEXT DEFAULT '[]',
             created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
+
+        ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS en_atencion_humana BOOLEAN DEFAULT TRUE;
+        ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS mensajes TEXT DEFAULT '[]';
     `).catch(err => console.error("⚠️ Error en Auto-Migración de BD:", err.message));
 }
 

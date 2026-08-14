@@ -585,7 +585,7 @@ router.get('/solicitudes', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 15. Responder manualmente a una solicitud enviando WhatsApp directo al cliente
+// 15. Responder manualmente a una solicitud enviando WhatsApp directo al cliente (mantiene atención humana)
 router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -608,8 +608,9 @@ router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => 
         // Envío directo de WhatsApp vía WhatsApp Cloud API
         await sendMessage(targetPhone, respuestaText.trim());
 
-        const statusToSet = (nuevoEstado || 'RESPONDIDA').trim().toUpperCase();
-        const updated = await updateSolicitudStatus(id, statusToSet, respuestaText.trim());
+        const statusToSet = (nuevoEstado || 'EN_GESTION').trim().toUpperCase();
+        // Mantiene enAtencionHumana = true mientras se está chateando
+        const updated = await updateSolicitudStatus(id, statusToSet, respuestaText.trim(), true);
 
         return res.json({
             success: true,
@@ -622,7 +623,46 @@ router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => 
     }
 });
 
-// 16. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, ARCHIVADA)
+// 16. Concluir gestión y reactivar el bot automático para el cliente
+router.post('/solicitudes/:id/concluir', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estadoFinal, mensajeCierre } = req.body || {};
+
+        const list = await getAllSolicitudes();
+        const sol = list.find(s => s.id === id);
+        if (!sol) {
+            return res.status(404).json({ error: 'Solicitud no encontrada.' });
+        }
+
+        const targetPhone = sol.telefonoCliente || sol.telefonoReserva;
+
+        // Si se redactó un mensaje final de despedida/confirmación, enviarlo por WhatsApp
+        if (mensajeCierre && mensajeCierre.trim() && targetPhone) {
+            await sendMessage(targetPhone, mensajeCierre.trim());
+        }
+
+        const finalStatus = (estadoFinal || 'CONFIRMADA').trim().toUpperCase();
+        // Reactiva el bot (enAtencionHumana = false)
+        const updated = await updateSolicitudStatus(
+            id, 
+            finalStatus, 
+            mensajeCierre && mensajeCierre.trim() ? mensajeCierre.trim() : null, 
+            false
+        );
+
+        return res.json({
+            success: true,
+            message: `✅ Gestión concluida. El bot automático ha sido reactivado para el cliente (+${targetPhone}).`,
+            solicitud: updated
+        });
+    } catch (e) {
+        console.error("⚠️ Error concluyendo gestión:", e.message);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 17. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, ARCHIVADA)
 router.post('/solicitudes/:id/estado', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;

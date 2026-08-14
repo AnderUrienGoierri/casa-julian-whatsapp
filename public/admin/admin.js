@@ -1714,41 +1714,61 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const phoneFormatted = sol.telefonoCliente || sol.telefonoReserva || 'Desconocido';
+            const isHandoverActive = sol.enAtencionHumana !== false && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
+            const handoverBadgeHtml = isHandoverActive
+                ? `<span style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Atención Humana (Bot Pausado)</span>`
+                : `<span style="background: rgba(100, 116, 139, 0.18); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600;">⚪ Bot Activo</span>`;
+
+            const msgList = Array.isArray(sol.mensajes) ? sol.mensajes : [];
+            const msgCountStr = msgList.length > 0 ? `💬 ${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}` : '💬 1 mensaje';
+            const lastMsg = msgList.length > 0 ? msgList[msgList.length - 1] : null;
 
             html += `
-                <div class="table-card solicitud-card" data-id="${sol.id}" style="padding: 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.08); background: rgba(30, 41, 59, 0.5); border-radius: 12px; transition: transform 0.15s ease;">
+                <div class="table-card solicitud-card" data-id="${sol.id}" style="padding: 16px; margin-bottom: 16px; border: 1px solid ${isHandoverActive ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255,255,255,0.08)'}; background: rgba(30, 41, 59, 0.5); border-radius: 12px; transition: transform 0.15s ease;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             ${catTagHtml}
                             ${statusBadgeHtml}
+                            ${handoverBadgeHtml}
                         </div>
                         <span style="font-size: 0.78rem; color: var(--text-muted);">⏰ ${dateStr}</span>
                     </div>
 
-                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 10px;">
-                        <div style="font-size: 1.6rem; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 50%;">👤</div>
-                        <div>
-                            <div style="font-size: 1rem; font-weight: 700; color: #ffffff;">${sol.nombreCliente || 'Cliente'}</div>
-                            <div style="font-size: 0.85rem; color: var(--accent-gold); font-family: monospace;">📞 WhatsApp: +${phoneFormatted}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div style="font-size: 1.6rem; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 50%;">👤</div>
+                            <div>
+                                <div style="font-size: 1rem; font-weight: 700; color: #ffffff;">${sol.nombreCliente || 'Cliente'}</div>
+                                <div style="font-size: 0.85rem; color: var(--accent-gold); font-family: monospace;">📞 WhatsApp: +${phoneFormatted}</div>
+                            </div>
                         </div>
+                        <span style="font-size: 0.78rem; color: var(--accent-gold); background: rgba(217, 119, 6, 0.15); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(217, 119, 6, 0.3); font-weight: 600;">${msgCountStr}</span>
                     </div>
 
                     <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">📝 Contenido del Resumen Recibido:</div>
-                        <pre style="margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 0.85rem; color: #e2e8f0; max-height: 180px; overflow-y: auto;">${sol.datosDetallados || 'Sin detalles'}</pre>
+                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">📝 Resumen de la Solicitud:</div>
+                        <pre style="margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 0.85rem; color: #e2e8f0; max-height: 140px; overflow-y: auto;">${sol.datosDetallados || 'Sin detalles'}</pre>
                     </div>
 
+                    ${lastMsg && lastMsg.emisor === 'cliente' && msgList.length > 1 ? `
+                        <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; border-radius: 4px; padding: 8px 12px; margin-bottom: 12px; font-size: 0.82rem;">
+                            <div style="color: #34d399; font-weight: 700; font-size: 0.75rem;">📩 Último mensaje del cliente:</div>
+                            <div style="color: #f1f5f9; margin-top: 2px;">${lastMsg.texto}</div>
+                        </div>
+                    ` : ''}
+
                     ${sol.respuestaStaff ? `
-                        <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; border-radius: 4px; padding: 10px; margin-bottom: 12px; font-size: 0.83rem;">
-                            <div style="color: #38bdf8; font-weight: 700; margin-bottom: 2px;">💬 Respuesta enviada por Recepción (${sol.fechaRespuesta ? new Date(sol.fechaRespuesta).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : ''}):</div>
-                            <div style="color: #cbd5e1; white-space: pre-wrap;">${sol.respuestaStaff}</div>
+                        <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; border-radius: 4px; padding: 8px 12px; margin-bottom: 12px; font-size: 0.82rem;">
+                            <div style="color: #38bdf8; font-weight: 700; font-size: 0.75rem;">💬 Última respuesta de Recepción (${sol.fechaRespuesta ? new Date(sol.fechaRespuesta).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : ''}):</div>
+                            <div style="color: #cbd5e1; white-space: pre-wrap; margin-top: 2px;">${sol.respuestaStaff}</div>
                         </div>
                     ` : ''}
 
                     <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
-                        <button class="btn-primary btn-reply-solicitud" data-id="${sol.id}" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-size: 0.85rem; padding: 7px 14px; font-weight: 700;">📲 Responder por WhatsApp</button>
-                        <button class="btn-secondary btn-confirm-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.85rem; padding: 7px 12px;">🟢 Confirmar</button>
-                        <button class="btn-secondary btn-reject-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.85rem; padding: 7px 12px;">🚫 Rechazar</button>
+                        <button class="btn-primary btn-reply-solicitud" data-id="${sol.id}" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-size: 0.85rem; padding: 7px 14px; font-weight: 700;">💬 Abrir Chat & Responder</button>
+                        ${isHandoverActive ? `
+                            <button class="btn-secondary btn-quick-conclude" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.85rem; padding: 7px 12px;">✅ Concluir Gestión</button>
+                        ` : ''}
                         <button class="btn-danger btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.85rem; padding: 7px 10px;" title="Eliminar solicitud">🗑️</button>
                     </div>
                 </div>
@@ -1766,24 +1786,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        document.querySelectorAll('.btn-confirm-solicitud').forEach(btn => {
+        document.querySelectorAll('.btn-quick-conclude').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const solId = btn.getAttribute('data-id');
                 const sol = allSolicitudes.find(s => s.id === solId);
                 if (sol) {
-                    const defaultConfirmText = `✅ Hola ${sol.nombreCliente || ''}, tu solicitud para Asador Casa Julián de Tolosa ha sido CONFIRMADA. ¡Esperamos darte la bienvenida pronto!`;
-                    openReplyModal(sol, defaultConfirmText, 'CONFIRMADA');
-                }
-            });
-        });
-
-        document.querySelectorAll('.btn-reject-solicitud').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const solId = btn.getAttribute('data-id');
-                const sol = allSolicitudes.find(s => s.id === solId);
-                if (sol) {
-                    const defaultRejectText = `⚠️ Hola ${sol.nombreCliente || ''}, lo sentimos pero no disponemos de mesa o disponibilidad para el turno/fecha solicitados en Casa Julián de Tolosa. Por favor indícanos otra alternativa si lo deseas.`;
-                    openReplyModal(sol, defaultRejectText, 'RECHAZADA');
+                    const defaultMsg = `✅ Hola ${sol.nombreCliente || ''}, tu gestión con Asador Casa Julián de Tolosa ha quedado concluida y confirmada. ¡Muchas gracias por contactar con nosotros!`;
+                    openReplyModal(sol, defaultMsg, 'CONFIRMADA');
                 }
             });
         });
@@ -1806,14 +1815,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Abrir Modal de Respuesta Manual
-    function openReplyModal(sol, prefilledText = '', targetStatus = 'RESPONDIDA') {
+    // Abrir Modal de Respuesta Manual y Chat
+    function openReplyModal(sol, prefilledText = '', targetStatus = 'EN_GESTION') {
         activeReplySolicitud = sol;
         replySolicitudId.value = sol.id;
         replyClientName.textContent = `Cliente: ${sol.nombreCliente || 'Cliente Casa Julián'}`;
         replyClientPhone.textContent = `Teléfono WhatsApp: +${sol.telefonoCliente || sol.telefonoReserva || ''}`;
-        replySolicitudSummary.textContent = sol.datosDetallados || sol.tipoAccion || '';
-        replyMessageText.value = prefilledText || `Hola ${sol.nombreCliente || ''}, respecto a tu solicitud enviada a Casa Julián de Tolosa...`;
+        
+        const handoverStatusEl = document.getElementById('reply-handover-status');
+        const isHandoverActive = sol.enAtencionHumana !== false && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
+        if (handoverStatusEl) {
+            handoverStatusEl.textContent = isHandoverActive ? '🟢 Modo Humano (Bot Pausado)' : '⚪ Bot Activo';
+            handoverStatusEl.style.background = isHandoverActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.2)';
+            handoverStatusEl.style.color = isHandoverActive ? '#34d399' : '#94a3b8';
+            handoverStatusEl.style.borderColor = isHandoverActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(100, 116, 139, 0.3)';
+        }
+
+        // Renderizar Hilo de Mensajes
+        const threadContainer = document.getElementById('reply-chat-thread');
+        const msgCountEl = document.getElementById('thread-msg-count');
+        const msgList = Array.isArray(sol.mensajes) && sol.mensajes.length > 0 
+            ? sol.mensajes 
+            : [{ emisor: 'cliente', texto: sol.datosDetallados || 'Solicitud inicial.', fecha: sol.created_at }];
+
+        if (msgCountEl) msgCountEl.textContent = `${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}`;
+
+        if (threadContainer) {
+            threadContainer.innerHTML = '';
+            msgList.forEach(m => {
+                const isClient = m.emisor === 'cliente';
+                const timeStr = m.fecha ? new Date(m.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }) : '';
+                
+                const bubble = document.createElement('div');
+                bubble.style.cssText = `
+                    max-width: 82%;
+                    align-self: ${isClient ? 'flex-start' : 'flex-end'};
+                    background: ${isClient ? '#005c4b' : '#1e3a8a'};
+                    color: #f1f5f9;
+                    padding: 8px 12px;
+                    border-radius: ${isClient ? '0 10px 10px 10px' : '10px 0 10px 10px'};
+                    font-size: 0.85rem;
+                    line-height: 1.4;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    word-break: break-word;
+                `;
+                bubble.innerHTML = `
+                    <div style="font-size: 0.72rem; font-weight: 700; color: ${isClient ? '#86efac' : '#93c5fd'}; margin-bottom: 2px;">
+                        ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '👩‍💼 Recepción Casa Julián'}
+                    </div>
+                    <div style="white-space: pre-wrap;">${m.texto}</div>
+                    <div style="text-align: right; font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 3px;">${timeStr}</div>
+                `;
+                threadContainer.appendChild(bubble);
+            });
+
+            setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 50);
+        }
+
+        replyMessageText.value = prefilledText || '';
         replyErrorMsg.style.display = 'none';
         replyModal.setAttribute('data-target-status', targetStatus);
         replyModal.style.display = 'flex';
@@ -1862,24 +1921,62 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = activeReplySolicitud.nombreCliente || '';
             if (tType === 'confirm') {
                 replyMessageText.value = `✅ Hola ${name}, tu solicitud para Asador Casa Julián de Tolosa ha sido CONFIRMADA. ¡Esperamos darte la bienvenida pronto!`;
-                replyModal.setAttribute('data-target-status', 'CONFIRMADA');
+            } else if (tType === 'alt_time') {
+                replyMessageText.value = `🕐 Hola ${name}, para la fecha solicitada no disponemos de mesa en ese turno, pero sí tendríamos disponibilidad en el siguiente turno. ¿Te vendría bien esa opción?`;
             } else if (tType === 'reject') {
-                replyMessageText.value = `⚠️ Hola ${name}, lo sentimos pero no disponemos de mesa o disponibilidad para el turno/fecha solicitados en Casa Julián de Tolosa. Por favor indícanos otra alternativa si lo deseas.`;
-                replyModal.setAttribute('data-target-status', 'RECHAZADA');
-            } else if (tType === 'info') {
-                replyMessageText.value = `💬 Hola ${name}, hemos recibido tu consulta. Nos ponemos en contacto contigo para indicarte que...`;
-                replyModal.setAttribute('data-target-status', 'RESPONDIDA');
+                replyMessageText.value = `🚫 Hola ${name}, lamentamos comunicarte que tenemos el restaurante completo para la fecha/turno solicitados y no podemos aceptar más reservas en ese servicio.`;
             }
         });
     });
 
-    // Envío del Formulario de Respuesta por WhatsApp
+    // Botón Concluir Gestión & Reactivar Bot
+    const btnConcluirGestion = document.getElementById('btn-concluir-gestion');
+    if (btnConcluirGestion) {
+        btnConcluirGestion.addEventListener('click', async () => {
+            if (!activeReplySolicitud) return;
+            const solId = activeReplySolicitud.id;
+            const text = replyMessageText.value.trim();
+
+            if (confirm("¿Deseas concluir esta gestión y reactivar el bot automático para este cliente?")) {
+                btnConcluirGestion.disabled = true;
+                try {
+                    const res = await fetch(`/api/admin/solicitudes/${solId}/concluir`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-token': adminToken
+                        },
+                        body: JSON.stringify({
+                            estadoFinal: 'CONFIRMADA',
+                            mensajeCierre: text || null
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        closeReplyModal();
+                        alert(data.message || "✅ Gestión concluida y bot reactivado.");
+                        await fetchSolicitudes();
+                    } else {
+                        replyErrorMsg.textContent = data.error || "Error al concluir gestión.";
+                        replyErrorMsg.style.display = 'block';
+                    }
+                } catch (err) {
+                    replyErrorMsg.textContent = "Error de conexión: " + err.message;
+                    replyErrorMsg.style.display = 'block';
+                } finally {
+                    btnConcluirGestion.disabled = false;
+                }
+            }
+        });
+    }
+
+    // Envío del Formulario de Respuesta por WhatsApp (Mantiene chat abierto)
     if (replyForm) {
         replyForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const solId = replySolicitudId.value;
             const text = replyMessageText.value.trim();
-            const targetStatus = replyModal.getAttribute('data-target-status') || 'RESPONDIDA';
 
             if (!solId || !text) {
                 replyErrorMsg.textContent = "Por favor escribe un mensaje de respuesta.";
@@ -1899,15 +1996,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     body: JSON.stringify({
                         respuestaText: text,
-                        nuevoEstado: targetStatus
+                        nuevoEstado: 'EN_GESTION'
                     })
                 });
 
                 const data = await res.json();
                 if (data.success) {
-                    closeReplyModal();
-                    alert(data.message || "✅ WhatsApp enviado con éxito al cliente.");
+                    replyMessageText.value = '';
                     await fetchSolicitudes();
+                    // Actualizar el hilo en el modal abierto
+                    const updatedSol = allSolicitudes.find(s => s.id === solId);
+                    if (updatedSol) {
+                        openReplyModal(updatedSol);
+                    } else {
+                        closeReplyModal();
+                    }
                 } else {
                     replyErrorMsg.textContent = data.error || "Error al enviar WhatsApp al cliente.";
                     replyErrorMsg.style.display = 'block';
