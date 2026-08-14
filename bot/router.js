@@ -36,25 +36,20 @@ async function processMessage(message) {
 async function handleUserMessage(from, body, type = 'text', interactiveData = null) {
     console.log(`\n📩 MENSAJE RECIBIDO de ${from} [Tipo: ${type}]: "${body}"`);
 
-    // 0. MODO ATENCIÓN HUMANA ACTIVO (Handover a Recepción)
-    // Solo interceptar si es texto libre escrito por el cliente (no botones de navegación del bot como 'Terminar' o 'Menú principal')
-    const buttonId = interactiveData ? interactiveData.id : body;
-    const isFlowNavButton = (type === 'interactive' || type === 'button') && (
-        buttonId === 'btn_flow_finish' || buttonId === 'btn_flow_main_menu' ||
-        buttonId === 'Terminar' || buttonId === 'terminar' || buttonId === 'Amaitu' || buttonId === 'Finish' ||
-        buttonId === 'Menú principal' || buttonId === 'menu principal' || buttonId === 'Menu principal' ||
-        buttonId === 'Menu Nagusia' || buttonId === 'Main Menu' ||
-        buttonId === 'confirm_yes' || buttonId === 'confirm_no' ||
-        (buttonId && buttonId.startsWith('lang_'))
-    );
+    // 0. MODO ATENCIÓN HUMANA (Handover a Recepción)
+    // Si el cliente interactúa con cualquier botón o lista de opciones del chatbot, reactivamos automáticamente el modo bot
+    const isInteractive = type === 'interactive' || type === 'button' || interactiveData !== null;
 
-    if (!isFlowNavButton) {
-        try {
-            const activeSolicitud = await db.getActiveHumanHandoverSolicitud(from);
-            if (activeSolicitud) {
+    try {
+        const activeSolicitud = await db.getActiveHumanHandoverSolicitud(from);
+        if (activeSolicitud) {
+            if (isInteractive) {
+                console.log(`🤖 Cliente ${from} interactúa con botón/menú del chatbot -> Reactivando Modo Bot (enAtencionHumana = false).`);
+                await db.updateSolicitudStatus(activeSolicitud.id, activeSolicitud.estado, null, false);
+            } else {
                 const cleanInput = (body || '').toString().trim().toLowerCase();
                 
-                // Si el cliente pide explícitamente volver al menú automático
+                // Si el cliente pide explícitamente volver al menú automático por texto
                 if (cleanInput === '#bot' || cleanInput === '/menu' || cleanInput === 'menu' || cleanInput === 'menú' || cleanInput === 'volver al bot') {
                     console.log(`🤖 Cliente ${from} solicita salir del modo atención humana y volver al bot.`);
                     await db.updateSolicitudStatus(activeSolicitud.id, activeSolicitud.estado, null, false);
@@ -63,19 +58,18 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
                     return;
                 }
 
-                // Guardar el mensaje del cliente en el hilo de la solicitud para que Recepción lo vea
-                const mensajeTexto = (type === 'text') ? (body || '') : `[Opción: ${body}]`;
+                // Guardar el mensaje libre de texto del cliente en el hilo de la solicitud para Recepción
                 await db.appendMessageToSolicitud(activeSolicitud.id, {
                     emisor: 'cliente',
-                    texto: mensajeTexto
+                    texto: body || ''
                 });
 
-                console.log(`💬 Mensaje de cliente (${from}) añadido al hilo de la solicitud [${activeSolicitud.id}]. Bot en silencio.`);
-                return; // ⏸️ EL BOT NO RESPONDE CON MENÚS NI INTERFIERE EN LA CONVERSACIÓN
+                console.log(`💬 Mensaje de texto de cliente (${from}) añadido al hilo de la solicitud [${activeSolicitud.id}]. Bot en silencio.`);
+                return; // ⏸️ EL BOT NO RESPONDE A TEXTO LIBRE MIENTRAS ESTÉ EN ATENCIÓN HUMANA
             }
-        } catch (handoverErr) {
-            console.error("⚠️ Error en interceptor de atención humana:", handoverErr.message);
         }
+    } catch (handoverErr) {
+        console.error("⚠️ Error en interceptor de atención humana:", handoverErr.message);
     }
 
     // Interceptar reglas dinámicas de palabras clave configuradas por el administrador

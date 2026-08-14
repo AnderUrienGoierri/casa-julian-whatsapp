@@ -126,6 +126,7 @@ select {
     transition: all 0.2s;
     touch-action: manipulation;
     -webkit-appearance: none;
+    
 }
 
 input:focus, textarea:focus, select:focus {
