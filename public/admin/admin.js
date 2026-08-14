@@ -1872,11 +1872,74 @@ document.addEventListener('DOMContentLoaded', () => {
         replyErrorMsg.style.display = 'none';
         replyModal.setAttribute('data-target-status', targetStatus);
         replyModal.style.display = 'flex';
+
+        // Ocultar widget minimizado si estaba visible
+        const miniWidget = document.getElementById('minimized-chat-widget');
+        if (miniWidget) miniWidget.style.display = 'none';
     }
 
     function closeReplyModal() {
         replyModal.style.display = 'none';
         activeReplySolicitud = null;
+        const miniWidget = document.getElementById('minimized-chat-widget');
+        if (miniWidget) miniWidget.style.display = 'none';
+    }
+
+    function minimizeReplyModal() {
+        if (!activeReplySolicitud) return;
+        replyModal.style.display = 'none';
+        const miniWidget = document.getElementById('minimized-chat-widget');
+        const miniName = document.getElementById('minimized-client-name');
+        const miniPhone = document.getElementById('minimized-client-phone');
+        if (miniWidget) {
+            if (miniName) miniName.textContent = `Cliente: ${activeReplySolicitud.nombreCliente || 'Cliente'}`;
+            if (miniPhone) miniPhone.textContent = `📞 WhatsApp: +${activeReplySolicitud.telefonoCliente || activeReplySolicitud.telefonoReserva || ''}`;
+            miniWidget.style.display = 'flex';
+        }
+    }
+
+    function toggleMaximizeModal() {
+        const modalBox = document.querySelector('.whatsapp-modal-container');
+        const maxBtn = document.getElementById('maximize-reply-modal-btn');
+        if (modalBox) {
+            modalBox.classList.toggle('fullscreen');
+            const isFull = modalBox.classList.contains('fullscreen');
+            if (maxBtn) maxBtn.textContent = isFull ? '🗗' : '🗖';
+            if (maxBtn) maxBtn.title = isFull ? 'Restaurar tamaño normal' : 'Maximizar / Pantalla Completa';
+        }
+    }
+
+    const minimizeBtn = document.getElementById('minimize-reply-modal-btn');
+    const maximizeBtn = document.getElementById('maximize-reply-modal-btn');
+    const restoreChatBtn = document.getElementById('restore-chat-btn');
+    const closeMiniBtn = document.getElementById('close-minimized-chat-btn');
+    const miniWidgetEl = document.getElementById('minimized-chat-widget');
+
+    if (minimizeBtn) minimizeBtn.addEventListener('click', minimizeReplyModal);
+    if (maximizeBtn) maximizeBtn.addEventListener('click', toggleMaximizeModal);
+    if (restoreChatBtn) {
+        restoreChatBtn.addEventListener('click', () => {
+            if (activeReplySolicitud) {
+                if (miniWidgetEl) miniWidgetEl.style.display = 'none';
+                replyModal.style.display = 'flex';
+            }
+        });
+    }
+    if (miniWidgetEl) {
+        miniWidgetEl.addEventListener('click', (e) => {
+            if (e.target.closest('#close-minimized-chat-btn')) return;
+            if (activeReplySolicitud) {
+                miniWidgetEl.style.display = 'none';
+                replyModal.style.display = 'flex';
+            }
+        });
+    }
+    if (closeMiniBtn) {
+        closeMiniBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (miniWidgetEl) miniWidgetEl.style.display = 'none';
+            activeReplySolicitud = null;
+        });
     }
 
     if (closeReplyModalBtn) closeReplyModalBtn.addEventListener('click', closeReplyModal);

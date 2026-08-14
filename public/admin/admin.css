@@ -1110,22 +1110,34 @@ body.mode-recepcion .inbox-cards-grid {
     background: #111b21;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 18px;
-    width: 95%;
-    max-width: 1040px;
-    max-height: 90vh;
+    width: 96vw;
+    max-width: 1460px;
+    height: 92vh;
+    max-height: 94vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
     overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modo Pantalla Completa */
+.whatsapp-modal-container.fullscreen {
+    width: 99vw !important;
+    max-width: 99vw !important;
+    height: 98vh !important;
+    max-height: 98vh !important;
+    border-radius: 8px !important;
 }
 
 .whatsapp-modal-header {
     background: #202c33;
-    padding: 14px 20px;
+    padding: 12px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    user-select: none;
 }
 
 .whatsapp-header-user {
@@ -1167,32 +1179,150 @@ body.mode-recepcion .inbox-cards-grid {
     margin-top: 2px;
 }
 
-.whatsapp-close-btn {
-    background: none;
-    border: none;
-    color: #aebac1;
-    font-size: 1.4rem;
+/* Botones de Control de Ventana (Minimizar, Maximizar, Cerrar) */
+.whatsapp-window-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.whatsapp-control-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    font-weight: 700;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.whatsapp-control-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.whatsapp-control-btn.close-btn:hover {
+    background: rgba(239, 68, 68, 0.35);
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
+/* Barra Flotante de Chat Minimizado */
+.minimized-floating-bar {
+    position: fixed;
+    bottom: 24px;
+    right: 28px;
+    z-index: 10000;
+    background: #202c33;
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    border-radius: 30px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    animation: slideUpMini 0.25s ease;
+}
+
+@keyframes slideUpMini {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.minimized-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.minimized-avatar {
+    font-size: 1.2rem;
+    background: rgba(255, 255, 255, 0.1);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.minimized-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.2;
+}
+
+.minimized-sub {
+    font-size: 0.76rem;
+    color: #00a884;
+    font-family: monospace;
+}
+
+.minimized-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-restore {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #ffffff;
+    border: none;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
     transition: all 0.15s;
 }
 
-.whatsapp-close-btn:hover {
-    color: #ffffff;
+.btn-restore:hover {
+    background: #0284c7;
+    transform: scale(1.03);
+}
+
+.btn-close-mini {
     background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #94a3b8;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.btn-close-mini:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: #ffffff;
 }
 
 .whatsapp-modal-body {
     display: grid;
-    grid-template-columns: 340px 1fr;
+    grid-template-columns: 380px 1fr;
     flex: 1;
-    min-height: 500px;
-    max-height: calc(90vh - 75px);
+    min-height: 540px;
+    max-height: calc(92vh - 70px);
     overflow: hidden;
 }
 
-@media (max-width: 820px) {
+.whatsapp-modal-container.fullscreen .whatsapp-modal-body {
+    grid-template-columns: 420px 1fr;
+    max-height: calc(98vh - 70px);
+}
+
+@media (max-width: 900px) {
     .whatsapp-modal-body {
         grid-template-columns: 1fr;
     }
