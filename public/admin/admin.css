@@ -1607,6 +1607,27 @@ body.mode-recepcion .inbox-cards-grid {
     margin-top: 4px;
 }
 
+.btn-human-toggle {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    font-size: 0.82rem;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-human-toggle:hover {
+    background: rgba(245, 158, 11, 0.35);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
 .btn-conclude-action {
     background: rgba(16, 185, 129, 0.15);
     color: #34d399;
@@ -1615,6 +1636,11 @@ body.mode-recepcion .inbox-cards-grid {
     padding: 8px 14px;
     border-radius: 8px;
     font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .btn-conclude-action:hover {

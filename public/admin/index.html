@@ -154,9 +154,14 @@
                         <div id="reply-error-msg" class="error-msg" style="display: none; margin-top: 4px;"></div>
 
                         <div class="whatsapp-actions-footer">
-                            <button type="button" id="btn-concluir-gestion" class="btn-conclude-action">
-                                ✅ Concluir Gestión & Reactivar Bot
-                            </button>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button type="button" id="btn-toggle-human-mode" class="btn-human-toggle">
+                                    👤 Activar Atención Humana
+                                </button>
+                                <button type="button" id="btn-concluir-gestion" class="btn-conclude-action" style="display: none;">
+                                    ✅ Concluir Gestión & Reactivar Bot
+                                </button>
+                            </div>
                             <div style="display: flex; gap: 8px;">
                                 <button type="button" id="cancel-reply-btn" class="btn-secondary-simple">Cerrar</button>
                                 <button type="submit" id="send-reply-submit-btn" class="btn-send-whatsapp">
@@ -523,6 +528,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260814-V193"></script>
+    <script src="/admin/admin.js?v=20260814-V196"></script>
 </body>
 </html>

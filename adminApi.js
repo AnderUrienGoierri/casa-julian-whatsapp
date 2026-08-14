@@ -686,7 +686,35 @@ router.post('/solicitudes/:id/concluir', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 17. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, CANCELADA, ARCHIVADA)
+// 17. Activar o Pausar Modo de Atención Humana manualmente
+router.post('/solicitudes/:id/atencion-humana', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { enAtencionHumana } = req.body || {};
+
+        const list = await getAllSolicitudes();
+        const sol = list.find(s => s.id === id);
+        if (!sol) {
+            return res.status(404).json({ error: 'Solicitud no encontrada.' });
+        }
+
+        const isHuman = enAtencionHumana === true;
+        const updated = await updateSolicitudStatus(id, sol.estado, null, isHuman);
+
+        return res.json({
+            success: true,
+            message: isHuman 
+                ? '🟢 Modo Atención Humana activado (Bot pausado para este cliente).' 
+                : '⚪ Modo Bot reactivado con éxito (El cliente puede usar el bot).',
+            solicitud: updated
+        });
+    } catch (e) {
+        console.error("⚠️ Error cambiando modo de atención humana:", e.message);
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 18. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, CANCELADA, ARCHIVADA)
 router.post('/solicitudes/:id/estado', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;

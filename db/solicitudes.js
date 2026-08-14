@@ -164,7 +164,7 @@ async function createSolicitud({ tipoAccion, telefonoCliente, datosDetallados, n
         estado: 'PENDIENTE',
         respuestaStaff: null,
         fechaRespuesta: null,
-        enAtencionHumana: true,
+        enAtencionHumana: false,
         mensajes: initialMensajes,
         created_at: timestamp
     };
@@ -235,7 +235,7 @@ async function getAllSolicitudes() {
                         estado: r.estado,
                         respuestaStaff: r.respuesta_staff,
                         fechaRespuesta: r.fecha_respuesta,
-                        enAtencionHumana: r.en_atencion_humana !== false,
+                        enAtencionHumana: r.en_atencion_humana === true,
                         mensajes: parsedMensajes,
                         created_at: r.created_at
                     };
@@ -250,7 +250,7 @@ async function getAllSolicitudes() {
     const list = db.solicitudes || [];
     return list.map(s => ({
         ...s,
-        enAtencionHumana: s.enAtencionHumana !== false,
+        enAtencionHumana: s.enAtencionHumana === true,
         mensajes: s.mensajes || (s.datosDetallados ? [{ emisor: 'cliente', texto: s.datosDetallados, fecha: s.created_at }] : [])
     }));
 }

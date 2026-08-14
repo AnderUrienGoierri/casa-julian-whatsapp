@@ -1881,7 +1881,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const phoneFormatted = sol.telefonoCliente || sol.telefonoReserva || 'Desconocido';
-            const isHandoverActive = sol.enAtencionHumana !== false && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
+            const isHandoverActive = sol.enAtencionHumana === true && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
             const handoverBadgeHtml = isHandoverActive
                 ? `<span style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Modo Humano</span>`
                 : `<span style="background: rgba(100, 116, 139, 0.18); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600;">⚪ Bot Activo</span>`;
@@ -2132,12 +2132,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Estado del Modo Humano
         const handoverStatusEl = document.getElementById('reply-handover-status');
-        const isHandoverActive = sol.enAtencionHumana !== false && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
+        const isHandoverActive = sol.enAtencionHumana === true && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
         if (handoverStatusEl) {
             handoverStatusEl.textContent = isHandoverActive ? '🟢 Modo Humano (Bot Pausado)' : '⚪ Bot Activo';
             handoverStatusEl.style.background = isHandoverActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.2)';
             handoverStatusEl.style.color = isHandoverActive ? '#34d399' : '#94a3b8';
             handoverStatusEl.style.borderColor = isHandoverActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(100, 116, 139, 0.3)';
+        }
+
+        // Configuración de Botones de Modo Humano / Concluir
+        const btnToggleHuman = document.getElementById('btn-toggle-human-mode');
+        const btnConcluir = document.getElementById('btn-concluir-gestion');
+        if (btnToggleHuman && btnConcluir) {
+            if (isHandoverActive) {
+                btnToggleHuman.style.display = 'none';
+                btnConcluir.style.display = 'inline-flex';
+            } else {
+                btnToggleHuman.style.display = 'inline-flex';
+                btnConcluir.style.display = 'none';
+            }
         }
 
         // Resumen estructurado en la barra lateral izquierda (Tabla estilizada)
@@ -2293,6 +2306,43 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Botón Activar Atención Humana (Pausar Bot)
+    const btnToggleHumanMode = document.getElementById('btn-toggle-human-mode');
+    if (btnToggleHumanMode) {
+        btnToggleHumanMode.addEventListener('click', async () => {
+            if (!activeReplySolicitud) return;
+            const solId = activeReplySolicitud.id;
+            btnToggleHumanMode.disabled = true;
+            try {
+                const res = await fetch(`/api/admin/solicitudes/${solId}/atencion-humana`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': adminToken
+                    },
+                    body: JSON.stringify({ enAtencionHumana: true })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    await fetchSolicitudes();
+                    const updatedSol = allSolicitudes.find(s => s.id === solId);
+                    if (updatedSol) {
+                        openReplyModal(updatedSol);
+                    }
+                } else {
+                    replyErrorMsg.textContent = data.error || "Error al activar atención humana.";
+                    replyErrorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                replyErrorMsg.textContent = "Error de conexión: " + err.message;
+                replyErrorMsg.style.display = 'block';
+            } finally {
+                btnToggleHumanMode.disabled = false;
+            }
+        });
+    }
 
     // Botón Concluir Gestión & Reactivar Bot
     const btnConcluirGestion = document.getElementById('btn-concluir-gestion');
