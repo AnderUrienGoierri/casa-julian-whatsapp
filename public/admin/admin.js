@@ -1688,88 +1688,65 @@ document.addEventListener('DOMContentLoaded', () => {
             const dateStr = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
             
             // Badge de Categoría
-            let catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
+            let catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
             if (sol.categoria === 'reservas_menu_tradicion') {
-                catTagHtml = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">🎁 Reservas Menú Tradición</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">🎁 Reservas Menú Tradición</span>`;
             } else if (sol.categoria === 'mod_comensales') {
-                catTagHtml = `<span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">👥 Mod. Comensales</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">👥 Mod. Comensales</span>`;
             } else if (sol.categoria === 'mod_dia') {
-                catTagHtml = `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">📅 Mod. Día</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">📅 Mod. Día</span>`;
             } else if (sol.categoria === 'mod_hora') {
-                catTagHtml = `<span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">🕐 Mod. Hora</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">🕐 Mod. Hora</span>`;
             } else if (sol.categoria === 'cancelacion') {
-                catTagHtml = `<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">❌ Cancelaciones</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">❌ Cancelaciones</span>`;
             } else if (sol.categoria === 'consulta_abierta') {
-                catTagHtml = `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">💬 Consultas Abiertas</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">💬 Consultas Abiertas</span>`;
             }
 
             // Badge de Estado
-            let statusBadgeHtml = `<span style="background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">⏳ PENDIENTE</span>`;
+            let statusBadgeHtml = `<span style="background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">⏳ PENDIENTE</span>`;
             if (sol.estado === 'RESPONDIDA') {
-                statusBadgeHtml = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">💬 RESPONDIDA</span>`;
+                statusBadgeHtml = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">💬 RESPONDIDA</span>`;
             } else if (sol.estado === 'CONFIRMADA') {
-                statusBadgeHtml = `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">✅ CONFIRMADA</span>`;
+                statusBadgeHtml = `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">✅ CONFIRMADA</span>`;
             } else if (sol.estado === 'RECHAZADA') {
-                statusBadgeHtml = `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">🚫 RECHAZADA</span>`;
+                statusBadgeHtml = `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">🚫 RECHAZADA</span>`;
             }
 
             const phoneFormatted = sol.telefonoCliente || sol.telefonoReserva || 'Desconocido';
             const isHandoverActive = sol.enAtencionHumana !== false && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
             const handoverBadgeHtml = isHandoverActive
-                ? `<span style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Atención Humana (Bot Pausado)</span>`
+                ? `<span style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Modo Humano</span>`
                 : `<span style="background: rgba(100, 116, 139, 0.18); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600;">⚪ Bot Activo</span>`;
 
             const msgList = Array.isArray(sol.mensajes) ? sol.mensajes : [];
             const msgCountStr = msgList.length > 0 ? `💬 ${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}` : '💬 1 mensaje';
-            const lastMsg = msgList.length > 0 ? msgList[msgList.length - 1] : null;
 
+            // Tarjeta compacta profesional estilo WhatsApp Web (sin desplegar todo el resumen)
             html += `
-                <div class="table-card solicitud-card" data-id="${sol.id}" style="padding: 16px; margin-bottom: 16px; border: 1px solid ${isHandoverActive ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255,255,255,0.08)'}; background: rgba(30, 41, 59, 0.5); border-radius: 12px; transition: transform 0.15s ease;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px;">
+                <div class="whatsapp-inbox-card solicitud-card" data-id="${sol.id}">
+                    <div class="card-top-header">
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             ${catTagHtml}
                             ${statusBadgeHtml}
                             ${handoverBadgeHtml}
                         </div>
-                        <span style="font-size: 0.78rem; color: var(--text-muted);">⏰ ${dateStr}</span>
+                        <span style="font-size: 0.78rem; color: #94a3b8;">⏰ ${dateStr}</span>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <div style="font-size: 1.6rem; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 50%;">👤</div>
+                    <div class="card-main-content">
+                        <div class="card-user-info">
+                            <div class="card-avatar">👤</div>
                             <div>
-                                <div style="font-size: 1rem; font-weight: 700; color: #ffffff;">${sol.nombreCliente || 'Cliente'}</div>
-                                <div style="font-size: 0.85rem; color: var(--accent-gold); font-family: monospace;">📞 WhatsApp: +${phoneFormatted}</div>
+                                <div class="card-client-name">${sol.nombreCliente || 'Cliente'}</div>
+                                <div class="card-client-phone">📞 WhatsApp: +${phoneFormatted}</div>
                             </div>
                         </div>
-                        <span style="font-size: 0.78rem; color: var(--accent-gold); background: rgba(217, 119, 6, 0.15); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(217, 119, 6, 0.3); font-weight: 600;">${msgCountStr}</span>
-                    </div>
 
-                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-                        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">📝 Resumen de la Solicitud:</div>
-                        <pre style="margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 0.85rem; color: #e2e8f0; max-height: 140px; overflow-y: auto;">${sol.datosDetallados || 'Sin detalles'}</pre>
-                    </div>
-
-                    ${lastMsg && lastMsg.emisor === 'cliente' && msgList.length > 1 ? `
-                        <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; border-radius: 4px; padding: 8px 12px; margin-bottom: 12px; font-size: 0.82rem;">
-                            <div style="color: #34d399; font-weight: 700; font-size: 0.75rem;">📩 Último mensaje del cliente:</div>
-                            <div style="color: #f1f5f9; margin-top: 2px;">${lastMsg.texto}</div>
+                        <div class="card-badges-right">
+                            <span class="msg-count-chip">${msgCountStr}</span>
+                            <button class="btn-danger btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px;" title="Eliminar solicitud">🗑️</button>
                         </div>
-                    ` : ''}
-
-                    ${sol.respuestaStaff ? `
-                        <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; border-radius: 4px; padding: 8px 12px; margin-bottom: 12px; font-size: 0.82rem;">
-                            <div style="color: #38bdf8; font-weight: 700; font-size: 0.75rem;">💬 Última respuesta de Recepción (${sol.fechaRespuesta ? new Date(sol.fechaRespuesta).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : ''}):</div>
-                            <div style="color: #cbd5e1; white-space: pre-wrap; margin-top: 2px;">${sol.respuestaStaff}</div>
-                        </div>
-                    ` : ''}
-
-                    <div style="display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;">
-                        <button class="btn-primary btn-reply-solicitud" data-id="${sol.id}" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-size: 0.85rem; padding: 7px 14px; font-weight: 700;">💬 Abrir Chat & Responder</button>
-                        ${isHandoverActive ? `
-                            <button class="btn-secondary btn-quick-conclude" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 0.85rem; padding: 7px 12px;">✅ Concluir Gestión</button>
-                        ` : ''}
-                        <button class="btn-danger btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.85rem; padding: 7px 10px;" title="Eliminar solicitud">🗑️</button>
                     </div>
                 </div>
             `;
@@ -1777,28 +1754,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         inboxCardsContainer.innerHTML = html;
 
-        // Registrar Event Listeners en los Botones
-        document.querySelectorAll('.btn-reply-solicitud').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const solId = btn.getAttribute('data-id');
+        // Registrar Event Listeners: Al hacer click en cualquier parte de la tarjeta, abrir el modal
+        document.querySelectorAll('.solicitud-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Si pulsó eliminar, no abrir el modal
+                if (e.target.closest('.btn-delete-solicitud')) return;
+                const solId = card.getAttribute('data-id');
                 const sol = allSolicitudes.find(s => s.id === solId);
                 if (sol) openReplyModal(sol);
             });
         });
 
-        document.querySelectorAll('.btn-quick-conclude').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const solId = btn.getAttribute('data-id');
-                const sol = allSolicitudes.find(s => s.id === solId);
-                if (sol) {
-                    const defaultMsg = `✅ Hola ${sol.nombreCliente || ''}, tu gestión con Asador Casa Julián de Tolosa ha quedado concluida y confirmada. ¡Muchas gracias por contactar con nosotros!`;
-                    openReplyModal(sol, defaultMsg, 'CONFIRMADA');
-                }
-            });
-        });
-
         document.querySelectorAll('.btn-delete-solicitud').forEach(btn => {
-            btn.addEventListener('click', async () => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
                 const solId = btn.getAttribute('data-id');
                 if (confirm("¿Seguro que deseas eliminar este registro de solicitud?")) {
                     try {
@@ -1820,8 +1789,24 @@ document.addEventListener('DOMContentLoaded', () => {
         activeReplySolicitud = sol;
         replySolicitudId.value = sol.id;
         replyClientName.textContent = `Cliente: ${sol.nombreCliente || 'Cliente Casa Julián'}`;
-        replyClientPhone.textContent = `Teléfono WhatsApp: +${sol.telefonoCliente || sol.telefonoReserva || ''}`;
+        replyClientPhone.textContent = `📞 WhatsApp: +${sol.telefonoCliente || sol.telefonoReserva || ''}`;
         
+        // Badge de Categoría en Modal
+        const catBadgeEl = document.getElementById('reply-category-badge');
+        if (catBadgeEl) {
+            catBadgeEl.textContent = sol.categoriaLabel || sol.tipoAccion || '📌 Solicitud';
+            if (sol.categoria === 'reservas_menu_tradicion') {
+                catBadgeEl.textContent = '🎁 Reservas Menú Tradición';
+                catBadgeEl.style.color = '#34d399';
+                catBadgeEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            } else if (sol.categoria === 'cancelacion') {
+                catBadgeEl.textContent = '❌ Cancelación';
+                catBadgeEl.style.color = '#f87171';
+                catBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            }
+        }
+
+        // Estado del Modo Humano
         const handoverStatusEl = document.getElementById('reply-handover-status');
         const isHandoverActive = sol.enAtencionHumana !== false && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
         if (handoverStatusEl) {
@@ -1831,7 +1816,17 @@ document.addEventListener('DOMContentLoaded', () => {
             handoverStatusEl.style.borderColor = isHandoverActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(100, 116, 139, 0.3)';
         }
 
-        // Renderizar Hilo de Mensajes
+        // Resumen estructurado en la barra lateral izquierda
+        const summaryEl = document.getElementById('reply-solicitud-summary');
+        const dateEl = document.getElementById('reply-solicitud-date');
+        if (summaryEl) {
+            summaryEl.textContent = sol.datosDetallados || 'Sin detalles de solicitud.';
+        }
+        if (dateEl) {
+            dateEl.textContent = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
+        }
+
+        // Renderizar Hilo de Mensajes con estilo WhatsApp
         const threadContainer = document.getElementById('reply-chat-thread');
         const msgCountEl = document.getElementById('thread-msg-count');
         const msgList = Array.isArray(sol.mensajes) && sol.mensajes.length > 0 
@@ -1848,28 +1843,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const bubble = document.createElement('div');
                 bubble.style.cssText = `
-                    max-width: 82%;
+                    max-width: 80%;
                     align-self: ${isClient ? 'flex-start' : 'flex-end'};
-                    background: ${isClient ? '#005c4b' : '#1e3a8a'};
-                    color: #f1f5f9;
-                    padding: 8px 12px;
-                    border-radius: ${isClient ? '0 10px 10px 10px' : '10px 0 10px 10px'};
-                    font-size: 0.85rem;
-                    line-height: 1.4;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    background: ${isClient ? '#005c4b' : '#025144'};
+                    color: #e9edef;
+                    padding: 10px 14px;
+                    border-radius: ${isClient ? '0 12px 12px 12px' : '12px 0 12px 12px'};
+                    font-size: 0.88rem;
+                    line-height: 1.45;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
                     word-break: break-word;
+                    border: 1px solid rgba(255,255,255,0.05);
                 `;
                 bubble.innerHTML = `
-                    <div style="font-size: 0.72rem; font-weight: 700; color: ${isClient ? '#86efac' : '#93c5fd'}; margin-bottom: 2px;">
+                    <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px;">
                         ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '👩‍💼 Recepción Casa Julián'}
                     </div>
                     <div style="white-space: pre-wrap;">${m.texto}</div>
-                    <div style="text-align: right; font-size: 0.65rem; color: rgba(255,255,255,0.6); margin-top: 3px;">${timeStr}</div>
+                    <div style="text-align: right; font-size: 0.68rem; color: #8696a0; margin-top: 4px;">${timeStr}</div>
                 `;
                 threadContainer.appendChild(bubble);
             });
 
-            setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 50);
+            setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 60);
         }
 
         replyMessageText.value = prefilledText || '';
