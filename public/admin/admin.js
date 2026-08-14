@@ -18,6 +18,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    // INBOX & SOLICITUDES DOM & STATE
+    let allSolicitudes = [];
+    let currentInboxCatFilter = 'all';
+    let currentInboxStatusFilter = 'all';
+    let currentInboxSearch = '';
+    let activeReplySolicitud = null;
+    let inboxPollingInterval = null;
+
+    const refreshInboxBtn = document.getElementById('refresh-inbox-btn');
+    const searchInboxInput = document.getElementById('search-inbox-input');
+    const inboxCardsContainer = document.getElementById('inbox-cards-container');
+    const inboxCountBadge = document.getElementById('inbox-count-badge');
+    const replyModal = document.getElementById('reply-modal');
+    const closeReplyModalBtn = document.getElementById('close-reply-modal-btn');
+    const cancelReplyBtn = document.getElementById('cancel-reply-btn');
+    const replyForm = document.getElementById('reply-form');
+    const replyClientName = document.getElementById('reply-client-name');
+    const replyClientPhone = document.getElementById('reply-client-phone');
+    const replySolicitudSummary = document.getElementById('reply-solicitud-summary');
+    const replySolicitudId = document.getElementById('reply-solicitud-id');
+    const replyMessageText = document.getElementById('reply-message-text');
+    const replyErrorMsg = document.getElementById('reply-error-msg');
+
     // SIMULADOR DOM
     const btnStartTest = document.getElementById('btn-start-test');
     const btnResetTest = document.getElementById('btn-reset-test');
@@ -95,13 +118,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminToken = data.token;
                 localStorage.setItem('casa_julian_admin_token', adminToken);
                 localStorage.setItem('casa_julian_user_role', data.role || 'admin');
-                initDashboard();
+                try {
+                    await initDashboard();
+                } catch (dashErr) {
+                    console.error("⚠️ Error inicializando dashboard:", dashErr);
+                }
             } else {
                 loginError.textContent = data.error || 'Contraseña incorrecta.';
                 loginError.style.display = 'block';
             }
         } catch (err) {
-            loginError.textContent = 'Error de conexión con el servidor.';
+            console.error("⚠️ Error en petición de login:", err);
+            loginError.textContent = err.message || 'Error de conexión con el servidor.';
             loginError.style.display = 'block';
         }
     });
@@ -1590,27 +1618,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // LÓGICA DE BANDEJA DE RECEPCIÓN Y SOLICITUDES EN TIEMPO REAL (INBOX)
     // =========================================================================
-    let allSolicitudes = [];
-    let currentInboxCatFilter = 'all';
-    let currentInboxStatusFilter = 'all';
-    let currentInboxSearch = '';
-    let activeReplySolicitud = null;
-    let inboxPollingInterval = null;
-
-    const refreshInboxBtn = document.getElementById('refresh-inbox-btn');
-    const searchInboxInput = document.getElementById('search-inbox-input');
-    const inboxCardsContainer = document.getElementById('inbox-cards-container');
-    const inboxCountBadge = document.getElementById('inbox-count-badge');
-    const replyModal = document.getElementById('reply-modal');
-    const closeReplyModalBtn = document.getElementById('close-reply-modal-btn');
-    const cancelReplyBtn = document.getElementById('cancel-reply-btn');
-    const replyForm = document.getElementById('reply-form');
-    const replyClientName = document.getElementById('reply-client-name');
-    const replyClientPhone = document.getElementById('reply-client-phone');
-    const replySolicitudSummary = document.getElementById('reply-solicitud-summary');
-    const replySolicitudId = document.getElementById('reply-solicitud-id');
-    const replyMessageText = document.getElementById('reply-message-text');
-    const replyErrorMsg = document.getElementById('reply-error-msg');
 
     // Cargar Solicitudes desde Backend
     async function fetchSolicitudes() {
