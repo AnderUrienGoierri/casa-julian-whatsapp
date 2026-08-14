@@ -1363,6 +1363,7 @@ body.mode-recepcion .inbox-cards-grid {
     min-height: 540px;
     max-height: calc(92vh - 70px);
     overflow: hidden;
+    position: relative;
 }
 
 .whatsapp-modal-container.fullscreen .whatsapp-modal-body {
@@ -1370,13 +1371,62 @@ body.mode-recepcion .inbox-cards-grid {
     max-height: calc(98vh - 70px);
 }
 
-@media (max-width: 960px) {
-    .whatsapp-modal-body {
-        grid-template-columns: 1fr;
-    }
-    .whatsapp-request-sidebar {
-        display: none !important;
-    }
+/* Botón Toggle Resumen en Header */
+.btn-toggle-summary {
+    width: auto !important;
+    padding: 0 10px !important;
+    gap: 5px !important;
+    font-size: 0.8rem !important;
+    background: rgba(56, 189, 248, 0.12) !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    color: #38bdf8 !important;
+    display: inline-flex !important;
+    align-items: center;
+}
+
+.btn-toggle-summary:hover {
+    background: rgba(56, 189, 248, 0.25) !important;
+    color: #ffffff !important;
+}
+
+.btn-toggle-summary.active {
+    background: #0284c7 !important;
+    border-color: #38bdf8 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.btn-close-sidebar-mobile {
+    display: none;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.btn-close-sidebar-mobile:hover {
+    background: rgba(239, 68, 68, 0.3);
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+.whatsapp-sidebar-backdrop {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+    z-index: 10;
 }
 
 .whatsapp-request-sidebar {
@@ -1387,6 +1437,112 @@ body.mode-recepcion .inbox-cards-grid {
     flex-direction: column;
     gap: 12px;
     overflow-y: auto;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Pantallas Medianas / Estrechas / Móviles (< 960px) */
+@media (max-width: 960px) {
+    .whatsapp-modal-body {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-close-sidebar-mobile {
+        display: inline-flex;
+    }
+
+    /* En pantallas < 960px, el sidebar funciona como un panel lateral / cajón deslizable */
+    .whatsapp-request-sidebar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 85%;
+        max-width: 440px;
+        z-index: 20;
+        background: #111b21;
+        box-shadow: 10px 0 35px rgba(0, 0, 0, 0.85);
+        border-right: 1px solid rgba(56, 189, 248, 0.3);
+        transform: translateX(-105%);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .whatsapp-request-sidebar.show-sidebar {
+        transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .whatsapp-sidebar-backdrop.show-backdrop {
+        display: block;
+    }
+}
+
+/* Adaptación para pantallas pequeñas y móviles (< 640px) */
+@media (max-width: 640px) {
+    .whatsapp-modal-container {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+
+    .whatsapp-modal-header {
+        padding: 10px 12px;
+    }
+
+    .whatsapp-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .whatsapp-client-title h3 {
+        font-size: 0.95rem;
+    }
+
+    .btn-toggle-summary span {
+        display: none;
+    }
+
+    .btn-toggle-summary {
+        padding: 0 6px !important;
+    }
+
+    .whatsapp-control-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.82rem;
+    }
+
+    .whatsapp-actions-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .whatsapp-actions-footer > div {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .btn-send-whatsapp, .btn-conclude-action, .btn-human-toggle {
+        flex: 1;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .whatsapp-request-sidebar {
+        width: 95%;
+        max-width: 100%;
+    }
+
+    .summary-table-row {
+        grid-template-columns: 140px 1fr;
+        font-size: 0.78rem;
+        padding: 7px 10px;
+    }
 }
 
 .sidebar-section-title {

@@ -2171,21 +2171,61 @@ document.addEventListener('DOMContentLoaded', () => {
         replyModal.setAttribute('data-target-status', targetStatus);
         replyModal.style.display = 'flex';
 
-        // Ocultar widget minimizado si estaba visible y quitar alerta
-        const miniWidget = document.getElementById('minimized-chat-widget');
-        const miniBadge = document.getElementById('minimized-unread-badge');
-        if (miniWidget) {
-            miniWidget.style.display = 'none';
-            miniWidget.classList.remove('has-unread');
+        // Restablecer estado del sidebar y botón
+        const sidebar = document.getElementById('whatsapp-request-sidebar');
+        const backdrop = document.getElementById('whatsapp-sidebar-backdrop');
+        const toggleBtn = document.getElementById('toggle-sidebar-btn');
+        if (sidebar) {
+            sidebar.style.display = '';
+            sidebar.classList.remove('show-sidebar');
         }
-        if (miniBadge) miniBadge.style.display = 'none';
+        if (backdrop) backdrop.classList.remove('show-backdrop');
+        if (toggleBtn) toggleBtn.classList.remove('active');
 
         renderInboxCards();
+    }
+
+    function closeSidebarDrawer() {
+        const sidebar = document.getElementById('whatsapp-request-sidebar');
+        const backdrop = document.getElementById('whatsapp-sidebar-backdrop');
+        const toggleBtn = document.getElementById('toggle-sidebar-btn');
+        if (sidebar) sidebar.classList.remove('show-sidebar');
+        if (backdrop) backdrop.classList.remove('show-backdrop');
+        if (toggleBtn) toggleBtn.classList.remove('active');
+    }
+
+    function toggleSidebarDrawer() {
+        const sidebar = document.getElementById('whatsapp-request-sidebar');
+        const backdrop = document.getElementById('whatsapp-sidebar-backdrop');
+        const toggleBtn = document.getElementById('toggle-sidebar-btn');
+        if (!sidebar) return;
+
+        // En pantallas grandes (>= 960px), toggle de visibilidad colapsable
+        if (window.innerWidth > 960) {
+            if (sidebar.style.display === 'none') {
+                sidebar.style.display = 'flex';
+                if (toggleBtn) toggleBtn.classList.add('active');
+            } else {
+                sidebar.style.display = 'none';
+                if (toggleBtn) toggleBtn.classList.remove('active');
+            }
+        } else {
+            // En pantallas pequeñas (< 960px), toggle de cajón lateral flotante
+            const isOpen = sidebar.classList.contains('show-sidebar');
+            if (isOpen) {
+                closeSidebarDrawer();
+            } else {
+                sidebar.classList.add('show-sidebar');
+                if (backdrop) backdrop.classList.add('show-backdrop');
+                if (toggleBtn) toggleBtn.classList.add('active');
+            }
+        }
     }
 
     function closeReplyModal() {
         replyModal.style.display = 'none';
         activeReplySolicitud = null;
+        closeSidebarDrawer();
         const miniWidget = document.getElementById('minimized-chat-widget');
         const miniBadge = document.getElementById('minimized-unread-badge');
         if (miniWidget) {
@@ -2198,6 +2238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function minimizeReplyModal() {
         if (!activeReplySolicitud) return;
         replyModal.style.display = 'none';
+        closeSidebarDrawer();
         const miniWidget = document.getElementById('minimized-chat-widget');
         const miniName = document.getElementById('minimized-client-name');
         const miniPhone = document.getElementById('minimized-client-phone');
@@ -2228,11 +2269,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+    const closeSidebarMobileBtn = document.getElementById('close-sidebar-mobile-btn');
+    const sidebarBackdrop = document.getElementById('whatsapp-sidebar-backdrop');
     const minimizeBtn = document.getElementById('minimize-reply-modal-btn');
     const maximizeBtn = document.getElementById('maximize-reply-modal-btn');
     const restoreChatBtn = document.getElementById('restore-chat-btn');
     const closeMiniBtn = document.getElementById('close-minimized-chat-btn');
     const miniWidgetEl = document.getElementById('minimized-chat-widget');
+
+    if (toggleSidebarBtn) toggleSidebarBtn.addEventListener('click', toggleSidebarDrawer);
+    if (closeSidebarMobileBtn) closeSidebarMobileBtn.addEventListener('click', closeSidebarDrawer);
+    if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebarDrawer);
 
     if (minimizeBtn) minimizeBtn.addEventListener('click', minimizeReplyModal);
     if (maximizeBtn) maximizeBtn.addEventListener('click', toggleMaximizeModal);

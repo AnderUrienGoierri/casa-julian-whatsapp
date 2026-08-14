@@ -99,6 +99,7 @@
                     </div>
                 </div>
                 <div class="whatsapp-window-controls">
+                    <button type="button" id="toggle-sidebar-btn" class="whatsapp-control-btn btn-toggle-summary" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
                     <button type="button" id="minimize-reply-modal-btn" class="whatsapp-control-btn" title="Minimizar ventana (ver panel detrás)">—</button>
                     <button type="button" id="maximize-reply-modal-btn" class="whatsapp-control-btn" title="Maximizar / Pantalla Completa">🗖</button>
                     <button type="button" id="close-reply-modal-btn" class="whatsapp-control-btn close-btn" title="Cerrar modal">✕</button>
@@ -107,11 +108,17 @@
 
             <!-- Body de 2 Columnas (Resumen de la Solicitud + Chat WhatsApp Completo) -->
             <div class="whatsapp-modal-body">
+                <!-- Backdrop para móviles al abrir el resumen -->
+                <div id="whatsapp-sidebar-backdrop" class="whatsapp-sidebar-backdrop"></div>
+
                 <!-- Columna Izquierda: Tarjeta con los datos de la Solicitud -->
-                <div class="whatsapp-request-sidebar">
+                <div id="whatsapp-request-sidebar" class="whatsapp-request-sidebar">
                     <div class="sidebar-section-title">
                         <span>📋 Resumen Solicitud</span>
-                        <span id="reply-solicitud-date" style="font-size: 0.72rem; color: #94a3b8;">Reciente</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="reply-solicitud-date" style="font-size: 0.72rem; color: #94a3b8;">Reciente</span>
+                            <button type="button" id="close-sidebar-mobile-btn" class="btn-close-sidebar-mobile" title="Cerrar Resumen">✕</button>
+                        </div>
                     </div>
                     <div class="whatsapp-request-details">
                         <div id="reply-solicitud-summary"></div>
@@ -528,6 +535,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260814-V196"></script>
+    <script src="/admin/admin.js?v=20260814-V197"></script>
 </body>
 </html>
