@@ -50,11 +50,28 @@ body {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    padding: 2.5rem;
-    width: 100%;
+    padding: 2rem 1.5rem;
+    width: 92%;
     max-width: 440px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     text-align: center;
+    position: relative;
+    z-index: 10000;
+}
+
+@media (max-width: 480px) {
+    .login-box {
+        padding: 1.5rem 1.2rem;
+        margin: 12px;
+        width: calc(100% - 24px);
+    }
+    .login-header h2 {
+        font-size: 1.25rem;
+    }
+    .login-header p {
+        font-size: 0.82rem;
+        margin-bottom: 16px;
+    }
 }
 
 .restaurant-badge {
@@ -102,11 +119,13 @@ select {
     background: #14161b;
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    padding: 10px 14px;
+    padding: 12px 14px;
     border-radius: 8px;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 16px; /* Evita zoom molesto automático en móviles iOS/Android */
     transition: all 0.2s;
+    touch-action: manipulation;
+    -webkit-appearance: none;
 }
 
 input:focus, textarea:focus, select:focus {
