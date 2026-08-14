@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentInboxCatFilter = 'all';
     let currentInboxStatusFilter = 'all';
     let currentInboxSearch = '';
+    let currentInboxView = 'active';      // 'active' | 'ARCHIVADA' | 'ELIMINADA'
+    let currentInboxSort = 'date_desc';   // 'date_desc' | 'date_asc' | 'alpha_asc' | 'alpha_desc' | 'estado'
+    let inboxFiltersOpen = true;          // Toggle colapsable
     let activeReplySolicitud = null;
     let inboxPollingInterval = null;
 
@@ -1803,26 +1806,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Actualiza el resumen de filtros activos en el header del toggle
+    function updateFiltersSummary() {
+        const el = document.getElementById('inbox-active-filters-summary');
+        if (!el) return;
+        const parts = [];
+        if (currentInboxView === 'ARCHIVADA') parts.push('📦 Archivadas');
+        if (currentInboxView === 'ELIMINADA') parts.push('🗑️ Papelera');
+        if (currentInboxCatFilter !== 'all') parts.push(currentInboxCatFilter);
+        if (currentInboxStatusFilter !== 'all') parts.push(currentInboxStatusFilter);
+        if (currentInboxSearch.trim()) parts.push(`"${currentInboxSearch.trim()}"`);
+        el.textContent = parts.length ? `— ${parts.join(' · ')}` : '';
+    }
+
     // Filtrar y Renderizar Tarjetas de Solicitudes
     function renderInboxCards() {
         if (!inboxCardsContainer) return;
 
         let filtered = [...allSolicitudes];
 
+        // 0. Filtrar por VISTA (activas / archivadas / papelera)
+        if (currentInboxView === 'active') {
+            filtered = filtered.filter(s => s.estado !== 'ARCHIVADA' && s.estado !== 'ELIMINADA');
+        } else {
+            filtered = filtered.filter(s => s.estado === currentInboxView);
+        }
+
         // 1. Filtrar por categoría
         if (currentInboxCatFilter !== 'all') {
             filtered = filtered.filter(s => s.categoria === currentInboxCatFilter);
         }
 
-        // 2. Filtrar por estado
-        if (currentInboxStatusFilter !== 'all') {
+        // 2. Filtrar por estado (solo aplica en vista activas)
+        if (currentInboxView === 'active' && currentInboxStatusFilter !== 'all') {
             filtered = filtered.filter(s => s.estado === currentInboxStatusFilter);
         }
 
         // 3. Filtrar por texto de búsqueda
         if (currentInboxSearch.trim()) {
             const q = currentInboxSearch.toLowerCase().trim();
-            filtered = filtered.filter(s => 
+            filtered = filtered.filter(s =>
                 (s.nombreCliente || '').toLowerCase().includes(q) ||
                 (s.telefonoCliente || '').toLowerCase().includes(q) ||
                 (s.telefonoReserva || '').toLowerCase().includes(q) ||
@@ -1831,6 +1854,19 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }
 
+        // 4. Ordenar
+        const estadoOrder = { 'PENDIENTE': 0, 'EN_GESTION': 1, 'RESPONDIDA': 2, 'CONFIRMADA': 3, 'RECHAZADA': 4 };
+        filtered.sort((a, b) => {
+            if (currentInboxSort === 'date_asc') return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+            if (currentInboxSort === 'alpha_asc') return (a.nombreCliente || '').localeCompare(b.nombreCliente || '', 'es');
+            if (currentInboxSort === 'alpha_desc') return (b.nombreCliente || '').localeCompare(a.nombreCliente || '', 'es');
+            if (currentInboxSort === 'estado') return (estadoOrder[a.estado] ?? 9) - (estadoOrder[b.estado] ?? 9);
+            return new Date(b.created_at || 0) - new Date(a.created_at || 0); // date_desc por defecto
+        });
+
+        // Actualizar resumen de filtros
+        updateFiltersSummary();
+
         // Actualizar Badge de Contador Pendientes
         const pendingCount = allSolicitudes.filter(s => s.estado === 'PENDIENTE').length;
         if (inboxCountBadge) {
@@ -1838,11 +1874,14 @@ document.addEventListener('DOMContentLoaded', () => {
             inboxCountBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
         }
 
+        // Empty state
+        const emptyIcon = currentInboxView === 'ARCHIVADA' ? '📦' : currentInboxView === 'ELIMINADA' ? '🗑️' : '📥';
+        const emptyLabel = currentInboxView === 'ARCHIVADA' ? 'No hay solicitudes archivadas' : currentInboxView === 'ELIMINADA' ? 'La papelera está vacía' : 'No hay solicitudes que coincidan con los filtros';
         if (filtered.length === 0) {
             inboxCardsContainer.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 20px; background: rgba(15, 23, 42, 0.4); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px;">
-                    <div style="font-size: 2.5rem; margin-bottom: 8px;">📥</div>
-                    <div style="font-size: 1.1rem; font-weight: 600; color: #fff;">No hay solicitudes que coincidan con los filtros</div>
+                    <div style="font-size: 2.5rem; margin-bottom: 8px;">${emptyIcon}</div>
+                    <div style="font-size: 1.1rem; font-weight: 600; color: #fff;">${emptyLabel}</div>
                     <p style="font-size: 0.85rem; margin-top: 4px;">Las nuevas peticiones enviadas por los clientes desde WhatsApp aparecerán aquí automáticamente.</p>
                 </div>
             `;
@@ -1850,10 +1889,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let html = '';
+        const isArchiveView = currentInboxView === 'ARCHIVADA';
+        const isDeletedView = currentInboxView === 'ELIMINADA';
+
         filtered.forEach(sol => {
             const dateStr = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
             const isUnread = unreadSolicitudIds.has(sol.id);
-            
+
             // Badge de Categoría
             let catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
             if (sol.categoria === 'reservas_menu_tradicion') {
@@ -1878,6 +1920,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusBadgeHtml = `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">✅ CONFIRMADA</span>`;
             } else if (sol.estado === 'RECHAZADA') {
                 statusBadgeHtml = `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">🚫 RECHAZADA</span>`;
+            } else if (sol.estado === 'ARCHIVADA') {
+                statusBadgeHtml = `<span style="background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">📦 ARCHIVADA</span>`;
+            } else if (sol.estado === 'ELIMINADA') {
+                statusBadgeHtml = `<span style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">🗑️ ELIMINADA</span>`;
             }
 
             const phoneFormatted = sol.telefonoCliente || sol.telefonoReserva || 'Desconocido';
@@ -1890,9 +1936,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const msgCountStr = msgList.length > 0 ? `💬 ${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}` : '💬 1 mensaje';
             const unreadPillHtml = isUnread ? `<span class="card-unread-pill">🔴 ¡Nuevo mensaje!</span>` : '';
 
-            // Tarjeta compacta profesional estilo WhatsApp Web con indicador si tiene nuevo mensaje
+            // Botones de acción según vista
+            let actionBtnsHtml = '';
+            if (isArchiveView || isDeletedView) {
+                // Vista Archivada o Papelera: mostrar Restaurar
+                actionBtnsHtml = `
+                    <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;" title="Restaurar a Activas">↩️ Restaurar</button>
+                `;
+            } else {
+                // Vista Activas: mostrar Archivar + Eliminar
+                actionBtnsHtml = `
+                    <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Archivar gestión">📦</button>
+                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Mover a Papelera">🗑️</button>
+                `;
+            }
+
             html += `
-                <div class="whatsapp-inbox-card solicitud-card ${isUnread ? 'has-unread-msg' : ''}" data-id="${sol.id}">
+                <div class="whatsapp-inbox-card solicitud-card ${isUnread ? 'has-unread-msg' : ''} ${isArchiveView ? 'card-archived' : ''} ${isDeletedView ? 'card-deleted' : ''}" data-id="${sol.id}">
                     <div class="card-top-header">
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             ${catTagHtml}
@@ -1912,9 +1972,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
 
-                        <div class="card-badges-right">
+                        <div class="card-badges-right" style="display: flex; align-items: center; gap: 6px;">
                             <span class="msg-count-chip">${msgCountStr}</span>
-                            <button class="btn-danger btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px;" title="Eliminar solicitud">🗑️</button>
+                            ${actionBtnsHtml}
                         </div>
                     </div>
                 </div>
@@ -1923,21 +1983,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         inboxCardsContainer.innerHTML = html;
 
-        // Registrar Event Listeners: Al hacer click en cualquier parte de la tarjeta, abrir el modal
+        // Event listener: abrir modal al click en la tarjeta
         document.querySelectorAll('.solicitud-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.btn-delete-solicitud')) return;
+                if (e.target.closest('.btn-delete-solicitud') || e.target.closest('.btn-archive-solicitud') || e.target.closest('.btn-restore-solicitud')) return;
                 const solId = card.getAttribute('data-id');
                 const sol = allSolicitudes.find(s => s.id === solId);
                 if (sol) openReplyModal(sol);
             });
         });
 
+        // Botón Eliminar → mover a Papelera (soft-delete)
         document.querySelectorAll('.btn-delete-solicitud').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const solId = btn.getAttribute('data-id');
-                if (confirm("¿Seguro que deseas eliminar este registro de solicitud?")) {
+                if (confirm('¿Mover esta solicitud a la Papelera? Puedes restaurarla desde la vista «Papelera».')) {
                     try {
                         await fetch(`/api/admin/solicitudes/${solId}`, {
                             method: 'DELETE',
@@ -1945,9 +2006,45 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         unreadSolicitudIds.delete(solId);
                         await fetchSolicitudes();
-                    } catch (e) {
-                        alert("Error al eliminar solicitud: " + e.message);
+                    } catch (err) {
+                        alert('Error al eliminar solicitud: ' + err.message);
                     }
+                }
+            });
+        });
+
+        // Botón Archivar → gestión concluida
+        document.querySelectorAll('.btn-archive-solicitud').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const solId = btn.getAttribute('data-id');
+                try {
+                    await fetch(`/api/admin/solicitudes/${solId}/archivar`, {
+                        method: 'POST',
+                        headers: { 'x-admin-token': adminToken }
+                    });
+                    unreadSolicitudIds.delete(solId);
+                    await fetchSolicitudes();
+                } catch (err) {
+                    alert('Error al archivar solicitud: ' + err.message);
+                }
+            });
+        });
+
+        // Botón Restaurar → volver a vista Activas (PENDIENTE)
+        document.querySelectorAll('.btn-restore-solicitud').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const solId = btn.getAttribute('data-id');
+                try {
+                    await fetch(`/api/admin/solicitudes/${solId}/restaurar`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                        body: JSON.stringify({ estadoDestino: 'PENDIENTE' })
+                    });
+                    await fetchSolicitudes();
+                } catch (err) {
+                    alert('Error al restaurar solicitud: ' + err.message);
                 }
             });
         });
@@ -2313,7 +2410,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cancelReplyBtn) cancelReplyBtn.addEventListener('click', closeReplyModal);
     if (refreshInboxBtn) refreshInboxBtn.addEventListener('click', fetchSolicitudes);
 
-    // Eventos de Filtrado en Toolbar Inbox
+    // ── Toggle Colapsable de Filtros ────────────────────────────────────────
+    const inboxFiltersToggleBtn = document.getElementById('inbox-filters-toggle');
+    const inboxFiltersBody = document.getElementById('inbox-filters-body');
+    const inboxFiltersToggleIcon = document.getElementById('inbox-filters-toggle-icon');
+    if (inboxFiltersToggleBtn && inboxFiltersBody) {
+        inboxFiltersToggleBtn.addEventListener('click', () => {
+            inboxFiltersOpen = !inboxFiltersOpen;
+            inboxFiltersBody.style.display = inboxFiltersOpen ? '' : 'none';
+            if (inboxFiltersToggleIcon) inboxFiltersToggleIcon.textContent = inboxFiltersOpen ? '▲' : '▼';
+        });
+    }
+
+    // ── Vista: Activas / Archivadas / Papelera ───────────────────────────────
+    document.querySelectorAll('[data-inbox-view]').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('[data-inbox-view]').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentInboxView = chip.getAttribute('data-inbox-view');
+            renderInboxCards();
+        });
+    });
+
+    // ── Ordenación ───────────────────────────────────────────────────────────
+    const inboxSortSelect = document.getElementById('inbox-sort-select');
+    if (inboxSortSelect) {
+        inboxSortSelect.addEventListener('change', () => {
+            currentInboxSort = inboxSortSelect.value;
+            renderInboxCards();
+        });
+    }
+
+    // ── Filtros por Categoría ────────────────────────────────────────────────
     document.querySelectorAll('#inbox-category-filters .filter-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             document.querySelectorAll('#inbox-category-filters .filter-chip').forEach(c => c.classList.remove('active'));
@@ -2323,6 +2451,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ── Filtros por Estado ───────────────────────────────────────────────────
     document.querySelectorAll('#inbox-status-filters .filter-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             document.querySelectorAll('#inbox-status-filters .filter-chip').forEach(c => c.classList.remove('active'));
@@ -2332,6 +2461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ── Buscador ─────────────────────────────────────────────────────────────
     if (searchInboxInput) {
         searchInboxInput.addEventListener('input', (e) => {
             currentInboxSearch = e.target.value;

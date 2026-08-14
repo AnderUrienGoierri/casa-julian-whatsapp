@@ -750,12 +750,36 @@ router.post('/solicitudes/:id/estado', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 18. Eliminar una solicitud por ID
+// 18. Mover solicitud a Papelera (soft-delete: estado ELIMINADA)
 router.delete('/solicitudes/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const success = await deleteSolicitud(id);
-        return res.json({ success });
+        const updated = await updateSolicitudStatus(id, 'ELIMINADA', null, false);
+        return res.json({ success: true, solicitud: updated });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 18b. Archivar una solicitud (estado ARCHIVADA — gestión concluida, historial)
+router.post('/solicitudes/:id/archivar', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updated = await updateSolicitudStatus(id, 'ARCHIVADA', null, false);
+        return res.json({ success: true, solicitud: updated });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 18c. Restaurar una solicitud desde Papelera o Archivo (vuelve a PENDIENTE)
+router.post('/solicitudes/:id/restaurar', requireAdminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { estadoDestino } = req.body || {};
+        const targetEstado = (estadoDestino || 'PENDIENTE').toUpperCase();
+        const updated = await updateSolicitudStatus(id, targetEstado, null, false);
+        return res.json({ success: true, solicitud: updated });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
