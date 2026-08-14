@@ -22,8 +22,8 @@ Es la plataforma corporativa unificada proporcionada por **Meta** (Facebook/What
 2. **Acceso a la Bandeja de Entrada (Inbox):**
    - En el menú lateral izquierdo, seleccionar la opción **Bandeja de entrada (Inbox)**.
 3. **Asignación de Accesos a la Plantilla (Sin Teléfonos Personales):**
-   - En *Configuración del negocio > Personas*, se invita a los trabajadores mediante su **correo electrónico laboral/corporativo**.
-   - Se asigna el rol *"Atención al cliente"* restringido solo al buzón de mensajes.
+   - En _Configuración del negocio > Personas_, se invita a los trabajadores mediante su **correo electrónico laboral/corporativo**.
+   - Se asigna el rol _"Atención al cliente"_ restringido solo al buzón de mensajes.
 4. **Uso en Dispositivos del Restaurante (Tablet / PC):**
    - En el ordenador de recepción se deja abierta la pestaña del navegador con Meta Business Suite.
    - Opcionalmente, se descarga la App gratuita **Meta Business Suite** (disponible en iOS y Android) en la tablet u ordenador oficial del restaurante.
@@ -32,7 +32,7 @@ Es la plataforma corporativa unificada proporcionada por **Meta** (Facebook/What
 
 - Cuando un cliente termina una solicitud con el bot, aparece en la pestaña de **WhatsApp Inbox**.
 - El trabajador ve la notificación y el resumen generado.
-- Escribe la respuesta (ej: *"Hola Juan, reserva confirmada..."*) y pulsa **Enviar**.
+- Escribe la respuesta (ej: _"Hola Juan, reserva confirmada..."_) y pulsa **Enviar**.
 - El cliente recibe el mensaje en su WhatsApp procedente de **+34 943 67 14 17**.
 
 ---
@@ -58,11 +58,11 @@ Es la interfaz a medida construida específicamente para el proyecto de Casa Jul
 
 ## ⚖️ Comparativa de Implantación
 
-| Aspecto                              | Método 1: Meta Business Suite Inbox            | Método 2: Panel Web Propio (`/admin`)        |
-| :----------------------------------- | :---------------------------------------------- | :---------------------------------------------- |
+| Aspecto                       | Método 1: Meta Business Suite Inbox     | Método 2: Panel Web Propio (`/admin`)   |
+| :---------------------------- | :-------------------------------------- | :-------------------------------------- |
 | **Uso de números personales** | ❌**No utiliza ningún número personal** | ❌**No utiliza ningún número personal** |
-| **Acceso para trabajadores**   | Email corporativo en Meta Business              | Usuario y contraseña en el Panel Web           |
-| **Dispositivo de atención**   | Tablet / PC del restaurante                     | Tablet / PC del restaurante                     |
-| **Coste de software**          | Gratuito por Meta                               | Incluido en este desarrollo                     |
-| **Control de datos**           | Plataforma de Meta                              | Base de datos de Casa Julián                   |
-| **Personalización**           | Estándar de Facebook                           | 100% Personalizado para Casa Julián            |
+| **Acceso para trabajadores**  | Email corporativo en Meta Business      | Usuario y contraseña en el Panel Web    |
+| **Dispositivo de atención**   | Tablet / PC del restaurante             | Tablet / PC del restaurante             |
+| **Coste de software**         | Gratuito por Meta                       | Incluido en este desarrollo             |
+| **Control de datos**          | Plataforma de Meta                      | Base de datos de Casa Julián            |
+| **Personalización**           | Estándar de Facebook                    | 100% Personalizado para Casa Julián     |

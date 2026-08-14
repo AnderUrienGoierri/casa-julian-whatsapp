@@ -1,0 +1,21 @@
+name: Casa-Julian-docker
+
+services:
+  whatsapp-bot-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: casa-julian-whatsapp-bot:latest
+    container_name: casa-julian-whatsapp-bot
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+    volumes:
+      # Sincronización en caliente del código fuente
+      - .:/app
+      - /app/node_modules

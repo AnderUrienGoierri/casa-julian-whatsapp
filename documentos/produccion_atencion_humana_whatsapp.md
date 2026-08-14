@@ -67,11 +67,11 @@ sequenceDiagram
 
 ## 💬 5. Experiencia de Cada Tipo de Usuario
 
-| Tipo de Usuario              | Experiencia en WhatsApp                                                                        | Atención en el Restaurante                                                    |
-| :--------------------------- | :--------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
-| **Cliente General**    | Recibe el menú interactivo, selecciona fechas/alergias y envía solicitud.                    | Recibe el**Resumen Limpio** de reserva y responde confirmando en 1 clic. |
-| **Proveedor habitual** | Escribe un mensaje directo sin menús automáticos (*"Hola, mañana llevo los chuletones"*). | Responde manualmente desde el Panel Web como en un chat tradicional.           |
-| **Trabajador interno** | Escribe un mensaje directo sobre turnos, horarios o notas internas.                            | Responde manualmente desde el Panel Web.                                       |
+| Tipo de Usuario        | Experiencia en WhatsApp                                                                   | Atención en el Restaurante                                               |
+| :--------------------- | :---------------------------------------------------------------------------------------- | :----------------------------------------------------------------------- |
+| **Cliente General**    | Recibe el menú interactivo, selecciona fechas/alergias y envía solicitud.                 | Recibe el**Resumen Limpio** de reserva y responde confirmando en 1 clic. |
+| **Proveedor habitual** | Escribe un mensaje directo sin menús automáticos (_"Hola, mañana llevo los chuletones"_). | Responde manualmente desde el Panel Web como en un chat tradicional.     |
+| **Trabajador interno** | Escribe un mensaje directo sobre turnos, horarios o notas internas.                       | Responde manualmente desde el Panel Web.                                 |
 
 ---
 
