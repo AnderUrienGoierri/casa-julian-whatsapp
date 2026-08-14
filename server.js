@@ -6,6 +6,17 @@ require('dotenv').config();
 
 const app = express();
 
+// Middleware CORS universal (Permite acceso desde Homer localhost:8085, iframe drawers y APIs)
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-token');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 // Middleware para parsear el JSON que envía Meta (con límite para subida de adjuntos base64)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -37,7 +48,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-14-CMS-V191-CORREGIR-DECLARACIONES-INBOX-Y-LOGIN-HANDLING';
+const DEPLOY_VERSION = 'v2026-08-14-CMS-V192-AGREGAR-CORS-PARA-INTEGRACION-HOMER-DASHBOARD';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
