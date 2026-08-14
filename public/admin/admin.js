@@ -1784,6 +1784,95 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Formateador de texto estilo WhatsApp (*negrita*, _cursiva_, ~tachado~, etc.)
+    function formatWhatsAppText(text) {
+        if (!text) return '';
+        let formatted = String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        // Bloques de código ```code```
+        formatted = formatted.replace(/```([\s\S]*?)```/g, '<pre style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-family: monospace; margin: 4px 0;">$1</pre>');
+        // Negrita *texto*
+        formatted = formatted.replace(/(^|[^\w])\*([^\*]+?)\*([^\w]|$)/g, '$1<strong>$2</strong>$3');
+        // Cursiva _texto_
+        formatted = formatted.replace(/(^|[^\w])_([^_]+?)_([^\w]|$)/g, '$1<em>$2</em>$3');
+        // Tachado ~texto~
+        formatted = formatted.replace(/(^|[^\w])~([^~]+?)~([^\w]|$)/g, '$1<del>$2</del>$3');
+        // Monospace en línea `texto`
+        formatted = formatted.replace(/`([^`]+?)`/g, '<code style="background: rgba(0,0,0,0.25); padding: 2px 4px; border-radius: 3px; font-family: monospace;">$1</code>');
+        // Saltos de línea
+        formatted = formatted.replace(/\n/g, '<br>');
+        return formatted;
+    }
+
+    // Renderizar Resumen de Solicitud en Tabla Elegante y Profesional
+    function renderSummaryTable(datosDetallados) {
+        if (!datosDetallados) {
+            return '<div style="color: #94a3b8; font-size: 0.84rem; padding: 12px;">Sin detalles de solicitud.</div>';
+        }
+
+        const lines = String(datosDetallados).split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const rows = [];
+
+        lines.forEach(line => {
+            // Reconocer patrones como: "👤 *Nombre:* jadi jdboe" o "*Nº Tarjeta Regalo:* MT-2026-073" o "Servicio: Comida"
+            const match = line.match(/^([\p{Emoji}\u200d\uFE0F\s]*)\*?([^\*:]+)\*?:\s*(.*)$/u);
+            if (match) {
+                const icon = match[1].trim() || '📌';
+                const label = match[2].trim();
+                let val = match[3].trim().replace(/\*+/g, '');
+                rows.push({ icon, label, val });
+            } else {
+                rows.push({ icon: '📋', label: 'Info', val: line.replace(/\*+/g, '') });
+            }
+        });
+
+        if (rows.length === 0) {
+            return `<div style="color: #e2e8f0; font-size: 0.85rem; padding: 12px;">${formatWhatsAppText(datosDetallados)}</div>`;
+        }
+
+        let html = `<div class="request-summary-table">`;
+        rows.forEach(r => {
+            const labelLower = r.label.toLowerCase();
+            let valHtml = `<span>${r.val}</span>`;
+
+            if (labelLower.includes('tarjeta') || labelLower.includes('regalo') || labelLower.includes('código') || labelLower.includes('codigo')) {
+                valHtml = `<span class="badge-card-code">🎁 ${r.val}</span>`;
+            } else if (labelLower.includes('alergia') || labelLower.includes('restricci')) {
+                const isAllergy = r.val && !['ninguna', 'no', 'ninguno', '-', 'sin alergias'].includes(r.val.toLowerCase().trim());
+                valHtml = isAllergy 
+                    ? `<span class="badge-allergy">⚠️ ${r.val}</span>` 
+                    : `<span style="color: #94a3b8;">${r.val || 'Ninguna'}</span>`;
+            } else if (labelLower.includes('estado')) {
+                valHtml = `<span class="badge-status-pill">${r.val}</span>`;
+            } else if (labelLower.includes('comensal') || labelLower.includes('personas') || labelLower.includes('adultos')) {
+                valHtml = `<span style="font-weight: 700; color: #38bdf8;">${r.val}</span>`;
+            } else if (labelLower.includes('servicio')) {
+                valHtml = `<span style="color: #34d399; font-weight: 700;">${r.val}</span>`;
+            } else if (labelLower.includes('fecha')) {
+                valHtml = `<span style="color: #fbbf24; font-weight: 700;">${r.val}</span>`;
+            } else if (labelLower.includes('hora')) {
+                valHtml = `<span style="color: #f472b6; font-weight: 700;">${r.val}</span>`;
+            } else if (labelLower.includes('whatsapp') || labelLower.includes('teléfono') || labelLower.includes('telefono')) {
+                valHtml = `<span style="font-family: monospace; color: #00a884; font-weight: 600;">+${r.val}</span>`;
+            }
+
+            html += `
+                <div class="summary-table-row">
+                    <div class="summary-label-col">
+                        <span class="summary-row-icon">${r.icon}</span>
+                        <span class="summary-row-label">${r.label}:</span>
+                    </div>
+                    <div class="summary-val-col">${valHtml}</div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        return html;
+    }
+
     // Abrir Modal de Respuesta Manual y Chat
     function openReplyModal(sol, prefilledText = '', targetStatus = 'EN_GESTION') {
         activeReplySolicitud = sol;
@@ -1816,17 +1905,17 @@ document.addEventListener('DOMContentLoaded', () => {
             handoverStatusEl.style.borderColor = isHandoverActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(100, 116, 139, 0.3)';
         }
 
-        // Resumen estructurado en la barra lateral izquierda
+        // Resumen estructurado en la barra lateral izquierda (Tabla estilizada)
         const summaryEl = document.getElementById('reply-solicitud-summary');
         const dateEl = document.getElementById('reply-solicitud-date');
         if (summaryEl) {
-            summaryEl.textContent = sol.datosDetallados || 'Sin detalles de solicitud.';
+            summaryEl.innerHTML = renderSummaryTable(sol.datosDetallados);
         }
         if (dateEl) {
             dateEl.textContent = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
         }
 
-        // Renderizar Hilo de Mensajes con estilo WhatsApp
+        // Renderizar Hilo de Mensajes con estilo WhatsApp (Formato de negritas WhatsApp activo)
         const threadContainer = document.getElementById('reply-chat-thread');
         const msgCountEl = document.getElementById('thread-msg-count');
         const msgList = Array.isArray(sol.mensajes) && sol.mensajes.length > 0 
@@ -1840,6 +1929,7 @@ document.addEventListener('DOMContentLoaded', () => {
             msgList.forEach(m => {
                 const isClient = m.emisor === 'cliente';
                 const timeStr = m.fecha ? new Date(m.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }) : '';
+                const formattedBody = formatWhatsAppText(m.texto);
                 
                 const bubble = document.createElement('div');
                 bubble.style.cssText = `
@@ -1859,7 +1949,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px;">
                         ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '👩‍💼 Recepción Casa Julián'}
                     </div>
-                    <div style="white-space: pre-wrap;">${m.texto}</div>
+                    <div>${formattedBody}</div>
                     <div style="text-align: right; font-size: 0.68rem; color: #8696a0; margin-top: 4px;">${timeStr}</div>
                 `;
                 threadContainer.appendChild(bubble);
