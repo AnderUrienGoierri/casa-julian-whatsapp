@@ -47,6 +47,7 @@ const {
 } = require('./utils');
 
 const {
+    handleListResponse,
     handleButtonResponse,
     sendWaitlistNinosPrompt,
     sendAllergiesList,
@@ -97,6 +98,24 @@ async function handleTextMessage(from, text) {
     const currentState = userStates.get(from);
 
     if (!currentState || currentState.step === 'select_language') {
+        if (['1', 'es', 'español', 'espanol', 'castellano', 'spanish'].includes(cleanText)) {
+            userLanguages.set(from, 'es');
+            userStates.set(from, { step: 'select_location', data: {} });
+            await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+            return;
+        }
+        if (['2', 'eu', 'euskara', 'euskera', 'basque'].includes(cleanText)) {
+            userLanguages.set(from, 'eu');
+            userStates.set(from, { step: 'select_location', data: {} });
+            await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+            return;
+        }
+        if (['3', 'en', 'english', 'ingles', 'inglés'].includes(cleanText)) {
+            userLanguages.set(from, 'en');
+            userStates.set(from, { step: 'select_location', data: {} });
+            await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+            return;
+        }
         userStates.delete(from);
         userLocations.delete(from);
         await sendLanguageMenu(from, userLanguages, userStates);
@@ -104,9 +123,33 @@ async function handleTextMessage(from, text) {
     }
 
     switch (currentState.step) {
-        case 'select_location':
-            await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+        case 'select_location': {
+            if (['1', 'tolosa', 'pais vasco', 'país vasco', 'euskadi', 'pv', 'gipuzkoa', 'guipuzcoa'].includes(cleanText)) {
+                await handleButtonResponse(from, 'loc_pais_vasco');
+            } else if (['2', 'madrid', 'zurbano', 'calle zurbano'].includes(cleanText)) {
+                await handleButtonResponse(from, 'loc_madrid');
+            } else {
+                await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+            }
             break;
+        }
+
+        case 'main_menu': {
+            if (['1', 'reservar', 'reserva', 'quiero reservar', 'erreserbatu', 'book', 'booking', 'mesa', 'table'].some(k => cleanText === k || cleanText.startsWith(k + ' '))) {
+                await handleListResponse(from, 'opt_quiero_reservar');
+            } else if (['2', 'modificar', 'modificacion', 'modificación', 'aldatu', 'modify', 'cambiar'].some(k => cleanText === k || cleanText.startsWith(k + ' '))) {
+                await handleListResponse(from, 'opt_modificacion');
+            } else if (['3', 'cancelar', 'cancelacion', 'cancelación', 'ezeztatu', 'cancel', 'anular'].some(k => cleanText === k || cleanText.startsWith(k + ' '))) {
+                await handleListResponse(from, 'opt_cancelacion');
+            } else if (['4', 'consulta', 'consulta abierta', 'kontsulta', 'inquiry', 'pregunta', 'hablar', 'recepcion', 'recepción'].some(k => cleanText === k || cleanText.startsWith(k + ' '))) {
+                await handleListResponse(from, 'opt_consulta_abierta');
+            } else if (['5', 'faq', 'dudas', 'otras', 'otras cuestiones', 'carta', 'menu', 'menú', 'informacion', 'información', 'besteak', 'other'].some(k => cleanText === k || cleanText.startsWith(k + ' '))) {
+                await handleListResponse(from, 'opt_otras_cuestiones');
+            } else {
+                await sendMainMenu(from, userLanguages, userStates);
+            }
+            break;
+        }
 
         case 'confirmacion_solicitud': {
             const lower = text.trim().toLowerCase();
@@ -1187,7 +1230,11 @@ async function handleTextMessage(from, text) {
         }
 
         default:
-            await sendLanguageMenu(from, userLanguages, userStates);
+            if (userLanguages.has(from)) {
+                await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+            } else {
+                await sendLanguageMenu(from, userLanguages, userStates);
+            }
             break;
     }
 }
