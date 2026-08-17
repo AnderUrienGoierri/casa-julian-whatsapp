@@ -1393,6 +1393,28 @@ body.mode-recepcion .inbox-cards-grid {
     color: #ffffff;
 }
 
+/* ==========================================================================
+   MODAL WHATSAPP - LAYOUT PRINCIPAL
+   ========================================================================== */
+
+/* El backdrop ahora está FUERA del modal-container, cubre toda la pantalla */
+#whatsapp-sidebar-backdrop {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+    z-index: 10000;
+    display: none;
+}
+
+#whatsapp-sidebar-backdrop.show-backdrop {
+    display: block;
+}
+
+/* Layout del modal body: flex-row para que el sidebar y el chat sean columnas lado a lado */
 .whatsapp-modal-body {
     display: flex !important;
     flex-direction: row !important;
@@ -1402,13 +1424,9 @@ body.mode-recepcion .inbox-cards-grid {
     max-height: calc(92vh - 70px);
     overflow: hidden;
     position: relative;
-    transition: flex 0.25s ease;
 }
 
-#whatsapp-sidebar-backdrop {
-    position: fixed !important;
-}
-
+/* El sidebar como primera columna */
 #whatsapp-request-sidebar {
     width: 420px;
     min-width: 260px;
@@ -1416,29 +1434,26 @@ body.mode-recepcion .inbox-cards-grid {
     flex-shrink: 0;
     resize: horizontal;
     overflow: auto;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* CRÍTICO: Cuando sidebar oculto, el sidebar NO debe ocupar ningún espacio */
-.whatsapp-modal-body.sidebar-hidden #whatsapp-request-sidebar,
-.whatsapp-modal-body #whatsapp-request-sidebar[style*="display: none"],
-.whatsapp-modal-body #whatsapp-request-sidebar[style*="display:none"] {
-    display: none !important;
-    width: 0 !important;
-    min-width: 0 !important;
-    flex: 0 0 0 !important;
-    overflow: hidden !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
+/* El chat ocupa el resto */
 .whatsapp-chat-main {
     flex: 1 1 0% !important;
     min-width: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden;
+}
+
+/* Cuando el sidebar está oculto, el chat toma TODO el ancho */
+.whatsapp-modal-body.sidebar-hidden #whatsapp-request-sidebar {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    flex: 0 0 0px !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
 }
 
 .whatsapp-modal-container.fullscreen .whatsapp-modal-body {
@@ -1713,22 +1728,22 @@ div.inbox-toolbar-header,
 
 .whatsapp-sidebar-backdrop {
     display: none;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.65);
     backdrop-filter: blur(2px);
-    z-index: 10;
+    z-index: 10000;
 }
 
 .whatsapp-request-sidebar {
     background: #111b21;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     padding: 16px;
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 12px;
     overflow-y: auto;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);

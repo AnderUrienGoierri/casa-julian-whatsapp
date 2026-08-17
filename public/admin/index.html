@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260817-V209-FIX-EXPAND-PILLS">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260817-V210-REAL-FIX">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -84,6 +84,9 @@
     </script>
 
     <div id="reply-modal" class="modal-overlay" style="display: none;">
+        <!-- Backdrop para móviles al abrir el resumen (FUERA del flex container) -->
+        <div id="whatsapp-sidebar-backdrop" class="whatsapp-sidebar-backdrop"></div>
+
         <div class="whatsapp-modal-container">
             <!-- Header con estilo WhatsApp Web -->
             <div class="whatsapp-modal-header">
@@ -108,8 +111,6 @@
 
             <!-- Body de 2 Columnas (Resumen de la Solicitud + Chat WhatsApp Completo) -->
             <div class="whatsapp-modal-body">
-                <!-- Backdrop para móviles al abrir el resumen -->
-                <div id="whatsapp-sidebar-backdrop" class="whatsapp-sidebar-backdrop"></div>
 
                 <!-- Columna Izquierda: Tarjeta con los datos de la Solicitud -->
                 <div id="whatsapp-request-sidebar" class="whatsapp-request-sidebar">

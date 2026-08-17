@@ -2289,7 +2289,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const backdrop = document.getElementById('whatsapp-sidebar-backdrop');
         if (modalBody) modalBody.classList.remove('sidebar-hidden');
         if (sidebar) {
-            sidebar.style.display = '';
             sidebar.classList.remove('show-sidebar');
         }
         if (backdrop) backdrop.classList.remove('show-backdrop');
@@ -2314,21 +2313,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = document.getElementById('toggle-sidebar-btn');
         if (!sidebar) return;
 
-        // En pantallas grandes (>= 960px), toggle de visibilidad colapsable con expansión 100% del chat
         if (window.innerWidth > 960) {
-            const isHidden = modalBody ? modalBody.classList.contains('sidebar-hidden') : (sidebar.style.display === 'none');
+            // Pantallas grandes: toggle sidebar-hidden en el modal body
+            const isHidden = modalBody && modalBody.classList.contains('sidebar-hidden');
             if (isHidden) {
                 if (modalBody) modalBody.classList.remove('sidebar-hidden');
-                // Eliminar el inline style para que el CSS tome el control
-                sidebar.style.removeProperty('display');
                 if (toggleBtn) toggleBtn.classList.add('active');
             } else {
                 if (modalBody) modalBody.classList.add('sidebar-hidden');
-                sidebar.style.display = 'none';
                 if (toggleBtn) toggleBtn.classList.remove('active');
             }
         } else {
-            // En pantallas pequeñas (< 960px), toggle de cajón lateral flotante
+            // Pantallas pequeñas (< 960px): cajón lateral flotante
             const isOpen = sidebar.classList.contains('show-sidebar');
             if (isOpen) {
                 closeSidebarDrawer();
