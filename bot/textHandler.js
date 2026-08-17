@@ -382,10 +382,21 @@ async function handleTextMessage(from, text) {
                 if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
                 else if (lang === 'en') promptBody = `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
 
+                let n0 = '0 niños', n1 = '1 niño', n2 = '2 niños';
+                if (lang === 'eu') {
+                    n0 = '0 haur';
+                    n1 = '1 haur';
+                    n2 = '2 haur';
+                } else if (lang === 'en') {
+                    n0 = '0 children';
+                    n1 = '1 child';
+                    n2 = '2 children';
+                }
+
                 const buttons = [
-                    { id: 'btn_mt_ninos_0', title: '0 niños' },
-                    { id: 'btn_mt_ninos_1', title: '1 niño' },
-                    { id: 'btn_mt_ninos_2', title: '2 niños' }
+                    { id: 'btn_mt_ninos_0', title: n0 },
+                    { id: 'btn_mt_ninos_1', title: n1 },
+                    { id: 'btn_mt_ninos_2', title: n2 }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
                 break;
@@ -516,10 +527,21 @@ async function handleTextMessage(from, text) {
                 if (lang === 'eu') promptBody = `👶 *Zenbat haur (<12 urte) etorriko dira erreserbara?*\n\nAukeratu aukera bat edo idatzi kopurua testuz (0 inor ez bada):`;
                 else if (lang === 'en') promptBody = `👶 *How many children (<12 years) will attend the reservation?*\n\nSelect an option or type the quantity (0 if none):`;
 
+                let n0 = '0 niños', n1 = '1 niño', n2 = '2 niños';
+                if (lang === 'eu') {
+                    n0 = '0 haur';
+                    n1 = '1 haur';
+                    n2 = '2 haur';
+                } else if (lang === 'en') {
+                    n0 = '0 children';
+                    n1 = '1 child';
+                    n2 = '2 children';
+                }
+
                 const buttons = [
-                    { id: 'btn_mt_ninos_0', title: '0 niños' },
-                    { id: 'btn_mt_ninos_1', title: '1 niño' },
-                    { id: 'btn_mt_ninos_2', title: '2 niños' }
+                    { id: 'btn_mt_ninos_0', title: n0 },
+                    { id: 'btn_mt_ninos_1', title: n1 },
+                    { id: 'btn_mt_ninos_2', title: n2 }
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
             } else {

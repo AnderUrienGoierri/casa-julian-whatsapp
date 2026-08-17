@@ -80,7 +80,7 @@ async function sendWaitlistNinosPrompt(from, lang) {
 }
 
 function getAllergiesListRows(lang, selectedList = []) {
-    const list = [
+    let list = [
         { id: 'alg_gluten', title: '🌾 Gluten / Celíacos', desc: 'Intolerancia o alergia al gluten' },
         { id: 'alg_laktosa', title: '🥛 Lactosa / Lácteos', desc: 'Intolerancia a la lactosa o lácteos' },
         { id: 'alg_frutos_huevo', title: '🥜 Frutos secos / Huevo', desc: 'Alergia a frutos secos, cacahuete o huevo' },
@@ -89,6 +89,28 @@ function getAllergiesListRows(lang, selectedList = []) {
         { id: 'alg_vegano', title: '🥗 Vegetariano / Vegano', desc: 'Dieta vegetariana o vegana' },
         { id: 'alg_otro', title: '✍️ Otra (escribir texto)', desc: 'Escribir otra alergia o enfermedad' }
     ];
+
+    if (lang === 'eu') {
+        list = [
+            { id: 'alg_gluten', title: '🌾 Glutena / Zeliakoak', desc: 'Glutenarekiko intolerantzia edo alergia' },
+            { id: 'alg_laktosa', title: '🥛 Laktosa / Esnekiak', desc: 'Laktosarekiko edo esnekiekiko intolerantzia' },
+            { id: 'alg_frutos_huevo', title: '🥜 Fruitu lehorrak/Arrautza', desc: 'Fruitu lehorrak edo arrautzari alergia' },
+            { id: 'alg_marisco_pescado', title: '🦐 Mariskoa / Arraina', desc: 'Mariskoari edo arrainari alergia' },
+            { id: 'alg_diabetes_sal', title: '🩺 Diabetesa / Gatza', desc: 'Diabetikoa, azukrea edo gatz gutxi' },
+            { id: 'alg_vegano', title: '🥗 Begetarianoa/Veganoa', desc: 'Dieta begetarianoa edo veganoa' },
+            { id: 'alg_otro', title: '✍️ Bestelakoa (idatzi)', desc: 'Idatzi beste alergia edo gaixotasun bat' }
+        ];
+    } else if (lang === 'en') {
+        list = [
+            { id: 'alg_gluten', title: '🌾 Gluten / Celiac', desc: 'Gluten intolerance or celiac condition' },
+            { id: 'alg_laktosa', title: '🥛 Lactose / Dairy', desc: 'Lactose intolerance or dairy allergy' },
+            { id: 'alg_frutos_huevo', title: '🥜 Nuts / Peanuts / Egg', desc: 'Nut, peanut or egg allergy' },
+            { id: 'alg_marisco_pescado', title: '🦐 Seafood / Fish', desc: 'Seafood, shellfish or fish allergy' },
+            { id: 'alg_diabetes_sal', title: '🩺 Diabetes / Low Salt', desc: 'Diabetic, sugar-free or low sodium' },
+            { id: 'alg_vegano', title: '🥗 Vegetarian / Vegan', desc: 'Vegetarian or vegan diet' },
+            { id: 'alg_otro', title: '✍️ Other (write text)', desc: 'Write another allergy or medical condition' }
+        ];
+    }
 
     const rows = [];
     
