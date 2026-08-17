@@ -1412,8 +1412,12 @@ body.mode-recepcion .inbox-cards-grid {
    TOOLBAR DE FILTROS & ORDENACIÓN ULTRA-PROFESIONAL Y ESTABLE (INBOX CMS)
    ========================================================================== */
 .inbox-toolbar-card {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
     width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
     background: linear-gradient(180deg, #181d24 0%, #11151b 100%);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1428,11 +1432,15 @@ body.mode-recepcion .inbox-cards-grid {
     border-color: rgba(217, 119, 6, 0.3);
 }
 
+#inbox-filters-toggle.inbox-toolbar-header,
 .inbox-toolbar-header {
     display: flex !important;
+    flex-direction: row !important;
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
     padding: 14px 18px !important;
     cursor: pointer;
@@ -1440,6 +1448,7 @@ body.mode-recepcion .inbox-cards-grid {
     background: rgba(255, 255, 255, 0.03);
     border-bottom: 1px solid transparent;
     transition: background 0.2s ease;
+    flex-shrink: 0 !important;
 }
 
 .inbox-toolbar-header:hover {
@@ -1479,10 +1488,13 @@ body.mode-recepcion .inbox-cards-grid {
     transition: transform 0.25s ease;
 }
 
+#inbox-filters-body.inbox-toolbar-body,
 .inbox-toolbar-body {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
     box-sizing: border-box !important;
     padding: 14px 18px 16px 18px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
