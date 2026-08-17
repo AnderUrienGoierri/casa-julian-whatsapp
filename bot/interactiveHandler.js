@@ -74,6 +74,11 @@ async function handleNationalitySelection(from, listId, lang) {
     await sendInteractiveButtons(from, promptBody, buttons);
 }
 
+async function sendWaitlistNinosPrompt(from, lang) {
+    // Stub de compatibilidad
+    return;
+}
+
 function getAllergiesListRows(lang, selectedList = []) {
     const list = [
         { id: 'alg_gluten', title: '🌾 Gluten / Celíacos', desc: 'Intolerancia o alergia al gluten' },
