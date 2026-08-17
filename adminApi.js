@@ -114,16 +114,17 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                 description: 'Desplegable con 10 opciones organizadas (Carta, Horarios, Vacaciones, Cancelación, etc.).',
                 messageKey: 'faqTitle',
                 rows: [
-                    { id: 'faq_1', titleKey: 'faq12Title', descKey: 'faq12Desc' },
-                    { id: 'faq_2', titleKey: 'faq1Title', descKey: 'faq1Desc' },
-                    { id: 'faq_3', titleKey: 'faq2Title', descKey: 'faq2Desc' },
-                    { id: 'faq_4', titleKey: 'faq3Title', descKey: 'faq3Desc' },
-                    { id: 'faq_5', titleKey: 'faq4Title', descKey: 'faq4Desc' },
-                    { id: 'faq_6', titleKey: 'faq5Title', descKey: 'faq5Desc' },
-                    { id: 'faq_7', titleKey: 'faq6Title', descKey: 'faq6Desc' },
-                    { id: 'faq_8', titleKey: 'faq7Title', descKey: 'faq7Desc' },
-                    { id: 'faq_9', titleKey: 'faq8Title', descKey: 'faq8Desc' },
-                    { id: 'faq_10', titleKey: 'faq9Title', descKey: 'faq9Desc' }
+                    { id: 'faq_1', titleKey: 'faq1Title', descKey: 'faq1Desc' },
+                    { id: 'faq_2', titleKey: 'faq2Title', descKey: 'faq2Desc' },
+                    { id: 'faq_3', titleKey: 'faq3Title', descKey: 'faq3Desc' },
+                    { id: 'faq_4', titleKey: 'faq4Title', descKey: 'faq4Desc' },
+                    { id: 'faq_5', titleKey: 'faq5Title', descKey: 'faq5Desc' },
+                    { id: 'faq_6', titleKey: 'faq6Title', descKey: 'faq6Desc' },
+                    { id: 'faq_7', titleKey: 'faq7Title', descKey: 'faq7Desc' },
+                    { id: 'faq_8', titleKey: 'faq8Title', descKey: 'faq8Desc' },
+                    { id: 'faq_9', titleKey: 'faq9Title', descKey: 'faq9Desc' },
+                    { id: 'faq_10', titleKey: 'faq10Title', descKey: 'faq10Desc' },
+                    { id: 'faq_11', titleKey: 'faq11Title', descKey: 'faq11Desc' }
                 ]
             }
         ];
