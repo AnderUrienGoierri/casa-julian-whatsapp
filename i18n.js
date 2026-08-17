@@ -357,7 +357,7 @@ const translations = {
         "faq10Msg": "Egiaztatu gure Google Mapsetako zerrenda gertuen dagoen aparkalekua aurkitzeko.",
         "faq11Title": "11. Taxia",
         "faq11Desc": "Taxia eskatzeko laguntza zerbitzua.",
-        "thanksClosingMsg": "Eskerrik asko gurekin harremanetan jartzeagatik! Zure galdera erantzun izana espero dugu. Beste ezer behar baduzu, pozik lagunduko dizugu. Casa Juliánen zai gaude!",
+        "thanksClosingMsg": "Eskerrik asko gurekin harremanetan jartzeagatik! Zure galdera erantzun izana espero dugu. Beste ezer behar baduzu, pozik lagunduko dizugu. Casa Julianen zai gaude!",
         "requestSummaryHeader": "📋 *ZURE ESKAERAREN LABURPENA:*",
         "confirmPrompt": "❓ *Eskaera hau jatetxera bidaltzea berretsi nahi duzu?*",
         "confirmYesBtn": "Bai, bidali",

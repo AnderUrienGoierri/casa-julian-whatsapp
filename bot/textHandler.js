@@ -1011,7 +1011,7 @@ async function handleTextMessage(from, text) {
                 const validation = validateAndParseModShifts(p, allowedShifts);
                 if (!validation.isValid || validation.validShifts.length === 0) {
                     let reason = 'No es un turno predefinido';
-                    if (lang === 'eu') reason = 'Ez da Casa Juliánen txanda zehaztu bat';
+                    if (lang === 'eu') reason = 'Ez da Casa Julianen txanda zehaztu bat';
                     else if (lang === 'en') reason = 'Not a predefined shift';
 
                     invalidShifts.push({ time: p, reason });
