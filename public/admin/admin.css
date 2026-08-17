@@ -1412,9 +1412,9 @@ body.mode-recepcion .inbox-cards-grid {
    TOOLBAR DE FILTROS & ORDENACIÓN ULTRA-PROFESIONAL Y ESTABLE (INBOX CMS)
    ========================================================================== */
 .inbox-toolbar-card {
-    display: flex !important;
-    flex-direction: column !important;
+    display: block !important;
     width: 100% !important;
+    box-sizing: border-box !important;
     background: linear-gradient(180deg, #181d24 0%, #11151b 100%);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
@@ -1429,10 +1429,11 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .inbox-toolbar-header {
-    width: 100% !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     padding: 14px 18px !important;
     cursor: pointer;
     user-select: none;
@@ -1479,10 +1480,12 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .inbox-toolbar-body {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     padding: 14px 18px 16px 18px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    display: flex;
-    flex-direction: column;
     gap: 12px;
 }
 

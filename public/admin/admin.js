@@ -2427,7 +2427,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inboxFiltersToggleBtn && inboxFiltersBody) {
         inboxFiltersToggleBtn.addEventListener('click', () => {
             inboxFiltersOpen = !inboxFiltersOpen;
-            inboxFiltersBody.style.display = inboxFiltersOpen ? '' : 'none';
+            inboxFiltersBody.style.display = inboxFiltersOpen ? 'flex' : 'none';
             if (inboxFiltersToggleIcon) inboxFiltersToggleIcon.textContent = inboxFiltersOpen ? '▲' : '▼';
         });
     }
