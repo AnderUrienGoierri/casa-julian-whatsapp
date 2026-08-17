@@ -1377,8 +1377,8 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .whatsapp-modal-body {
-    display: grid;
-    grid-template-columns: 460px 1fr;
+    display: grid !important;
+    grid-template-columns: 460px 1fr !important;
     flex: 1;
     min-height: 540px;
     max-height: calc(92vh - 70px);
@@ -1387,9 +1387,26 @@ body.mode-recepcion .inbox-cards-grid {
     transition: all 0.25s ease;
 }
 
+#whatsapp-sidebar-backdrop {
+    position: fixed !important;
+    grid-column: none !important;
+    grid-row: none !important;
+}
+
+#whatsapp-request-sidebar {
+    grid-column: 1 / 2 !important;
+    grid-row: 1 / 2 !important;
+}
+
+.whatsapp-chat-main {
+    grid-column: 2 / 3 !important;
+    grid-row: 1 / 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
 .whatsapp-modal-body.sidebar-hidden {
-    display: flex !important;
-    flex-direction: column !important;
+    display: grid !important;
     grid-template-columns: 1fr !important;
     width: 100% !important;
 }
@@ -1401,21 +1418,20 @@ body.mode-recepcion .inbox-cards-grid {
 .whatsapp-modal-body.sidebar-hidden .whatsapp-chat-main {
     display: flex !important;
     flex-direction: column !important;
+    grid-column: 1 / -1 !important;
+    grid-row: 1 / -1 !important;
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
     flex: 1 !important;
-    grid-column: 1 / -1 !important;
 }
 
 .whatsapp-modal-container.fullscreen .whatsapp-modal-body {
-    grid-template-columns: 500px 1fr;
+    grid-template-columns: 500px 1fr !important;
     max-height: calc(98vh - 70px);
 }
 
 .whatsapp-modal-container.fullscreen .whatsapp-modal-body.sidebar-hidden {
-    display: flex !important;
-    flex-direction: column !important;
     grid-template-columns: 1fr !important;
     width: 100% !important;
 }
