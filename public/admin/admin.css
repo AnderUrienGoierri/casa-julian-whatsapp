@@ -1412,6 +1412,9 @@ body.mode-recepcion .inbox-cards-grid {
    TOOLBAR DE FILTROS & ORDENACIÓN ULTRA-PROFESIONAL Y ESTABLE (INBOX CMS)
    ========================================================================== */
 .inbox-toolbar-card {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
     background: linear-gradient(180deg, #181d24 0%, #11151b 100%);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
