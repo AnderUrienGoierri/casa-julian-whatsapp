@@ -665,7 +665,7 @@ async function handleButtonResponse(from, buttonId) {
                 }
                 await sendMessage(from, webMsg);
             }
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await new Promise(resolve => setTimeout(resolve, 2500));
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
             break;
