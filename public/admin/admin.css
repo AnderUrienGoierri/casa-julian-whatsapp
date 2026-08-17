@@ -1402,7 +1402,7 @@ body.mode-recepcion .inbox-cards-grid {
     max-height: calc(92vh - 70px);
     overflow: hidden;
     position: relative;
-    transition: all 0.25s ease;
+    transition: flex 0.25s ease;
 }
 
 #whatsapp-sidebar-backdrop {
@@ -1415,32 +1415,33 @@ body.mode-recepcion .inbox-cards-grid {
     max-width: 650px;
     flex-shrink: 0;
     resize: horizontal;
-    overflow-y: auto;
+    overflow: auto;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* CRÍTICO: Cuando sidebar oculto, el sidebar NO debe ocupar ningún espacio */
+.whatsapp-modal-body.sidebar-hidden #whatsapp-request-sidebar,
+.whatsapp-modal-body #whatsapp-request-sidebar[style*="display: none"],
+.whatsapp-modal-body #whatsapp-request-sidebar[style*="display:none"] {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    flex: 0 0 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
 .whatsapp-chat-main {
-    flex: 1 !important;
-    width: 100% !important;
+    flex: 1 1 0% !important;
     min-width: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden;
 }
 
-.whatsapp-modal-body.sidebar-hidden #whatsapp-request-sidebar {
-    display: none !important;
-}
-
-.whatsapp-modal-body.sidebar-hidden .whatsapp-chat-main {
-    flex: 1 !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-}
-
 .whatsapp-modal-container.fullscreen .whatsapp-modal-body {
-    grid-template-columns: 500px 1fr !important;
     max-height: calc(98vh - 70px);
 }
 

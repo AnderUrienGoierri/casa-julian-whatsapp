@@ -2202,6 +2202,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Abrir Modal de Respuesta Manual y Chat
     function openReplyModal(sol, prefilledText = '', targetStatus = 'EN_GESTION') {
+        // Si hay un chat activo diferente, minimizarlo antes de abrir el nuevo
+        if (activeReplySolicitud && activeReplySolicitud.id !== sol.id) {
+            minimizedSolicitudesMap.set(activeReplySolicitud.id, activeReplySolicitud);
+        }
         activeReplySolicitud = sol;
         if (sol && sol.id) {
             minimizedSolicitudesMap.delete(sol.id);
@@ -2212,7 +2216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sidebar = document.getElementById('whatsapp-request-sidebar');
         const toggleBtn = document.getElementById('toggle-sidebar-btn');
         if (modalBody) modalBody.classList.remove('sidebar-hidden');
-        if (sidebar) sidebar.style.display = '';
+        if (sidebar) sidebar.style.removeProperty('display');
         if (toggleBtn) toggleBtn.classList.add('active');
         
         // Limpiar estado de no leído para esta solicitud
@@ -2315,7 +2319,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const isHidden = modalBody ? modalBody.classList.contains('sidebar-hidden') : (sidebar.style.display === 'none');
             if (isHidden) {
                 if (modalBody) modalBody.classList.remove('sidebar-hidden');
-                sidebar.style.display = 'flex';
+                // Eliminar el inline style para que el CSS tome el control
+                sidebar.style.removeProperty('display');
                 if (toggleBtn) toggleBtn.classList.add('active');
             } else {
                 if (modalBody) modalBody.classList.add('sidebar-hidden');
