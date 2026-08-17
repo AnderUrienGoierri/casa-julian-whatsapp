@@ -90,8 +90,8 @@ function formatDetailsAsHtmlTable(datosDetallados) {
 
     const lines = datosDetallados.split('\n').filter(line => line.trim() !== '');
 
-    let rowsHtml = '';
-    lines.forEach((line, index) => {
+    const rawRows = [];
+    lines.forEach(line => {
         const cleanLine = line.replace(/\*/g, '').trim();
         if (cleanLine.includes('Código de Confirmación') || cleanLine.includes('Codigo de Confirmacion') || cleanLine.includes('Berrespen-kodea') || cleanLine.includes('Confirmation Code')) {
             return;
@@ -103,17 +103,51 @@ function formatDetailsAsHtmlTable(datosDetallados) {
         if (colonIndex !== -1) {
             key = cleanLine.slice(0, colonIndex).trim();
             value = cleanLine.slice(colonIndex + 1).trim();
+            value = value.replace(/^[\.\-\•\*\s]+/, '').trim();
+            rawRows.push({ key, value });
         } else {
-            key = 'Detalle';
-            value = cleanLine;
+            let itemText = cleanLine;
+            const listMatch = itemText.match(/^(\d+)[\.\)\-\:\s]+\s*(.*)$/);
+            let numPrefix = '';
+            if (listMatch) {
+                numPrefix = listMatch[1];
+                itemText = listMatch[2].trim();
+            } else {
+                itemText = itemText.replace(/^[•\-\*\.]\s*/, '').trim();
+            }
+            itemText = itemText.replace(/^[\.\-\•\*\s]+/, '').trim();
+
+            const lastRow = rawRows.length > 0 ? rawRows[rawRows.length - 1] : null;
+            const isConsultaContext = lastRow && lastRow.key.toLowerCase().includes('consulta');
+
+            const itemKey = isConsultaContext 
+                ? (numPrefix ? ('Consulta ' + numPrefix) : 'Consulta')
+                : (numPrefix ? ('Detalle ' + numPrefix) : 'Detalle');
+
+            rawRows.push({ key: itemKey, value: itemText, isItem: true });
         }
+    });
 
+    const finalRows = [];
+    for (let i = 0; i < rawRows.length; i++) {
+        const r = rawRows[i];
+        if (r.value === '') {
+            const nextIsItem = rawRows[i + 1] && rawRows[i + 1].isItem;
+            if (!nextIsItem) {
+                finalRows.push(r);
+            }
+        } else {
+            finalRows.push(r);
+        }
+    }
+
+    let rowsHtml = '';
+    finalRows.forEach((row, index) => {
         const bgColor = (index % 2 === 0) ? '#ffffff' : '#f9f6f0';
-
         rowsHtml += `
         <tr style="background-color: ${bgColor}; border-bottom: 1px solid #eee;">
-            <td style="padding: 10px 14px; font-weight: bold; color: #8B0000; width: 42%; font-size: 14px; vertical-align: top;">${key}</td>
-            <td style="padding: 10px 14px; color: #222222; font-size: 14px; vertical-align: top; font-weight: 500;">${value}</td>
+            <td style="padding: 10px 14px; font-weight: bold; color: #8B0000; width: 42%; font-size: 14px; vertical-align: top;">${row.key}</td>
+            <td style="padding: 10px 14px; color: #222222; font-size: 14px; vertical-align: top; font-weight: 500;">${row.value}</td>
         </tr>`;
     });
 

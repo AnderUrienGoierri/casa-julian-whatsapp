@@ -2082,16 +2082,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const lines = String(datosDetallados).split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        const rows = [];
+        const rawRows = [];
 
         lines.forEach(line => {
             let cleanLine = line.trim();
             let emoji = '📌';
             
-            // Detectar emoji al inicio de la línea
-            const emojiMatch = cleanLine.match(/^([\p{Emoji}\u200d\uFE0F]+)\s*/u);
-            if (emojiMatch) {
-                emoji = emojiMatch[1];
+            // Detectar emoji REAL al inicio (excluyendo números 0-9, #, * que no son emojis reales)
+            const emojiMatch = cleanLine.match(/^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])(?:\uFE0F|\u200D[\p{Extended_Pictographic}\p{Emoji_Presentation}])*\s*/u);
+            if (emojiMatch && !/^[0-9#*]/.test(emojiMatch[1])) {
+                emoji = emojiMatch[0].trim();
                 cleanLine = cleanLine.substring(emojiMatch[0].length).trim();
             }
 
@@ -2103,13 +2103,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let label = rawLabel.replace(/[\*\_\~]/g, '').trim();
                 let val = rawVal.replace(/[\*\_\~]/g, '').trim();
+                val = val.replace(/^[\.\-\•\*\s]+/, '').trim();
 
-                rows.push({ icon: emoji, label, val });
+                rawRows.push({ icon: emoji, label, val });
             } else {
-                let cleanVal = cleanLine.replace(/[\*\_\~]/g, '').trim();
-                rows.push({ icon: emoji, label: 'Detalle', val: cleanVal });
+                let itemText = cleanLine.replace(/[\*\_\~]/g, '').trim();
+                // Limpiar prefijo numérico de lista (ej: "1.", "2)", "1 -", "1: ") o viñetas
+                const listMatch = itemText.match(/^(\d+)[\.\)\-\:\s]+\s*(.*)$/);
+                let numPrefix = '';
+                if (listMatch) {
+                    numPrefix = listMatch[1];
+                    itemText = listMatch[2].trim();
+                } else {
+                    itemText = itemText.replace(/^[•\-\*\.]\s*/, '').trim();
+                }
+                // Quitar cualquier punto o viñeta residual al inicio de la frase
+                itemText = itemText.replace(/^[\.\-\•\*\s]+/, '').trim();
+
+                // Detectar contexto de consulta
+                const lastRow = rawRows.length > 0 ? rawRows[rawRows.length - 1] : null;
+                const isConsultaContext = lastRow && (lastRow.label.toLowerCase().includes('consulta') || lastRow.icon === '💬');
+                
+                const itemLabel = isConsultaContext 
+                    ? (numPrefix ? ('Consulta ' + numPrefix) : 'Consulta')
+                    : (numPrefix ? ('Detalle ' + numPrefix) : 'Detalle');
+
+                const itemIcon = (emoji !== '📌') ? emoji : (isConsultaContext ? '💬' : '📌');
+
+                rawRows.push({ icon: itemIcon, label: itemLabel, val: itemText, isItem: true });
             }
         });
+
+        // Limpiar encabezados que quedaron vacíos si le siguen ítems detallados
+        const rows = [];
+        for (let i = 0; i < rawRows.length; i++) {
+            const r = rawRows[i];
+            if (r.val === '') {
+                const nextIsItem = rawRows[i + 1] && rawRows[i + 1].isItem;
+                if (!nextIsItem) {
+                    rows.push(r);
+                }
+            } else {
+                rows.push(r);
+            }
+        }
 
         if (rows.length === 0) {
             return `<div style="color: #e2e8f0; font-size: 0.85rem; padding: 12px;">${formatWhatsAppText(datosDetallados)}</div>`;
