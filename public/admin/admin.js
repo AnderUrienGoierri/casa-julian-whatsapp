@@ -172,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tabId === 'tab-faqs') renderFaqsList();
             if (tabId === 'tab-rules') renderCustomRulesTable();
             if (tabId === 'tab-publish') renderDraftChangesTable();
+            if (tabId === 'tab-settings') loadSystemSettingsAndStatus();
         });
     });
 
@@ -2720,4 +2721,240 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // -------------------------------------------------------------
+    // GESTIÓN DE AJUSTES DEL SISTEMA Y DIAGNÓSTICO DE APIS (ADMIN)
+    // -------------------------------------------------------------
+    const openSettingsModalBtn = document.getElementById('open-settings-modal-btn');
+    const refreshSystemStatusBtn = document.getElementById('refresh-system-status-btn');
+    const btnToggleBotActive = document.getElementById('btn-toggle-bot-active');
+    const botMasterStatusBadge = document.getElementById('bot-master-status-badge');
+    const sendMaintenanceNoticeCheck = document.getElementById('send-maintenance-notice-check');
+    const maintenanceMessageInput = document.getElementById('maintenance-message-input');
+    const saveMaintenanceSettingsBtn = document.getElementById('save-maintenance-settings-btn');
+
+    let currentSystemSettings = { botActive: true, maintenanceMessage: '', sendMaintenanceNotice: false };
+
+    if (openSettingsModalBtn) {
+        openSettingsModalBtn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            const tabSettingsBtn = document.getElementById('tab-btn-settings');
+            const tabSettingsContent = document.getElementById('tab-settings');
+            if (tabSettingsBtn) tabSettingsBtn.classList.add('active');
+            if (tabSettingsContent) tabSettingsContent.classList.add('active');
+            loadSystemSettingsAndStatus();
+        });
+    }
+
+    if (refreshSystemStatusBtn) {
+        refreshSystemStatusBtn.addEventListener('click', () => {
+            loadSystemSettingsAndStatus(true);
+        });
+    }
+
+    async function loadSystemSettingsAndStatus(showFeedback = false) {
+        try {
+            const res = await fetch('/api/admin/system-status', {
+                headers: { 'x-admin-token': adminToken }
+            });
+            const data = await res.json();
+            if (data.success && data.status) {
+                const s = data.status;
+                currentSystemSettings = s.settings || {};
+
+                // 1. Estado del Bot
+                updateBotActiveUI(currentSystemSettings.botActive !== false);
+
+                // 2. Mensaje de mantenimiento
+                if (maintenanceMessageInput) {
+                    maintenanceMessageInput.value = currentSystemSettings.maintenanceMessage || '';
+                }
+                if (sendMaintenanceNoticeCheck) {
+                    sendMaintenanceNoticeCheck.checked = !!currentSystemSettings.sendMaintenanceNotice;
+                }
+
+                // 3. Tarjeta Meta API
+                const metaPhoneEl = document.getElementById('sys-meta-phone');
+                const metaBadge = document.getElementById('sys-status-meta');
+                if (metaPhoneEl) metaPhoneEl.textContent = s.apis.metaWhatsApp.phoneIdSuffix || 'No configurado';
+                if (metaBadge) {
+                    if (s.apis.metaWhatsApp.configured) {
+                        metaBadge.textContent = 'ONLINE';
+                        metaBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+                        metaBadge.style.color = '#34d399';
+                    } else {
+                        metaBadge.textContent = 'OFFLINE';
+                        metaBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+                        metaBadge.style.color = '#f87171';
+                    }
+                }
+
+                // 4. Tarjeta Base de Datos Neon
+                const dbHostEl = document.getElementById('sys-db-host');
+                const dbLatencyEl = document.getElementById('sys-db-latency');
+                const dbBadge = document.getElementById('sys-status-db');
+                if (dbHostEl) dbHostEl.textContent = s.database.host || 'Neon Cloud';
+                if (dbLatencyEl) dbLatencyEl.textContent = s.database.latencyMs ? `${s.database.latencyMs} ms` : 'Conectado';
+                if (dbBadge) {
+                    if (s.database.connected) {
+                        dbBadge.textContent = 'CONECTADA';
+                        dbBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+                        dbBadge.style.color = '#34d399';
+                    } else {
+                        dbBadge.textContent = 'ERROR';
+                        dbBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+                        dbBadge.style.color = '#f87171';
+                    }
+                }
+
+                // 5. Tarjeta Emails
+                const brevoEl = document.getElementById('sys-email-brevo');
+                const resendEl = document.getElementById('sys-email-resend');
+                const smtpEl = document.getElementById('sys-email-smtp');
+                if (brevoEl) brevoEl.textContent = s.apis.brevo.configured ? 'Configurado (API)' : 'No configurado';
+                if (resendEl) resendEl.textContent = s.apis.resend.configured ? 'Configurado (API)' : 'No configurado';
+                if (smtpEl) smtpEl.textContent = s.apis.smtp.configured ? 'Activo (' + s.apis.smtp.host + ')' : 'No configurado';
+
+                // 6. Tarjeta Servidor Node
+                const uptimeEl = document.getElementById('sys-server-uptime');
+                const memEl = document.getElementById('sys-server-mem');
+                const envEl = document.getElementById('sys-server-env');
+                const nodeBadge = document.getElementById('sys-status-node');
+                if (uptimeEl) {
+                    const hours = Math.floor(s.uptime / 3600);
+                    const mins = Math.floor((s.uptime % 3600) / 60);
+                    uptimeEl.textContent = `${hours}h ${mins}m (${s.uptime}s)`;
+                }
+                if (memEl) memEl.textContent = `${s.memoryMb} MB`;
+                if (envEl) envEl.textContent = s.environment || 'Production';
+                if (nodeBadge) nodeBadge.textContent = s.nodeVersion || 'v20.x';
+
+                if (showFeedback) {
+                    alert('✅ Estado del sistema y conexiones actualizado correctamente.');
+                }
+            }
+        } catch (err) {
+            console.error('Error cargando estado del sistema:', err);
+        }
+    }
+
+    function updateBotActiveUI(isActive) {
+        const headerStatusPill = document.querySelector('.main-header .status-pill');
+        if (isActive) {
+            if (btnToggleBotActive) {
+                btnToggleBotActive.className = 'btn-success';
+                btnToggleBotActive.style.background = '#10b981';
+                btnToggleBotActive.innerHTML = '🟢 Bot Activado (24/7)';
+            }
+            if (botMasterStatusBadge) {
+                botMasterStatusBadge.className = 'status-pill online';
+                botMasterStatusBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+                botMasterStatusBadge.style.color = '#10b981';
+                botMasterStatusBadge.innerHTML = '<span class="dot"></span> Activo (24/7)';
+            }
+            if (headerStatusPill) {
+                headerStatusPill.className = 'status-pill online';
+                headerStatusPill.style.background = 'rgba(16, 185, 129, 0.15)';
+                headerStatusPill.style.color = '#10b981';
+                headerStatusPill.innerHTML = '<span class="dot"></span> Bot Activo 24/7';
+            }
+        } else {
+            if (btnToggleBotActive) {
+                btnToggleBotActive.className = 'btn-secondary';
+                btnToggleBotActive.style.background = '#ef4444';
+                btnToggleBotActive.style.color = '#ffffff';
+                btnToggleBotActive.innerHTML = '⏸️ Bot Desactivado (Pausado)';
+            }
+            if (botMasterStatusBadge) {
+                botMasterStatusBadge.className = 'status-pill';
+                botMasterStatusBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+                botMasterStatusBadge.style.color = '#f87171';
+                botMasterStatusBadge.innerHTML = '<span class="dot" style="background: #ef4444;"></span> Desactivado';
+            }
+            if (headerStatusPill) {
+                headerStatusPill.className = 'status-pill';
+                headerStatusPill.style.background = 'rgba(239, 68, 68, 0.2)';
+                headerStatusPill.style.color = '#f87171';
+                headerStatusPill.innerHTML = '<span class="dot" style="background: #ef4444;"></span> Bot Pausado';
+            }
+        }
+    }
+
+    if (btnToggleBotActive) {
+        btnToggleBotActive.addEventListener('click', async () => {
+            const nextState = !(currentSystemSettings.botActive !== false);
+            const actionText = nextState ? '¿Deseas ACTIVAR las respuestas automáticas del chatbot?' : '¿Deseas DESACTIVAR / PAUSAR temporalmente el chatbot? Los mensajes de clientes no recibirán respuesta automática.';
+            
+            if (!confirm(actionText)) return;
+
+            btnToggleBotActive.disabled = true;
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': adminToken
+                    },
+                    body: JSON.stringify({ botActive: nextState })
+                });
+                const data = await res.json();
+                if (data.success && data.settings) {
+                    currentSystemSettings = data.settings;
+                    updateBotActiveUI(currentSystemSettings.botActive !== false);
+                } else {
+                    alert('Error al actualizar el estado del chatbot: ' + (data.error || 'Error desconocido'));
+                }
+            } catch (err) {
+                alert('Error de conexión: ' + err.message);
+            } finally {
+                btnToggleBotActive.disabled = false;
+            }
+        });
+    }
+
+    if (saveMaintenanceSettingsBtn) {
+        saveMaintenanceSettingsBtn.addEventListener('click', async () => {
+            const msg = maintenanceMessageInput ? maintenanceMessageInput.value.trim() : '';
+            const notice = sendMaintenanceNoticeCheck ? sendMaintenanceNoticeCheck.checked : false;
+
+            saveMaintenanceSettingsBtn.disabled = true;
+            try {
+                const res = await fetch('/api/admin/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': adminToken
+                    },
+                    body: JSON.stringify({
+                        maintenanceMessage: msg,
+                        sendMaintenanceNotice: notice
+                    })
+                });
+                const data = await res.json();
+                if (data.success && data.settings) {
+                    currentSystemSettings = data.settings;
+                    alert('✅ Configuración de mantenimiento guardada exitosamente.');
+                } else {
+                    alert('Error al guardar la configuración: ' + (data.error || 'Error desconocido'));
+                }
+            } catch (err) {
+                alert('Error de conexión: ' + err.message);
+            } finally {
+                saveMaintenanceSettingsBtn.disabled = false;
+            }
+        });
+    }
+
+    // Inicializar estado del bot en la cabecera al cargar
+    fetch('/api/admin/settings', { headers: { 'x-admin-token': adminToken } })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success && d.settings) {
+                currentSystemSettings = d.settings;
+                updateBotActiveUI(currentSystemSettings.botActive !== false);
+            }
+        })
+        .catch(() => {});
+
 });

@@ -208,6 +208,12 @@ if (process.env.DATABASE_URL) {
             created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
 
+        CREATE TABLE IF NOT EXISTS bot_system_settings (
+            key_name VARCHAR(100) PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
         ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS en_atencion_humana BOOLEAN DEFAULT FALSE;
         ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS mensajes TEXT DEFAULT '[]';
     `).catch(err => console.error("⚠️ Error en Auto-Migración de BD:", err.message));

@@ -36,7 +36,22 @@ async function processMessage(message) {
 async function handleUserMessage(from, body, type = 'text', interactiveData = null) {
     console.log(`\n📩 MENSAJE RECIBIDO de ${from} [Tipo: ${type}]: "${body}"`);
 
-    // 0. MODO ATENCIÓN HUMANA (Handover a Recepción)
+    // 0. VERIFICAR SI EL CHATBOT ESTÁ ACTIVO O PAUSADO GLOBALMENTE (DESDE AJUSTES DEL CMS)
+    try {
+        const settings = await db.getSystemSettings();
+        if (settings && settings.botActive === false) {
+            console.log(`⏸️ Chatbot actualmente DESACTIVADO / PAUSADO por el Administrador. Mensaje ignorado o en espera.`);
+            // Si hay un mensaje de mantenimiento configurado y es el primer mensaje o una interacción
+            if (settings.maintenanceMessage && settings.sendMaintenanceNotice) {
+                await sendMessage(from, settings.maintenanceMessage);
+            }
+            return;
+        }
+    } catch (err) {
+        console.error("⚠️ Error consultando estado activo del bot:", err.message);
+    }
+
+    // 0b. MODO ATENCIÓN HUMANA (Handover a Recepción)
     // Si el cliente interactúa con cualquier botón o lista de opciones del chatbot, reactivamos automáticamente el modo bot
     const isInteractive = type === 'interactive' || type === 'button' || interactiveData !== null;
 

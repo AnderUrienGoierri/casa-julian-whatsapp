@@ -1,5 +1,14 @@
 {
-  "states": {},
-  "languages": {},
-  "locations": {}
+  "states": {
+    "sim_test_admin": {
+      "step": "main_menu",
+      "data": {}
+    }
+  },
+  "languages": {
+    "sim_test_admin": "es"
+  },
+  "locations": {
+    "sim_test_admin": "pais_vasco"
+  }
 }

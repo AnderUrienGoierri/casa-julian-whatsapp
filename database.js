@@ -70,7 +70,9 @@ const {
     getAttachments,
     getAttachment,
     saveAttachment,
-    deleteAttachment
+    deleteAttachment,
+    getSystemSettings,
+    updateSystemSetting
 } = require('./db/dynamicContent');
 
 const {
@@ -153,6 +155,8 @@ module.exports = {
     getAttachment,
     saveAttachment,
     deleteAttachment,
+    getSystemSettings,
+    updateSystemSetting,
     addToWaitlist,
     getWaitlistPosition,
     getFirstWaitlistForSlot,

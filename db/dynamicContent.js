@@ -498,6 +498,49 @@ async function deleteAttachment(key_name) {
     return true;
 }
 
+async function getSystemSettings() {
+    const db = loadDb();
+    ensureDraftAndPublished(db);
+    if (!db.systemSettings) {
+        db.systemSettings = {
+            botActive: true,
+            maintenanceMessage: 'El servicio de WhatsApp se encuentra en mantenimiento en este momento. Le atenderemos en breve.',
+            updatedAt: new Date().toISOString()
+        };
+        saveDb(db);
+    }
+    return db.systemSettings;
+}
+
+async function updateSystemSetting(key, value) {
+    const db = loadDb();
+    ensureDraftAndPublished(db);
+    if (!db.systemSettings) {
+        db.systemSettings = {
+            botActive: true,
+            maintenanceMessage: 'El servicio de WhatsApp se encuentra en mantenimiento en este momento. Le atenderemos en breve.',
+            updatedAt: new Date().toISOString()
+        };
+    }
+    db.systemSettings[key] = value;
+    db.systemSettings.updatedAt = new Date().toISOString();
+    saveDb(db);
+
+    if (pool) {
+        try {
+            await pool.query(
+                `INSERT INTO bot_system_settings (key_name, value, updated_at)
+                 VALUES ($1, $2, CURRENT_TIMESTAMP)
+                 ON CONFLICT (key_name) DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
+                [key, typeof value === 'string' ? value : JSON.stringify(value)]
+            );
+        } catch (err) {
+            console.error("❌ Error PostgreSQL updateSystemSetting:", err.message);
+        }
+    }
+    return db.systemSettings;
+}
+
 module.exports = {
     getDynamicTexts,
     saveDynamicText,
@@ -518,5 +561,7 @@ module.exports = {
     getAttachments,
     getAttachment,
     saveAttachment,
-    deleteAttachment
+    deleteAttachment,
+    getSystemSettings,
+    updateSystemSetting
 };

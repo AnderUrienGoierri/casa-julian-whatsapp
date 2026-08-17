@@ -14,8 +14,11 @@ const {
     updateGiftCardStatus,
     extractGiftCardCodeFromText,
     getAllGiftCards,
-    isCardExpired
+    isCardExpired,
+    getSystemSettings,
+    updateSystemSetting
 } = require('./database');
+const { pool } = require('./db/connection');
 const { getSimMessages, clearSimMessages, sendMessage } = require('./whatsappApi');
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'julian2026';
@@ -769,6 +772,116 @@ router.get('/tarjetas-regalo', requireAdminAuth, async (req, res) => {
     try {
         const cards = await getAllGiftCards();
         return res.json({ success: true, tarjetas: cards });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 20. Obtener ajustes del sistema (Estado del chatbot, notificaciones, etc.)
+router.get('/settings', requireAdminAuth, async (req, res) => {
+    try {
+        const settings = await getSystemSettings();
+        return res.json({ success: true, settings });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 21. Actualizar ajustes del sistema (Activar/Desactivar chatbot, mensaje de mantenimiento, etc.)
+router.post('/settings', requireAdminAuth, async (req, res) => {
+    try {
+        const { botActive, maintenanceMessage, sendMaintenanceNotice } = req.body || {};
+        
+        if (botActive !== undefined) {
+            await updateSystemSetting('botActive', !!botActive);
+        }
+        if (maintenanceMessage !== undefined) {
+            await updateSystemSetting('maintenanceMessage', maintenanceMessage);
+        }
+        if (sendMaintenanceNotice !== undefined) {
+            await updateSystemSetting('sendMaintenanceNotice', !!sendMaintenanceNotice);
+        }
+
+        const updatedSettings = await getSystemSettings();
+        return res.json({ success: true, settings: updatedSettings });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 22. Obtener diagnóstico general del sistema y APIs configuradas
+router.get('/system-status', requireAdminAuth, async (req, res) => {
+    try {
+        const settings = await getSystemSettings();
+
+        // 1. Estado de Base de Datos PostgreSQL
+        let dbConnected = false;
+        let dbLatencyMs = null;
+        if (pool) {
+            try {
+                const t0 = Date.now();
+                await pool.query('SELECT 1');
+                dbLatencyMs = Date.now() - t0;
+                dbConnected = true;
+            } catch (err) {
+                dbConnected = false;
+            }
+        }
+
+        // 2. Estado de Meta WhatsApp Cloud API
+        const metaConfigured = !!(process.env.WHATSAPP_TOKEN && process.env.PHONE_NUMBER_ID);
+        const metaPhoneId = process.env.PHONE_NUMBER_ID ? `...${process.env.PHONE_NUMBER_ID.slice(-4)}` : 'No configurado';
+
+        // 3. Estado de Servicios de Email
+        const brevoConfigured = !!process.env.BREVO_API_KEY;
+        const resendConfigured = !!process.env.RESEND_API_KEY;
+        const smtpConfigured = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+
+        // 4. Entorno de Ejecución
+        const uptimeSeconds = Math.floor(process.uptime());
+        const memoryUsage = process.memoryUsage();
+
+        return res.json({
+            success: true,
+            status: {
+                botActive: settings.botActive !== false,
+                environment: process.env.NODE_ENV || 'production',
+                nodeVersion: process.version,
+                uptime: uptimeSeconds,
+                memoryMb: Math.round(memoryUsage.rss / (1024 * 1024)),
+                database: {
+                    type: 'PostgreSQL (Neon Cloud)',
+                    connected: dbConnected,
+                    latencyMs: dbLatencyMs,
+                    host: process.env.DATABASE_URL ? process.env.DATABASE_URL.split('@')[1]?.split('/')[0] : 'Local'
+                },
+                apis: {
+                    metaWhatsApp: {
+                        name: 'Meta WhatsApp Cloud API (v19.0)',
+                        configured: metaConfigured,
+                        phoneIdSuffix: metaPhoneId,
+                        status: metaConfigured ? 'ONLINE' : 'FALTA_CONFIG'
+                    },
+                    brevo: {
+                        name: 'Brevo Email API (Transaccional)',
+                        configured: brevoConfigured,
+                        status: brevoConfigured ? 'ACTIVO' : 'NO_CONFIGURADO'
+                    },
+                    resend: {
+                        name: 'Resend Email API',
+                        configured: resendConfigured,
+                        status: resendConfigured ? 'ACTIVO' : 'NO_CONFIGURADO'
+                    },
+                    smtp: {
+                        name: 'Servidor SMTP (Office365 / Fallback)',
+                        configured: smtpConfigured,
+                        host: process.env.SMTP_HOST || 'smtp.office365.com',
+                        status: smtpConfigured ? 'ACTIVO' : 'NO_CONFIGURADO'
+                    }
+                },
+                settings: settings
+            }
+        });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
