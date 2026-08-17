@@ -1558,15 +1558,21 @@ div.inbox-toolbar-header,
 
 #inbox-filters-body.inbox-toolbar-body,
 .inbox-toolbar-body {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     padding: 14px 18px 16px 18px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     gap: 12px;
+}
+
+#inbox-filters-body[style*="display: none"],
+#inbox-filters-body[style*="display:none"],
+.inbox-toolbar-body.is-collapsed {
+    display: none !important;
 }
 
 .inbox-top-controls {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260817-V212-WELCOME-SYNC">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260817-V213-TOGGLE-FIX">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -239,9 +239,9 @@
                     </div>
 
                     <!-- Toolbar de Filtrado de Solicitudes (colapsable) -->
-                    <div class="inbox-toolbar-card" style="display: flex !important; flex-direction: column !important; width: 100% !important; box-sizing: border-box !important;">
+                    <div class="inbox-toolbar-card">
                         <!-- Header colapsable -->
-                        <div id="inbox-filters-toggle" class="inbox-toolbar-header" style="width: 100% !important; display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; box-sizing: border-box !important;">
+                        <div id="inbox-filters-toggle" class="inbox-toolbar-header">
                             <div class="inbox-toolbar-title-group">
                                 <span class="inbox-toolbar-icon">⚙️</span>
                                 <span class="inbox-toolbar-title">Filtros &amp; Ordenación</span>
@@ -251,7 +251,7 @@
                         </div>
 
                         <!-- Contenido colapsable -->
-                        <div id="inbox-filters-body" class="inbox-toolbar-body" style="width: 100% !important; display: flex !important; flex-direction: column !important; box-sizing: border-box !important;">
+                        <div id="inbox-filters-body" class="inbox-toolbar-body">
                             <!-- Fila 1: Buscador + Ordenación + Selector de Vista -->
                             <div class="inbox-top-controls">
                                 <div class="search-box inbox-search">

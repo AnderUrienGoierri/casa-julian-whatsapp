@@ -2509,12 +2509,20 @@ document.addEventListener('DOMContentLoaded', () => {
         inboxFiltersToggleBtn.style.setProperty('display', 'flex', 'important');
         inboxFiltersToggleBtn.style.setProperty('flex-direction', 'row', 'important');
         inboxFiltersToggleBtn.style.setProperty('justify-content', 'space-between', 'important');
-        inboxFiltersBody.style.setProperty('width', '100%', 'important');
         
-        inboxFiltersToggleBtn.addEventListener('click', () => {
+        inboxFiltersToggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             inboxFiltersOpen = !inboxFiltersOpen;
-            inboxFiltersBody.style.display = inboxFiltersOpen ? 'flex' : 'none';
-            if (inboxFiltersToggleIcon) inboxFiltersToggleIcon.textContent = inboxFiltersOpen ? '▲' : '▼';
+            if (inboxFiltersOpen) {
+                inboxFiltersBody.classList.remove('is-collapsed');
+                inboxFiltersBody.style.setProperty('display', 'flex', 'important');
+                if (inboxFiltersToggleIcon) inboxFiltersToggleIcon.textContent = '▲';
+            } else {
+                inboxFiltersBody.classList.add('is-collapsed');
+                inboxFiltersBody.style.setProperty('display', 'none', 'important');
+                if (inboxFiltersToggleIcon) inboxFiltersToggleIcon.textContent = '▼';
+            }
         });
     }
 
