@@ -1429,13 +1429,14 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .inbox-toolbar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 18px;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 18px !important;
     cursor: pointer;
     user-select: none;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.03);
     border-bottom: 1px solid transparent;
     transition: background 0.2s ease;
 }
