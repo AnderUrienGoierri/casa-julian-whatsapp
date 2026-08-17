@@ -2421,13 +2421,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (refreshInboxBtn) refreshInboxBtn.addEventListener('click', fetchSolicitudes);
 
     // ── Toggle Colapsable de Filtros ────────────────────────────────────────
+    const inboxToolbarCard = document.querySelector('.inbox-toolbar-card');
     const inboxFiltersToggleBtn = document.getElementById('inbox-filters-toggle');
     const inboxFiltersBody = document.getElementById('inbox-filters-body');
     const inboxFiltersToggleIcon = document.getElementById('inbox-filters-toggle-icon');
+    
+    if (inboxToolbarCard) {
+        inboxToolbarCard.style.setProperty('display', 'flex', 'important');
+        inboxToolbarCard.style.setProperty('flex-direction', 'column', 'important');
+        inboxToolbarCard.style.setProperty('width', '100%', 'important');
+    }
+    
     if (inboxFiltersToggleBtn && inboxFiltersBody) {
-        inboxFiltersToggleBtn.style.width = '100%';
-        inboxFiltersToggleBtn.style.display = 'flex';
-        inboxFiltersBody.style.width = '100%';
+        inboxFiltersToggleBtn.style.setProperty('width', '100%', 'important');
+        inboxFiltersToggleBtn.style.setProperty('display', 'flex', 'important');
+        inboxFiltersToggleBtn.style.setProperty('flex-direction', 'row', 'important');
+        inboxFiltersToggleBtn.style.setProperty('justify-content', 'space-between', 'important');
+        inboxFiltersBody.style.setProperty('width', '100%', 'important');
+        
         inboxFiltersToggleBtn.addEventListener('click', () => {
             inboxFiltersOpen = !inboxFiltersOpen;
             inboxFiltersBody.style.display = inboxFiltersOpen ? 'flex' : 'none';
