@@ -1411,6 +1411,7 @@ body.mode-recepcion .inbox-cards-grid {
 /* ==========================================================================
    TOOLBAR DE FILTROS & ORDENACIÓN ULTRA-PROFESIONAL Y ESTABLE (INBOX CMS)
    ========================================================================== */
+#tab-inbox .inbox-toolbar-card,
 .inbox-toolbar-card {
     display: flex !important;
     flex-direction: column !important;
@@ -1433,6 +1434,7 @@ body.mode-recepcion .inbox-cards-grid {
     border-color: rgba(217, 119, 6, 0.3);
 }
 
+#tab-inbox #inbox-filters-toggle,
 #inbox-filters-toggle.inbox-toolbar-header,
 .inbox-toolbar-header {
     display: flex !important;
@@ -1451,6 +1453,7 @@ body.mode-recepcion .inbox-cards-grid {
     border-bottom: 1px solid transparent;
     transition: background 0.2s ease;
     flex-shrink: 0 !important;
+    clear: both !important;
 }
 
 .inbox-toolbar-header:hover {

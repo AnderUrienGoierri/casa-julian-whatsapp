@@ -2425,6 +2425,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const inboxFiltersBody = document.getElementById('inbox-filters-body');
     const inboxFiltersToggleIcon = document.getElementById('inbox-filters-toggle-icon');
     if (inboxFiltersToggleBtn && inboxFiltersBody) {
+        inboxFiltersToggleBtn.style.width = '100%';
+        inboxFiltersToggleBtn.style.display = 'flex';
+        inboxFiltersBody.style.width = '100%';
         inboxFiltersToggleBtn.addEventListener('click', () => {
             inboxFiltersOpen = !inboxFiltersOpen;
             inboxFiltersBody.style.display = inboxFiltersOpen ? 'flex' : 'none';
