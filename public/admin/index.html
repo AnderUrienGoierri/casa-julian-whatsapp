@@ -253,64 +253,68 @@
                     </div>
 
                     <!-- Toolbar de Filtrado de Solicitudes (colapsable) -->
-                    <div class="toolbar" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0; margin-bottom: 20px; overflow: hidden;">
+                    <div class="inbox-toolbar-card">
                         <!-- Header colapsable -->
-                        <div id="inbox-filters-toggle" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; user-select: none; transition: background 0.2s;" onmouseenter="this.style.background='rgba(255,255,255,0.04)'" onmouseleave="this.style.background='transparent'">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 0.9rem; font-weight: 700; color: var(--accent-gold);">🔧 Filtros &amp; Ordenación</span>
-                                <span id="inbox-active-filters-summary" style="font-size: 0.78rem; color: var(--text-muted);"></span>
+                        <div id="inbox-filters-toggle" class="inbox-toolbar-header">
+                            <div class="inbox-toolbar-title-group">
+                                <span class="inbox-toolbar-icon">⚙️</span>
+                                <span class="inbox-toolbar-title">Filtros &amp; Ordenación</span>
+                                <span id="inbox-active-filters-summary" class="inbox-filters-summary-badge"></span>
                             </div>
-                            <span id="inbox-filters-toggle-icon" style="font-size: 1rem; color: var(--text-muted); transition: transform 0.25s;">▲</span>
+                            <span id="inbox-filters-toggle-icon" class="inbox-toggle-arrow">▲</span>
                         </div>
 
                         <!-- Contenido colapsable -->
-                        <div id="inbox-filters-body" style="padding: 0 16px 16px 16px; border-top: 1px solid rgba(255,255,255,0.06);">
-                            <!-- Buscador -->
-                            <div class="search-box" style="margin: 12px 0;">
-                                <span class="search-icon">🔍</span>
-                                <input type="text" id="search-inbox-input" placeholder="Buscar por cliente, teléfono o contenido del resumen...">
+                        <div id="inbox-filters-body" class="inbox-toolbar-body">
+                            <!-- Fila 1: Buscador + Ordenación + Selector de Vista -->
+                            <div class="inbox-top-controls">
+                                <div class="search-box inbox-search">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" id="search-inbox-input" placeholder="Buscar por cliente, teléfono o contenido del resumen...">
+                                </div>
+
+                                <div class="inbox-sort-wrapper">
+                                    <label for="inbox-sort-select" class="inbox-sort-label">↕️ Ordenar:</label>
+                                    <select id="inbox-sort-select" class="inbox-sort-select">
+                                        <option value="date_desc">⏰ Más reciente primero</option>
+                                        <option value="date_asc">🕛 Más antiguo primero</option>
+                                        <option value="alpha_asc">🔤 A → Z (nombre)</option>
+                                        <option value="alpha_desc">🔡 Z → A (nombre)</option>
+                                        <option value="estado">📌 Por estado</option>
+                                    </select>
+                                </div>
+
+                                <div class="inbox-view-group">
+                                    <button class="filter-chip active" data-inbox-view="active" id="view-chip-active">📥 Activas</button>
+                                    <button class="filter-chip" data-inbox-view="ARCHIVADA" id="view-chip-archived">📦 Archivadas</button>
+                                    <button class="filter-chip" data-inbox-view="ELIMINADA" id="view-chip-deleted">🗑️ Papelera</button>
+                                </div>
                             </div>
 
-                            <!-- Fila: Ordenar por -->
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap;">
-                                <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); white-space: nowrap;">↕️ Ordenar por:</span>
-                                <select id="inbox-sort-select" style="background: rgba(15, 23, 42, 0.8); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 6px 12px; font-size: 0.84rem; cursor: pointer; outline: none;">
-                                    <option value="date_desc">⏰ Más reciente primero</option>
-                                    <option value="date_asc">🕛 Más antiguo primero</option>
-                                    <option value="alpha_asc">🔤 A → Z (nombre)</option>
-                                    <option value="alpha_desc">🔡 Z → A (nombre)</option>
-                                    <option value="estado">📌 Por estado</option>
-                                </select>
+                            <!-- Fila 2: Filtros por Categoría de Solicitud -->
+                            <div class="inbox-filter-row">
+                                <span class="inbox-row-label">🏷️ Tipo:</span>
+                                <div class="category-filters" id="inbox-category-filters">
+                                    <button class="filter-chip active" data-inbox-cat="all">Todas</button>
+                                    <button class="filter-chip" data-inbox-cat="reservas_menu_tradicion">🎁 Menú Tradición</button>
+                                    <button class="filter-chip" data-inbox-cat="mod_comensales">👥 Mod. Comensales</button>
+                                    <button class="filter-chip" data-inbox-cat="mod_dia">📅 Mod. Día</button>
+                                    <button class="filter-chip" data-inbox-cat="mod_hora">🕐 Mod. Hora</button>
+                                    <button class="filter-chip" data-inbox-cat="cancelacion">❌ Cancelaciones</button>
+                                    <button class="filter-chip" data-inbox-cat="consulta_abierta">💬 Consultas Abiertas</button>
+                                </div>
                             </div>
 
-                            <!-- Vista: Activas / Archivadas / Eliminadas -->
-                            <div style="font-size: 0.82rem; font-weight: 600; color: var(--accent-gold); margin-bottom: 7px;">📂 Vista:</div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
-                                <button class="filter-chip active" data-inbox-view="active" id="view-chip-active">📥 Activas</button>
-                                <button class="filter-chip" data-inbox-view="ARCHIVADA" id="view-chip-archived">📦 Archivadas</button>
-                                <button class="filter-chip" data-inbox-view="ELIMINADA" id="view-chip-deleted">🗑️ Papelera</button>
-                            </div>
-
-                            <!-- Filtros por Categoría de Solicitud -->
-                            <div style="font-size: 0.85rem; font-weight: 600; color: var(--accent-gold); margin-bottom: 8px;">🏷️ Filtrar por Tipo de Solicitud:</div>
-                            <div class="category-filters" id="inbox-category-filters" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
-                                <button class="filter-chip active" data-inbox-cat="all">Todas</button>
-                                <button class="filter-chip" data-inbox-cat="reservas_menu_tradicion">🎁 Menú Tradición</button>
-                                <button class="filter-chip" data-inbox-cat="mod_comensales">👥 Mod. Comensales</button>
-                                <button class="filter-chip" data-inbox-cat="mod_dia">📅 Mod. Día</button>
-                                <button class="filter-chip" data-inbox-cat="mod_hora">🕐 Mod. Hora</button>
-                                <button class="filter-chip" data-inbox-cat="cancelacion">❌ Cancelaciones</button>
-                                <button class="filter-chip" data-inbox-cat="consulta_abierta">💬 Consultas Abiertas</button>
-                            </div>
-
-                            <!-- Filtros por Estado de la Solicitud -->
-                            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">📌 Estado de Gestión:</div>
-                            <div class="category-filters" id="inbox-status-filters" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                <button class="filter-chip active" data-inbox-status="all">Todos los Estados</button>
-                                <button class="filter-chip" data-inbox-status="PENDIENTE">⏳ Pendientes</button>
-                                <button class="filter-chip" data-inbox-status="RESPONDIDA">💬 Respondidas</button>
-                                <button class="filter-chip" data-inbox-status="CONFIRMADA">✅ Confirmadas</button>
-                                <button class="filter-chip" data-inbox-status="RECHAZADA">🚫 Rechazadas</button>
+                            <!-- Fila 3: Filtros por Estado de la Solicitud -->
+                            <div class="inbox-filter-row">
+                                <span class="inbox-row-label">📌 Estado:</span>
+                                <div class="category-filters" id="inbox-status-filters">
+                                    <button class="filter-chip active" data-inbox-status="all">Todos los Estados</button>
+                                    <button class="filter-chip" data-inbox-status="PENDIENTE">⏳ Pendientes</button>
+                                    <button class="filter-chip" data-inbox-status="RESPONDIDA">💬 Respondidas</button>
+                                    <button class="filter-chip" data-inbox-status="CONFIRMADA">✅ Confirmadas</button>
+                                    <button class="filter-chip" data-inbox-status="RECHAZADA">🚫 Rechazadas</button>
+                                </div>
                             </div>
                         </div>
                     </div>

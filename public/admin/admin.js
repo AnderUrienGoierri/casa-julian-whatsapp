@@ -2201,6 +2201,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Abrir Modal de Respuesta Manual y Chat
     function openReplyModal(sol, prefilledText = '', targetStatus = 'EN_GESTION') {
         activeReplySolicitud = sol;
+
+        const modalBody = document.querySelector('.whatsapp-modal-body');
+        const sidebar = document.getElementById('whatsapp-request-sidebar');
+        const toggleBtn = document.getElementById('toggle-sidebar-btn');
+        if (modalBody) modalBody.classList.remove('sidebar-hidden');
+        if (sidebar) sidebar.style.display = '';
+        if (toggleBtn) toggleBtn.classList.add('active');
         
         // Limpiar estado de no leído para esta solicitud
         unreadSolicitudIds.delete(sol.id);
@@ -2270,14 +2277,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Restablecer estado del sidebar y botón
         const sidebar = document.getElementById('whatsapp-request-sidebar');
+        const modalBody = document.querySelector('.whatsapp-modal-body');
         const backdrop = document.getElementById('whatsapp-sidebar-backdrop');
         const toggleBtn = document.getElementById('toggle-sidebar-btn');
+        if (modalBody) modalBody.classList.remove('sidebar-hidden');
         if (sidebar) {
             sidebar.style.display = '';
             sidebar.classList.remove('show-sidebar');
         }
         if (backdrop) backdrop.classList.remove('show-backdrop');
-        if (toggleBtn) toggleBtn.classList.remove('active');
+        if (toggleBtn) toggleBtn.classList.add('active');
 
         renderInboxCards();
     }
@@ -2293,16 +2302,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleSidebarDrawer() {
         const sidebar = document.getElementById('whatsapp-request-sidebar');
+        const modalBody = document.querySelector('.whatsapp-modal-body');
         const backdrop = document.getElementById('whatsapp-sidebar-backdrop');
         const toggleBtn = document.getElementById('toggle-sidebar-btn');
         if (!sidebar) return;
 
-        // En pantallas grandes (>= 960px), toggle de visibilidad colapsable
+        // En pantallas grandes (>= 960px), toggle de visibilidad colapsable con expansión 100% del chat
         if (window.innerWidth > 960) {
-            if (sidebar.style.display === 'none') {
+            const isHidden = modalBody ? modalBody.classList.contains('sidebar-hidden') : (sidebar.style.display === 'none');
+            if (isHidden) {
+                if (modalBody) modalBody.classList.remove('sidebar-hidden');
                 sidebar.style.display = 'flex';
                 if (toggleBtn) toggleBtn.classList.add('active');
             } else {
+                if (modalBody) modalBody.classList.add('sidebar-hidden');
                 sidebar.style.display = 'none';
                 if (toggleBtn) toggleBtn.classList.remove('active');
             }
