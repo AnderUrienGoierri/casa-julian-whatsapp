@@ -147,7 +147,6 @@ router.get('/structure', requireAdminAuth, (req, res) => {
         const categoryMap = {
             // 1. Bienvenida y Seleccion de Idioma
             welcomeImageUrl: 'welcome', welcomeStickerUrl: 'welcome', welcomeMessage: 'welcome',
-            welcomeLanguagePrompt: 'welcome', welcomeLanguageBtn: 'welcome',
             lang_es: 'welcome', lang_eu: 'welcome', lang_en: 'welcome',
 
             // 2. Seleccion de Ubicacion del Restaurante (Tolosa / Madrid)
@@ -227,8 +226,6 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                     'welcomeImageUrl',
                     'welcomeStickerUrl',
                     'welcomeMessage',
-                    'welcomeLanguagePrompt',
-                    'welcomeLanguageBtn',
                     'lang_es', 'lang_eu', 'lang_en'
                 ]
             },

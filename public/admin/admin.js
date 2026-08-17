@@ -472,8 +472,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'welcomeImageUrl',
             'welcomeStickerUrl',
             'welcomeMessage',
-            'welcomeLanguageBtn',
-            'welcomeLanguagePrompt',
             'lang_es', 'lang_eu', 'lang_en',
             'selectLocationTitle',
             'selectLocationBody',
