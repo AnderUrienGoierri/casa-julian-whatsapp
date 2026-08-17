@@ -123,8 +123,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                     { id: 'faq_7', titleKey: 'faq7Title', descKey: 'faq7Desc' },
                     { id: 'faq_8', titleKey: 'faq8Title', descKey: 'faq8Desc' },
                     { id: 'faq_9', titleKey: 'faq9Title', descKey: 'faq9Desc' },
-                    { id: 'faq_10', titleKey: 'faq10Title', descKey: 'faq10Desc' },
-                    { id: 'faq_11', titleKey: 'faq11Title', descKey: 'faq11Desc' }
+                    { id: 'faq_10', titleKey: 'faq10Title', descKey: 'faq10Desc' }
                 ]
             }
         ];

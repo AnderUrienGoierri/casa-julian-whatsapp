@@ -27,21 +27,21 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
         return;
     }
 
-    // Opción 8: Regalar Menú Tradición
-    if (faqNum === '8') {
+    // Opción 7: Regalar Menú Tradición
+    if (faqNum === '7') {
         const templateRes = await sendTemplateMessage(from, 'comprar_menu_tradicion', lang);
         if (!templateRes || !templateRes.messages) {
-            const responseMsg = getTranslation(lang, 'faq8Msg');
+            const responseMsg = getTranslation(lang, 'faq7Msg');
             await sendMessage(from, responseMsg);
         }
         return;
     }
 
-    // Opción 9: Ubicación en Google Maps
-    if (faqNum === '9') {
+    // Opción 8: Ubicación en Google Maps
+    if (faqNum === '8') {
         const templateRes = await sendTemplateMessage(from, 'ubicacion_google_maps', lang);
         if (!templateRes || !templateRes.messages) {
-            const responseMsg = getTranslation(lang, 'faq9Msg');
+            const responseMsg = getTranslation(lang, 'faq8Msg');
             await sendMessage(from, responseMsg);
         }
         return;
@@ -51,7 +51,7 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
     const responseMsg = getTranslation(lang, msgKey);
 
     if (responseMsg) {
-        if (faqNum === '5') { // Option 5: Cancelación
+        if (faqNum === '4') { // Option 4: Cancelación
             const cancelBtnTitle = (lang === 'eu' ? 'Erreserba ezeztatu' : (lang === 'en' ? 'Cancel booking' : 'Cancelar reserva'));
             const buttons = [
                 { id: 'btn_go_cancelacion', title: cancelBtnTitle.slice(0, 20) }
@@ -60,7 +60,7 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
             return;
         }
 
-        if (faqNum === '6') { // Option 6: Reducción comensales
+        if (faqNum === '5') { // Option 5: Reducción comensales
             const modBtnTitle = (lang === 'eu' ? 'Erreserba aldatu' : (lang === 'en' ? 'Modify booking' : 'Modificar reserva'));
 
             const buttons = [
