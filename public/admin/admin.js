@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentInboxSort = 'date_desc';   // 'date_desc' | 'date_asc' | 'alpha_asc' | 'alpha_desc' | 'estado'
     let inboxFiltersOpen = true;          // Toggle colapsable
     let activeReplySolicitud = null;
+    let minimizedSolicitudesMap = new Map();
     let inboxPollingInterval = null;
 
     const refreshInboxBtn = document.getElementById('refresh-inbox-btn');
@@ -1800,6 +1801,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 renderInboxCards();
+                renderMinimizedChatsStack();
             }
         } catch (err) {
             console.error("⚠️ Error cargando solicitudes del buzón:", err);
@@ -2201,6 +2203,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Abrir Modal de Respuesta Manual y Chat
     function openReplyModal(sol, prefilledText = '', targetStatus = 'EN_GESTION') {
         activeReplySolicitud = sol;
+        if (sol && sol.id) {
+            minimizedSolicitudesMap.delete(sol.id);
+            renderMinimizedChatsStack();
+        }
 
         const modalBody = document.querySelector('.whatsapp-modal-body');
         const sidebar = document.getElementById('whatsapp-request-sidebar');
@@ -2329,40 +2335,97 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function renderMinimizedChatsStack() {
+        let stackEl = document.getElementById('minimized-chats-stack');
+        if (!stackEl) {
+            stackEl = document.createElement('div');
+            stackEl.id = 'minimized-chats-stack';
+            stackEl.className = 'minimized-chats-stack';
+            document.body.appendChild(stackEl);
+        }
+
+        if (minimizedSolicitudesMap.size === 0) {
+            stackEl.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        minimizedSolicitudesMap.forEach((sol, solId) => {
+            const isUnread = unreadSolicitudIds.has(solId);
+            const clientName = sol.nombreCliente || 'Cliente WhatsApp';
+            const phone = sol.telefonoCliente || sol.telefonoReserva || '';
+            html += `
+                <div class="minimized-floating-bar ${isUnread ? 'has-unread' : ''}" data-sol-id="${solId}">
+                    <div class="minimized-info">
+                        <span class="minimized-avatar">👤</span>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <div class="minimized-name">${clientName}</div>
+                                ${isUnread ? '<span class="minimized-unread-badge">🔴 ¡Nuevo!</span>' : ''}
+                            </div>
+                            <div class="minimized-sub">📞 WhatsApp: +${phone}</div>
+                        </div>
+                    </div>
+                    <div class="minimized-actions">
+                        <button type="button" class="btn-restore btn-restore-chat" data-sol-id="${solId}" title="Restaurar / Abrir Chat">🗖 Abrir Chat</button>
+                        <button type="button" class="btn-close-mini btn-close-mini-chat" data-sol-id="${solId}" title="Cerrar">✕</button>
+                    </div>
+                </div>
+            `;
+        });
+        stackEl.innerHTML = html;
+
+        stackEl.querySelectorAll('.minimized-floating-bar').forEach(bar => {
+            const solId = bar.getAttribute('data-sol-id');
+            const restoreBtn = bar.querySelector('.btn-restore-chat');
+            const closeBtn = bar.querySelector('.btn-close-mini-chat');
+
+            if (restoreBtn) {
+                restoreBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    restoreMinimizedChat(solId);
+                });
+            }
+            if (closeBtn) {
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    minimizedSolicitudesMap.delete(solId);
+                    renderMinimizedChatsStack();
+                });
+            }
+            bar.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-close-mini-chat')) return;
+                restoreMinimizedChat(solId);
+            });
+        });
+    }
+
+    function restoreMinimizedChat(solId) {
+        const sol = minimizedSolicitudesMap.get(solId) || allSolicitudes.find(s => s.id === solId);
+        minimizedSolicitudesMap.delete(solId);
+        renderMinimizedChatsStack();
+        if (sol) {
+            openReplyModal(sol);
+        }
+    }
+
     function closeReplyModal() {
         replyModal.style.display = 'none';
+        if (activeReplySolicitud) {
+            minimizedSolicitudesMap.delete(activeReplySolicitud.id);
+        }
         activeReplySolicitud = null;
         closeSidebarDrawer();
-        const miniWidget = document.getElementById('minimized-chat-widget');
-        const miniBadge = document.getElementById('minimized-unread-badge');
-        if (miniWidget) {
-            miniWidget.style.display = 'none';
-            miniWidget.classList.remove('has-unread');
-        }
-        if (miniBadge) miniBadge.style.display = 'none';
+        renderMinimizedChatsStack();
     }
 
     function minimizeReplyModal() {
         if (!activeReplySolicitud) return;
+        minimizedSolicitudesMap.set(activeReplySolicitud.id, activeReplySolicitud);
         replyModal.style.display = 'none';
+        activeReplySolicitud = null;
         closeSidebarDrawer();
-        const miniWidget = document.getElementById('minimized-chat-widget');
-        const miniName = document.getElementById('minimized-client-name');
-        const miniPhone = document.getElementById('minimized-client-phone');
-        const miniBadge = document.getElementById('minimized-unread-badge');
-        if (miniWidget) {
-            if (miniName) miniName.textContent = `Cliente: ${activeReplySolicitud.nombreCliente || 'Cliente'}`;
-            if (miniPhone) miniPhone.textContent = `📞 WhatsApp: +${activeReplySolicitud.telefonoCliente || activeReplySolicitud.telefonoReserva || ''}`;
-            const isUnread = unreadSolicitudIds.has(activeReplySolicitud.id);
-            if (isUnread) {
-                miniWidget.classList.add('has-unread');
-                if (miniBadge) miniBadge.style.display = 'inline-block';
-            } else {
-                miniWidget.classList.remove('has-unread');
-                if (miniBadge) miniBadge.style.display = 'none';
-            }
-            miniWidget.style.display = 'flex';
-        }
+        renderMinimizedChatsStack();
     }
 
     function toggleMaximizeModal() {
@@ -2381,9 +2444,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarBackdrop = document.getElementById('whatsapp-sidebar-backdrop');
     const minimizeBtn = document.getElementById('minimize-reply-modal-btn');
     const maximizeBtn = document.getElementById('maximize-reply-modal-btn');
-    const restoreChatBtn = document.getElementById('restore-chat-btn');
-    const closeMiniBtn = document.getElementById('close-minimized-chat-btn');
-    const miniWidgetEl = document.getElementById('minimized-chat-widget');
 
     if (toggleSidebarBtn) toggleSidebarBtn.addEventListener('click', toggleSidebarDrawer);
     if (closeSidebarMobileBtn) closeSidebarMobileBtn.addEventListener('click', closeSidebarDrawer);
@@ -2391,30 +2451,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (minimizeBtn) minimizeBtn.addEventListener('click', minimizeReplyModal);
     if (maximizeBtn) maximizeBtn.addEventListener('click', toggleMaximizeModal);
-    if (restoreChatBtn) {
-        restoreChatBtn.addEventListener('click', () => {
-            if (activeReplySolicitud) {
-                if (miniWidgetEl) miniWidgetEl.style.display = 'none';
-                replyModal.style.display = 'flex';
-            }
-        });
-    }
-    if (miniWidgetEl) {
-        miniWidgetEl.addEventListener('click', (e) => {
-            if (e.target.closest('#close-minimized-chat-btn')) return;
-            if (activeReplySolicitud) {
-                miniWidgetEl.style.display = 'none';
-                replyModal.style.display = 'flex';
-            }
-        });
-    }
-    if (closeMiniBtn) {
-        closeMiniBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (miniWidgetEl) miniWidgetEl.style.display = 'none';
-            activeReplySolicitud = null;
-        });
-    }
 
     if (closeReplyModalBtn) closeReplyModalBtn.addEventListener('click', closeReplyModal);
     if (cancelReplyBtn) cancelReplyBtn.addEventListener('click', closeReplyModal);

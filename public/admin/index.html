@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260817-V207-FULL-EXPAND">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260817-V208-MULTI-MINIMIZE">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -182,23 +182,8 @@
         </div>
     </div>
 
-    <!-- Barra Flotante de Chat Minimizado -->
-    <div id="minimized-chat-widget" style="display: none;" class="minimized-floating-bar">
-        <div class="minimized-info">
-            <span class="minimized-avatar">👤</span>
-            <div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <div class="minimized-name" id="minimized-client-name">Cliente: Juan Pérez</div>
-                    <span id="minimized-unread-badge" class="minimized-unread-badge" style="display: none;">🔴 ¡Nuevo mensaje!</span>
-                </div>
-                <div class="minimized-sub" id="minimized-client-phone">📞 WhatsApp: +34 612 34 56 78</div>
-            </div>
-        </div>
-        <div class="minimized-actions">
-            <button type="button" id="restore-chat-btn" class="btn-restore" title="Restaurar / Abrir Chat">🗖 Abrir Chat</button>
-            <button type="button" id="close-minimized-chat-btn" class="btn-close-mini" title="Cerrar">✕</button>
-        </div>
-    </div>
+    <!-- Contenedor Flotante para Acumular Múltiples Chats Minimizados -->
+    <div id="minimized-chats-stack" class="minimized-chats-stack"></div>
 
     <!-- Aplicación Principal -->
     <div id="app-container" style="display: none;">
