@@ -1,7 +1,7 @@
 const translations = {
     "es": {
-        "welcomeImageUrl": "🥩🔥 Asador Casa Julián de Tolosa",
-        "welcomeMessage": "🔥🥩🔥 *Casa Julián Tolosa* 🔥🥩🔥",
+        "welcomeImageUrl": "🔥🥩 *Casa Julián Tolosa* ",
+        "welcomeMessage": "🔥🥩 *Casa Julián Tolosa* ",
         "welcomeLanguageBtn": "Seleccionar Idioma",
         "lang_es": "🇪🇸 Español",
         "lang_eu": "🇪🇺 Euskara",
