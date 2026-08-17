@@ -2276,10 +2276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         replyModal.style.display = 'flex';
 
         // Restablecer estado del sidebar y botón
-        const sidebar = document.getElementById('whatsapp-request-sidebar');
-        const modalBody = document.querySelector('.whatsapp-modal-body');
         const backdrop = document.getElementById('whatsapp-sidebar-backdrop');
-        const toggleBtn = document.getElementById('toggle-sidebar-btn');
         if (modalBody) modalBody.classList.remove('sidebar-hidden');
         if (sidebar) {
             sidebar.style.display = '';
