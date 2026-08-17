@@ -988,6 +988,8 @@ async function handleTextMessage(from, text) {
 
             const parts = text.split(/[,y\/]+/i).map(p => p.trim()).filter(Boolean);
 
+            const invalidShifts = [];
+
             for (const p of parts) {
                 const isDinnerTime = ['20:00', '20:30', '21:00', '21:30'].some(t => p.includes(t));
                 if (isDinnerTime && !isWeekend) {
@@ -998,25 +1000,21 @@ async function handleTextMessage(from, text) {
                     };
                     const dayName = (dayNames[lang] || dayNames.es)[dayOfWeek] || '';
 
-                    let errMsg = `⚠️ En Asador Casa Julián las cenas únicamente se sirven los *viernes y sábados*. La fecha *${fechaStr || ''}* cae en *${dayName}*.\n\nPor favor, selecciona uno de los turnos de comida predefinidos: *12:30, 13:00, 13:30, 14:00, 15:15*`;
-                    if (lang === 'eu') {
-                        errMsg = `⚠️ Casa Juliánen afariak *ostiral eta larunbatetan* bakarrik ematen dira. *${fechaStr || ''}* data *${dayName}* da.\n\nMesedez, aukeratu bazkariko txanda zehaztu bat: *12:30, 13:00, 13:30, 14:00, 15:15*`;
-                    } else if (lang === 'en') {
-                        errMsg = `⚠️ At Casa Julián, dinners are only served on *Fridays and Saturdays*. The date *${fechaStr || ''}* is a *${dayName}*.\n\nPlease select one of the predefined lunch shifts: *12:30, 13:00, 13:30, 14:00, 15:15*`;
-                    }
-                    await sendMessage(from, errMsg);
+                    let reason = `Cenas solo viernes y sábados (${dayName})`;
+                    if (lang === 'eu') reason = `Afariak ostiral eta larunbatetan bakarrik (${dayName})`;
+                    else if (lang === 'en') reason = `Dinners only on Fri & Sat (${dayName})`;
+
+                    invalidShifts.push({ time: p, reason });
                     continue;
                 }
 
                 const validation = validateAndParseModShifts(p, allowedShifts);
                 if (!validation.isValid || validation.validShifts.length === 0) {
-                    let errMsg = `⚠️ La hora *${p}* no es un turno predefinido en Asador Casa Julián.\n\nPor favor, elige uno de los turnos predefinidos del restaurante:\n• *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Cena:* 20:00, 20:30, 21:00, 21:30 (solo Viernes y Sábados)`;
-                    if (lang === 'eu') {
-                        errMsg = `⚠️ *${p}* ordua ez da Casa Juliánen txanda zehaztu bat.\n\nMesedez, aukeratu ordutegi zehaztu hauetako bat:\n• *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Afaria:* 20:00, 20:30, 21:00, 21:30 (Ostiral eta Larunbatetan bakarrik)`;
-                    } else if (lang === 'en') {
-                        errMsg = `⚠️ The time *${p}* is not a predefined shift at Casa Julián.\n\nPlease select one of the predefined times:\n• *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Dinner:* 20:00, 20:30, 21:00, 21:30 (Fridays & Saturdays only)`;
-                    }
-                    await sendMessage(from, errMsg);
+                    let reason = 'No es un turno predefinido';
+                    if (lang === 'eu') reason = 'Ez da Casa Juliánen txanda zehaztu bat';
+                    else if (lang === 'en') reason = 'Not a predefined shift';
+
+                    invalidShifts.push({ time: p, reason });
                 } else {
                     for (const validTimeStr of validation.validShifts) {
                         if (!currentState.data.modHoras.includes(validTimeStr) && currentState.data.modHoras.length < 5) {
@@ -1024,6 +1022,32 @@ async function handleTextMessage(from, text) {
                         }
                     }
                 }
+            }
+
+            if (invalidShifts.length > 0) {
+                let savedSection = '';
+                if (currentState.data.modHoras.length > 0) {
+                    const count = currentState.data.modHoras.length;
+                    const validListStr = currentState.data.modHoras.map(h => `• ${h}`).join('\n');
+                    let savedHeader = `📌 *Nuevos turnos válidos guardados (${count}/5):*`;
+                    if (lang === 'eu') savedHeader = `📌 *Gorde diren txanda baliagarriak (${count}/5):*`;
+                    else if (lang === 'en') savedHeader = `📌 *Valid preferred time slots saved (${count}/5):*`;
+                    savedSection = `${savedHeader}\n${validListStr}\n\n`;
+                }
+
+                let header = '⚠️ *Las siguientes horas no son válidas:*';
+                let body = 'Por favor, elige uno de los turnos predefinidos del restaurante:\n• *Comida:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Cena:* 20:00, 20:30, 21:00, 21:30 (solo Viernes y Sábados)';
+
+                if (lang === 'eu') {
+                    header = '⚠️ *Hurrengo orduak ez dira baliozkoak:*';
+                    body = 'Mesedez, aukeratu ordutegi zehaztu hauetako bat:\n• *Bazkaria:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Afaria:* 20:00, 20:30, 21:00, 21:30 (Ostiral eta Larunbatetan bakarrik)';
+                } else if (lang === 'en') {
+                    header = '⚠️ *The following times are not valid:*';
+                    body = 'Please select one of the predefined times:\n• *Lunch:* 12:30, 13:00, 13:30, 14:00, 15:15\n• *Dinner:* 20:00, 20:30, 21:00, 21:30 (Fridays & Saturdays only)';
+                }
+
+                const invalidListStr = invalidShifts.map(item => `• *${item.time}*: ${item.reason}`).join('\n');
+                await sendMessage(from, `${savedSection}${header}\n${invalidListStr}\n\n${body}`);
             }
 
             userStates.set(from, currentState);
