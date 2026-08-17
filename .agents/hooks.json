@@ -1,0 +1,16 @@
+{
+  "docker-sync": {
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -NonInteractive -File .agents/scripts/docker-smart-rebuild.ps1",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
