@@ -214,16 +214,9 @@ const translations = {
         "menuTradAddSameTablePrompt": "🎁 *Añadir otra tarjeta regalo (misma mesa)*\n\nIndícanos el código de la siguiente tarjeta regalo:",
         "menuTradNewTablePrompt": "🎁 *Nueva reserva con Tarjeta Regalo (otra mesa)*\n\nIndícanos el código de la tarjeta regalo para la nueva reserva:",
         "menuTradMaxTableCardsNotice": "📌 *Has alcanzado el límite máximo por mesa (6 comensales / 3 tarjetas regalo).* Vamos a proceder con los datos de tu reserva.",
-        "waitlistStep5NinosPrompt": "📝 *Lista de Espera (5/7)*\n\n¿Cuántos niños/niñas habría en la mesa? Selecciona una opción o escribe la cantidad en texto:",
-        "btnNinos0": "0 niños/niñas",
-        "btnNinos1": "1 niño/niña",
-        "btnNinos2": "2 niños/niñas",
         "reservaCardPrompt": "💳 *¿Cuenta con una Tarjeta de Regalo (Menú Tradición)?*",
         "reservaCardBtnSi": "Sí, tengo una",
-        "reservaCardBtnNo": "No tengo",
-        "reservaNoCardPrompt": "📝 *¿Cómo deseas realizar tu reserva?*",
-        "btnReservaWeb": "🌐 Reserva Web",
-        "btnReservaWaitlist": "📝 Lista de Espera"
+        "reservaCardBtnNo": "No tengo"
     },
     "eu": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
@@ -397,7 +390,6 @@ const translations = {
         "faq10Msg": "Egiaztatu gure Google Mapsetako zerrenda gertuen dagoen aparkalekua aurkitzeko.",
         "faq11Title": "11. Taxia",
         "faq11Desc": "Taxia eskatzeko laguntza zerbitzua.",
-        "faq11Msg": "🚕 *Taxi Zerbitzua - Casa Julián*\n\nBueltatzeko taxia behar baduzu, jatetxeko langileak arduratuko dira erreserba egunean kontaktatzeaz. Jatetxera iristean, sarreran jakinarazi behar duzu.",
         "thanksClosingMsg": "Eskerrik asko gurekin harremanetan jartzeagatik! Zure galdera erantzun izana espero dugu. Beste ezer behar baduzu, pozik lagunduko dizugu. Casa Juliánen zai gaude!",
         "requestSummaryHeader": "📋 *ZURE ESKAERAREN LABURPENA:*",
         "confirmPrompt": "❓ *Eskaera hau jatetxera bidaltzea berretsi nahi duzu?*",
@@ -421,16 +413,9 @@ const translations = {
         "nacSkipDesc": "Ez zehaztu jatorrizko herrialdea",
         "formLangSkipTitle": "❌ Hizkuntza utzi",
         "formLangSkipDesc": "Ez zehaztu harreman-hizkuntza",
-        "waitlistStep5NinosPrompt": "📝 *Itxaron-zerrenda (5/7)*\n\nZenbat haur egongo dira mahaian? Aukeratu botoi bat edo idatzi kopurua testuz:",
-        "btnNinos0": "0 haur",
-        "btnNinos1": "Haur 1",
-        "btnNinos2": "2 haur",
         "reservaCardPrompt": "💳 *Opari-txartela (Tradizio Menua) al duzu?*",
         "reservaCardBtnSi": "Bai, badut bat",
-        "reservaCardBtnNo": "Ez dut",
-        "reservaNoCardPrompt": "📝 *Nola egin nahi duzu zure erreserba?*",
-        "btnReservaWeb": "🌐 Web Erreserba",
-        "btnReservaWaitlist": "📝 Itxaron-zerrenda"
+        "reservaCardBtnNo": "Ez dut"
     },
     "en": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -496,8 +481,6 @@ const translations = {
         "menuTradStep5Dia3": "🎁 *Tradition Menu (5/7)*\n\n📌 *Selected Days:* {day1}, {day2}\n\nSelect *Day 3* of preference (3/3):",
         "menuTradStep5CenaDia": "🎁 *Tradition Menu (5/7)*\n\n{nextAvailable}\n\nDinners are only served on Fridays and Saturdays. Select desired day:",
         "menuTradStep6Alergias": "🎁 *Tradition Menu (7/7)*\n\nDo you have any *allergies, dietary restrictions or health conditions* (diabetes, hypertension, etc.)?\n\nSelect from the interactive list or tap \"No allergies / Skip\":",
-        "waitlistStep5Ninos": "📝 *Waitlist (5/7)*\n\nHow many *children* will be at the table? (0 if none)",
-        "waitlistStep6Alergias": "⚠️ *Waitlist (6/7)*\n\nDo you have any *allergies, dietary restrictions or health conditions* (diabetes, hypertension, etc.)?\n\nSelect from the interactive list or tap \"No allergies / Skip\":",
         "waitlistMenuTradicionBtnSi": "Yes, I have one",
         "waitlistMenuTradicionBtnNo": "No, I don't",
         "waitlistSuccessMsg": "Our team will add you to the waitlist. In case of any cancellation, we will contact you.",
@@ -631,17 +614,9 @@ const translations = {
         "nacSkipDesc": "Do not specify country of origin",
         "formLangSkipTitle": "❌ Skip Language",
         "formLangSkipDesc": "Do not specify contact language",
-        "waitlistStep5NinosPrompt": "📝 *Waitlist (5/7)*\n\nHow many children will be at the table? Select an option or type the amount:",
-        "btnNinos0": "0 children",
-        "btnNinos1": "1 child",
-        "btnNinos2": "2 children",
         "reservaCardPrompt": "💳 *Do you have a Gift Card (Tradition Menu)?*",
         "reservaCardBtnSi": "Yes, I have one",
-        "reservaCardBtnNo": "No, I don't",
-        "reservaNoCardPrompt": "📝 *How would you like to make your reservation?*",
-        "btnReservaWeb": "🌐 Web Booking",
-        "btnReservaWaitlist": "📝 Waitlist"
-
+        "reservaCardBtnNo": "No, I don't"
     }
 };
 

@@ -95,9 +95,9 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             },
             {
                 id: 'step_reserva',
-                title: '4. Flujo de Reserva / Lista de Espera',
+                title: '4. Solicitud de Reserva',
                 type: 'branch',
-                description: 'Pregunta por Tarjeta Regalo (Menú Tradición), solicita comensales, turnos, fechas y datos de contacto.',
+                description: 'Pregunta si tiene Tarjeta Regalo (Menú Tradición) o envía el enlace oficial de reserva web.',
                 messageKey: 'reservaCardPrompt',
                 buttons: [
                     { id: 'btn_reserva_con_tarjeta', key: 'reservaCardBtnSi' },
@@ -128,7 +128,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
         // Lista de idiomas disponibles
         const languages = [
             { code: 'es', name: 'Español 🇪🇸' },
-            { code: 'eu', name: 'Euskara' },
+            { code: 'eu', name: 'Euskara 🇪🇺' },
             { code: 'en', name: 'English 🇬🇧' },
             { code: 'fr', name: 'Français 🇫🇷' },
             { code: 'de', name: 'Deutsch 🇩🇪' },
@@ -161,15 +161,8 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             opt3Title: 'main', opt3Desc: 'main', optConsultaAbiertaTitle: 'main', optConsultaAbiertaDesc: 'main',
             opt5Title: 'main', opt5Desc: 'main',
 
-            // 5. Reservas & Lista de Espera
-            reservaIntro: 'reserva', btnSolicitarReserva: 'reserva', btnAddListaEspera: 'reserva',
+            // 5. Reservas
             webReservaLinkMsg: 'reserva', reservaCardPrompt: 'reserva', reservaCardBtnSi: 'reserva', reservaCardBtnNo: 'reserva',
-            reservaNoCardPrompt: 'reserva', btnReservaWeb: 'reserva', btnReservaWaitlist: 'reserva', waitlistInitPrompt: 'reserva',
-            waitlistStep1Nombre: 'reserva', waitlistStep1bDni: 'reserva', waitlistStep1b2Email: 'reserva',
-            waitlistStep2Comensales: 'reserva', waitlistStep3Tipo: 'reserva', waitlistStep3HoraComida: 'reserva', waitlistStep3HoraCena: 'reserva',
-            waitlistStep4Dia1: 'reserva', waitlistStep4Dia2: 'reserva', waitlistStep4Dia3: 'reserva', waitlistStep4CenaDia: 'reserva',
-            waitlistStep5Ninos: 'reserva', waitlistStep5NinosPrompt: 'reserva', waitlistStep6Alergias: 'reserva',
-            waitlistSuccessMsg: 'reserva',
             
             // 5b. Modificaciones
             modCancelDataPrompt: 'mod', modReservationNotFoundMsg: 'mod', modReservationVerifyPrompt: 'mod',
@@ -248,11 +241,11 @@ router.get('/structure', requireAdminAuth, (req, res) => {
             {
                 order: 4,
                 id: 'cu_4_reserva_waitlist',
-                title: 'Caso de Uso 4: Solicitud de Reserva y Alta en Lista de Espera',
+                title: 'Caso de Uso 4: Solicitud de Reserva',
                 category: 'reserva',
-                botAction: 'Pregunta si tiene Tarjeta Regalo, ofrece enlace a la reserva web oficial o guía paso a paso (1 a 7) para la lista de espera.',
-                expectedCustomerInput: 'El cliente pulsa [ Sí, tengo una ] o [ No tengo ]. Si no tiene tarjeta, elige entre [ 🌐 Reserva Web ] o [ 📝 Lista de Espera ]. En lista de espera introduce Nombre, Comensales (máx 6), Turno, Fechas de preferencia y Alergias.',
-                keys: ['reservaCardPrompt', 'reservaCardBtnSi', 'reservaCardBtnNo', 'reservaNoCardPrompt', 'btnReservaWeb', 'btnReservaWaitlist', 'waitlistStep1Nombre', 'waitlistStep2Comensales', 'waitlistStep3Tipo', 'waitlistStep4Dia1', 'waitlistStep5Ninos', 'waitlistStep6Alergias', 'waitlistSuccessMsg']
+                botAction: 'Pregunta si tiene Tarjeta Regalo (Menú Tradición) o envía directamente la tarjeta interactiva con enlace oficial a la reserva web.',
+                expectedCustomerInput: 'El cliente pulsa [ Sí, tengo una ] para reservar con tarjeta regalo o [ No tengo ] para recibir el botón oficial de reserva online / lista de espera en la web.',
+                keys: ['reservaCardPrompt', 'reservaCardBtnSi', 'reservaCardBtnNo', 'webReservaLinkMsg']
             },
             {
                 order: 5,
