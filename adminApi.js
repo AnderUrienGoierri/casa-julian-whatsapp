@@ -129,18 +129,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
         const languages = [
             { code: 'es', name: 'Español 🇪🇸' },
             { code: 'eu', name: 'Euskara 🇪🇺' },
-            { code: 'en', name: 'English 🇬🇧' },
-            { code: 'fr', name: 'Français 🇫🇷' },
-            { code: 'de', name: 'Deutsch 🇩🇪' },
-            { code: 'it', name: 'Italiano 🇮🇹' },
-            { code: 'pt', name: 'Português 🇵🇹' },
-            { code: 'nl', name: 'Nederlands 🇳🇱' },
-            { code: 'pl', name: 'Polski 🇵🇱' },
-            { code: 'ro', name: 'Română 🇷🇴' },
-            { code: 'ko', name: '한국어 🇰🇷' },
-            { code: 'zh', name: '中文 🇨🇳' },
-            { code: 'ja', name: '日本語 🇯🇵' },
-            { code: 'ar', name: 'العربية 🇸🇦' }
+            { code: 'en', name: 'English 🇬🇧' }
         ];
 
         // Categorización explícita de todas las llaves de traducción

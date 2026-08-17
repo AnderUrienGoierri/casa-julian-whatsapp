@@ -124,22 +124,6 @@ if (process.env.DATABASE_URL) {
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE IF NOT EXISTS lista_espera (
-            id SERIAL PRIMARY KEY,
-            nombre VARCHAR(150),
-            telefono VARCHAR(50),
-            dni VARCHAR(50),
-            email VARCHAR(150),
-            estado VARCHAR(30) DEFAULT 'Pendiente asignacion',
-            comensales INT DEFAULT 2,
-            num_ninos INT DEFAULT 0,
-            alergias TEXT DEFAULT 'Ninguna',
-            nacionalidad VARCHAR(50) DEFAULT 'España',
-            idioma VARCHAR(10) DEFAULT 'es',
-            dias_preferencia VARCHAR(255),
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        );
-
         CREATE TABLE IF NOT EXISTS tarjetas_regalo (
             id VARCHAR(50) PRIMARY KEY,
             codigo VARCHAR(50) UNIQUE NOT NULL,
