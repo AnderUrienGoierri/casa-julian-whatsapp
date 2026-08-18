@@ -511,11 +511,11 @@ async function sendConsultaAbiertaSummary(from, lang, consultas = []) {
     const inquiriesFormatted = consultas.map((q, idx) => `${idx + 1}. ${q}`).join('\n');
 
     if (lang === 'eu') {
-        summaryText = `📋 *Zure erregistratutako galdera(k):*\n${inquiriesFormatted}\n\nZuzenean beste galdera bat idatz dezakezu, [Beste galdera bat] sakatu edo [Bidali eskaera] sakatu zure eskaera amaitzeko.`;
+        summaryText = `📋 *Zure erregistratutako galdera(k):*\n${inquiriesFormatted}\n\n(Zuzenean beste galdera bat idatz dezakezu)`;
     } else if (lang === 'en') {
-        summaryText = `📋 *Your registered inquiry/inquiries:*\n${inquiriesFormatted}\n\nYou can type another question directly, tap [Add inquiry], or tap [Submit request] to complete your request.`;
+        summaryText = `📋 *Your registered inquiry/inquiries:*\n${inquiriesFormatted}\n\n(You can type another question directly)`;
     } else {
-        summaryText = `📋 *Tu(s) consulta(s) registrada(s):*\n${inquiriesFormatted}\n\nPuedes escribir directamente otra consulta, pulsar [Otra consulta] o pulsar [Enviar solicitud] para finalizar tu solicitud.`;
+        summaryText = `📋 *Tu(s) consulta(s) registrada(s):*\n${inquiriesFormatted}\n\n(Puedes escribir directamente otra consulta)`;
     }
 
     const btnAddTitle = (lang === 'eu' ? 'Beste galdera bat' : (lang === 'en' ? 'Add inquiry' : 'Otra consulta'));
