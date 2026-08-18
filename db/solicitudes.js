@@ -57,45 +57,29 @@ function getCategoryTagInfo(tipoAccion, datosDetallados) {
         };
     }
 
-    // 3. Modificaciones (Desglosadas por Comensales, Día u Hora)
-    if (tipo.includes('MODIFICACIÓN') || tipo.includes('MODIFICACION')) {
-        if (datos.includes('COMENSALES') || datos.includes('PERSONAS') || datos.includes('ASISTENTES') || datos.includes('NIÑOS') || datos.includes('NINOS')) {
-            return {
-                key: 'mod_comensales',
-                label: '👥 Modificaciones Comensales',
-                color: '#06b6d4',
-                bg: 'rgba(6, 182, 212, 0.15)',
-                badgeClass: 'badge-mod-comensales'
-            };
-        }
-        if (datos.includes('DÍA') || datos.includes('DIA') || datos.includes('FECHA')) {
-            return {
-                key: 'mod_dia',
-                label: '📅 Modificaciones Día',
-                color: '#6366f1',
-                bg: 'rgba(99, 102, 241, 0.15)',
-                badgeClass: 'badge-mod-dia'
-            };
-        }
-        if (datos.includes('HORA') || datos.includes('TURNO') || datos.includes('SERVICIO')) {
-            return {
-                key: 'mod_hora',
-                label: '🕐 Modificaciones Hora',
-                color: '#a855f7',
-                bg: 'rgba(168, 85, 247, 0.15)',
-                badgeClass: 'badge-mod-hora'
-            };
-        }
+    // 3. Modificaciones (Unificadas bajo la categoría 'modificaciones')
+    if (tipo.includes('MODIFICACIÓN') || tipo.includes('MODIFICACION') || tipo.includes('MOD_')) {
         return {
-            key: 'mod_general',
-            label: '✏️ Modificación General',
+            key: 'modificaciones',
+            label: '🔄 Modificaciones',
             color: '#3b82f6',
             bg: 'rgba(59, 130, 246, 0.15)',
             badgeClass: 'badge-mod-general'
         };
     }
 
-    // 4. Consultas Abiertas / Casuísticas Especiales
+    // 4. Preguntas Frecuentes / Otras Cuestiones (FAQ)
+    if (tipo.includes('PREGUNTAS FRECUENTES') || tipo.includes('OTRAS CUESTIONES') || tipo.includes('FAQ') || tipo.startsWith('FAQ_')) {
+        return {
+            key: 'faqs',
+            label: '❓ Preguntas Frecuentes',
+            color: '#8b5cf6',
+            bg: 'rgba(139, 92, 246, 0.15)',
+            badgeClass: 'badge-faq'
+        };
+    }
+
+    // 5. Consultas Abiertas / Casuísticas Especiales
     if (tipo.includes('CONSULTA') || tipo.includes('CASUÍSTICA') || tipo.includes('CASUISTICA') || tipo.includes('PREGUNTA')) {
         return {
             key: 'consulta_abierta',
@@ -106,7 +90,7 @@ function getCategoryTagInfo(tipoAccion, datosDetallados) {
         };
     }
 
-    // 5. Lista de Espera
+    // 6. Lista de Espera
     if (tipo.includes('ESPERA')) {
         return {
             key: 'lista_espera',
@@ -117,7 +101,7 @@ function getCategoryTagInfo(tipoAccion, datosDetallados) {
         };
     }
 
-    // 6. Default / Reserva Online
+    // 7. Default / Reserva Online
     return {
         key: 'reserva_online',
         label: '🔴 Reserva Online',
@@ -427,6 +411,78 @@ async function deleteSolicitud(id) {
     return false;
 }
 
+/**
+ * Registra una entrada en el historial completo del chatbot para un usuario/teléfono.
+ */
+async function logUserChatHistory(telefono, { emisor, tipo = 'text', texto = '', metadata = {} }) {
+    if (!telefono) return;
+    const cleanTel = telefono.toString().replace(/\D/g, '');
+    const timestamp = getSpainIsoTimestamp();
+
+    if (pool) {
+        try {
+            await pool.query(
+                `INSERT INTO bot_chat_history (telefono, emisor, tipo, texto, metadata, created_at)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [cleanTel, emisor || 'cliente', tipo, texto, JSON.stringify(metadata || {}), timestamp]
+            );
+        } catch (e) {
+            console.error("Error guardando bot_chat_history en Postgres:", e.message);
+        }
+    }
+
+    const db = loadDb();
+    if (!db.bot_chat_history) db.bot_chat_history = [];
+    db.bot_chat_history.push({
+        id: Date.now() + Math.random().toString(36).substr(2, 4),
+        telefono: cleanTel,
+        emisor: emisor || 'cliente',
+        tipo,
+        texto,
+        metadata: metadata || {},
+        created_at: timestamp
+    });
+    // Limitar tamaño en db.json si supera 5000
+    if (db.bot_chat_history.length > 5000) {
+        db.bot_chat_history = db.bot_chat_history.slice(-4000);
+    }
+    saveDb(db);
+}
+
+/**
+ * Obtiene el historial completo de mensajes/interacciones del chatbot para un teléfono.
+ */
+async function getUserChatHistory(telefono) {
+    if (!telefono) return [];
+    const cleanTel = telefono.toString().replace(/\D/g, '');
+
+    if (pool) {
+        try {
+            const res = await pool.query(
+                `SELECT * FROM bot_chat_history WHERE telefono = $1 ORDER BY created_at ASC`,
+                [cleanTel]
+            );
+            if (res.rows) {
+                return res.rows.map(r => ({
+                    id: r.id,
+                    telefono: r.telefono,
+                    emisor: r.emisor,
+                    tipo: r.tipo,
+                    texto: r.texto,
+                    metadata: typeof r.metadata === 'string' ? JSON.parse(r.metadata) : (r.metadata || {}),
+                    created_at: r.created_at
+                }));
+            }
+        } catch (e) {
+            console.error("Error consultando bot_chat_history en Postgres:", e.message);
+        }
+    }
+
+    const db = loadDb();
+    const list = db.bot_chat_history || [];
+    return list.filter(h => h.telefono === cleanTel);
+}
+
 module.exports = {
     getCategoryTagInfo,
     createSolicitud,
@@ -434,5 +490,7 @@ module.exports = {
     getActiveHumanHandoverSolicitud,
     appendMessageToSolicitud,
     updateSolicitudStatus,
-    deleteSolicitud
+    deleteSolicitud,
+    logUserChatHistory,
+    getUserChatHistory
 };

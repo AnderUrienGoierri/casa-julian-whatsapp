@@ -16,7 +16,8 @@ const {
     getAllGiftCards,
     isCardExpired,
     getSystemSettings,
-    updateSystemSetting
+    updateSystemSetting,
+    getUserChatHistory
 } = require('./database');
 const { pool } = require('./db/connection');
 const { getSimMessages, clearSimMessages, sendMessage } = require('./whatsappApi');
@@ -762,6 +763,17 @@ router.post('/solicitudes/:id/restaurar', requireAdminAuth, async (req, res) => 
         const targetEstado = (estadoDestino || 'PENDIENTE').toUpperCase();
         const updated = await updateSolicitudStatus(id, targetEstado, null, false);
         return res.json({ success: true, solicitud: updated });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 18d. Obtener historial completo de interacción del cliente con el chatbot
+router.get('/solicitudes/history/:telefono', requireAdminAuth, async (req, res) => {
+    try {
+        const { telefono } = req.params;
+        const history = await getUserChatHistory(telefono);
+        return res.json({ success: true, history });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }

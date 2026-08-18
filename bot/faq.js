@@ -1,8 +1,9 @@
 const { sendMessage, sendImageMessage, sendInteractiveButtons, sendTemplateMessage } = require('../whatsappApi');
 const { getTranslation } = require('../i18n');
+const db = require('../database');
 
 /**
- * Responde a una selección de FAQ.
+ * Responde a una selección de FAQ y registra la consulta en el buzón de recepción.
  */
 async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion) {
     if (faqId === 'faq_regalar_menu' || faqId === 'opt_regalar_menu_tradicion') {
@@ -11,6 +12,26 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
     }
 
     const faqNum = faqId.replace('faq_', '');
+    const titleKey = `faq${faqNum}Title`;
+    const faqTitleText = getTranslation(lang, titleKey) || `Consulta FAQ #${faqNum}`;
+
+    // Registrar la consulta en el Buzón de Recepción para seguimiento del personal
+    try {
+        const detalleFaq = `❓ *CONSULTA PREGUNTAS FRECUENTES (OTRAS CUESTIONES)*\n\n` +
+                           `📌 *Opción consultada:* ${faqTitleText}\n` +
+                           `📱 *WhatsApp Remitente:* ${from}\n` +
+                           `🌐 *Idioma:* ${lang.toUpperCase()}`;
+
+        await db.createSolicitud({
+            tipoAccion: `PREGUNTAS FRECUENTES: ${faqTitleText}`,
+            telefonoCliente: from,
+            datosDetallados: detalleFaq,
+            nombreCliente: `Cliente WhatsApp (+${from})`,
+            telefonoReserva: from
+        });
+    } catch (solErr) {
+        console.error("⚠️ Error registrando FAQ en el buzón de recepción:", solErr.message);
+    }
 
     // Opción 1 / Ver carta -> Plantilla / enlace web a la carta sin imagen
     if (faqNum === '1' || faqNum === '12' || faqId === 'faq_carta') {

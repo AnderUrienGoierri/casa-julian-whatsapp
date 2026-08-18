@@ -92,7 +92,9 @@ const {
     getActiveHumanHandoverSolicitud,
     appendMessageToSolicitud,
     updateSolicitudStatus,
-    deleteSolicitud
+    deleteSolicitud,
+    logUserChatHistory,
+    getUserChatHistory
 } = require('./db/solicitudes');
 
 module.exports = {
@@ -170,5 +172,7 @@ module.exports = {
     getActiveHumanHandoverSolicitud,
     appendMessageToSolicitud,
     updateSolicitudStatus,
-    deleteSolicitud
+    deleteSolicitud,
+    logUserChatHistory,
+    getUserChatHistory
 };

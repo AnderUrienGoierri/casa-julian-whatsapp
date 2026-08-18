@@ -36,6 +36,14 @@ function clearSimMessages(to) {
  * Envia un mensaje de texto simple.
  */
 async function sendMessage(to, text) {
+    // Registrar mensaje enviado por el bot en el historial
+    try {
+        const { logUserChatHistory } = require('./database');
+        await logUserChatHistory(to, { emisor: 'bot', tipo: 'text', texto: text });
+    } catch (e) {
+        // Silencioso para no interferir con el flujo
+    }
+
     if (interceptSimMessage(to, { type: 'text', text })) {
         return { success: true, simulated: true };
     }

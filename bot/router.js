@@ -36,6 +36,18 @@ async function processMessage(message) {
 async function handleUserMessage(from, body, type = 'text', interactiveData = null) {
     console.log(`\n📩 MENSAJE RECIBIDO de ${from} [Tipo: ${type}]: "${body}"`);
 
+    // Registrar mensaje del cliente en el Historial Completo del Chatbot
+    try {
+        await db.logUserChatHistory(from, {
+            emisor: 'cliente',
+            tipo,
+            texto: body || '',
+            metadata: interactiveData || {}
+        });
+    } catch (histErr) {
+        console.error("⚠️ Error guardando historial de chat de cliente:", histErr.message);
+    }
+
     // 0. VERIFICAR SI EL CHATBOT ESTÁ ACTIVO O PAUSADO GLOBALMENTE (DESDE AJUSTES DEL CMS)
     try {
         const settings = await db.getSystemSettings();

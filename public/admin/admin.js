@@ -1835,7 +1835,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 1. Filtrar por categoría
         if (currentInboxCatFilter !== 'all') {
-            filtered = filtered.filter(s => s.categoria === currentInboxCatFilter);
+            if (currentInboxCatFilter === 'modificaciones') {
+                filtered = filtered.filter(s => 
+                    s.categoria === 'modificaciones' || 
+                    s.categoria === 'mod_comensales' || 
+                    s.categoria === 'mod_dia' || 
+                    s.categoria === 'mod_hora' || 
+                    s.categoria === 'mod_general'
+                );
+            } else {
+                filtered = filtered.filter(s => s.categoria === currentInboxCatFilter);
+            }
         }
 
         // 2. Filtrar por estado (solo aplica en vista activas)
@@ -1900,15 +1910,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Badge de Categoría
             let catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
             if (sol.categoria === 'reservas_menu_tradicion') {
-                catTagHtml = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">🎁 Reservas Menú Tradición</span>`;
-            } else if (sol.categoria === 'mod_comensales') {
-                catTagHtml = `<span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">👥 Mod. Comensales</span>`;
-            } else if (sol.categoria === 'mod_dia') {
-                catTagHtml = `<span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">📅 Mod. Día</span>`;
-            } else if (sol.categoria === 'mod_hora') {
-                catTagHtml = `<span class="badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">🕐 Mod. Hora</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">🎁 Menú Tradición</span>`;
+            } else if (sol.categoria === 'modificaciones' || sol.categoria === 'mod_comensales' || sol.categoria === 'mod_dia' || sol.categoria === 'mod_hora' || sol.categoria === 'mod_general') {
+                catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">🔄 Modificaciones</span>`;
             } else if (sol.categoria === 'cancelacion') {
                 catTagHtml = `<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">❌ Cancelaciones</span>`;
+            } else if (sol.categoria === 'faqs') {
+                catTagHtml = `<span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">❓ Preguntas Frecuentes</span>`;
             } else if (sol.categoria === 'consulta_abierta') {
                 catTagHtml = `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">💬 Consultas Abiertas</span>`;
             }
@@ -1937,16 +1945,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const msgCountStr = msgList.length > 0 ? `💬 ${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}` : '💬 1 mensaje';
             const unreadPillHtml = isUnread ? `<span class="card-unread-pill">🔴 ¡Nuevo mensaje!</span>` : '';
 
+            // Botón Historial Chatbot
+            const historyBtnHtml = `
+                <button class="btn-view-chat-history" data-phone="${phoneFormatted}" data-name="${sol.nombreCliente || 'Cliente'}" style="background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.35); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Ver historial completo de interacción con el chatbot">
+                    📜 Historial Bot
+                </button>
+            `;
+
             // Botones de acción según vista
             let actionBtnsHtml = '';
             if (isArchiveView || isDeletedView) {
                 // Vista Archivada o Papelera: mostrar Restaurar
                 actionBtnsHtml = `
+                    ${historyBtnHtml}
                     <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;" title="Restaurar a Activas">↩️ Restaurar</button>
                 `;
             } else {
-                // Vista Activas: mostrar Archivar + Eliminar
+                // Vista Activas: mostrar Historial + Archivar + Eliminar
                 actionBtnsHtml = `
+                    ${historyBtnHtml}
                     <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Archivar gestión">📦</button>
                     <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Mover a Papelera">🗑️</button>
                 `;
@@ -1984,10 +2001,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         inboxCardsContainer.innerHTML = html;
 
+        // Botón Ver Historial Chatbot
+        document.querySelectorAll('.btn-view-chat-history').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                const name = btn.getAttribute('data-name');
+                openHistoryModal(phone, name);
+            });
+        });
+
         // Event listener: abrir modal al click en la tarjeta
         document.querySelectorAll('.solicitud-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.btn-delete-solicitud') || e.target.closest('.btn-archive-solicitud') || e.target.closest('.btn-restore-solicitud')) return;
+                if (e.target.closest('.btn-delete-solicitud') || e.target.closest('.btn-archive-solicitud') || e.target.closest('.btn-restore-solicitud') || e.target.closest('.btn-view-chat-history')) return;
                 const solId = card.getAttribute('data-id');
                 const sol = allSolicitudes.find(s => s.id === solId);
                 if (sol) openReplyModal(sol);
@@ -2331,6 +2358,98 @@ document.addEventListener('DOMContentLoaded', () => {
         if (toggleBtn) toggleBtn.classList.add('active');
 
         renderInboxCards();
+    }
+
+    // Abrir Modal de Historial Completo del Chatbot con un Cliente
+    async function openHistoryModal(phone, name = 'Cliente') {
+        const historyModal = document.getElementById('history-modal');
+        const historyClientName = document.getElementById('history-client-name');
+        const historyClientPhone = document.getElementById('history-client-phone');
+        const historyMsgCount = document.getElementById('history-msg-count');
+        const historyViewport = document.getElementById('history-chat-viewport');
+
+        if (!historyModal || !historyViewport) return;
+
+        const cleanPhone = (phone || '').replace(/\D/g, '');
+        if (historyClientName) historyClientName.textContent = `Historial: ${name || 'Cliente'}`;
+        if (historyClientPhone) historyClientPhone.textContent = `📞 WhatsApp: +${cleanPhone}`;
+        if (historyMsgCount) historyMsgCount.textContent = 'Cargando...';
+        historyViewport.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 30px;">⏳ Cargando historial de interacciones...</div>';
+
+        historyModal.style.display = 'flex';
+
+        try {
+            const res = await fetch(`/api/admin/solicitudes/history/${cleanPhone}`, {
+                headers: { 'x-admin-token': adminToken }
+            });
+            const data = await res.json();
+            const history = data.history || [];
+
+            if (historyMsgCount) {
+                historyMsgCount.textContent = `${history.length} ${history.length === 1 ? 'interacción' : 'interacciones'}`;
+            }
+
+            if (history.length === 0) {
+                historyViewport.innerHTML = `
+                    <div style="text-align: center; color: #94a3b8; padding: 40px 20px;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">🤖</div>
+                        <div style="font-size: 0.95rem; font-weight: 600; color: #fff;">Sin historial registrado previo</div>
+                        <p style="font-size: 0.8rem; margin-top: 4px;">Las nuevas interacciones de este cliente con el chatbot aparecerán aquí en tiempo real.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            historyViewport.innerHTML = '';
+            history.forEach(item => {
+                const isClient = item.emisor === 'cliente';
+                const timeStr = item.created_at ? new Date(item.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '';
+                const bubble = document.createElement('div');
+                bubble.style.cssText = `
+                    max-width: 85%;
+                    align-self: ${isClient ? 'flex-start' : 'flex-end'};
+                    background: ${isClient ? '#005c4b' : '#1e293b'};
+                    color: #e9edef;
+                    padding: 10px 14px;
+                    border-radius: ${isClient ? '0 12px 12px 12px' : '12px 0 12px 12px'};
+                    font-size: 0.86rem;
+                    line-height: 1.45;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+                    word-break: break-word;
+                    border: 1px solid rgba(255,255,255,0.06);
+                `;
+
+                const formattedText = formatWhatsAppText(item.texto);
+                let metaBadge = '';
+                if (item.tipo === 'interactive' || item.tipo === 'button' || item.tipo === 'list') {
+                    metaBadge = `<span style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">[Opción / Botón]</span>`;
+                }
+
+                bubble.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px;">
+                        <span style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#38bdf8'};">
+                            ${isClient ? '👤 ' + (name || 'Cliente') : '🤖 Chatbot Casa Julián'} ${metaBadge}
+                        </span>
+                        <span style="font-size: 0.68rem; color: #8696a0;">${timeStr}</span>
+                    </div>
+                    <div>${formattedText}</div>
+                `;
+                historyViewport.appendChild(bubble);
+            });
+
+            setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 60);
+        } catch (err) {
+            historyViewport.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Error al cargar historial: ${err.message}</div>`;
+        }
+    }
+
+    // Listener cerrar modal de historial
+    const closeHistoryBtn = document.getElementById('close-history-modal-btn');
+    if (closeHistoryBtn) {
+        closeHistoryBtn.addEventListener('click', () => {
+            const historyModal = document.getElementById('history-modal');
+            if (historyModal) historyModal.style.display = 'none';
+        });
     }
 
     function closeSidebarDrawer() {

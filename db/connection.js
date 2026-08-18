@@ -214,6 +214,18 @@ if (process.env.DATABASE_URL) {
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE TABLE IF NOT EXISTS bot_chat_history (
+            id SERIAL PRIMARY KEY,
+            telefono VARCHAR(50) NOT NULL,
+            emisor VARCHAR(20) NOT NULL,
+            tipo VARCHAR(30) DEFAULT 'text',
+            texto TEXT,
+            metadata TEXT DEFAULT '{}',
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_bot_chat_history_telefono ON bot_chat_history(telefono);
+
         ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS en_atencion_humana BOOLEAN DEFAULT FALSE;
         ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS mensajes TEXT DEFAULT '[]';
     `).catch(err => console.error("⚠️ Error en Auto-Migración de BD:", err.message));
