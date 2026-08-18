@@ -1945,6 +1945,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const msgCountStr = msgList.length > 0 ? `💬 ${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}` : '💬 1 mensaje';
             const unreadPillHtml = isUnread ? `<span class="card-unread-pill">🔴 ¡Nuevo mensaje!</span>` : '';
 
+            const cleanPhoneNum = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
+            const callHref = cleanPhoneNum ? `tel:+${cleanPhoneNum}` : '#';
+            const waHref = cleanPhoneNum ? `https://wa.me/${cleanPhoneNum}` : '#';
+
+            // Botones de llamada y WhatsApp rápido
+            const quickContactBtnsHtml = cleanPhoneNum ? `
+                <a href="${callHref}" class="btn-quick-call" title="Llamar por teléfono tradicional al cliente" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); text-decoration: none; font-size: 0.76rem; padding: 4px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation();">
+                    📞
+                </a>
+                <a href="${waHref}" target="_blank" class="btn-quick-wa" title="Abrir chat en la aplicación de WhatsApp" style="background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.35); text-decoration: none; font-size: 0.76rem; padding: 4px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation();">
+                    📲
+                </a>
+            ` : '';
+
             // Botón Historial Chatbot
             const historyBtnHtml = `
                 <button class="btn-view-chat-history" data-phone="${phoneFormatted}" data-name="${sol.nombreCliente || 'Cliente'}" style="background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.35); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Ver historial completo de interacción con el chatbot">
@@ -1957,12 +1971,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isArchiveView || isDeletedView) {
                 // Vista Archivada o Papelera: mostrar Restaurar
                 actionBtnsHtml = `
+                    ${quickContactBtnsHtml}
                     ${historyBtnHtml}
                     <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;" title="Restaurar a Activas">↩️ Restaurar</button>
                 `;
             } else {
-                // Vista Activas: mostrar Historial + Archivar + Eliminar
+                // Vista Activas: mostrar Contacto + Historial + Archivar + Eliminar
                 actionBtnsHtml = `
+                    ${quickContactBtnsHtml}
                     ${historyBtnHtml}
                     <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Archivar gestión">📦</button>
                     <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Mover a Papelera">🗑️</button>
@@ -2290,7 +2306,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         replySolicitudId.value = sol.id;
         replyClientName.textContent = `Cliente: ${sol.nombreCliente || 'Cliente Casa Julián'}`;
-        replyClientPhone.textContent = `📞 WhatsApp: +${sol.telefonoCliente || sol.telefonoReserva || ''}`;
+        const cleanPhoneStr = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
+        replyClientPhone.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
+
+        // Configurar botones de acción directa de llamada y WhatsApp
+        const btnCallModal = document.getElementById('btn-call-phone-modal');
+        const btnWaModal = document.getElementById('btn-open-wa-modal');
+        if (btnCallModal) {
+            btnCallModal.href = cleanPhoneStr ? `tel:+${cleanPhoneStr}` : '#';
+        }
+        if (btnWaModal) {
+            btnWaModal.href = cleanPhoneStr ? `https://wa.me/${cleanPhoneStr}` : '#';
+        }
         
         // Badge de Categoría en Modal
         const catBadgeEl = document.getElementById('reply-category-badge');

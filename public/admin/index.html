@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260818-V230-SIMPLIFY-CONSULTA-PROMPT">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260818-V231-QUICK-CALL-AND-WA-SHORTCUTS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -98,7 +98,17 @@
                             <span id="reply-category-badge" class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem;">📌 Solicitud</span>
                             <span id="reply-handover-status" class="status-pill-small" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700; background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3);">⚪ Bot Activo</span>
                         </div>
-                        <div class="whatsapp-client-sub" id="reply-client-phone">📞 WhatsApp: +34 612 34 56 78</div>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 2px;">
+                            <div class="whatsapp-client-sub" id="reply-client-phone">📞 WhatsApp: +34 612 34 56 78</div>
+                            <div style="display: flex; gap: 6px;">
+                                <a id="btn-call-phone-modal" href="#" target="_blank" class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); text-decoration: none; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;" title="Iniciar llamada telefónica tradicional">
+                                    📞 Llamar
+                                </a>
+                                <a id="btn-open-wa-modal" href="#" target="_blank" class="badge" style="background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.35); text-decoration: none; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;" title="Abrir en la app de WhatsApp">
+                                    📲 WhatsApp
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="whatsapp-window-controls">
