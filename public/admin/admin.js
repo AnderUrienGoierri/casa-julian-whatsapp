@@ -2471,7 +2471,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 historyViewport.appendChild(bubble);
             });
 
-            setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 60);
+            // Auto-scroll robusto al final de la conversación
+            historyViewport.scrollTop = historyViewport.scrollHeight;
+            setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 50);
+            setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 150);
         } catch (err) {
             historyViewport.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Error al cargar historial: ${err.message}</div>`;
         }
@@ -2494,9 +2497,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!historyModal) return;
             const container = historyModal.querySelector('.whatsapp-modal-container');
             if (!container) return;
-            const isMax = container.classList.toggle('modal-fullscreen');
+            const isMax = container.classList.toggle('fullscreen');
             maxHistoryBtn.textContent = isMax ? '🗗' : '🗖';
             maxHistoryBtn.title = isMax ? 'Restaurar tamaño normal' : 'Maximizar pantalla completa';
+            setTimeout(() => {
+                const vp = historyModal.querySelector('#history-chat-viewport');
+                if (vp) vp.scrollTop = vp.scrollHeight;
+            }, 100);
         });
     }
 
