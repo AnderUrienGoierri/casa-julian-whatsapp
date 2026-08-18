@@ -1093,16 +1093,16 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
 
         const faqListDef = [
-            { num: 1, titleKey: 'faq12Title', descKey: 'faq12Desc', msgKey: 'faq12Msg' },
-            { num: 2, titleKey: 'faq1Title', descKey: 'faq1Desc', msgKey: 'faq1Msg' },
-            { num: 3, titleKey: 'faq2Title', descKey: 'faq2Desc', msgKey: 'faq2Msg' },
-            { num: 4, titleKey: 'faq3Title', descKey: 'faq3Desc', msgKey: 'faq3Msg' },
-            { num: 5, titleKey: 'faq4Title', descKey: 'faq4Desc', msgKey: 'faq4Msg' },
-            { num: 6, titleKey: 'faq5Title', descKey: 'faq5Desc', msgKey: 'faq5Msg' },
-            { num: 7, titleKey: 'faq6Title', descKey: 'faq6Desc', msgKey: 'faq6Msg' },
-            { num: 8, titleKey: 'faq7Title', descKey: 'faq7Desc', msgKey: 'faq7Msg' },
-            { num: 9, titleKey: 'faq8Title', descKey: 'faq8Desc', msgKey: 'faq8Msg' },
-            { num: 10, titleKey: 'faq9Title', descKey: 'faq9Desc', msgKey: 'faq9Msg' }
+            { num: 1, titleKey: 'faq1Title', descKey: 'faq1Desc', msgKey: 'faq1Msg' },
+            { num: 2, titleKey: 'faq2Title', descKey: 'faq2Desc', msgKey: 'faq2Msg' },
+            { num: 3, titleKey: 'faq3Title', descKey: 'faq3Desc', msgKey: 'faq3Msg' },
+            { num: 4, titleKey: 'faq4Title', descKey: 'faq4Desc', msgKey: 'faq4Msg' },
+            { num: 5, titleKey: 'faq5Title', descKey: 'faq5Desc', msgKey: 'faq5Msg' },
+            { num: 6, titleKey: 'faq6Title', descKey: 'faq6Desc', msgKey: 'faq6Msg' },
+            { num: 7, titleKey: 'faq7Title', descKey: 'faq7Desc', msgKey: 'faq7Msg' },
+            { num: 8, titleKey: 'faq8Title', descKey: 'faq8Desc', msgKey: 'faq8Msg' },
+            { num: 9, titleKey: 'faq9Title', descKey: 'faq9Desc', msgKey: 'faq9Msg' },
+            { num: 10, titleKey: 'faq10Title', descKey: 'faq10Desc', msgKey: 'faq10Msg' }
         ];
 
         faqListDef.forEach(faqItem => {

@@ -265,7 +265,7 @@ router.get('/structure', requireAdminAuth, (req, res) => {
                 category: 'faq',
                 botAction: 'Muestra la lista desplegable con las 10 consultas más frecuentes (Carta, Horarios, Vacaciones, Cancelación, Veganos, Mascotas, etc.).',
                 expectedCustomerInput: 'El cliente selecciona una opción de la lista (ej. "1. Ver carta", "2. Horario atención", "6. Reducción comensales"). Para opción 6 el bot ofrece el botón directo [ Modificar reserva ].',
-                keys: ['faqTitle', 'faq12Title', 'faq12Msg', 'faq1Title', 'faq1Msg', 'faq2Title', 'faq2Msg', 'faq3Title', 'faq3Msg', 'faq4Title', 'faq4Msg', 'faq5Title', 'faq5Msg', 'faq6Title', 'faq6Msg', 'faq7Title', 'faq7Msg', 'faq8Title', 'faq8Msg', 'faq9Title', 'faq9Msg']
+                keys: ['faqTitle', 'faq1Title', 'faq1Msg', 'faq2Title', 'faq2Msg', 'faq3Title', 'faq3Msg', 'faq4Title', 'faq4Msg', 'faq5Title', 'faq5Msg', 'faq6Title', 'faq6Msg', 'faq7Title', 'faq7Msg', 'faq8Title', 'faq8Msg', 'faq9Title', 'faq9Msg', 'faq10Title', 'faq10Msg']
             },
             {
                 order: 8,
