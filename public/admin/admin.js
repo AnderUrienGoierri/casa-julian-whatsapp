@@ -2406,33 +2406,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 const timeStr = item.created_at ? new Date(item.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '';
                 const bubble = document.createElement('div');
                 bubble.style.cssText = `
-                    max-width: 85%;
-                    align-self: ${isClient ? 'flex-start' : 'flex-end'};
+                    max-width: 82%;
+                    align-self: ${isClient ? 'flex-end' : 'flex-start'};
                     background: ${isClient ? '#005c4b' : '#1e293b'};
                     color: #e9edef;
                     padding: 10px 14px;
-                    border-radius: ${isClient ? '0 12px 12px 12px' : '12px 0 12px 12px'};
+                    border-radius: ${isClient ? '12px 0 12px 12px' : '0 12px 12px 12px'};
                     font-size: 0.86rem;
                     line-height: 1.45;
                     box-shadow: 0 2px 5px rgba(0,0,0,0.25);
                     word-break: break-word;
-                    border: 1px solid rgba(255,255,255,0.06);
+                    border: 1px solid ${isClient ? 'rgba(37, 211, 102, 0.2)' : 'rgba(255,255,255,0.08)'};
                 `;
 
                 const formattedText = formatWhatsAppText(item.texto);
                 let metaBadge = '';
                 if (item.tipo === 'interactive' || item.tipo === 'button' || item.tipo === 'list') {
-                    metaBadge = `<span style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">[Opción / Botón]</span>`;
+                    metaBadge = `<span style="background: rgba(139, 92, 246, 0.25); color: #c4b5fd; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">👆 Opción seleccionada</span>`;
+                } else if (item.tipo === 'interactive_buttons') {
+                    metaBadge = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">🔘 Menú de Botones</span>`;
+                } else if (item.tipo === 'interactive_list') {
+                    metaBadge = `<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">📋 Menú Desplegable</span>`;
                 }
 
                 bubble.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px;">
-                        <span style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#38bdf8'};">
-                            ${isClient ? '👤 ' + (name || 'Cliente') : '🤖 Chatbot Casa Julián'} ${metaBadge}
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: ${isClient ? '#4ade80' : '#38bdf8'}; display: flex; align-items: center; gap: 4px;">
+                            ${isClient ? '👤 ' + (name || 'Cliente') : '🤖 Chatbot Casa Julián'}
                         </span>
-                        <span style="font-size: 0.68rem; color: #8696a0;">${timeStr}</span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            ${metaBadge}
+                            <span style="font-size: 0.68rem; color: #94a3b8;">${timeStr}</span>
+                        </div>
                     </div>
-                    <div>${formattedText}</div>
+                    <div style="color: #f1f5f9; font-size: 0.85rem; line-height: 1.45;">${formattedText}</div>
                 `;
                 historyViewport.appendChild(bubble);
             });

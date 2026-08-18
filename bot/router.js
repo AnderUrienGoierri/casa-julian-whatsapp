@@ -21,15 +21,18 @@ async function processMessage(message) {
         const interactive = message.interactive;
         if (interactive && interactive.type === 'list_reply') {
             const listId = interactive.list_reply.id;
-            await handleUserMessage(from, listId, 'interactive', { type: 'list', id: listId });
+            const listTitle = interactive.list_reply.title || listId;
+            await handleUserMessage(from, listTitle, 'interactive', { type: 'list', id: listId, title: listTitle });
         } else if (interactive && interactive.type === 'button_reply') {
             const buttonId = interactive.button_reply.id;
-            await handleUserMessage(from, buttonId, 'interactive', { type: 'button', id: buttonId });
+            const buttonTitle = interactive.button_reply.title || buttonId;
+            await handleUserMessage(from, buttonTitle, 'interactive', { type: 'button', id: buttonId, title: buttonTitle });
         }
     } else if (type === 'button') {
         const button = message.button;
         const buttonId = (button && (button.payload || button.text)) ? (button.payload || button.text) : '';
-        await handleUserMessage(from, buttonId, 'interactive', { type: 'button', id: buttonId });
+        const buttonTitle = (button && button.text) ? button.text : buttonId;
+        await handleUserMessage(from, buttonTitle, 'interactive', { type: 'button', id: buttonId, title: buttonTitle });
     }
 }
 

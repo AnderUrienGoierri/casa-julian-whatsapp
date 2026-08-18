@@ -78,6 +78,20 @@ async function sendMessage(to, text) {
  * Envía un mensaje con botones interactivos (máximo 3 botones).
  */
 async function sendInteractiveButtons(to, text, buttons) {
+    // Registrar en el historial del bot
+    try {
+        const { logUserChatHistory } = require('./database');
+        const btnLabels = (buttons || []).map(b => `[${b.title}]`).join(' ');
+        await logUserChatHistory(to, {
+            emisor: 'bot',
+            tipo: 'interactive_buttons',
+            texto: `${text}\n\n👉 Opciones: ${btnLabels}`,
+            metadata: { buttons }
+        });
+    } catch (e) {
+        // Silencioso
+    }
+
     if (interceptSimMessage(to, { type: 'button', text, buttons })) {
         return { success: true, simulated: true };
     }
@@ -131,6 +145,19 @@ async function sendInteractiveButtons(to, text, buttons) {
  * Envía un mensaje interactivo con un botón de tipo URL / Enlace Externo (CTA URL Button).
  */
 async function sendCtaUrlButton(to, bodyText, buttonTitle, url, headerText = null) {
+    // Registrar en el historial del bot
+    try {
+        const { logUserChatHistory } = require('./database');
+        await logUserChatHistory(to, {
+            emisor: 'bot',
+            tipo: 'cta_url',
+            texto: `${headerText ? headerText + '\n\n' : ''}${bodyText}\n\n🔗 [${buttonTitle}](${url})`,
+            metadata: { url, buttonTitle }
+        });
+    } catch (e) {
+        // Silencioso
+    }
+
     if (interceptSimMessage(to, { type: 'cta_url', bodyText, buttonTitle, url, headerText })) {
         return { success: true, simulated: true };
     }
@@ -186,6 +213,19 @@ async function sendCtaUrlButton(to, bodyText, buttonTitle, url, headerText = nul
  * Envía una plantilla de mensaje aprobada por Meta WhatsApp (HSM Template con botones URL/CTA).
  */
 async function sendTemplateMessage(to, templateName, languageCode = 'es', components = []) {
+    // Registrar en el historial del bot
+    try {
+        const { logUserChatHistory } = require('./database');
+        await logUserChatHistory(to, {
+            emisor: 'bot',
+            tipo: 'template',
+            texto: `[Plantilla WhatsApp: ${templateName} (${languageCode})]`,
+            metadata: { templateName, languageCode, components }
+        });
+    } catch (e) {
+        // Silencioso
+    }
+
     if (interceptSimMessage(to, { type: 'template', templateName, languageCode, components })) {
         return { success: true, simulated: true };
     }
@@ -250,6 +290,18 @@ async function sendTemplateMessage(to, templateName, languageCode = 'es', compon
  * Envía un mensaje de Lista Interactiva (permite hasta 10 opciones ordenadas en secciones).
  */
 async function sendInteractiveList(to, bodyText, buttonText, sections) {
+    // Registrar en el historial del bot
+    try {
+        const { logUserChatHistory } = require('./database');
+        await logUserChatHistory(to, {
+            emisor: 'bot',
+            tipo: 'interactive_list',
+            texto: `${bodyText}\n\n📋 [Menú / Lista: ${buttonText}]`,
+            metadata: { buttonText, sections }
+        });
+    } catch (e) {
+        // Silencioso
+    }
     if (interceptSimMessage(to, { type: 'list', text: bodyText, buttonText, sections })) {
         return { success: true, simulated: true };
     }
