@@ -2486,6 +2486,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Listener maximizar / restaurar modal de historial
+    const maxHistoryBtn = document.getElementById('maximize-history-modal-btn');
+    if (maxHistoryBtn) {
+        maxHistoryBtn.addEventListener('click', () => {
+            const historyModal = document.getElementById('history-modal');
+            if (!historyModal) return;
+            const container = historyModal.querySelector('.whatsapp-modal-container');
+            if (!container) return;
+            const isMax = container.classList.toggle('modal-fullscreen');
+            maxHistoryBtn.textContent = isMax ? '🗗' : '🗖';
+            maxHistoryBtn.title = isMax ? 'Restaurar tamaño normal' : 'Maximizar pantalla completa';
+        });
+    }
+
     function closeSidebarDrawer() {
         const sidebar = document.getElementById('whatsapp-request-sidebar');
         const backdrop = document.getElementById('whatsapp-sidebar-backdrop');
