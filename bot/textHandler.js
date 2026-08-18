@@ -499,14 +499,30 @@ async function handleTextMessage(from, text) {
         }
 
         case 'menu_trad_step5a_comensales': {
+            currentState.data = currentState.data || {};
             currentState.data.menuTrad = currentState.data.menuTrad || {};
-            let numComensales = 2;
+            let numComensales = null;
             const cleanTextVal = text.trim().toLowerCase();
 
             if (cleanTextVal.startsWith('btn_mt_comensales_')) {
-                numComensales = parseInt(cleanTextVal.replace('btn_mt_comensales_', ''), 10) || 2;
+                numComensales = parseInt(cleanTextVal.replace('btn_mt_comensales_', ''), 10);
             } else {
-                numComensales = parseInt(cleanTextVal.replace(/\D/g, ''), 10) || 2;
+                const digits = cleanTextVal.match(/\d+/);
+                if (digits) {
+                    numComensales = parseInt(digits[0], 10);
+                }
+            }
+
+            if (!numComensales || isNaN(numComensales) || numComensales < 1 || numComensales > 6) {
+                let errorMsg = `⚠️ El número de comensales debe ser *entre 1 y 6 personas* (no aceptamos grupos mayores de 6 comensales).\n\nPor favor, selecciona una de las opciones o introduce un número del 1 al 6:`;
+                if (lang === 'eu') {
+                    errorMsg = `⚠️ Jankide kopurua *1 eta 6 pertsona artekoa* izan behar da (ez dugu 6 pertsona baino gehiagoko talderik onartzen).\n\nMesedez, aukeratu aukeretako bat edo idatzi 1etik 6rako zenbaki bat:`;
+                } else if (lang === 'en') {
+                    errorMsg = `⚠️ The number of guests must be *between 1 and 6 people* (we do not accept groups larger than 6 guests).\n\nPlease select one of the options or enter a number from 1 to 6:`;
+                }
+                await sendMessage(from, errorMsg);
+                await sendHowManyGuestsPrompt(from, lang, userStates);
+                break;
             }
 
             currentState.data.menuTrad.comensales = numComensales;
