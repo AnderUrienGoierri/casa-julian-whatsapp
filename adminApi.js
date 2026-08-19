@@ -899,5 +899,172 @@ router.get('/system-status', requireAdminAuth, async (req, res) => {
     }
 });
 
+// Helper de cálculo de caducidad (+6 meses)
+function calculateSixMonthsFromDateStr(dateStr) {
+    if (!dateStr) return null;
+    const clean = dateStr.trim();
+    let d = null;
+    const dmyMatch = clean.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (dmyMatch) {
+        d = new Date(parseInt(dmyMatch[3], 10), parseInt(dmyMatch[2], 10) - 1, parseInt(dmyMatch[1], 10));
+    } else {
+        const ymdMatch = clean.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+        if (ymdMatch) {
+            d = new Date(parseInt(ymdMatch[1], 10), parseInt(ymdMatch[2], 10) - 1, parseInt(ymdMatch[3], 10));
+        }
+    }
+    if (!d || isNaN(d.getTime())) return null;
+    d.setMonth(d.getMonth() + 6);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+// 25. Endpoint Webhook de Sincronización en Tiempo Real desde Google Apps Script (Opción A)
+router.post('/sync-giftcards-webhook', async (req, res) => {
+    try {
+        const { secret, card, action, fullSyncList } = req.body || {};
+        const DRIVE_SYNC_SECRET = process.env.DRIVE_SYNC_SECRET || 'casa_julian_drive_sync_2026';
+        
+        if (secret !== DRIVE_SYNC_SECRET && req.headers['x-sync-secret'] !== DRIVE_SYNC_SECRET) {
+            return res.status(403).json({ success: false, error: 'Secreto de sincronización no válido.' });
+        }
+
+        if (fullSyncList && Array.isArray(fullSyncList)) {
+            console.log(`📥 Recibida lista completa de ${fullSyncList.length} tarjetas desde Google Apps Script...`);
+            if (pool) {
+                await pool.query('TRUNCATE TABLE tarjetas_regalo;');
+                const insertQ = `
+                    INSERT INTO tarjetas_regalo (
+                        id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad,
+                        estado, nombre_compra, nombre_comensal, telefono_compra, codigo_tarjeta_regalo,
+                        importe, observaciones, creada_en_revo, entregado, fecha_entrega,
+                        pagado, fecha_pago, usado, fecha_ultima_modificacion
+                    ) VALUES (
+                        $1, $2, $3, $4, $5, $6,
+                        $7, $8, $9, $10, $11,
+                        $12, $13, $14, $15, $16,
+                        $17, $18, $19, (NOW() AT TIME ZONE 'Europe/Madrid')
+                    )
+                `;
+                for (const c of fullSyncList) {
+                    const idStr = String(c.id);
+                    const codigoStr = c.codigo_tarjeta_regalo ? String(c.codigo_tarjeta_regalo) : (`SINC-${idStr}`);
+                    const estado = c.usado === true ? 'CONSUMIDA' : 'DISPONIBLE';
+                    let fCad = c.fecha_caducidad;
+                    if (!fCad) {
+                        const baseDate = c.fecha_compra || c.fecha_pago || c.fecha_entrega;
+                        if (baseDate) fCad = calculateSixMonthsFromDateStr(baseDate);
+                    }
+                    await pool.query(insertQ, [
+                        idStr,
+                        codigoStr,
+                        c.nombre_compra || null,
+                        c.telefono_compra || null,
+                        c.fecha_compra || null,
+                        fCad || null,
+                        estado,
+                        c.nombre_compra || null,
+                        c.nombre_comensal || null,
+                        c.telefono_compra || null,
+                        c.codigo_tarjeta_regalo ? String(c.codigo_tarjeta_regalo) : null,
+                        c.importe !== null && c.importe !== undefined ? Number(c.importe) : null,
+                        c.observaciones || null,
+                        c.creada_en_revo !== undefined ? c.creada_en_revo : null,
+                        c.entregado !== undefined ? c.entregado : null,
+                        c.fecha_entrega || null,
+                        c.pagado !== undefined ? c.pagado : null,
+                        c.fecha_pago || null,
+                        c.usado !== undefined ? c.usado : null
+                    ]);
+                }
+            }
+            return res.json({ success: true, count: fullSyncList.length, message: 'Sincronización completa aplicada.' });
+        }
+
+        if (card) {
+            const idStr = String(card.id || card.codigo_tarjeta_regalo || ('TR-' + Date.now()));
+            const codigoStr = card.codigo_tarjeta_regalo ? String(card.codigo_tarjeta_regalo) : (`SINC-${idStr}`);
+            const estado = card.usado === true ? 'CONSUMIDA' : 'DISPONIBLE';
+            let fCad = card.fecha_caducidad;
+            if (!fCad) {
+                const baseDate = card.fecha_compra || card.fecha_pago || card.fecha_entrega;
+                if (baseDate) fCad = calculateSixMonthsFromDateStr(baseDate);
+            }
+
+            if (action === 'delete') {
+                if (pool) {
+                    await pool.query('DELETE FROM tarjetas_regalo WHERE id = $1 OR codigo_tarjeta_regalo = $2', [idStr, codigoStr]);
+                }
+                return res.json({ success: true, action: 'deleted', id: idStr });
+            }
+
+            if (pool) {
+                const upsertQ = `
+                    INSERT INTO tarjetas_regalo (
+                        id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad,
+                        estado, nombre_compra, nombre_comensal, telefono_compra, codigo_tarjeta_regalo,
+                        importe, observaciones, creada_en_revo, entregado, fecha_entrega,
+                        pagado, fecha_pago, usado, fecha_ultima_modificacion
+                    ) VALUES (
+                        $1, $2, $3, $4, $5, $6,
+                        $7, $8, $9, $10, $11,
+                        $12, $13, $14, $15, $16,
+                        $17, $18, $19, (NOW() AT TIME ZONE 'Europe/Madrid')
+                    ) ON CONFLICT (id) DO UPDATE SET
+                        codigo = EXCLUDED.codigo,
+                        comprador_nombre = EXCLUDED.comprador_nombre,
+                        comprador_telefono = EXCLUDED.comprador_telefono,
+                        fecha_compra = EXCLUDED.fecha_compra,
+                        fecha_caducidad = EXCLUDED.fecha_caducidad,
+                        estado = EXCLUDED.estado,
+                        nombre_compra = EXCLUDED.nombre_compra,
+                        nombre_comensal = EXCLUDED.nombre_comensal,
+                        telefono_compra = EXCLUDED.telefono_compra,
+                        codigo_tarjeta_regalo = EXCLUDED.codigo_tarjeta_regalo,
+                        importe = EXCLUDED.importe,
+                        observaciones = EXCLUDED.observaciones,
+                        creada_en_revo = EXCLUDED.creada_en_revo,
+                        entregado = EXCLUDED.entregado,
+                        fecha_entrega = EXCLUDED.fecha_entrega,
+                        pagado = EXCLUDED.pagado,
+                        fecha_pago = EXCLUDED.fecha_pago,
+                        usado = EXCLUDED.usado,
+                        fecha_ultima_modificacion = (NOW() AT TIME ZONE 'Europe/Madrid')
+                `;
+                await pool.query(upsertQ, [
+                    idStr,
+                    codigoStr,
+                    card.nombre_compra || null,
+                    card.telefono_compra || null,
+                    card.fecha_compra || null,
+                    fCad || null,
+                    estado,
+                    card.nombre_compra || null,
+                    card.nombre_comensal || null,
+                    card.telefono_compra || null,
+                    card.codigo_tarjeta_regalo ? String(card.codigo_tarjeta_regalo) : null,
+                    card.importe !== null && card.importe !== undefined ? Number(card.importe) : null,
+                    card.observaciones || null,
+                    card.creada_en_revo !== undefined ? card.creada_en_revo : null,
+                    card.entregado !== undefined ? card.entregado : null,
+                    card.fecha_entrega || null,
+                    card.pagado !== undefined ? card.pagado : null,
+                    card.fecha_pago || null,
+                    card.usado !== undefined ? card.usado : null
+                ]);
+            }
+            return res.json({ success: true, action: 'upserted', card: { id: idStr, codigo: codigoStr } });
+        }
+
+        return res.status(400).json({ success: false, error: 'No se enviaron datos de tarjeta válidos.' });
+    } catch (e) {
+        console.error("Error en sync-giftcards-webhook:", e);
+        return res.status(500).json({ success: false, error: e.message });
+    }
+});
+
 module.exports = router;
+
 
