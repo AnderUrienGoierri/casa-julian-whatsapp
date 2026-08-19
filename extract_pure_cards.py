@@ -32,7 +32,17 @@ def add_6_months(date_str):
 def clean_str(val):
     if val is None:
         return None
-    s = str(val).strip()
+    if isinstance(val, float):
+        if val.is_integer():
+            s = str(int(val))
+        else:
+            s = str(val)
+    elif isinstance(val, int):
+        s = str(val)
+    else:
+        s = str(val).strip()
+        if s.endswith('.0') and s[:-2].isdigit():
+            s = s[:-2]
     if s in ['', 'None', '-']:
         return None
     return s
@@ -102,8 +112,6 @@ for r in range(3, ws_p.max_row + 1):
             
     all_cards.append({
         'id': id_val,
-        'origen_pestana': 'OT PERSONALIZADAS',
-        'fila_excel': r,
         'nombre_compra': name,
         'nombre_comensal': nombre_comensal,
         'telefono_compra': telf,
@@ -145,8 +153,6 @@ for r in range(3, ws_w.max_row + 1):
         
     all_cards.append({
         'id': id_val,
-        'origen_pestana': 'OT WIX',
-        'fila_excel': r,
         'nombre_compra': name,
         'nombre_comensal': None,
         'telefono_compra': telf,
@@ -187,8 +193,6 @@ for r in range(3, ws_s.max_row + 1):
         
     all_cards.append({
         'id': id_val,
-        'origen_pestana': 'OT SHOPIFY',
-        'fila_excel': r,
         'nombre_compra': name,
         'nombre_comensal': None,
         'telefono_compra': None,
@@ -205,7 +209,7 @@ for r in range(3, ws_s.max_row + 1):
         'fecha_caducidad': fecha_cad
     })
 
-print(f"Total procesadas con exactitud absoluta: {len(all_cards)}")
+print(f"Total procesadas sin '.0' sobrantes: {len(all_cards)}")
 with open('tarjetas_regalo/tarjetas_regalo_unificadas.json', 'w', encoding='utf-8') as f:
     json.dump(all_cards, f, ensure_ascii=False, indent=2)
 

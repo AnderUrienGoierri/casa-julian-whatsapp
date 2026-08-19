@@ -103,7 +103,6 @@ async function getGiftCard(criterio) {
                 `SELECT * 
                  FROM tarjetas_regalo 
                  WHERE UPPER(codigo) = $1 
-                    OR UPPER(codigo_tarjeta_regalo) = $1 
                     OR UPPER(id) = $1 
                  LIMIT 1`,
                 [search]
