@@ -54,6 +54,7 @@ function syncPersonalizadaRow(sheet, row) {
 
   const card = {
     id: "PERS-" + row,
+    tipo_tarjeta_regalo: "PERSONALIZADAS",
     nombre_compra: nombre,
     telefono_compra: cleanStr(vals[2]),
     nombre_comensal: cleanStr(vals[3]),
@@ -83,6 +84,7 @@ function syncWixRow(sheet, row) {
 
   const card = {
     id: "WIX-" + row,
+    tipo_tarjeta_regalo: "WIX",
     nombre_compra: nombre,
     nombre_comensal: null,
     telefono_compra: cleanStr(vals[2]),
@@ -112,6 +114,7 @@ function syncShopifyRow(sheet, row) {
 
   const card = {
     id: "SHOPIFY-" + row,
+    tipo_tarjeta_regalo: "SHOPIFY",
     nombre_compra: nombre,
     nombre_comensal: null,
     telefono_compra: null,

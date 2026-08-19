@@ -946,15 +946,15 @@ router.post('/sync-giftcards-webhook', async (req, res) => {
                 await pool.query('TRUNCATE TABLE tarjetas_regalo;');
                 const insertQ = `
                     INSERT INTO tarjetas_regalo (
-                        id, codigo, nombre_compra, nombre_comensal, telefono_compra,
+                        id, codigo, tipo_tarjeta_regalo, nombre_compra, nombre_comensal, telefono_compra,
                         importe, observaciones, creada_en_revo, fecha_compra,
                         entregado, fecha_entrega, pagado, fecha_pago, usado,
                         estado, fecha_caducidad, fecha_ultima_modificacion
                     ) VALUES (
-                        $1, $2, $3, $4, $5,
-                        $6, $7, $8, $9,
-                        $10, $11, $12, $13, $14,
-                        $15, $16, (NOW() AT TIME ZONE 'Europe/Madrid')
+                        $1, $2, $3, $4, $5, $6,
+                        $7, $8, $9, $10,
+                        $11, $12, $13, $14, $15,
+                        $16, $17, (NOW() AT TIME ZONE 'Europe/Madrid')
                     )
                 `;
                 for (const c of fullSyncList) {
@@ -970,6 +970,7 @@ router.post('/sync-giftcards-webhook', async (req, res) => {
                     await pool.query(insertQ, [
                         idStr,
                         codigoStr,
+                        cleanVal(c.tipo_tarjeta_regalo) || 'PERSONALIZADAS',
                         cleanVal(c.nombre_compra),
                         cleanVal(c.nombre_comensal),
                         cleanVal(c.telefono_compra),
@@ -1011,17 +1012,18 @@ router.post('/sync-giftcards-webhook', async (req, res) => {
             if (pool) {
                 const upsertQ = `
                     INSERT INTO tarjetas_regalo (
-                        id, codigo, nombre_compra, nombre_comensal, telefono_compra,
+                        id, codigo, tipo_tarjeta_regalo, nombre_compra, nombre_comensal, telefono_compra,
                         importe, observaciones, creada_en_revo, fecha_compra,
                         entregado, fecha_entrega, pagado, fecha_pago, usado,
                         estado, fecha_caducidad, fecha_ultima_modificacion
                     ) VALUES (
-                        $1, $2, $3, $4, $5,
-                        $6, $7, $8, $9,
-                        $10, $11, $12, $13, $14,
-                        $15, $16, (NOW() AT TIME ZONE 'Europe/Madrid')
+                        $1, $2, $3, $4, $5, $6,
+                        $7, $8, $9, $10,
+                        $11, $12, $13, $14, $15,
+                        $16, $17, (NOW() AT TIME ZONE 'Europe/Madrid')
                     ) ON CONFLICT (id) DO UPDATE SET
                         codigo = EXCLUDED.codigo,
+                        tipo_tarjeta_regalo = EXCLUDED.tipo_tarjeta_regalo,
                         nombre_compra = EXCLUDED.nombre_compra,
                         nombre_comensal = EXCLUDED.nombre_comensal,
                         telefono_compra = EXCLUDED.telefono_compra,
@@ -1041,6 +1043,7 @@ router.post('/sync-giftcards-webhook', async (req, res) => {
                 await pool.query(upsertQ, [
                     idStr,
                     codigoStr,
+                    cleanVal(card.tipo_tarjeta_regalo) || 'PERSONALIZADAS',
                     cleanVal(card.nombre_compra),
                     cleanVal(card.nombre_comensal),
                     cleanVal(card.telefono_compra),

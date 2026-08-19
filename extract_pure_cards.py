@@ -112,6 +112,7 @@ for r in range(3, ws_p.max_row + 1):
             
     all_cards.append({
         'id': id_val,
+        'tipo_tarjeta_regalo': 'PERSONALIZADAS',
         'nombre_compra': name,
         'nombre_comensal': nombre_comensal,
         'telefono_compra': telf,
@@ -153,6 +154,7 @@ for r in range(3, ws_w.max_row + 1):
         
     all_cards.append({
         'id': id_val,
+        'tipo_tarjeta_regalo': 'WIX',
         'nombre_compra': name,
         'nombre_comensal': None,
         'telefono_compra': telf,
@@ -193,6 +195,7 @@ for r in range(3, ws_s.max_row + 1):
         
     all_cards.append({
         'id': id_val,
+        'tipo_tarjeta_regalo': 'SHOPIFY',
         'nombre_compra': name,
         'nombre_comensal': None,
         'telefono_compra': None,
@@ -209,7 +212,7 @@ for r in range(3, ws_s.max_row + 1):
         'fecha_caducidad': fecha_cad
     })
 
-print(f"Total procesadas sin '.0' sobrantes: {len(all_cards)}")
+print(f"Total procesadas con tipo_tarjeta_regalo: {len(all_cards)}")
 with open('tarjetas_regalo/tarjetas_regalo_unificadas.json', 'w', encoding='utf-8') as f:
     json.dump(all_cards, f, ensure_ascii=False, indent=2)
 

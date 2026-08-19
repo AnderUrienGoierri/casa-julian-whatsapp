@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS lista_espera (
 CREATE TABLE IF NOT EXISTS tarjetas_regalo (
     id VARCHAR(100) PRIMARY KEY,
     codigo VARCHAR(150),
+    tipo_tarjeta_regalo VARCHAR(50),
     nombre_compra VARCHAR(255),
     nombre_comensal VARCHAR(255),
     telefono_compra VARCHAR(100),
@@ -72,3 +73,4 @@ CREATE INDEX IF NOT EXISTS idx_reservas_dni ON reservas(dni);
 CREATE INDEX IF NOT EXISTS idx_reservas_tipo ON reservas(tipo_reserva);
 CREATE INDEX IF NOT EXISTS idx_lista_espera_estado ON lista_espera(estado);
 CREATE INDEX IF NOT EXISTS idx_tarjetas_codigo ON tarjetas_regalo(codigo);
+CREATE INDEX IF NOT EXISTS idx_tarjetas_tipo ON tarjetas_regalo(tipo_tarjeta_regalo);

@@ -3,15 +3,16 @@ const fs = require('fs');
 
 async function recreateTableWithExactOrder() {
     try {
-        console.log("1. Recreando tabla tarjetas_regalo con el ORDEN EXACTO DE COLUMNAS...");
+        console.log("1. Recreando tabla tarjetas_regalo con la nueva columna tipo_tarjeta_regalo...");
 
-        // Eliminar y reconstruir la tabla en Neon PostgreSQL con el orden físico exacto de columnas
+        // Reconstruir la tabla en Neon PostgreSQL incluyendo tipo_tarjeta_regalo
         await pool.query(`
             DROP TABLE IF EXISTS tarjetas_regalo CASCADE;
 
             CREATE TABLE tarjetas_regalo (
                 id VARCHAR(100) PRIMARY KEY,
                 codigo VARCHAR(150),
+                tipo_tarjeta_regalo VARCHAR(50),
                 nombre_compra VARCHAR(255),
                 nombre_comensal VARCHAR(255),
                 telefono_compra VARCHAR(100),
@@ -30,6 +31,7 @@ async function recreateTableWithExactOrder() {
             );
 
             CREATE INDEX idx_tarjetas_codigo ON tarjetas_regalo(codigo);
+            CREATE INDEX idx_tarjetas_tipo ON tarjetas_regalo(tipo_tarjeta_regalo);
         `);
 
         console.log("2. Cargando 1.133 registros purificados...");
@@ -38,15 +40,15 @@ async function recreateTableWithExactOrder() {
 
         const insertQuery = `
             INSERT INTO tarjetas_regalo (
-                id, codigo, nombre_compra, nombre_comensal, telefono_compra,
+                id, codigo, tipo_tarjeta_regalo, nombre_compra, nombre_comensal, telefono_compra,
                 importe, observaciones, creada_en_revo, fecha_compra,
                 entregado, fecha_entrega, pagado, fecha_pago, usado,
                 estado, fecha_caducidad, fecha_ultima_modificacion
             ) VALUES (
-                $1, $2, $3, $4, $5,
-                $6, $7, $8, $9,
-                $10, $11, $12, $13, $14,
-                $15, $16, (NOW() AT TIME ZONE 'Europe/Madrid')
+                $1, $2, $3, $4, $5, $6,
+                $7, $8, $9, $10,
+                $11, $12, $13, $14, $15,
+                $16, $17, (NOW() AT TIME ZONE 'Europe/Madrid')
             )
         `;
 
@@ -58,6 +60,7 @@ async function recreateTableWithExactOrder() {
             await pool.query(insertQuery, [
                 idStr,
                 codigoStr,
+                c.tipo_tarjeta_regalo || 'OTRAS',
                 c.nombre_compra || null,
                 c.nombre_comensal || null,
                 c.telefono_compra || null,
@@ -81,7 +84,7 @@ async function recreateTableWithExactOrder() {
             WHERE table_name = 'tarjetas_regalo'
             ORDER BY ordinal_position
         `);
-        console.log("✅ ORDEN DE COLUMNAS CONFIRMADO EN POSTGRESQL:");
+        console.log("✅ ORDEN DE COLUMNAS CON TIPO_TARJETA_REGALO CONFIRMADO EN POSTGRESQL:");
         colsRes.rows.forEach(r => console.log(`  ${r.ordinal_position}. ${r.column_name}`));
 
         const countRes = await pool.query('SELECT COUNT(*) FROM tarjetas_regalo');

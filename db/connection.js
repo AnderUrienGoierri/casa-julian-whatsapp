@@ -127,6 +127,7 @@ if (process.env.DATABASE_URL) {
         CREATE TABLE IF NOT EXISTS tarjetas_regalo (
             id VARCHAR(100) PRIMARY KEY,
             codigo VARCHAR(150),
+            tipo_tarjeta_regalo VARCHAR(50),
             nombre_compra VARCHAR(255),
             nombre_comensal VARCHAR(255),
             telefono_compra VARCHAR(100),
@@ -143,6 +144,7 @@ if (process.env.DATABASE_URL) {
             fecha_caducidad VARCHAR(50),
             fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS tipo_tarjeta_regalo VARCHAR(50);
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS nombre_compra VARCHAR(255);
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS nombre_comensal VARCHAR(255);
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS telefono_compra VARCHAR(100);
