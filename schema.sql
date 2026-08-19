@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS tarjetas_regalo (
     usado BOOLEAN,
     estado VARCHAR(50) DEFAULT 'DISPONIBLE',
     fecha_caducidad VARCHAR(50),
+    activo BOOLEAN DEFAULT TRUE,
     fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
 );
 
@@ -74,3 +75,4 @@ CREATE INDEX IF NOT EXISTS idx_reservas_tipo ON reservas(tipo_reserva);
 CREATE INDEX IF NOT EXISTS idx_lista_espera_estado ON lista_espera(estado);
 CREATE INDEX IF NOT EXISTS idx_tarjetas_codigo ON tarjetas_regalo(codigo);
 CREATE INDEX IF NOT EXISTS idx_tarjetas_tipo ON tarjetas_regalo(tipo_tarjeta_regalo);
+CREATE INDEX IF NOT EXISTS idx_tarjetas_activo ON tarjetas_regalo(activo);

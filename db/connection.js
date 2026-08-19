@@ -142,9 +142,11 @@ if (process.env.DATABASE_URL) {
             usado BOOLEAN,
             estado VARCHAR(50) DEFAULT 'DISPONIBLE',
             fecha_caducidad VARCHAR(50),
+            activo BOOLEAN DEFAULT TRUE,
             fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS tipo_tarjeta_regalo VARCHAR(50);
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT TRUE;
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS nombre_compra VARCHAR(255);
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS nombre_comensal VARCHAR(255);
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS telefono_compra VARCHAR(100);

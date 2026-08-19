@@ -185,6 +185,14 @@ async function handleTextMessage(from, text) {
             const card = await db.getGiftCard(cardInput);
 
             if (card) {
+                if (card.activo === false) {
+                    let inactiveMsg = `⚠️ La tarjeta regalo *${card.codigo}* no se encuentra *ACTIVA* actualmente. Por favor, contacta con recepción o introduce otro código:`;
+                    if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela ez dago *AKTIBO* une honetan. Mesedez, jarri harremanetan harrerarekin edo sartu beste kode bat:`;
+                    else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* is currently *NOT ACTIVE*. Please contact reception or enter another code:`;
+                    await sendMessage(from, inactiveMsg);
+                    break;
+                }
+
                 const statusUpper = (card.estado || 'DISPONIBLE').toString().trim().toUpperCase();
                 
                 if (statusUpper !== 'DISPONIBLE' && statusUpper !== 'ACTIVA') {
@@ -1214,22 +1222,27 @@ async function handleTextMessage(from, text) {
             const card = await db.getGiftCard(text);
 
             if (card) {
+                const esActiva = card.activo !== false;
+                const estadoTexto = !esActiva ? 'INACTIVA' : (card.estado || 'DISPONIBLE');
                 let msg = '';
                 if (lang === 'eu') {
                     msg = `🎁 *OPARI-TXARTELAREN EGIAZTAPENA*\n\n` +
                           `✅ *Kodea:* ${card.codigo}\n` +
-                          `📅 *Iraungitze data:* ${card.fecha_caducidad}\n` +
-                          `📌 *Egoera:* ${card.estado || 'AKTIBOA'}`;
+                          `📅 *Iraungitze data:* ${card.fecha_caducidad || 'Zehaztu gabe'}\n` +
+                          `📌 *Egoera:* ${estadoTexto}\n` +
+                          `⚡ *Aktibo:* ${esActiva ? 'BAI' : 'EZ'}`;
                 } else if (lang === 'en') {
                     msg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
                           `✅ *Code:* ${card.codigo}\n` +
-                          `📅 *Expiration Date:* ${card.fecha_caducidad}\n` +
-                          `📌 *Status:* ${card.estado || 'ACTIVE'}`;
+                          `📅 *Expiration Date:* ${card.fecha_caducidad || 'Not specified'}\n` +
+                          `📌 *Status:* ${estadoTexto}\n` +
+                          `⚡ *Active:* ${esActiva ? 'YES' : 'NO'}`;
                 } else {
                     msg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
                           `✅ *Código:* ${card.codigo}\n` +
-                          `📅 *Fecha de Caducidad:* ${card.fecha_caducidad}\n` +
-                          `📌 *Estado:* ${card.estado || 'ACTIVA'}`;
+                          `📅 *Fecha de Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n` +
+                          `📌 *Estado:* ${estadoTexto}\n` +
+                          `⚡ *Activo:* ${esActiva ? 'SÍ' : 'NO'}`;
                 }
 
                 await sendMessage(from, msg);

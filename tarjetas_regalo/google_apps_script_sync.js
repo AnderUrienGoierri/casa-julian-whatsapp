@@ -6,9 +6,8 @@
  * 1. Abre el archivo de Google Sheets / Drive "OPARI TXARTELAK".
  * 2. Ve al menú superior: Extensiones > Apps Script.
  * 3. Borra el código existente y pega este archivo completo.
- * 4. Ajusta la variable SERVER_URL con la URL de tu servidor (o túnel HTTPS / Synology).
- * 5. Guarda el proyecto (Ctrl + S) con el nombre "SyncCasaJulianBot".
- * 6. Ve al menú izquierdo: Activadores (icono de reloj ⏰) > Añadir activador:
+ * 4. Guarda el proyecto (Ctrl + S) con el nombre "SyncCasaJulianBot".
+ * 5. Ve al menú izquierdo: Activadores (icono de reloj ⏰) > Añadir activador:
  *    - Función: onSheetEditTrigger
  *    - Despliegue: Principal
  *    - Origen del evento: De la hoja de cálculo
@@ -32,12 +31,8 @@ function onSheetEditTrigger(e) {
     // Solo procesar filas con datos a partir de la fila 3 (las filas 1 y 2 son cabeceras)
     if (row < 3) return;
 
-    if (sheetName === "OT PERSONALIZADAS") {
-      syncPersonalizadaRow(sheet, row);
-    } else if (sheetName === "OT WIX") {
-      syncWixRow(sheet, row);
-    } else if (sheetName === "OT SHOPIFY") {
-      syncShopifyRow(sheet, row);
+    if (sheetName === "OT PERSONALIZADAS" || sheetName === "OT WIX" || sheetName === "OT SHOPIFY") {
+      syncDynamicRow(sheet, sheetName, row);
     }
   } catch (err) {
     Logger.log("Error en onSheetEditTrigger: " + err.toString());
@@ -45,93 +40,82 @@ function onSheetEditTrigger(e) {
 }
 
 /**
- * Sincroniza una fila modificada de la pestaña "OT PERSONALIZADAS"
+ * Sincroniza dinámicamente cualquier fila identificando las columnas por sus cabeceras
  */
-function syncPersonalizadaRow(sheet, row) {
-  const vals = sheet.getRange(row, 1, 1, 13).getValues()[0];
-  const nombre = cleanStr(vals[1]);
+function syncDynamicRow(sheet, sheetName, row) {
+  const headers = sheet.getRange(2, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const rowVals = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  const map = {};
+  for (let c = 0; c < headers.length; c++) {
+    const h = String(headers[c] || "").trim().toUpperCase();
+    if (h) map[h] = rowVals[c];
+  }
+
+  const nombre = cleanStr(map["NOMBRE"] || map["DATOS COMPRADOR"]);
   if (!nombre) return;
 
-  const card = {
-    id: "PERS-" + row,
-    tipo_tarjeta_regalo: "PERSONALIZADAS",
-    nombre_compra: nombre,
-    telefono_compra: cleanStr(vals[2]),
-    nombre_comensal: cleanStr(vals[3]),
-    codigo_tarjeta_regalo: cleanStr(vals[4]),
-    importe: cleanNumber(vals[5]),
-    observaciones: cleanStr(vals[6]),
-    creada_en_revo: null,
-    fecha_compra: null,
-    entregado: cleanBool(vals[7]),
-    fecha_entrega: formatDate(vals[8]),
-    pagado: cleanBool(vals[9]),
-    fecha_pago: formatDate(vals[10]),
-    usado: cleanBool(vals[11]),
-    fecha_caducidad: formatDate(vals[12])
-  };
-
+  const card = buildCardFromMap(map, sheetName, row);
   sendCardToServer(card);
 }
 
 /**
- * Sincroniza una fila modificada de la pestaña "OT WIX"
+ * Construye el objeto de tarjeta a partir del mapeo de cabeceras
  */
-function syncWixRow(sheet, row) {
-  const vals = sheet.getRange(row, 1, 1, 11).getValues()[0];
-  const nombre = cleanStr(vals[1]);
-  if (!nombre) return;
+function buildCardFromMap(map, sheetName, row) {
+  let prefix = "PERS-";
+  let tipo = "PERSONALIZADAS";
+  if (sheetName === "OT WIX") {
+    prefix = "WIX-";
+    tipo = "WIX";
+  } else if (sheetName === "OT SHOPIFY") {
+    prefix = "SHOPIFY-";
+    tipo = "SHOPIFY";
+  }
 
-  const card = {
-    id: "WIX-" + row,
-    tipo_tarjeta_regalo: "WIX",
-    nombre_compra: nombre,
-    nombre_comensal: null,
-    telefono_compra: cleanStr(vals[2]),
-    codigo_tarjeta_regalo: cleanStr(vals[4]),
-    importe: cleanNumber(vals[5]),
-    observaciones: cleanStr(vals[6]),
-    fecha_compra: formatDate(vals[7]),
-    creada_en_revo: cleanBool(vals[8]),
-    entregado: null,
-    fecha_entrega: null,
-    pagado: null,
-    fecha_pago: null,
-    usado: cleanBool(vals[9]),
-    fecha_caducidad: formatDate(vals[10])
+  // Activo: Si la columna ACTIVO tiene 'SI', 'SÍ', 'TRUE', o checkbox marcado -> true
+  let activoVal = map["ACTIVO"];
+  let activo = true;
+  if (activoVal !== undefined && activoVal !== null && String(activoVal).trim() !== "") {
+    activo = cleanBool(activoVal);
+  }
+
+  const nombreCompra = cleanStr(map["NOMBRE"] || map["DATOS COMPRADOR"]);
+  const telefonoCompra = cleanStr(map["TELF"] || map["TELEFONO"] || map["TELÉFONO"]);
+  const nombreComensal = cleanStr(map["NOMBRE COMENSAL"] || map["COMENSAL"]);
+  const codigo = cleanStr(map["NºTARJ.REG."] || map["Nº"] || map["NUMERO"] || map["CODIGO"] || map["CÓDIGO"] || map["Nº TARJETA"]);
+  const importeRaw = map["IMPORTE"];
+  let obs = cleanStr(map["OBSERVACIONES"]);
+  const importe = cleanNumber(importeRaw);
+
+  const entregado = map["ENTREGADO"] !== undefined ? cleanBool(map["ENTREGADO"]) : null;
+  const fechaEntrega = formatDate(map["FECHA ENTREGADO"] || map["FECHA ENTREGA"]);
+  const pagado = map["PAGADO"] !== undefined ? cleanBool(map["PAGADO"]) : null;
+  const fechaPago = formatDate(map["FECHA PAGADO"] || map["FECHA PAGO"]);
+  const creadaEnRevo = map["CREADA EN REVO"] !== undefined ? cleanBool(map["CREADA EN REVO"]) : null;
+  const fechaCompra = formatDate(map["COMPRADO"] || map["FECHA COMPRA"] || map["FECHA"]);
+  const usado = cleanBool(map["USADO"]);
+  const fechaCaducidad = formatDate(map["FECHA CADUCIDAD"] || map["CADUCIDAD"]);
+
+  return {
+    id: prefix + row,
+    tipo_tarjeta_regalo: tipo,
+    nombre_compra: nombreCompra,
+    nombre_comensal: nombreComensal,
+    telefono_compra: telefonoCompra,
+    codigo_tarjeta_regalo: codigo,
+    importe: importe,
+    observaciones: obs,
+    creada_en_revo: creadaEnRevo,
+    fecha_compra: fechaCompra,
+    entregado: entregado,
+    fecha_entrega: fechaEntrega,
+    pagado: pagado,
+    fecha_pago: fechaPago,
+    usado: usado,
+    fecha_caducidad: fechaCaducidad,
+    activo: activo
   };
-
-  sendCardToServer(card);
-}
-
-/**
- * Sincroniza una fila modificada de la pestaña "OT SHOPIFY"
- */
-function syncShopifyRow(sheet, row) {
-  const vals = sheet.getRange(row, 1, 1, 9).getValues()[0];
-  const nombre = cleanStr(vals[1]);
-  if (!nombre) return;
-
-  const card = {
-    id: "SHOPIFY-" + row,
-    tipo_tarjeta_regalo: "SHOPIFY",
-    nombre_compra: nombre,
-    nombre_comensal: null,
-    telefono_compra: null,
-    codigo_tarjeta_regalo: cleanStr(vals[2]),
-    importe: cleanNumber(vals[3]),
-    observaciones: cleanStr(vals[4]),
-    fecha_compra: formatDate(vals[5]),
-    creada_en_revo: cleanBool(vals[6]),
-    entregado: null,
-    fecha_entrega: null,
-    pagado: null,
-    fecha_pago: null,
-    usado: cleanBool(vals[7]),
-    fecha_caducidad: formatDate(vals[8])
-  };
-
-  sendCardToServer(card);
 }
 
 /**
@@ -153,104 +137,44 @@ function sendCardToServer(card) {
 
   try {
     const response = UrlFetchApp.fetch(SERVER_URL, options);
-    Logger.log("Sincronización enviada. Respuesta: " + response.getContentText());
+    Logger.log("Sincronización enviada (" + card.id + "). Respuesta: " + response.getContentText());
   } catch (err) {
     Logger.log("Error enviando webhook: " + err.toString());
   }
 }
 
 /**
- * Función manual para sincronizar todo el documento de golpe si se desea
+ * Sincronización completa manual de todas las pestañas de una sola vez
  */
 function syncAllSheetsManual() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const allCards = [];
-  let autoId = 1;
+  const sheets = ["OT PERSONALIZADAS", "OT WIX", "OT SHOPIFY"];
 
-  // 1. OT PERSONALIZADAS
-  const sheetP = ss.getSheetByName("OT PERSONALIZADAS");
-  if (sheetP) {
-    const dataP = sheetP.getDataRange().getValues();
-    for (let r = 2; r < dataP.length; r++) {
-      const row = dataP[r];
-      const nombre = cleanStr(row[1]);
+  sheets.forEach(sheetName => {
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) return;
+
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 3) return;
+
+    const headers = data[1]; // Fila 2
+    for (let r = 2; r < data.length; r++) {
+      const rowVals = data[r];
+      const map = {};
+      for (let c = 0; c < headers.length; c++) {
+        const h = String(headers[c] || "").trim().toUpperCase();
+        if (h) map[h] = rowVals[c];
+      }
+
+      const nombre = cleanStr(map["NOMBRE"] || map["DATOS COMPRADOR"]);
       if (!nombre) continue;
-      allCards.push({
-        id: String(autoId++),
-        nombre_compra: nombre,
-        telefono_compra: cleanStr(row[2]),
-        nombre_comensal: cleanStr(row[3]),
-        codigo_tarjeta_regalo: cleanStr(row[4]),
-        importe: cleanNumber(row[5]),
-        observaciones: cleanStr(row[6]),
-        creada_en_revo: null,
-        fecha_compra: null,
-        entregado: cleanBool(row[7]),
-        fecha_entrega: formatDate(row[8]),
-        pagado: cleanBool(row[9]),
-        fecha_pago: formatDate(row[10]),
-        usado: cleanBool(row[11]),
-        fecha_caducidad: formatDate(row[12])
-      });
-    }
-  }
 
-  // 2. OT WIX
-  const sheetW = ss.getSheetByName("OT WIX");
-  if (sheetW) {
-    const dataW = sheetW.getDataRange().getValues();
-    for (let r = 2; r < dataW.length; r++) {
-      const row = dataW[r];
-      const nombre = cleanStr(row[1]);
-      if (!nombre) continue;
-      allCards.push({
-        id: String(autoId++),
-        nombre_compra: nombre,
-        nombre_comensal: null,
-        telefono_compra: cleanStr(row[2]),
-        codigo_tarjeta_regalo: cleanStr(row[4]),
-        importe: cleanNumber(row[5]),
-        observaciones: cleanStr(row[6]),
-        fecha_compra: formatDate(row[7]),
-        creada_en_revo: cleanBool(row[8]),
-        entregado: null,
-        fecha_entrega: null,
-        pagado: null,
-        fecha_pago: null,
-        usado: cleanBool(row[9]),
-        fecha_caducidad: formatDate(row[10])
-      });
+      allCards.push(buildCardFromMap(map, sheetName, r + 1));
     }
-  }
+  });
 
-  // 3. OT SHOPIFY
-  const sheetS = ss.getSheetByName("OT SHOPIFY");
-  if (sheetS) {
-    const dataS = sheetS.getDataRange().getValues();
-    for (let r = 2; r < dataS.length; r++) {
-      const row = dataS[r];
-      const nombre = cleanStr(row[1]);
-      if (!nombre) continue;
-      allCards.push({
-        id: String(autoId++),
-        nombre_compra: nombre,
-        nombre_comensal: null,
-        telefono_compra: null,
-        codigo_tarjeta_regalo: cleanStr(row[2]),
-        importe: cleanNumber(row[3]),
-        observaciones: cleanStr(row[4]),
-        fecha_compra: formatDate(row[5]),
-        creada_en_revo: cleanBool(row[6]),
-        entregado: null,
-        fecha_entrega: null,
-        pagado: null,
-        fecha_pago: null,
-        usado: cleanBool(row[7]),
-        fecha_caducidad: formatDate(row[8])
-      });
-    }
-  }
-
+  Logger.log("Enviando lote de " + allCards.length + " tarjetas al servidor...");
   const payload = JSON.stringify({
     secret: SECRET,
     fullSyncList: allCards
@@ -263,42 +187,54 @@ function syncAllSheetsManual() {
     muteHttpExceptions: true
   };
 
-  const res = UrlFetchApp.fetch(SERVER_URL, options);
-  SpreadsheetApp.getUi().alert("Sincronización completada: " + res.getContentText());
+  try {
+    const response = UrlFetchApp.fetch(SERVER_URL, options);
+    Logger.log("Resultado sincronización completa: " + response.getContentText());
+  } catch (err) {
+    Logger.log("Error en sincronización completa: " + err.toString());
+  }
 }
 
-// Helpers de formateo
+// ==========================================
+// UTILIDADES DE LIMPIEZA DE DATOS
+// ==========================================
+
 function cleanStr(val) {
   if (val === null || val === undefined) return null;
-  const s = String(val).trim();
-  return (s === "" || s === "-" || s.toLowerCase() === "none") ? null : s;
+  let s = String(val).trim();
+  if (s.endsWith(".0") && s.slice(0, -2).match(/^\d+$/)) {
+    s = s.slice(0, -2);
+  }
+  if (s === "" || s === "-" || s === "?" || s.toLowerCase() === "none") return null;
+  return s;
+}
+
+function cleanBool(val) {
+  if (val === null || val === undefined) return false;
+  if (typeof val === "boolean") return val;
+  if (typeof val === "number") return val === 1;
+  const s = String(val).trim().toLowerCase();
+  return ["true", "1", "si", "sí", "s", "verdadero", "x"].includes(s);
 }
 
 function cleanNumber(val) {
-  if (val === null || val === undefined || val === "") return null;
+  if (val === null || val === undefined) return null;
   if (typeof val === "number") return val;
-  const s = String(val).replace("€", "").replace(",", ".").trim();
+  let s = String(val).replace("€", "").replace(/\s/g, "").replace(",", ".").trim();
   const num = parseFloat(s);
   return isNaN(num) ? null : num;
 }
 
-function cleanBool(val) {
-  if (val === null || val === undefined || val === "") return null;
-  if (typeof val === "boolean") return val;
-  const s = String(val).toLowerCase().trim();
-  if (s === "true" || s === "1" || s === "si" || s === "sí" || s === "verdadero") return true;
-  if (s === "false" || s === "0" || s === "no" || s === "falso") return false;
-  return null;
-}
-
 function formatDate(val) {
   if (!val) return null;
-  if (val instanceof Date) {
-    const d = String(val.getDate()).padStart(2, "0");
-    const m = String(val.getMonth() + 1).padStart(2, "0");
-    const y = val.getFullYear();
-    return d + "/" + m + "/" + y;
+  if (Object.prototype.toString.call(val) === "[object Date]") {
+    if (isNaN(val.getTime())) return null;
+    const day = ("0" + val.getDate()).slice(-2);
+    const month = ("0" + (val.getMonth() + 1)).slice(-2);
+    const year = val.getFullYear();
+    return day + "/" + month + "/" + year;
   }
-  const s = String(val).trim();
-  return (s === "" || s === "-") ? null : s;
+  const s = cleanStr(val);
+  if (!s) return null;
+  return s;
 }
