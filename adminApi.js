@@ -940,6 +940,29 @@ router.post('/sync-giftcards-webhook', async (req, res) => {
             return (s === '' || s === '-' || s.toLowerCase() === 'none') ? null : s;
         };
 
+        function determineCardStatus(usado, fechaCaducidad) {
+            if (usado === true) return 'CONSUMIDA';
+            if (fechaCaducidad) {
+                const clean = fechaCaducidad.trim();
+                let d = null;
+                const dmyMatch = clean.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                if (dmyMatch) {
+                    d = new Date(parseInt(dmyMatch[3], 10), parseInt(dmyMatch[2], 10) - 1, parseInt(dmyMatch[1], 10), 23, 59, 59);
+                } else {
+                    const ymdMatch = clean.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+                    if (ymdMatch) {
+                        d = new Date(parseInt(ymdMatch[1], 10), parseInt(ymdMatch[2], 10) - 1, parseInt(ymdMatch[3], 10), 23, 59, 59);
+                    }
+                }
+                if (d && !isNaN(d.getTime())) {
+                    if (new Date().getTime() > d.getTime()) {
+                        return 'CADUCADA';
+                    }
+                }
+            }
+            return 'DISPONIBLE';
+        }
+
         if (fullSyncList && Array.isArray(fullSyncList)) {
             console.log(`📥 Recibida lista completa de ${fullSyncList.length} tarjetas desde Google Apps Script...`);
             if (pool) {
@@ -961,12 +984,12 @@ router.post('/sync-giftcards-webhook', async (req, res) => {
                     const idStr = String(c.id);
                     const codigoClean = cleanVal(c.codigo_tarjeta_regalo || c.codigo);
                     const codigoStr = codigoClean ? codigoClean : (`SINC-${idStr}`);
-                    const estado = c.usado === true ? 'CONSUMIDA' : 'DISPONIBLE';
                     let fCad = cleanVal(c.fecha_caducidad);
                     if (!fCad) {
                         const baseDate = cleanVal(c.fecha_compra) || cleanVal(c.fecha_pago) || cleanVal(c.fecha_entrega);
                         if (baseDate) fCad = calculateSixMonthsFromDateStr(baseDate);
                     }
+                    const estado = determineCardStatus(c.usado, fCad);
                     await pool.query(insertQ, [
                         idStr,
                         codigoStr,
@@ -995,12 +1018,12 @@ router.post('/sync-giftcards-webhook', async (req, res) => {
             const rawCode = cleanVal(card.codigo_tarjeta_regalo || card.codigo);
             const idStr = String(card.id || rawCode || ('TR-' + Date.now()));
             const codigoStr = rawCode ? rawCode : (`SINC-${idStr}`);
-            const estado = card.usado === true ? 'CONSUMIDA' : 'DISPONIBLE';
             let fCad = cleanVal(card.fecha_caducidad);
             if (!fCad) {
                 const baseDate = cleanVal(card.fecha_compra) || cleanVal(card.fecha_pago) || cleanVal(card.fecha_entrega);
                 if (baseDate) fCad = calculateSixMonthsFromDateStr(baseDate);
             }
+            const estado = determineCardStatus(card.usado, fCad);
 
             if (action === 'delete') {
                 if (pool) {
