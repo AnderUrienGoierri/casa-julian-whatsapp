@@ -125,15 +125,39 @@ if (process.env.DATABASE_URL) {
         );
 
         CREATE TABLE IF NOT EXISTS tarjetas_regalo (
-            id VARCHAR(50) PRIMARY KEY,
-            codigo VARCHAR(50) UNIQUE NOT NULL,
-            comprador_nombre VARCHAR(100),
-            comprador_telefono VARCHAR(20),
-            fecha_compra VARCHAR(20),
-            fecha_caducidad VARCHAR(20),
-            estado VARCHAR(20) DEFAULT 'ACTIVA',
+            id VARCHAR(100) PRIMARY KEY,
+            codigo VARCHAR(150),
+            comprador_nombre VARCHAR(255),
+            comprador_telefono VARCHAR(100),
+            fecha_compra VARCHAR(50),
+            fecha_caducidad VARCHAR(50),
+            estado VARCHAR(50) DEFAULT 'DISPONIBLE',
+            nombre_compra VARCHAR(255),
+            nombre_comensal VARCHAR(255),
+            telefono_compra VARCHAR(100),
+            codigo_tarjeta_regalo VARCHAR(150),
+            importe NUMERIC(10,2),
+            observaciones TEXT,
+            creada_en_revo BOOLEAN,
+            entregado BOOLEAN,
+            fecha_entrega VARCHAR(50),
+            pagado BOOLEAN,
+            fecha_pago VARCHAR(50),
+            usado BOOLEAN,
             fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS nombre_compra VARCHAR(255);
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS nombre_comensal VARCHAR(255);
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS telefono_compra VARCHAR(100);
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS codigo_tarjeta_regalo VARCHAR(150);
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS importe NUMERIC(10,2);
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS observaciones TEXT;
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS creada_en_revo BOOLEAN;
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS entregado BOOLEAN;
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS fecha_entrega VARCHAR(50);
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS pagado BOOLEAN;
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS fecha_pago VARCHAR(50);
+        ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS usado BOOLEAN;
         ALTER TABLE tarjetas_regalo ADD COLUMN IF NOT EXISTS fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid');
         ALTER TABLE tarjetas_regalo ALTER COLUMN fecha_ultima_modificacion SET DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid');
 

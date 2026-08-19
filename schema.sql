@@ -47,15 +47,26 @@ CREATE TABLE IF NOT EXISTS lista_espera (
 );
 
 CREATE TABLE IF NOT EXISTS tarjetas_regalo (
-    id VARCHAR(50) PRIMARY KEY,
-    codigo VARCHAR(50) UNIQUE NOT NULL,
-    comprador_nombre VARCHAR(100),
-    comprador_telefono VARCHAR(20),
-    fecha_compra VARCHAR(20),
-    fecha_caducidad VARCHAR(20),
-    estado VARCHAR(20) DEFAULT 'ACTIVA',
-    fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    id VARCHAR(100) PRIMARY KEY,
+    codigo VARCHAR(150),
+    comprador_nombre VARCHAR(255),
+    comprador_telefono VARCHAR(100),
+    fecha_compra VARCHAR(50),
+    fecha_caducidad VARCHAR(50),
+    estado VARCHAR(50) DEFAULT 'DISPONIBLE',
+    nombre_compra VARCHAR(255),
+    nombre_comensal VARCHAR(255),
+    telefono_compra VARCHAR(100),
+    codigo_tarjeta_regalo VARCHAR(150),
+    importe NUMERIC(10,2),
+    observaciones TEXT,
+    creada_en_revo BOOLEAN,
+    entregado BOOLEAN,
+    fecha_entrega VARCHAR(50),
+    pagado BOOLEAN,
+    fecha_pago VARCHAR(50),
+    usado BOOLEAN,
+    fecha_ultima_modificacion TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
 );
 
 -- ÍNDICES DE ALTO RENDIMIENTO PARA CONSULTAS RÁPIDAS

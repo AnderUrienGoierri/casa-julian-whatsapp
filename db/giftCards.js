@@ -100,9 +100,12 @@ async function getGiftCard(criterio) {
     if (pool) {
         try {
             const res = await pool.query(
-                `SELECT id, codigo, comprador_nombre, comprador_telefono, fecha_compra, fecha_caducidad, estado, fecha_ultima_modificacion 
+                `SELECT * 
                  FROM tarjetas_regalo 
-                 WHERE UPPER(codigo) = $1 OR UPPER(id) = $1 LIMIT 1`,
+                 WHERE UPPER(codigo) = $1 
+                    OR UPPER(codigo_tarjeta_regalo) = $1 
+                    OR UPPER(id) = $1 
+                 LIMIT 1`,
                 [search]
             );
             if (res && res.rows && res.rows.length > 0) {
