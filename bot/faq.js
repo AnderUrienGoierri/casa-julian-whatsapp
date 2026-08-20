@@ -50,7 +50,11 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
 
     // Opción 7: Regalar Menú Tradición
     if (faqNum === '7') {
-        const templateRes = await sendTemplateMessage(from, 'comprar_menu_tradicion', lang);
+        let templateRes = await sendTemplateMessage(from, 'buy_gift_card', lang);
+        if (!templateRes || !templateRes.messages) {
+            templateRes = await sendTemplateMessage(from, 'comprar_menu_tradicion', lang);
+        }
+
         if (!templateRes || !templateRes.messages) {
             const responseMsg = getTranslation(lang, 'faq7Msg');
             await sendMessage(from, responseMsg);
