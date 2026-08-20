@@ -665,9 +665,9 @@ async function handleButtonResponse(from, buttonId) {
             if (!templateRes || !templateRes.messages) {
                 let webMsg = `📅 *SOLICITAR RESERVA / LISTA DE ESPERA ONLINE*\n\nPara realizar tu reserva directamente en la web oficial de Casa Julián (o inscribirte en la lista de espera si la fecha deseada está completa), accede a través del siguiente enlace oficial:\n\n🌐 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
                 if (lang === 'eu') {
-                    webMsg = `📅 *ONLINE ERRESERBA / ITXARON-ZERRENDA*\n\nZure erreserba zuzenean Casa Julián-eko webgune ofizialean egiteko (edo itxaron-zerrendan izena emateko nahi duzun data beteta badago), sartu webgune ofizialean:\n\n🌐 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+                    webMsg = `📅 *ONLINE ERRESERBA / ITXARON-ZERRENDA*\n\nZure erreserba zuzenean Casa Julián-eko webgune ofizialean egiteko (edo itxaron-zerrendan izena emateko nahi duzun data beteta badago), sartu webgune ofizialean:\n\n🌐 https://casajulian.eus/eu/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
                 } else if (lang === 'en') {
-                    webMsg = `📅 *ONLINE BOOKING / WAITLIST*\n\nTo make your reservation directly on Casa Julián's official website (or join the waitlist if your preferred date is full), please visit the official link:\n\n🌐 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
+                    webMsg = `📅 *ONLINE BOOKING / WAITLIST*\n\nTo make your reservation directly on Casa Julián's official website (or join the waitlist if your preferred date is full), please visit the official link:\n\n🌐 https://casajulian.eus/en/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
                 }
                 await sendMessage(from, webMsg);
             }
