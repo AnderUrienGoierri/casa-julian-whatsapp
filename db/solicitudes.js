@@ -35,11 +35,11 @@ function getCategoryTagInfo(tipoAccion, datosDetallados) {
     const tipo = (tipoAccion || '').toUpperCase();
     const datos = (datosDetallados || '').toUpperCase();
 
-    // 1. Tarjeta Regalo / Menú Tradición
-    if (tipo.includes('TRADICIÓN') || tipo.includes('TRADICION') || tipo.includes('REGALO')) {
+    // 1. Tarjeta Regalo / Menú Tradición / Tarjetas Inactivas
+    if (tipo.includes('TRADICIÓN') || tipo.includes('TRADICION') || tipo.includes('REGALO') || tipo.includes('TARJETA')) {
         return {
             key: 'reservas_menu_tradicion',
-            label: '🎁 Reservas Menú Tradición',
+            label: '🎁 Menú Tradición / Tarjeta Regalo',
             color: '#10b981',
             bg: 'rgba(16, 185, 129, 0.15)',
             badgeClass: 'badge-tradicion'
@@ -80,7 +80,7 @@ function getCategoryTagInfo(tipoAccion, datosDetallados) {
     }
 
     // 5. Consultas Abiertas / Casuísticas Especiales
-    if (tipo.includes('CONSULTA') || tipo.includes('CASUÍSTICA') || tipo.includes('CASUISTICA') || tipo.includes('PREGUNTA')) {
+    if (tipo.includes('CONSULTA') || tipo.includes('CASUÍSTICA') || tipo.includes('CASUISTICA') || tipo.includes('PREGUNTA') || tipo.includes('ALERTA')) {
         return {
             key: 'consulta_abierta',
             label: '💬 Consultas Abiertas',
@@ -101,13 +101,13 @@ function getCategoryTagInfo(tipoAccion, datosDetallados) {
         };
     }
 
-    // 7. Default / Reserva Online
+    // 7. Default / Solicitud General
     return {
-        key: 'reserva_online',
-        label: '🔴 Reserva Online',
-        color: '#dc2626',
-        bg: 'rgba(220, 38, 38, 0.15)',
-        badgeClass: 'badge-reserva'
+        key: 'consulta_abierta',
+        label: '💬 Consultas Abiertas',
+        color: '#f59e0b',
+        bg: 'rgba(245, 158, 11, 0.15)',
+        badgeClass: 'badge-consulta'
     };
 }
 
