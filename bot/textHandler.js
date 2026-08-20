@@ -75,13 +75,47 @@ async function handleTextMessage(from, text) {
     const lang = userLanguages.get(from) || 'es';
     const cleanText = text.trim().toLowerCase();
 
-    // 1. Interceptador de Saludo / Inicio
+    // 1. Interceptador de Cambio Explícito de Idioma
+    const isLanguageChange = [
+        'idioma', 'idiomas', 'hizkuntza', 'hizkuntzak', 'language', 'languages', 'lang', 'lenguaje', 'idiom',
+        'español', 'espanol', 'castellano', 'spanish', 'euskara', 'euskera', 'basque', 'english', 'ingles', 'inglés'
+    ].some(k => cleanText === k || cleanText.startsWith(k + ' '));
+
+    if (isLanguageChange) {
+        if (['1', 'es', 'español', 'espanol', 'castellano', 'spanish'].includes(cleanText)) {
+            userLanguages.set(from, 'es');
+            userStates.set(from, { step: 'select_location', data: {} });
+            await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+            return;
+        }
+        if (['2', 'eu', 'euskara', 'euskera', 'basque'].includes(cleanText)) {
+            userLanguages.set(from, 'eu');
+            userStates.set(from, { step: 'select_location', data: {} });
+            await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+            return;
+        }
+        if (['3', 'en', 'english', 'ingles', 'inglés'].includes(cleanText)) {
+            userLanguages.set(from, 'en');
+            userStates.set(from, { step: 'select_location', data: {} });
+            await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+            return;
+        }
+
+        userStates.delete(from);
+        await sendLanguageMenu(from, userLanguages, userStates);
+        return;
+    }
+
+    // 2. Interceptador de Saludo / Inicio (Mantiene el idioma si ya lo eligió)
     const isGreeting = ['hola', 'kaixo', 'hello', 'hi', 'bonjour', 'hallo', 'buenos dias', 'buenos días', 'buenas tardes', 'buenas noches', 'egun on', 'arratsalde on', 'gabon', 'start', 'inicio', 'empezar', 'menu', 'menú', 'volver', 'home', 'reiniciar', 'reset', 'saludo'].some(k => cleanText === k || cleanText.startsWith(k + ' '));
 
     if (isGreeting) {
         userStates.delete(from);
-        userLocations.delete(from);
-        await sendLanguageMenu(from, userLanguages, userStates);
+        if (userLanguages.has(from)) {
+            await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
+        } else {
+            await sendLanguageMenu(from, userLanguages, userStates);
+        }
         return;
     }
 
