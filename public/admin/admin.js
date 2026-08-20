@@ -2406,8 +2406,12 @@ document.addEventListener('DOMContentLoaded', () => {
         historyModal.style.display = 'flex';
 
         try {
+            const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
             const res = await fetch(`/api/admin/solicitudes/history/${cleanPhone}`, {
-                headers: { 'x-admin-token': adminToken }
+                headers: { 
+                    'x-admin-token': currentToken,
+                    'Authorization': `Bearer ${currentToken}`
+                }
             });
             const data = await res.json();
             const history = data.history || [];

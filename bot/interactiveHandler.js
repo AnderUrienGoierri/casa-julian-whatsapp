@@ -792,6 +792,7 @@ async function handleButtonResponse(from, buttonId) {
             const state = userStates.get(from) || { data: {} };
             state.data.menuTrad = state.data.menuTrad || {};
             const currentCards = state.data.menuTrad.cards || [];
+            
 
             if (currentCards.length >= 3) {
                 await sendMessage(from, getTranslation(lang, 'menuTradMaxTableCardsNotice'));
