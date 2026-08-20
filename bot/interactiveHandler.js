@@ -761,13 +761,23 @@ async function handleButtonResponse(from, buttonId) {
                 ];
                 await sendInteractiveButtons(from, promptBody, buttons);
             } else {
-                let invalidReason = `⚠️ Esta tarjeta regalo no es válida para reservar porque no se encuentra activa (${cardStatus}). Si tienes cualquier duda, por favor contacta con recepción.`;
-                if (lang === 'eu') invalidReason = `⚠️ Opari-txartel hau ez da baliagarria erreserba egiteko ez baitago aktibo (${cardStatus}). Zalantzarik izanez gero, jarri harremanetan harrerarekin.`;
-                else if (lang === 'en') invalidReason = `⚠️ This gift card is not valid for booking as it is inactive (${cardStatus}). If you have any questions, please contact reception.`;
-                
-                await sendMessage(from, invalidReason);
-                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                userStates.delete(from);
+                let invalidReason = `⚠️ Esta tarjeta regalo no se encuentra activa (${cardStatus}).\n\nGracias por contactar con Casa Julián. Si deseas realizar otra consulta o gestionar tu reserva, elige una de las siguientes opciones:`;
+                if (lang === 'eu') {
+                    invalidReason = `⚠️ Opari-txartel hau ez dago aktibo (${cardStatus}).\n\nEskerrik asko Casa Juliánekin harremanetan jartzeagatik. Beste kontsultaren bat egin edo zure erreserba kudeatu nahi baduzu, aukeratu aukera hauetako bat:`;
+                } else if (lang === 'en') {
+                    invalidReason = `⚠️ This gift card is not active (${cardStatus}).\n\nThank you for contacting Casa Julián. If you would like to make another inquiry or manage your reservation, please choose an option below:`;
+                }
+
+                const btnFinishTitle = (lang === 'eu' ? 'Amaitu' : (lang === 'en' ? 'Finish' : 'Terminar'));
+                const btnMainMenuTitle = (lang === 'eu' ? 'Menu Nagusia' : (lang === 'en' ? 'Main Menu' : 'Menú principal'));
+
+                const flowButtons = [
+                    { id: 'btn_flow_finish', title: btnFinishTitle.slice(0, 20) },
+                    { id: 'btn_flow_main_menu', title: btnMainMenuTitle.slice(0, 20) }
+                ];
+
+                await sendInteractiveButtons(from, invalidReason, flowButtons);
+                userStates.set(from, { step: 'post_request_options', data: {} });
             }
             break;
         }

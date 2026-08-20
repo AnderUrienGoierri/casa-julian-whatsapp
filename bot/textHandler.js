@@ -1341,23 +1341,30 @@ async function handleTextMessage(from, text) {
                     ];
                     await sendInteractiveButtons(from, promptBody, buttons);
                 } else {
-                    let invalidReason = `⚠️ Esta tarjeta regalo no es válida para realizar reservas porque no se encuentra activa (${estadoTexto}).\n\nPor favor, introduce otro número de tarjeta regalo o contacta con recepción si crees que es un error:`;
-                    if (lang === 'eu') invalidReason = `⚠️ Opari-txartel hau ez da baliagarria erreserbak egiteko ez baitago aktibo (${estadoTexto}).\n\nMesedez, sartu beste opari-txartel zenbaki bat edo jarri harremanetan harrerarekin akats bat dela uste baduzu:`;
-                    else if (lang === 'en') invalidReason = `⚠️ This gift card is not valid for bookings as it is not active (${estadoTexto}).\n\nPlease enter another gift card number or contact reception if you think this is a mistake:`;
-                    
-                    await sendMessage(from, invalidReason);
+                    let invalidReason = `⚠️ Esta tarjeta regalo no se encuentra activa (${estadoTexto}).\n\nGracias por contactar con Casa Julián. Si deseas realizar otra consulta o gestionar tu reserva, elige una de las siguientes opciones:`;
+                    if (lang === 'eu') {
+                        invalidReason = `⚠️ Opari-txartel hau ez dago aktibo (${estadoTexto}).\n\nEskerrik asko Casa Juliánekin harremanetan jartzeagatik. Beste kontsultaren bat egin edo zure erreserba kudeatu nahi baduzu, aukeratu aukera hauetako bat:`;
+                    } else if (lang === 'en') {
+                        invalidReason = `⚠️ This gift card is not active (${estadoTexto}).\n\nThank you for contacting Casa Julián. If you would like to make another inquiry or manage your reservation, please choose an option below:`;
+                    }
 
-                    // Mantener el estado para permitir introducir otro número de tarjeta
-                    const currentStateVal = userStates.get(from) || { data: {} };
-                    currentStateVal.step = 'menu_tradicion_formulario_caducidad';
-                    userStates.set(from, currentStateVal);
+                    const btnFinishTitle = (lang === 'eu' ? 'Amaitu' : (lang === 'en' ? 'Finish' : 'Terminar'));
+                    const btnMainMenuTitle = (lang === 'eu' ? 'Menu Nagusia' : (lang === 'en' ? 'Main Menu' : 'Menú principal'));
+
+                    const flowButtons = [
+                        { id: 'btn_flow_finish', title: btnFinishTitle.slice(0, 20) },
+                        { id: 'btn_flow_main_menu', title: btnMainMenuTitle.slice(0, 20) }
+                    ];
+
+                    await sendInteractiveButtons(from, invalidReason, flowButtons);
+                    userStates.set(from, { step: 'post_request_options', data: {} });
 
                     // Alerta interna automática a recepción por intento de uso de tarjeta no válida
                     try {
                         await sendInternalStaffAlertInSpanish(
                             'INTENTO DE USO DE TARJETA REGALO NO VÁLIDA / INACTIVA',
                             from,
-                            `⚠️ *Cliente intentó consultar/usar tarjeta no válida:*\n• *Código introducido:* ${card.codigo}\n• *Estado:* ${estadoTexto}\n• *Activo:* NO\n• *Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n• *Comprador:* ${card.nombre_compra || 'No especificado'}\n• *Teléfono Cliente:* +${from}`,
+                            `⚠️ *Cliente consultó tarjeta no válida/inactiva:*\n• *Código introducido:* ${card.codigo}\n• *Estado:* ${estadoTexto}\n• *Activo:* NO\n• *Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n• *Comprador:* ${nombreTitular}\n• *Teléfono Cliente:* +${from}`,
                             null,
                             from
                         );
