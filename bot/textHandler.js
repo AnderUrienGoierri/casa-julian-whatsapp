@@ -1345,7 +1345,7 @@ async function handleTextMessage(from, text) {
                 } else {
                     let invalidReason = `⚠️ Esta tarjeta regalo no se encuentra activa.\n\nGracias por contactar con Casa Julián. Si deseas realizar otra consulta o gestionar tu reserva, elige una de las siguientes opciones:`;
                     if (lang === 'eu') {
-                        invalidReason = `⚠️ Opari-txartel hau ez dago aktibo.\n\nEskerrik asko Casa Juliánekin harremanetan jartzeagatik. Beste kontsultaren bat egin edo zure erreserba kudeatu nahi baduzu, aukeratu aukera hauetako bat:`;
+                        invalidReason = `⚠️ Opari-txartel hau ez dago aktibo.\n\nEskerrik asko Casa Julianekin harremanetan jartzeagatik. Beste kontsultaren bat egin edo zure erreserba kudeatu nahi baduzu, aukeratu aukera hauetako bat:`;
                     } else if (lang === 'en') {
                         invalidReason = `⚠️ This gift card is not active.\n\nThank you for contacting Casa Julián. If you would like to make another inquiry or manage your reservation, please choose an option below:`;
                     }
