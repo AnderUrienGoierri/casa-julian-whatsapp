@@ -268,17 +268,10 @@ async function sendTemplateMessage(to, templateName, languageCode = 'es', compon
         return await trySend(languageCode);
     } catch (error) {
         const errCode = error.response?.data?.error?.code;
-        // Si el idioma solicitado no existe en Meta (#132001), intentar fallback a 'es', 'es_ES' o 'en'
+        // Si el idioma solicitado no existe en Meta (#132001), no hacer fallback silencioso a español
+        // para que el llamador pueda enviar el mensaje de texto enriquecido en el idioma real del cliente.
         if (errCode === 132001) {
-            const fallbackCodes = ['es', 'es_ES', 'en'].filter(c => c !== languageCode);
-            for (const fallbackCode of fallbackCodes) {
-                try {
-                    return await trySend(fallbackCode);
-                } catch (fallbackError) {
-                    // Continuar probando siguientes fallbacks
-                }
-            }
-            console.error(`⚠️ No se encontró la plantilla ${templateName} en ${languageCode} ni en fallbacks (es, en).`);
+            console.log(`ℹ️ La plantilla ${templateName} no está disponible en el idioma "${languageCode}" en Meta. Se activará el mensaje formateado en ${languageCode}.`);
         } else {
             console.error("Error enviando plantilla de WhatsApp:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
         }

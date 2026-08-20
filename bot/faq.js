@@ -39,9 +39,9 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
         if (!templateRes || !templateRes.messages) {
             let msg = `📜 *Carta & Precios - Asador Casa Julián de Tolosa*\n\nPuedes consultar nuestra carta completa y actualizada directamente en nuestra web oficial:\n\n🌐 https://casajulian.eus/#:~:text=CARTA`;
             if (lang === 'eu') {
-                msg = `📜 *Karta eta Prezioak - Tolosako Casa Julián Erretegia*\n\nGure karta eguneratua zuzenean webgune ofizialean kontsulta dezakezu:\n\n🌐 https://casajulian.eus/#:~:text=CARTA`;
+                msg = `📜 *Karta eta Prezioak - Tolosako Casa Julián Erretegia*\n\nGure karta eguneratua zuzenean webgune ofizialean kontsulta dezakezu:\n\n🌐 https://casajulian.eus/eu#:~:text=KARTA`;
             } else if (lang === 'en') {
-                msg = `📜 *Menu & Prices - Asador Casa Julián Tolosa*\n\nYou can view our full updated menu and prices directly on our official website:\n\n🌐 https://casajulian.eus/#:~:text=CARTA`;
+                msg = `📜 *Menu & Prices - Asador Casa Julián Tolosa*\n\nYou can view our full updated menu and prices directly on our official website:\n\n🌐 https://casajulian.eus/en#:~:text=MENU`;
             }
             await sendMessage(from, msg);
         }
