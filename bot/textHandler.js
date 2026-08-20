@@ -119,12 +119,19 @@ async function handleTextMessage(from, text) {
         return;
     }
 
-    // 2. Interceptador de Despedida / Finalización
-    const isFarewell = ['adios', 'adiós', 'agur', 'bye', 'goodbye', 'gracias', 'eskerrik asko', 'thank you', 'thanks', 'merci', 'danke', 'chao', 'chau', 'hasta luego', 'hasta pronto', 'salir', 'cancelar', 'finish', 'end'].some(k => cleanText === k || cleanText.startsWith(k + ' '));
+    // 3. Interceptador de Despedida / Finalización / Reinicio de Flujo
+    const isFarewell = [
+        'terminar', 'terminado', 'fin', 'finalizar', 'end', 'finish',
+        'bukatuta', 'amaitu', 'irten', 'agur', 'adios', 'adiós', 'bye', 'goodbye',
+        'borrar', 'ezabatu', 'cancelar', 'reset', 'reiniciar', 'salir',
+        'gracias', 'eskerrik asko', 'thank you', 'thanks', 'merci', 'danke',
+        'chao', 'chau', 'hasta luego', 'hasta pronto'
+    ].some(k => cleanText === k || cleanText.startsWith(k + ' '));
 
     if (isFarewell) {
         userStates.delete(from);
         userLocations.delete(from);
+        userLanguages.delete(from);
         await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
         return;
     }
