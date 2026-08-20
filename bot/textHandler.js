@@ -1311,6 +1311,8 @@ async function handleTextMessage(from, text) {
                 }
                 await sendMessage(from, msg);
 
+                const estadoTexto = card.estado || (esActiva ? 'ACTIVA' : 'INACTIVA');
+
                 if (esActiva) {
                     const currentStateVal = userStates.get(from) || { data: {} };
                     currentStateVal.data = currentStateVal.data || {};
