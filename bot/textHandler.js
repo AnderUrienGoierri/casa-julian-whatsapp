@@ -190,6 +190,18 @@ async function handleTextMessage(from, text) {
                     if (lang === 'eu') inactiveMsg = `⚠️ *${card.codigo}* opari-txartela ez dago *AKTIBO* une honetan. Mesedez, jarri harremanetan harrerarekin edo sartu beste kode bat:`;
                     else if (lang === 'en') inactiveMsg = `⚠️ Gift card *${card.codigo}* is currently *NOT ACTIVE*. Please contact reception or enter another code:`;
                     await sendMessage(from, inactiveMsg);
+
+                    try {
+                        await sendInternalStaffAlertInSpanish(
+                            'INTENTO DE RESERVA CON TARJETA REGALO INACTIVA',
+                            from,
+                            `⚠️ *Cliente intentó reservar con tarjeta inactiva:*\n• *Código:* ${card.codigo}\n• *Estado:* ${card.estado || 'INACTIVA'}\n• *Activo:* NO\n• *Comprador:* ${card.nombre_compra || 'No especificado'}\n• *Teléfono Cliente:* +${from}`,
+                            null,
+                            from
+                        );
+                    } catch (alertErr) {
+                        console.error("Error enviando alerta recepción:", alertErr.message);
+                    }
                     break;
                 }
 
@@ -218,6 +230,18 @@ async function handleTextMessage(from, text) {
                     }
 
                     await sendMessage(from, inactiveMsg);
+
+                    try {
+                        await sendInternalStaffAlertInSpanish(
+                            'INTENTO DE RESERVA CON TARJETA NO DISPONIBLE (' + statusUpper + ')',
+                            from,
+                            `⚠️ *Cliente intentó reservar con tarjeta no disponible:*\n• *Código:* ${card.codigo}\n• *Estado:* ${statusUpper}\n• *Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n• *Comprador:* ${card.nombre_compra || 'No especificado'}\n• *Teléfono Cliente:* +${from}`,
+                            null,
+                            from
+                        );
+                    } catch (alertErr) {
+                        console.error("Error enviando alerta recepción:", alertErr.message);
+                    }
                     break;
                 }
 
@@ -1282,6 +1306,19 @@ async function handleTextMessage(from, text) {
                     await sendMessage(from, invalidReason);
                     await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
                     userStates.delete(from);
+
+                    // Alerta interna automática a recepción por intento de uso de tarjeta no válida
+                    try {
+                        await sendInternalStaffAlertInSpanish(
+                            'INTENTO DE USO DE TARJETA REGALO NO VÁLIDA / INACTIVA',
+                            from,
+                            `⚠️ *Cliente intentó consultar/usar tarjeta no válida:*\n• *Código introducido:* ${card.codigo}\n• *Estado:* ${estadoTexto}\n• *Activo:* ${esActiva ? 'SÍ' : 'NO'}\n• *Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n• *Comprador:* ${card.nombre_compra || 'No especificado'}\n• *Teléfono Cliente:* +${from}`,
+                            null,
+                            from
+                        );
+                    } catch (alertErr) {
+                        console.error("Error enviando alerta a recepción por tarjeta inactiva:", alertErr.message);
+                    }
                 }
             } else {
                 let notFoundMsg = '';
@@ -1299,9 +1336,9 @@ async function handleTextMessage(from, text) {
 
                 try {
                     await sendInternalStaffAlertInSpanish(
-                        'CONSULTA CADUCIDAD TARJETA REGALO (NO ENCONTRADA)',
+                        'CONSULTA TARJETA REGALO NO ENCONTRADA EN SISTEMA',
                         from,
-                        `📄 *Código/Texto ingresado:* ${text}`,
+                        `📄 *Código/Texto no localizado:* ${text}\n• *Teléfono Cliente:* +${from}`,
                         null,
                         from
                     );
