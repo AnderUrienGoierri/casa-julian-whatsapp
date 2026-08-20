@@ -713,27 +713,26 @@ async function handleButtonResponse(from, buttonId) {
             const card = state.data?.menuTrad?.card || (state.data?.menuTrad?.cards && state.data.menuTrad.cards[0]);
             const cardCode = card ? card.codigo : 'MT-2026';
             const cardExpiry = card ? (card.fecha_caducidad || 'No especificada') : 'No especificada';
-            const esActiva = card ? (card.activo !== false && (card.estado === 'DISPONIBLE' || card.estado === 'ACTIVA')) : false;
-            const cardStatus = card ? (!esActiva ? (card.estado === 'CADUCADA' ? 'CADUCADA' : (card.estado === 'CONSUMIDA' ? 'CONSUMIDA' : 'INACTIVA')) : (card.estado || 'DISPONIBLE')) : 'INACTIVA';
+            const cardComprador = card ? (card.nombre_comensal || card.nombre_compra || 'No especificado') : 'No especificado';
 
             let cadMsg = '';
             if (lang === 'eu') {
                 cadMsg = `🎁 *OPARI-TXARTELAREN EGIAZTAPENA*\n\n` +
+                         `👤 *Izena:* ${cardComprador}\n` +
                          `✅ *Kodea:* ${cardCode}\n` +
                          `📅 *Iraungitze data:* ${cardExpiry}\n` +
-                         `📌 *Egoera:* ${cardStatus}\n` +
                          `⚡ *Aktibo:* ${esActiva ? 'BAI' : 'EZ'}`;
             } else if (lang === 'en') {
                 cadMsg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
+                         `👤 *Name:* ${cardComprador}\n` +
                          `✅ *Code:* ${cardCode}\n` +
                          `📅 *Expiration Date:* ${cardExpiry}\n` +
-                         `📌 *Status:* ${cardStatus}\n` +
                          `⚡ *Active:* ${esActiva ? 'YES' : 'NO'}`;
             } else {
                 cadMsg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
+                         `👤 *Nombre:* ${cardComprador}\n` +
                          `✅ *Código:* ${cardCode}\n` +
                          `📅 *Fecha de Caducidad:* ${cardExpiry}\n` +
-                         `📌 *Estado:* ${cardStatus}\n` +
                          `⚡ *Activo:* ${esActiva ? 'SÍ' : 'NO'}`;
             }
 

@@ -1247,25 +1247,25 @@ async function handleTextMessage(from, text) {
 
             if (card) {
                 const esActiva = (card.activo === true || card.activo === 'true' || card.activo === 1) && (card.estado === 'DISPONIBLE' || card.estado === 'ACTIVA');
-                const estadoTexto = !esActiva ? (card.activo === false ? 'INACTIVA' : (card.estado || 'INACTIVA')) : 'DISPONIBLE';
+                const nombreTitular = card.nombre_comensal || card.nombre_compra || 'No especificado';
                 let msg = '';
                 if (lang === 'eu') {
                     msg = `🎁 *OPARI-TXARTELAREN EGIAZTAPENA*\n\n` +
+                          `👤 *Izena:* ${nombreTitular}\n` +
                           `✅ *Kodea:* ${card.codigo}\n` +
                           `📅 *Iraungitze data:* ${card.fecha_caducidad || 'Zehaztu gabe'}\n` +
-                          `📌 *Egoera:* ${estadoTexto}\n` +
                           `⚡ *Aktibo:* ${esActiva ? 'BAI' : 'EZ'}`;
                 } else if (lang === 'en') {
                     msg = `🎁 *GIFT CARD VERIFICATION*\n\n` +
+                          `👤 *Name:* ${nombreTitular}\n` +
                           `✅ *Code:* ${card.codigo}\n` +
                           `📅 *Expiration Date:* ${card.fecha_caducidad || 'Not specified'}\n` +
-                          `📌 *Status:* ${estadoTexto}\n` +
                           `⚡ *Active:* ${esActiva ? 'YES' : 'NO'}`;
                 } else {
                     msg = `🎁 *VERIFICACIÓN DE TARJETA REGALO*\n\n` +
+                          `👤 *Nombre:* ${nombreTitular}\n` +
                           `✅ *Código:* ${card.codigo}\n` +
                           `📅 *Fecha de Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n` +
-                          `📌 *Estado:* ${estadoTexto}\n` +
                           `⚡ *Activo:* ${esActiva ? 'SÍ' : 'NO'}`;
                 }
                 await sendMessage(from, msg);
