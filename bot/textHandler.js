@@ -1243,38 +1243,46 @@ async function handleTextMessage(from, text) {
                           `📅 *Fecha de Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n` +
                           `📌 *Estado:* ${estadoTexto}\n` +
                           `⚡ *Activo:* ${esActiva ? 'SÍ' : 'NO'}`;
-                }
-
                 await sendMessage(from, msg);
 
-                const currentStateVal = userStates.get(from) || { data: {} };
-                currentStateVal.data = currentStateVal.data || {};
-                currentStateVal.data.menuTrad = currentStateVal.data.menuTrad || {};
-                currentStateVal.data.menuTrad.card = card;
-                currentStateVal.data.menuTrad.cards = [card];
-                currentStateVal.data.menuTrad.tarjeta = card.codigo;
-                currentStateVal.data.menuTrad.comensales = 2;
-                currentStateVal.step = 'menu_trad_after_caducidad_options';
-                userStates.set(from, currentStateVal);
+                if (esActiva && (card.estado === 'DISPONIBLE' || card.estado === 'ACTIVA')) {
+                    const currentStateVal = userStates.get(from) || { data: {} };
+                    currentStateVal.data = currentStateVal.data || {};
+                    currentStateVal.data.menuTrad = currentStateVal.data.menuTrad || {};
+                    currentStateVal.data.menuTrad.card = card;
+                    currentStateVal.data.menuTrad.cards = [card];
+                    currentStateVal.data.menuTrad.tarjeta = card.codigo;
+                    currentStateVal.data.menuTrad.comensales = 2;
+                    currentStateVal.step = 'menu_trad_after_caducidad_options';
+                    userStates.set(from, currentStateVal);
 
-                let promptBody = '';
-                let btnRes = '';
+                    let promptBody = '';
+                    let btnRes = '';
 
-                if (lang === 'eu') {
-                    promptBody = `¿Erreserba egin nahi duzu txartel honekin?`;
-                    btnRes = `📅 Erreserbatu`;                    
-                } else if (lang === 'en') {
-                    promptBody = `Would you like to book a table with this card?`;
-                    btnRes = `📅 Book Table`;
+                    if (lang === 'eu') {
+                        promptBody = `¿Erreserba egin nahi duzu txartel honekin?`;
+                        btnRes = `📅 Erreserbatu`;                    
+                    } else if (lang === 'en') {
+                        promptBody = `Would you like to book a table with this card?`;
+                        btnRes = `📅 Book Table`;
+                    } else {
+                        promptBody = `¿Deseas reservar tu mesa con esta tarjeta?`;
+                        btnRes = `📅 Reservar`;
+                    }
+
+                    const buttons = [
+                        { id: 'btn_card_gestion_reservar', title: btnRes.slice(0, 20) }
+                    ];
+                    await sendInteractiveButtons(from, promptBody, buttons);
                 } else {
-                    promptBody = `¿Deseas reservar tu mesa con esta tarjeta?`;
-                    btnRes = `📅 Reservar`;
+                    let invalidReason = `⚠️ Esta tarjeta regalo no es válida para realizar reservas porque no se encuentra activa (${estadoTexto}). Si necesitas ayuda, por favor contacta directamente con recepción.`;
+                    if (lang === 'eu') invalidReason = `⚠️ Opari-txartel hau ez da baliagarria erreserbak egiteko ez baitago aktibo (${estadoTexto}). Laguntzarik behar baduzu, jarri harremanetan harrerarekin.`;
+                    else if (lang === 'en') invalidReason = `⚠️ This gift card is not valid for bookings as it is not active (${estadoTexto}). If you need assistance, please contact reception.`;
+                    
+                    await sendMessage(from, invalidReason);
+                    await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
+                    userStates.delete(from);
                 }
-
-                const buttons = [
-                    { id: 'btn_card_gestion_reservar', title: btnRes.slice(0, 20) }
-                ];
-                await sendInteractiveButtons(from, promptBody, buttons);
             } else {
                 let notFoundMsg = '';
                 if (lang === 'eu') {
