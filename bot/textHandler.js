@@ -1246,8 +1246,8 @@ async function handleTextMessage(from, text) {
             const card = await db.getGiftCard(text);
 
             if (card) {
-                const esActiva = card.activo !== false;
-                const estadoTexto = !esActiva ? 'INACTIVA' : (card.estado || 'DISPONIBLE');
+                const esActiva = (card.activo === true || card.activo === 'true' || card.activo === 1) && (card.estado === 'DISPONIBLE' || card.estado === 'ACTIVA');
+                const estadoTexto = !esActiva ? (card.activo === false ? 'INACTIVA' : (card.estado || 'INACTIVA')) : 'DISPONIBLE';
                 let msg = '';
                 if (lang === 'eu') {
                     msg = `🎁 *OPARI-TXARTELAREN EGIAZTAPENA*\n\n` +
@@ -1267,9 +1267,10 @@ async function handleTextMessage(from, text) {
                           `📅 *Fecha de Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n` +
                           `📌 *Estado:* ${estadoTexto}\n` +
                           `⚡ *Activo:* ${esActiva ? 'SÍ' : 'NO'}`;
+                }
                 await sendMessage(from, msg);
 
-                if (esActiva && (card.estado === 'DISPONIBLE' || card.estado === 'ACTIVA')) {
+                if (esActiva) {
                     const currentStateVal = userStates.get(from) || { data: {} };
                     currentStateVal.data = currentStateVal.data || {};
                     currentStateVal.data.menuTrad = currentStateVal.data.menuTrad || {};
@@ -1299,20 +1300,23 @@ async function handleTextMessage(from, text) {
                     ];
                     await sendInteractiveButtons(from, promptBody, buttons);
                 } else {
-                    let invalidReason = `⚠️ Esta tarjeta regalo no es válida para realizar reservas porque no se encuentra activa (${estadoTexto}). Si necesitas ayuda, por favor contacta directamente con recepción.`;
-                    if (lang === 'eu') invalidReason = `⚠️ Opari-txartel hau ez da baliagarria erreserbak egiteko ez baitago aktibo (${estadoTexto}). Laguntzarik behar baduzu, jarri harremanetan harrerarekin.`;
-                    else if (lang === 'en') invalidReason = `⚠️ This gift card is not valid for bookings as it is not active (${estadoTexto}). If you need assistance, please contact reception.`;
+                    let invalidReason = `⚠️ Esta tarjeta regalo no es válida para realizar reservas porque no se encuentra activa (${estadoTexto}).\n\nPor favor, introduce otro número de tarjeta regalo o contacta con recepción si crees que es un error:`;
+                    if (lang === 'eu') invalidReason = `⚠️ Opari-txartel hau ez da baliagarria erreserbak egiteko ez baitago aktibo (${estadoTexto}).\n\nMesedez, sartu beste opari-txartel zenbaki bat edo jarri harremanetan harrerarekin akats bat dela uste baduzu:`;
+                    else if (lang === 'en') invalidReason = `⚠️ This gift card is not valid for bookings as it is not active (${estadoTexto}).\n\nPlease enter another gift card number or contact reception if you think this is a mistake:`;
                     
                     await sendMessage(from, invalidReason);
-                    await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                    userStates.delete(from);
+
+                    // Mantener el estado para permitir introducir otro número de tarjeta
+                    const currentStateVal = userStates.get(from) || { data: {} };
+                    currentStateVal.step = 'menu_tradicion_formulario_caducidad';
+                    userStates.set(from, currentStateVal);
 
                     // Alerta interna automática a recepción por intento de uso de tarjeta no válida
                     try {
                         await sendInternalStaffAlertInSpanish(
                             'INTENTO DE USO DE TARJETA REGALO NO VÁLIDA / INACTIVA',
                             from,
-                            `⚠️ *Cliente intentó consultar/usar tarjeta no válida:*\n• *Código introducido:* ${card.codigo}\n• *Estado:* ${estadoTexto}\n• *Activo:* ${esActiva ? 'SÍ' : 'NO'}\n• *Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n• *Comprador:* ${card.nombre_compra || 'No especificado'}\n• *Teléfono Cliente:* +${from}`,
+                            `⚠️ *Cliente intentó consultar/usar tarjeta no válida:*\n• *Código introducido:* ${card.codigo}\n• *Estado:* ${estadoTexto}\n• *Activo:* NO\n• *Caducidad:* ${card.fecha_caducidad || 'No especificada'}\n• *Comprador:* ${card.nombre_compra || 'No especificado'}\n• *Teléfono Cliente:* +${from}`,
                             null,
                             from
                         );
@@ -1323,16 +1327,19 @@ async function handleTextMessage(from, text) {
             } else {
                 let notFoundMsg = '';
                 if (lang === 'eu') {
-                    notFoundMsg = `⚠️ *Opari-txartela ez da sisteman aurkitu.* Ez dugu *"${text}"* kodearekin opari-txartel aktiborik aurkitu.\n\nGure taldeak zure kontsulta eskuz aztertuko du eta ahalik eta azkienez erantzungo dizu.`;
+                    notFoundMsg = `⚠️ *Opari-txartela ez da sisteman aurkitu.* Ez dugu *"${text}"* kodearekin opari-txartelik aurkitu.\n\nMesedez, egiaztatu zenbakia eta sartu beste kode bat jarraian:`;
                 } else if (lang === 'en') {
-                    notFoundMsg = `⚠️ *Gift card not found in system.* We could not locate an active card with code *"${text}"*.\n\nOur team will review your inquiry manually and reply as soon as possible.`;
+                    notFoundMsg = `⚠️ *Gift card not found in system.* We could not find a gift card with code *"${text}"*.\n\nPlease check the number and enter another code below:`;
                 } else {
-                    notFoundMsg = `⚠️ *Tarjeta regalo no encontrada en el sistema.* No hemos localizado ninguna tarjeta activa con el código *"${text}"*.\n\nNuestro equipo revisará su consulta manualmente y le responderá a la menor brevedad posible.`;
+                    notFoundMsg = `⚠️ *Tarjeta regalo no encontrada en el sistema.* No hemos localizado ninguna tarjeta con el código *"${text}"*.\n\nPor favor, comprueba el número e introduce otro código a continuación:`;
                 }
 
                 await sendMessage(from, notFoundMsg);
-                await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
-                userStates.delete(from);
+                
+                // Mantener el estado para que el cliente pueda reintentar
+                const currentStateVal = userStates.get(from) || { data: {} };
+                currentStateVal.step = 'menu_tradicion_formulario_caducidad';
+                userStates.set(from, currentStateVal);
 
                 try {
                     await sendInternalStaffAlertInSpanish(
