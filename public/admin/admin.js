@@ -195,15 +195,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Lista inicial garantizada de números silenciados (30 contactos oficiales)
+    const DEFAULT_INITIAL_SILENCED = [
+        { id: 1, telefono: "34633638732", nombre: "Maitines", categoria: "proveedor", notas: "Proveedor importado", activo: true },
+        { id: 2, telefono: "34664871950", nombre: "Ricardo Entretiempo", categoria: "proveedor", notas: "Proveedor importado", activo: true },
+        { id: 3, telefono: "34680872658", nombre: "Qooqer", categoria: "proveedor", notas: "Proveedor importado", activo: true },
+        { id: 4, telefono: "34661448834", nombre: "Inaxio Eztia", categoria: "proveedor", notas: "Proveedor importado", activo: true },
+        { id: 5, telefono: "34629471183", nombre: "Julien", categoria: "proveedor", notas: "Proveedor importado", activo: true },
+        { id: 6, telefono: "34676483584", nombre: "Ibon", categoria: "proveedor", notas: "Proveedor importado", activo: true },
+        { id: 7, telefono: "34608316238", nombre: "David Pallares", categoria: "proveedor", notas: "Proveedor importado", activo: true },
+        { id: 8, telefono: "34638729571", nombre: "Elisabet", categoria: "proveedor", notas: "Proveedor importado", activo: true },
+        { id: 9, telefono: "34659981881", nombre: "Xabi Gorrotxategi", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 10, telefono: "34667508313", nombre: "Orlando Calvo", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 11, telefono: "34636906232", nombre: "Imanol Iraola", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 12, telefono: "34608324424", nombre: "Gastroceramica", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 13, telefono: "34609139151", nombre: "Oscar", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 14, telefono: "34609951375", nombre: "Edit Tolosa&Co", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 15, telefono: "34634954081", nombre: "Aimar Arregi kaia Getaria", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 16, telefono: "34657790326", nombre: "Arrugado Studio", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 17, telefono: "34609348987", nombre: "Joan Ramon", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 18, telefono: "34690320349", nombre: "Florian", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 19, telefono: "34695786438", nombre: "Federico Giorgi", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 20, telefono: "34661852033", nombre: "Eli", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 21, telefono: "34676902263", nombre: "Jesus Mendoza", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 22, telefono: "34623212283", nombre: "Contacto", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 23, telefono: "34689408669", nombre: "Iztueta Baserria", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 24, telefono: "34606775685", nombre: "Ellie", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 25, telefono: "34689255276", nombre: "Mikel Zapiain", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 26, telefono: "34620025700", nombre: "Carbonero Sarasola", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 27, telefono: "34606758577", nombre: "Aioña Garmendia", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 28, telefono: "34657731776", nombre: "Personal", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 29, telefono: "34645731776", nombre: "Personal", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 30, telefono: "34658704257", nombre: "Personal", categoria: "empleado", notas: "Personal / Empleado", activo: true }
+    ];
+
     // ==========================================
     // SECCIÓN: GESTIÓN DE NÚMEROS SILENCIADOS (PROVEEDORES / EMPLEADOS / ALBA)
     // ==========================================
-    let allSilencedNumbers = [];
+    let allSilencedNumbers = [...DEFAULT_INITIAL_SILENCED];
     let currentSilencedFilter = 'all';
     let currentSilencedSearch = '';
 
-    const silencedTableBody = document.getElementById('silenced-numbers-table-body');
-    const silencedCountBadge = document.getElementById('silenced-count-badge');
     const searchSilencedInput = document.getElementById('search-silenced-input');
     const refreshSilencedBtn = document.getElementById('refresh-silenced-btn');
     const addSilencedNumberBtn = document.getElementById('add-silenced-number-btn');
@@ -217,17 +249,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSilencedModalBtn = document.getElementById('close-silenced-modal-btn');
 
     async function fetchSilencedNumbers() {
+        // Pintar de inmediato los datos locales
+        renderSilencedNumbersTable();
         try {
             const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
             const res = await fetch('/api/admin/silenced-numbers', {
                 headers: { 'x-admin-token': tokenToUse }
             });
-            const data = await res.json();
-            if (data.success && Array.isArray(data.numbers)) {
-                allSilencedNumbers = data.numbers;
-                renderSilencedNumbersTable();
-            } else {
-                console.error("⚠️ Respuesta inesperada de /silenced-numbers:", data);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && Array.isArray(data.numbers) && data.numbers.length > 0) {
+                    allSilencedNumbers = data.numbers;
+                    renderSilencedNumbersTable();
+                }
             }
         } catch (err) {
             console.error("⚠️ Error cargando números silenciados:", err.message);
