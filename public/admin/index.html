@@ -261,6 +261,7 @@
         <!-- Navegación por Pestañas -->
         <nav class="tabs-nav">
             <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón Recepción & Solicitudes <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
+            <button class="tab-btn" data-tab="tab-chats" style="background: linear-gradient(135deg, #064e3b, #022c22); border-bottom: 3px solid #10b981;">💬 Chats WhatsApp <span id="chats-count-badge" class="draft-badge" style="background:#10b981; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-flow">🌳 Estructura & Árbol de Flujos</button>
             <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes & Textos</button>
             <button class="tab-btn" data-tab="tab-rules">⚙️ Flujo & Respuestas por Palabras Clave</button>
@@ -371,6 +372,35 @@
                     <!-- Lista de Tarjetas de Solicitudes -->
                     <div id="inbox-cards-container" class="inbox-cards-grid">
                         <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando solicitudes recibidas...</div>
+                    </div>
+                </div>
+
+                <!-- Pestaña 0B: Chats WhatsApp (Todas las conversaciones activas) -->
+                <div id="tab-chats" class="tab-content">
+                    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h2>💬 Chats WhatsApp en Tiempo Real</h2>
+                            <p>Visualiza todas las conversaciones por número de teléfono desde el primer mensaje y responde directamente al cliente.</p>
+                        </div>
+                        <button id="refresh-chats-btn" class="btn-primary" style="display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #10b981, #059669);">
+                            🔄 Actualizar Chats
+                        </button>
+                    </div>
+
+                    <!-- Buscador de Chats -->
+                    <div class="inbox-toolbar-card" style="margin-bottom: 18px; padding: 14px 18px;">
+                        <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap;">
+                            <div class="search-box" style="flex: 1; min-width: 220px; margin: 0;">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="search-chats-input" placeholder="Buscar por teléfono o nombre de cliente...">
+                            </div>
+                            <span id="chats-total-summary" style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">0 conversaciones</span>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Chats agrupados por cliente -->
+                    <div id="whatsapp-chats-container" class="inbox-cards-grid">
+                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando conversaciones de WhatsApp...</div>
                     </div>
                 </div>
 
@@ -746,6 +776,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260820-V260-HISTORY-FIX"></script>
+    <script src="/admin/admin.js?v=20260821-V266-TAB-WHATSAPP-CHATS"></script>
 </body>
 </html>

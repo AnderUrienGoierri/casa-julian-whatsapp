@@ -483,6 +483,79 @@ async function getUserChatHistory(telefono) {
     return list.filter(h => h.telefono === cleanTel);
 }
 
+/**
+ * Obtiene el listado de todas las conversaciones de WhatsApp activas/previas
+ * agrupadas por teléfono, con el último mensaje, emisor, fecha y nombre de cliente si existe.
+ */
+async function getAllWhatsAppConversations() {
+    if (pool) {
+        try {
+            const res = await pool.query(
+                `SELECT 
+                    b.telefono,
+                    MAX(b.created_at) as ultimo_mensaje_fecha,
+                    COUNT(*) as total_interacciones,
+                    (SELECT texto FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_texto,
+                    (SELECT emisor FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_emisor,
+                    (SELECT tipo FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_tipo,
+                    (SELECT nombre FROM clientes WHERE replace(telefono, '+', '') = b.telefono OR telefono = b.telefono LIMIT 1) as nombre_cliente,
+                    (SELECT id FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as solicitud_id,
+                    (SELECT tipo_solicitud FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as tipo_solicitud,
+                    (SELECT estado FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as solicitud_estado
+                FROM bot_chat_history b
+                GROUP BY b.telefono
+                ORDER BY MAX(b.created_at) DESC`
+            );
+            if (res.rows) {
+                return res.rows.map(r => ({
+                    telefono: r.telefono,
+                    ultimoMensajeFecha: r.ultimo_mensaje_fecha,
+                    totalInteracciones: parseInt(r.total_interacciones, 10) || 0,
+                    ultimoTexto: r.ultimo_texto || '',
+                    ultimoEmisor: r.ultimo_emisor || 'bot',
+                    ultimoTipo: r.ultimo_tipo || 'text',
+                    nombreCliente: r.nombre_cliente || 'Cliente WhatsApp',
+                    solicitudId: r.solicitud_id || null,
+                    tipoSolicitud: r.tipo_solicitud || null,
+                    solicitudEstado: r.solicitud_estado || null
+                }));
+            }
+        } catch (e) {
+            console.error("Error consultando conversaciones agrupadas en Postgres:", e.message);
+        }
+    }
+
+    const db = loadDb();
+    const historyList = db.bot_chat_history || [];
+    const grouped = new Map();
+
+    historyList.forEach(h => {
+        const tel = h.telefono;
+        if (!grouped.has(tel)) {
+            grouped.set(tel, {
+                telefono: tel,
+                ultimoMensajeFecha: h.created_at,
+                totalInteracciones: 1,
+                ultimoTexto: h.texto || '',
+                ultimoEmisor: h.emisor || 'bot',
+                ultimoTipo: h.tipo || 'text',
+                nombreCliente: 'Cliente WhatsApp'
+            });
+        } else {
+            const item = grouped.get(tel);
+            item.totalInteracciones += 1;
+            if (new Date(h.created_at) > new Date(item.ultimoMensajeFecha)) {
+                item.ultimoMensajeFecha = h.created_at;
+                item.ultimoTexto = h.texto || '';
+                item.ultimoEmisor = h.emisor || 'bot';
+                item.ultimoTipo = h.tipo || 'text';
+            }
+        }
+    });
+
+    return Array.from(grouped.values()).sort((a, b) => new Date(b.ultimoMensajeFecha) - new Date(a.ultimoMensajeFecha));
+}
+
 module.exports = {
     getCategoryTagInfo,
     createSolicitud,
@@ -492,5 +565,6 @@ module.exports = {
     updateSolicitudStatus,
     deleteSolicitud,
     logUserChatHistory,
-    getUserChatHistory
+    getUserChatHistory,
+    getAllWhatsAppConversations
 };

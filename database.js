@@ -94,7 +94,8 @@ const {
     updateSolicitudStatus,
     deleteSolicitud,
     logUserChatHistory,
-    getUserChatHistory
+    getUserChatHistory,
+    getAllWhatsAppConversations
 } = require('./db/solicitudes');
 
 module.exports = {

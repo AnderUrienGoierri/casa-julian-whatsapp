@@ -166,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetEl) targetEl.classList.add('active');
 
             if (tabId === 'tab-inbox') fetchSolicitudes();
+            if (tabId === 'tab-chats') fetchWhatsAppChats();
             if (tabId === 'tab-flow') renderUseCasesFlow();
             if (tabId === 'tab-texts') renderTextsGrid();
             if (tabId === 'tab-menu') renderMenuTable();
@@ -183,9 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Aplicar restricciones visuales por rol de usuario
         const role = localStorage.getItem('casa_julian_user_role') || 'admin';
         if (role === 'recepcion') {
-            // RECEPCIÓN: Solo Buzón de Solicitudes → ocultar todas las demás pestañas
+            // RECEPCIÓN: Buzón de Solicitudes y Chats WhatsApp visibles
             document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
-                btn.style.display = (btn.getAttribute('data-tab') === 'tab-inbox') ? 'inline-block' : 'none';
+                const t = btn.getAttribute('data-tab');
+                btn.style.display = (t === 'tab-inbox' || t === 'tab-chats') ? 'inline-block' : 'none';
             });
             // Ocultar el simulador de móvil (no necesario para recepción)
             document.body.classList.add('mode-recepcion');
@@ -193,18 +195,22 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const inboxContent = document.getElementById('tab-inbox');
             if (inboxContent) inboxContent.classList.add('active');
-            // Cargar solicitudes y empezar polling en tiempo real cada 3.5s
+            // Cargar solicitudes y chats y empezar polling en tiempo real cada 3.5s
             await fetchSolicitudes();
+            await fetchWhatsAppChats();
             if (!inboxPollingInterval) {
-                inboxPollingInterval = setInterval(fetchSolicitudes, 3500);
+                inboxPollingInterval = setInterval(() => {
+                    fetchSolicitudes();
+                    fetchWhatsAppChats();
+                }, 3500);
             }
             // No cargar estructura del bot (no necesaria para recepción)
             return;
         }
 
-        // ADMINISTRACIÓN: Todas las pestañas EXCEPTO Buzón de Recepción
+        // ADMINISTRACIÓN: Todas las pestañas habilitadas
         document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
-            btn.style.display = (btn.getAttribute('data-tab') === 'tab-inbox') ? 'none' : 'inline-block';
+            btn.style.display = 'inline-block';
         });
         // Activar primera pestaña visible (tab-flow)
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -1856,6 +1862,155 @@ document.addEventListener('DOMContentLoaded', () => {
         el.textContent = parts.length ? `— ${parts.join(' · ')}` : '';
     }
 
+    // ── Estado de Chats WhatsApp ──────────────────────────────────────────
+    let allWhatsAppChats = [];
+    let searchChatsFilter = '';
+
+    async function fetchWhatsAppChats() {
+        try {
+            const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+            const res = await fetch('/api/admin/chats', {
+                headers: {
+                    'x-admin-token': currentToken,
+                    'Authorization': `Bearer ${currentToken}`
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                allWhatsAppChats = data.chats || [];
+                
+                // Actualizar badge de contador en la pestaña
+                const chatsCountBadge = document.getElementById('chats-count-badge');
+                if (chatsCountBadge) {
+                    chatsCountBadge.textContent = allWhatsAppChats.length;
+                    chatsCountBadge.style.display = allWhatsAppChats.length > 0 ? 'inline-block' : 'none';
+                }
+
+                renderWhatsAppChats();
+            }
+        } catch (err) {
+            console.error("⚠️ Error cargando conversaciones de WhatsApp:", err);
+        }
+    }
+
+    function renderWhatsAppChats() {
+        const container = document.getElementById('whatsapp-chats-container');
+        const summaryEl = document.getElementById('chats-total-summary');
+        if (!container) return;
+
+        let filtered = allWhatsAppChats;
+        if (searchChatsFilter.trim()) {
+            const q = searchChatsFilter.toLowerCase().trim();
+            filtered = filtered.filter(c => 
+                (c.telefono && c.telefono.toLowerCase().includes(q)) ||
+                (c.nombreCliente && c.nombreCliente.toLowerCase().includes(q)) ||
+                (c.ultimoTexto && c.ultimoTexto.toLowerCase().includes(q))
+            );
+        }
+
+        if (summaryEl) {
+            summaryEl.textContent = `${filtered.length} de ${allWhatsAppChats.length} conversaciones`;
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; color: var(--text-muted); padding: 50px 20px; grid-column: 1 / -1; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-color);">
+                    <div style="font-size: 2.2rem; margin-bottom: 10px;">💬</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: #fff;">No hay chats registrados</div>
+                    <p style="font-size: 0.85rem; margin-top: 6px; color: #94a3b8;">Cuando cualquier cliente escriba al WhatsApp del restaurante, su conversación aparecerá aquí desde el primer mensaje.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(c => {
+            const cleanPhone = (c.telefono || '').replace(/\D/g, '');
+            const timeStr = c.ultimoMensajeFecha ? new Date(c.ultimoMensajeFecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
+            const isFromClient = c.ultimoEmisor === 'cliente';
+            const emisorBadge = isFromClient 
+                ? `<span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 700;">👤 Cliente</span>`
+                : `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 700;">🤖 Bot</span>`;
+
+            const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
+
+            return `
+                <div class="solicitud-card chat-card-item" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Cliente')}" style="border-left: 4px solid ${isFromClient ? '#22c55e' : '#38bdf8'}; cursor: pointer;">
+                    <div class="solicitud-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="card-avatar" style="background: ${isFromClient ? 'rgba(34, 197, 94, 0.15)' : 'rgba(56, 189, 248, 0.15)'}; color: ${isFromClient ? '#22c55e' : '#38bdf8'}; font-size: 1.2rem; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                ${isFromClient ? '👤' : '💬'}
+                            </div>
+                            <div>
+                                <h3 class="solicitud-client-name" style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">${c.nombreCliente || 'Cliente WhatsApp'}</h3>
+                                <div class="solicitud-client-phone" style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">📞 +${cleanPhone}</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700;">
+                                ${c.totalInteracciones} ${c.totalInteracciones === 1 ? 'mensaje' : 'mensajes'}
+                            </span>
+                            <span style="font-size: 0.7rem; color: #94a3b8;">${timeStr}</span>
+                        </div>
+                    </div>
+
+                    <div class="solicitud-body" style="margin: 12px 0 14px 0; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 5px;">
+                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Última interacción:</span>
+                            ${emisorBadge}
+                        </div>
+                        <div style="font-size: 0.84rem; color: #e2e8f0; line-height: 1.4; word-break: break-word;">
+                            ${formatWhatsAppText(previewText)}
+                        </div>
+                    </div>
+
+                    <div class="solicitud-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 6px;">
+                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35);" title="Llamar directamente">
+                                📞 Llamar
+                            </a>
+                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.35);" title="Abrir en WhatsApp">
+                                📲 WhatsApp
+                            </a>
+                        </div>
+                        <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Cliente')}" data-solid="${c.solicitudId || ''}" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1);">
+                            💬 Abrir Chat &amp; Responder
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Event listeners para los botones de las tarjetas de chat
+        container.querySelectorAll('.chat-card-item').forEach(card => {
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('a') || e.target.closest('button')) return;
+                const phone = card.getAttribute('data-phone');
+                const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
+                openHistoryModal(phone, name);
+            });
+        });
+
+        container.querySelectorAll('.btn-open-chat-modal').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Cliente');
+                const solId = btn.getAttribute('data-solid');
+                
+                // Si tiene una solicitud activa vinculada, abrir el modal de respuesta completa
+                if (solId) {
+                    const sol = allSolicitudes.find(s => s.id === solId);
+                    if (sol) {
+                        openReplyModal(sol);
+                        return;
+                    }
+                }
+                // Si es un chat general, abrir el historial de chat interactivo
+                openHistoryModal(phone, name);
+            });
+        });
+    }
+
     // Filtrar y Renderizar Tarjetas de Solicitudes
     function renderInboxCards() {
         if (!inboxCardsContainer) return;
@@ -2811,11 +2966,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ── Buscador ─────────────────────────────────────────────────────────────
+    // ── Buscador de Solicitudes ──────────────────────────────────────────────
     if (searchInboxInput) {
         searchInboxInput.addEventListener('input', (e) => {
             currentInboxSearch = e.target.value;
             renderInboxCards();
+        });
+    }
+
+    // ── Buscador y Refresco de Chats WhatsApp ─────────────────────────────────
+    const searchChatsInput = document.getElementById('search-chats-input');
+    if (searchChatsInput) {
+        searchChatsInput.addEventListener('input', (e) => {
+            searchChatsFilter = e.target.value;
+            renderWhatsAppChats();
+        });
+    }
+
+    const refreshChatsBtn = document.getElementById('refresh-chats-btn');
+    if (refreshChatsBtn) {
+        refreshChatsBtn.addEventListener('click', async () => {
+            refreshChatsBtn.disabled = true;
+            refreshChatsBtn.textContent = '⏳ Cargando...';
+            await fetchWhatsAppChats();
+            refreshChatsBtn.disabled = false;
+            refreshChatsBtn.innerHTML = '🔄 Actualizar Chats';
         });
     }
 

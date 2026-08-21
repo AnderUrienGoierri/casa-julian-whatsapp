@@ -811,6 +811,17 @@ router.get('/solicitudes/history/:telefono', requireAdminAuth, async (req, res) 
     }
 });
 
+// 18e. Obtener todas las conversaciones de WhatsApp activas agrupadas por teléfono
+router.get('/chats', requireAdminAuth, async (req, res) => {
+    try {
+        const { getAllWhatsAppConversations } = require('./database');
+        const chats = await getAllWhatsAppConversations();
+        return res.json({ success: true, chats });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 // 19. Obtener lista completa de tarjetas regalo con estados y fecha de caducidad a 6 meses
 router.get('/tarjetas-regalo', requireAdminAuth, async (req, res) => {
     try {
