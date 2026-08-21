@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 inboxPollingInterval = setInterval(() => {
                     fetchSolicitudes();
                     fetchWhatsAppChats();
+                    fetchSilencedNumbers();
                 }, 3500);
             }
             // No cargar estructura del bot (no necesaria para recepción)
@@ -3529,8 +3530,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchSilencedNumbers() {
         try {
+            const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
             const res = await fetch('/api/admin/silenced-numbers', {
-                headers: { 'x-admin-token': adminToken }
+                headers: { 'x-admin-token': tokenToUse }
             });
             const data = await res.json();
             if (data.success && Array.isArray(data.numbers)) {
