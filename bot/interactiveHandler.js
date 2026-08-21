@@ -661,7 +661,12 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_add_lista_espera':
         case 'btn_go_lista_espera':
         case 'opt_lista_espera': {
-            const templateRes = await sendTemplateMessage(from, 'reserva_online_web', lang);
+            const templateName = (lang === 'en') ? 'book_a_table_web' : 'reserva_online_web';
+            let templateRes = await sendTemplateMessage(from, templateName, lang);
+            if (!templateRes || !templateRes.messages) {
+                templateRes = await sendTemplateMessage(from, 'reserva_online_web', lang);
+            }
+
             if (!templateRes || !templateRes.messages) {
                 let webMsg = `📅 *SOLICITAR RESERVA / LISTA DE ESPERA ONLINE*\n\nPara realizar tu reserva directamente en la web oficial de Casa Julián (o inscribirte en la lista de espera si la fecha deseada está completa), accede a través del siguiente enlace oficial:\n\n🌐 https://casajulian.eus/#shopify-section-template--28289495892308__reservation_iframe_AqMBUi`;
                 if (lang === 'eu') {

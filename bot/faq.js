@@ -35,7 +35,12 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
 
     // Opción 1 / Ver carta -> Plantilla / enlace web a la carta sin imagen
     if (faqNum === '1' || faqNum === '12' || faqId === 'faq_carta') {
-        const templateRes = await sendTemplateMessage(from, 'ver_carta_web', lang);
+        const templateName = (lang === 'en') ? 'view_menu_online' : 'ver_carta_web';
+        let templateRes = await sendTemplateMessage(from, templateName, lang);
+        if (!templateRes || !templateRes.messages) {
+            templateRes = await sendTemplateMessage(from, 'ver_carta_web', lang);
+        }
+
         if (!templateRes || !templateRes.messages) {
             let msg = `📜 *Carta & Precios - Asador Casa Julián de Tolosa*\n\nPuedes consultar nuestra carta completa y actualizada directamente en nuestra web oficial:\n\n🌐 https://casajulian.eus/#:~:text=CARTA`;
             if (lang === 'eu') {
@@ -50,7 +55,8 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
 
     // Opción 7: Regalar Menú Tradición
     if (faqNum === '7') {
-        let templateRes = await sendTemplateMessage(from, 'buy_gift_card', lang);
+        const templateName = (lang === 'en') ? 'buy_gift_card' : 'comprar_menu_tradicion';
+        let templateRes = await sendTemplateMessage(from, templateName, lang);
         if (!templateRes || !templateRes.messages) {
             templateRes = await sendTemplateMessage(from, 'comprar_menu_tradicion', lang);
         }
@@ -64,7 +70,12 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
 
     // Opción 8: Ubicación en Google Maps
     if (faqNum === '8') {
-        const templateRes = await sendTemplateMessage(from, 'ubicacion_google_maps', lang);
+        const templateName = (lang === 'en') ? 'location_google_maps' : 'ubicacion_google_maps';
+        let templateRes = await sendTemplateMessage(from, templateName, lang);
+        if (!templateRes || !templateRes.messages) {
+            templateRes = await sendTemplateMessage(from, 'ubicacion_google_maps', lang);
+        }
+
         if (!templateRes || !templateRes.messages) {
             const responseMsg = getTranslation(lang, 'faq8Msg');
             await sendMessage(from, responseMsg);
