@@ -48,7 +48,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-14-CMS-V193-HUMAN-HANDOVER-BIDIRECCIONAL-PAUSA-BOT-Y-CHAT-RECEPCION';
+const DEPLOY_VERSION = 'v2026-08-21-CMS-V284-SILENCED-NUMBERS-API';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
