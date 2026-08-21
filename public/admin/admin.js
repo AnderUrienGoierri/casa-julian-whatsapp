@@ -219,6 +219,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const flowTabBtn = document.querySelector('.tabs-nav .tab-btn[data-tab="tab-flow"]');
         if (flowTabBtn) { flowTabBtn.classList.add('active'); }
 
+        // Iniciar polling continuo en tiempo real (cada 3.5s) tanto para solicitudes como para chats
+        await fetchSolicitudes();
+        await fetchWhatsAppChats();
+        if (!inboxPollingInterval) {
+            inboxPollingInterval = setInterval(() => {
+                fetchSolicitudes();
+                fetchWhatsAppChats();
+            }, 3500);
+        }
+
         try {
             const res = await fetch('/api/admin/structure', {
                 headers: { 'x-admin-token': adminToken }
