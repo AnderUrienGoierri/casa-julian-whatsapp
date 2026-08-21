@@ -1560,10 +1560,10 @@ body.mode-recepcion .inbox-cards-grid {
 #history-modal .whatsapp-modal-container {
     display: flex !important;
     flex-direction: column !important;
-    max-width: 980px;
+    max-width: 1050px;
     width: 94vw;
-    height: 90vh;
-    max-height: 92vh;
+    height: 90vh !important;
+    max-height: 92vh !important;
 }
 
 #history-modal .whatsapp-modal-container.fullscreen {
@@ -1577,9 +1577,9 @@ body.mode-recepcion .inbox-cards-grid {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
-    height: calc(100% - 62px) !important;
+    height: calc(100% - 60px) !important;
     min-height: 0 !important;
-    max-height: none !important;
+    max-height: calc(90vh - 60px) !important;
     overflow: hidden !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -1591,6 +1591,7 @@ body.mode-recepcion .inbox-cards-grid {
     flex: 1 1 auto !important;
     height: 100% !important;
     min-height: 0 !important;
+    max-height: 100% !important;
     overflow: hidden !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -1601,15 +1602,17 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 #history-modal #history-chat-viewport {
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
     height: 100% !important;
     min-height: 0 !important;
+    max-height: 100% !important;
     overflow-y: auto !important;
     padding: 20px !important;
-    padding-bottom: 30px !important;
+    padding-bottom: 24px !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 12px !important;
+    box-sizing: border-box !important;
 }
 
 /* ==========================================================================
