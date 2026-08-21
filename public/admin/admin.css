@@ -194,36 +194,44 @@ button {
 .main-header {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
-    padding: 16px 32px;
+    padding: 14px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .header-left {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .logo-area {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .logo-icon {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+    line-height: 1;
 }
 
 .logo-area h1 {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .logo-area .subtitle {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
+    display: block;
+    line-height: 1.2;
 }
 
 .status-pill {
@@ -232,15 +240,16 @@ button {
     gap: 6px;
     background: rgba(16, 185, 129, 0.15);
     color: var(--accent-green);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    padding: 4px 12px;
+    padding: 3px 10px;
     border-radius: 20px;
+    white-space: nowrap;
 }
 
 .dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--accent-green);
 }
@@ -248,31 +257,53 @@ button {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .lang-selector-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
+    gap: 6px;
+    font-size: 0.82rem;
+}
+
+.lang-selector-header label {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.lang-selector-header select {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    width: auto;
 }
 
 /* TABS DE NAVEGACIÓN */
 .tabs-nav {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     background: var(--bg-dark);
-    padding: 12px 32px 0 32px;
+    padding: 8px 16px 0 16px;
     border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+
+.tabs-nav::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
 }
 
 .tab-btn {
     background: transparent;
     color: var(--text-secondary);
     border-radius: 8px 8px 0 0;
-    padding: 12px 20px;
+    padding: 10px 14px;
+    font-size: 0.84rem;
+    white-space: nowrap;
     border-bottom: 2px solid transparent;
+    flex-shrink: 0;
 }
 
 .tab-btn:hover {
@@ -283,6 +314,66 @@ button {
     color: var(--accent-gold);
     border-bottom-color: var(--accent-gold);
     background: var(--bg-card);
+}
+
+/* Reglas Responsive Específicas para Encabezado en Móviles */
+@media (max-width: 768px) {
+    .main-header {
+        padding: 10px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .header-left {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .logo-area h1 {
+        font-size: 1.05rem;
+    }
+
+    .logo-area .subtitle {
+        font-size: 0.72rem;
+    }
+
+    .header-right {
+        justify-content: space-between;
+        width: 100%;
+        gap: 8px;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .lang-selector-header label {
+        display: none; /* Ocultar texto largo en móvil para ahorrar espacio */
+    }
+
+    .lang-selector-header select {
+        flex: 1;
+        min-width: 110px;
+    }
+
+    #open-settings-modal-btn,
+    #logout-btn {
+        padding: 6px 10px;
+        font-size: 0.78rem;
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .tabs-nav {
+        padding: 6px 10px 0 10px;
+        gap: 4px;
+    }
+
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 0.78rem;
+    }
 }
 
 /* LAYOUT PRINCIPAL (70% Editor, 30% Simulador) */
@@ -2216,4 +2307,193 @@ div.inbox-toolbar-header,
 .btn-send-whatsapp:hover {
     background: linear-gradient(135deg, #0369a1, #075985);
     box-shadow: 0 4px 16px rgba(2, 132, 199, 0.5);
+}
+
+/* ==========================================================================
+   OPTIMIZACIÓN MOBILE-FIRST: CHAT E HISTORIAL A PANTALLA COMPLETA NATIVA
+   ========================================================================== */
+@media (max-width: 768px) {
+    /* Los overlays pasan a ser contenedor fijo a pantalla completa real */
+    #reply-modal.modal-overlay,
+    #history-modal.modal-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #111b21 !important;
+        backdrop-filter: none !important;
+        z-index: 99999 !important;
+        border-radius: 0 !important;
+        align-items: stretch !important;
+        justify-content: stretch !important;
+    }
+
+    /* Contenedor principal del modal: 100% de alto y ancho, sin bordes ni esquinas curvas */
+    #reply-modal .whatsapp-modal-container,
+    #history-modal .whatsapp-modal-container {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Encabezado del chat en móvil: compacto y accesible */
+    .whatsapp-modal-header {
+        padding: 10px 14px !important;
+        background: #202c33 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        flex-shrink: 0 !important;
+    }
+
+    .whatsapp-avatar,
+    .whatsapp-client-avatar {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 1.2rem !important;
+    }
+
+    .whatsapp-client-title h3,
+    .whatsapp-client-title span {
+        font-size: 0.98rem !important;
+    }
+
+    .whatsapp-client-sub {
+        font-size: 0.75rem !important;
+    }
+
+    /* Ocultar botones de minimizar / maximizar en móvil (ya ocupa toda la pantalla) */
+    #minimize-reply-modal-btn,
+    #maximize-reply-modal-btn,
+    #maximize-history-modal-btn {
+        display: none !important;
+    }
+
+    .whatsapp-control-btn.close-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1.1rem !important;
+        background: rgba(239, 68, 68, 0.25) !important;
+        border-color: rgba(239, 68, 68, 0.5) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+    }
+
+    /* Botón de resumen en cabecera */
+    .btn-toggle-summary {
+        font-size: 0.76rem !important;
+        padding: 4px 8px !important;
+        height: 34px !important;
+        width: auto !important;
+    }
+
+    /* Cuerpo del modal a pantalla completa */
+    .whatsapp-modal-body {
+        flex: 1 1 auto !important;
+        height: calc(100dvh - 58px) !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* Chat viewport a altura completa en móvil */
+    .whatsapp-chat-main {
+        flex: 1 1 auto !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .whatsapp-chat-viewport,
+    #history-chat-viewport {
+        flex: 1 1 auto !important;
+        padding: 12px 10px 20px 10px !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Burbujas de chat más anchas para aprovechar la pantalla del móvil */
+    .whatsapp-chat-viewport > div,
+    #history-chat-viewport > div {
+        max-width: 90% !important;
+    }
+
+    /* Sidebar drawer deslizable lateralmente en móvil cuando se pulsa 'Resumen' */
+    #whatsapp-request-sidebar {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 85% !important;
+        max-width: 340px !important;
+        z-index: 10001 !important;
+        background: #1e293b !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8) !important;
+        transform: translateX(-105%);
+        transition: transform 0.25s ease-in-out;
+        display: block !important;
+    }
+
+    #whatsapp-request-sidebar.show-sidebar {
+        transform: translateX(0) !important;
+    }
+
+    /* Formulario de entrada inferior en móvil */
+    .whatsapp-input-form {
+        padding: 8px 10px !important;
+        background: #1e293b !important;
+        flex-shrink: 0 !important;
+    }
+
+    .whatsapp-textarea-wrapper textarea {
+        font-size: 16px !important; /* Evita zoom automático en Safari iOS */
+        min-height: 44px !important;
+        max-height: 80px !important;
+        padding: 8px 12px !important;
+    }
+
+    .whatsapp-actions-footer {
+        gap: 6px !important;
+    }
+
+    .btn-human-toggle,
+    .btn-conclude-action,
+    .btn-secondary-simple,
+    .btn-send-whatsapp {
+        padding: 7px 10px !important;
+        font-size: 0.78rem !important;
+        flex: 1 1 auto !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    /* Ajuste de tarjetas de solicitud en móvil */
+    .solicitudes-cards-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .main-layout {
+        padding: 12px 10px !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .simulator-panel {
+        display: none !important; /* Ocultar simulador en pantallas pequeñas para dar 100% al editor/buzón */
+    }
 }
