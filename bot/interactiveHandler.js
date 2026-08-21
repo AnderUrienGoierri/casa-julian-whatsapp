@@ -661,10 +661,19 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_add_lista_espera':
         case 'btn_go_lista_espera':
         case 'opt_lista_espera': {
-            const templateName = (lang === 'en') ? 'book_a_table_web' : 'reserva_online_web';
-            let templateRes = await sendTemplateMessage(from, templateName, lang);
+            let templateName = 'reserva_online_web';
+            let tLang = 'es';
+            if (lang === 'en') {
+                templateName = 'book_a_table_web';
+                tLang = 'en';
+            } else if (lang === 'eu') {
+                templateName = 'erreserba_online_web';
+                tLang = 'es';
+            }
+
+            let templateRes = await sendTemplateMessage(from, templateName, tLang);
             if (!templateRes || !templateRes.messages) {
-                templateRes = await sendTemplateMessage(from, 'reserva_online_web', lang);
+                templateRes = await sendTemplateMessage(from, 'reserva_online_web', 'es');
             }
 
             if (!templateRes || !templateRes.messages) {

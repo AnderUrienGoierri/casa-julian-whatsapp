@@ -35,10 +35,19 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
 
     // Opción 1 / Ver carta -> Plantilla / enlace web a la carta sin imagen
     if (faqNum === '1' || faqNum === '12' || faqId === 'faq_carta') {
-        const templateName = (lang === 'en') ? 'view_menu_online' : 'ver_carta_web';
-        let templateRes = await sendTemplateMessage(from, templateName, lang);
+        let templateName = 'ver_carta_web';
+        let tLang = 'es';
+        if (lang === 'en') {
+            templateName = 'view_menu_online';
+            tLang = 'en';
+        } else if (lang === 'eu') {
+            templateName = 'ikusi_karta_online';
+            tLang = 'es'; // En Meta creada como Spanish con texto en euskera
+        }
+
+        let templateRes = await sendTemplateMessage(from, templateName, tLang);
         if (!templateRes || !templateRes.messages) {
-            templateRes = await sendTemplateMessage(from, 'ver_carta_web', lang);
+            templateRes = await sendTemplateMessage(from, 'ver_carta_web', 'es');
         }
 
         if (!templateRes || !templateRes.messages) {
@@ -55,10 +64,19 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
 
     // Opción 7: Regalar Menú Tradición
     if (faqNum === '7') {
-        const templateName = (lang === 'en') ? 'buy_gift_card' : 'comprar_menu_tradicion';
-        let templateRes = await sendTemplateMessage(from, templateName, lang);
+        let templateName = 'comprar_menu_tradicion';
+        let tLang = 'es';
+        if (lang === 'en') {
+            templateName = 'buy_gift_card';
+            tLang = 'en';
+        } else if (lang === 'eu') {
+            templateName = 'erosi_tradizio_menua';
+            tLang = 'es';
+        }
+
+        let templateRes = await sendTemplateMessage(from, templateName, tLang);
         if (!templateRes || !templateRes.messages) {
-            templateRes = await sendTemplateMessage(from, 'comprar_menu_tradicion', lang);
+            templateRes = await sendTemplateMessage(from, 'comprar_menu_tradicion', 'es');
         }
 
         if (!templateRes || !templateRes.messages) {
@@ -70,10 +88,19 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
 
     // Opción 8: Ubicación en Google Maps
     if (faqNum === '8') {
-        const templateName = (lang === 'en') ? 'location_google_maps' : 'ubicacion_google_maps';
-        let templateRes = await sendTemplateMessage(from, templateName, lang);
+        let templateName = 'ubicacion_google_maps';
+        let tLang = 'es';
+        if (lang === 'en') {
+            templateName = 'location_google_maps';
+            tLang = 'en';
+        } else if (lang === 'eu') {
+            templateName = 'kokapena_google_maps';
+            tLang = 'es';
+        }
+
+        let templateRes = await sendTemplateMessage(from, templateName, tLang);
         if (!templateRes || !templateRes.messages) {
-            templateRes = await sendTemplateMessage(from, 'ubicacion_google_maps', lang);
+            templateRes = await sendTemplateMessage(from, 'ubicacion_google_maps', 'es');
         }
 
         if (!templateRes || !templateRes.messages) {
