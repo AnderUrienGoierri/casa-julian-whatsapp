@@ -3504,6 +3504,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveMaintenanceSettingsBtn.disabled = false;
             }
         });
+    }
+
     // ==========================================
     // SECCIÓN: GESTIÓN DE NÚMEROS SILENCIADOS (PROVEEDORES / EMPLEADOS / ALBA)
     // ==========================================
