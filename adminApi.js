@@ -733,12 +733,44 @@ router.post('/solicitudes/:id/estado', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 18. Mover solicitud a Papelera (soft-delete: estado ELIMINADA)
+// 18. Eliminar solicitud de forma permanente (uno a uno)
 router.delete('/solicitudes/:id', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const updated = await updateSolicitudStatus(id, 'ELIMINADA', null, false);
-        return res.json({ success: true, solicitud: updated });
+        await deleteSolicitud(id);
+        return res.json({ success: true, message: 'Solicitud eliminada definitivamente.' });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 18-bulk. Eliminación masiva de solicitudes seleccionadas
+router.post('/solicitudes/bulk-delete', requireAdminAuth, async (req, res) => {
+    try {
+        const { ids } = req.body || {};
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'Se requiere una lista de IDs para eliminar.' });
+        }
+        for (const id of ids) {
+            await deleteSolicitud(id);
+        }
+        return res.json({ success: true, deletedCount: ids.length, message: `${ids.length} solicitudes eliminadas definitivamente.` });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 18-bulk-archive. Archivado masivo de solicitudes seleccionadas
+router.post('/solicitudes/bulk-archive', requireAdminAuth, async (req, res) => {
+    try {
+        const { ids } = req.body || {};
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'Se requiere una lista de IDs para archivar.' });
+        }
+        for (const id of ids) {
+            await updateSolicitudStatus(id, 'ARCHIVADA', null, false);
+        }
+        return res.json({ success: true, count: ids.length, message: `${ids.length} solicitudes archivadas.` });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
@@ -755,7 +787,7 @@ router.post('/solicitudes/:id/archivar', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 18c. Restaurar una solicitud desde Papelera o Archivo (vuelve a PENDIENTE)
+// 18c. Restaurar una solicitud desde Archivo (vuelve a PENDIENTE)
 router.post('/solicitudes/:id/restaurar', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;

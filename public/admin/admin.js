@@ -1807,13 +1807,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Conjunto de IDs seleccionados para acciones masivas
+    let selectedSolicitudIds = new Set();
+
+    // Actualiza la barra de acciones masivas
+    function updateBulkActionsBar() {
+        const countEl = document.getElementById('inbox-selected-count');
+        const bulkDeleteBtn = document.getElementById('inbox-bulk-delete-btn');
+        const bulkArchiveBtn = document.getElementById('inbox-bulk-archive-btn');
+        const selectAllCb = document.getElementById('inbox-select-all-cb');
+
+        const totalSelected = selectedSolicitudIds.size;
+        if (countEl) countEl.textContent = totalSelected;
+
+        if (bulkDeleteBtn) {
+            bulkDeleteBtn.style.display = totalSelected > 0 ? 'inline-flex' : 'none';
+        }
+        if (bulkArchiveBtn) {
+            // Mostrar botón archivar seleccionadas solo si estamos en vista Activas
+            bulkArchiveBtn.style.display = (totalSelected > 0 && currentInboxView === 'active') ? 'inline-flex' : 'none';
+        }
+
+        // Marcar/desmarcar checkbox global
+        const visibleCheckboxes = document.querySelectorAll('.card-select-cb');
+        if (selectAllCb) {
+            if (visibleCheckboxes.length > 0 && totalSelected === visibleCheckboxes.length) {
+                selectAllCb.checked = true;
+                selectAllCb.indeterminate = false;
+            } else if (totalSelected > 0 && totalSelected < visibleCheckboxes.length) {
+                selectAllCb.checked = false;
+                selectAllCb.indeterminate = true;
+            } else {
+                selectAllCb.checked = false;
+                selectAllCb.indeterminate = false;
+            }
+        }
+    }
+
     // Actualiza el resumen de filtros activos en el header del toggle
     function updateFiltersSummary() {
         const el = document.getElementById('inbox-active-filters-summary');
         if (!el) return;
         const parts = [];
         if (currentInboxView === 'ARCHIVADA') parts.push('📦 Archivadas');
-        if (currentInboxView === 'ELIMINADA') parts.push('🗑️ Papelera');
         if (currentInboxCatFilter !== 'all') parts.push(currentInboxCatFilter);
         if (currentInboxStatusFilter !== 'all') parts.push(currentInboxStatusFilter);
         if (currentInboxSearch.trim()) parts.push(`"${currentInboxSearch.trim()}"`);
@@ -1826,11 +1862,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let filtered = [...allSolicitudes];
 
-        // 0. Filtrar por VISTA (activas / archivadas / papelera)
+        // 0. Filtrar por VISTA (activas / archivadas)
         if (currentInboxView === 'active') {
             filtered = filtered.filter(s => s.estado !== 'ARCHIVADA' && s.estado !== 'ELIMINADA');
         } else {
-            filtered = filtered.filter(s => s.estado === currentInboxView);
+            filtered = filtered.filter(s => s.estado === 'ARCHIVADA');
         }
 
         // 1. Filtrar por categoría
@@ -1885,9 +1921,18 @@ document.addEventListener('DOMContentLoaded', () => {
             inboxCountBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
         }
 
+        // Limpiar seleccionados que ya no existen o no están visibles si cambió la vista
+        const currentFilteredIds = new Set(filtered.map(s => s.id));
+        for (const selId of selectedSolicitudIds) {
+            if (!currentFilteredIds.has(selId)) {
+                selectedSolicitudIds.delete(selId);
+            }
+        }
+        updateBulkActionsBar();
+
         // Empty state
-        const emptyIcon = currentInboxView === 'ARCHIVADA' ? '📦' : currentInboxView === 'ELIMINADA' ? '🗑️' : '📥';
-        const emptyLabel = currentInboxView === 'ARCHIVADA' ? 'No hay solicitudes archivadas' : currentInboxView === 'ELIMINADA' ? 'La papelera está vacía' : 'No hay solicitudes que coincidan con los filtros';
+        const emptyIcon = currentInboxView === 'ARCHIVADA' ? '📦' : '📥';
+        const emptyLabel = currentInboxView === 'ARCHIVADA' ? 'No hay solicitudes archivadas' : 'No hay solicitudes que coincidan con los filtros';
         if (filtered.length === 0) {
             inboxCardsContainer.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 20px; background: rgba(15, 23, 42, 0.4); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px;">
@@ -1901,11 +1946,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = '';
         const isArchiveView = currentInboxView === 'ARCHIVADA';
-        const isDeletedView = currentInboxView === 'ELIMINADA';
 
         filtered.forEach(sol => {
             const dateStr = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
             const isUnread = unreadSolicitudIds.has(sol.id);
+            const isSelected = selectedSolicitudIds.has(sol.id);
 
             // Badge de Categoría
             let catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
@@ -1931,8 +1976,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusBadgeHtml = `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">🚫 RECHAZADA</span>`;
             } else if (sol.estado === 'ARCHIVADA') {
                 statusBadgeHtml = `<span style="background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">📦 ARCHIVADA</span>`;
-            } else if (sol.estado === 'ELIMINADA') {
-                statusBadgeHtml = `<span style="background: rgba(100, 116, 139, 0.2); color: #94a3b8; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">🗑️ ELIMINADA</span>`;
             }
 
             const phoneFormatted = sol.telefonoCliente || sol.telefonoReserva || 'Desconocido';
@@ -1968,27 +2011,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Botones de acción según vista
             let actionBtnsHtml = '';
-            if (isArchiveView || isDeletedView) {
-                // Vista Archivada o Papelera: mostrar Restaurar
+            if (isArchiveView) {
+                // Vista Archivada: Restaurar + Eliminar definitivamente
                 actionBtnsHtml = `
                     ${quickContactBtnsHtml}
                     ${historyBtnHtml}
                     <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;" title="Restaurar a Activas">↩️ Restaurar</button>
+                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Eliminar definitivamente este mensaje">🗑️</button>
                 `;
             } else {
-                // Vista Activas: mostrar Contacto + Historial + Archivar + Eliminar
+                // Vista Activas: Contacto + Historial + Archivar + Eliminar definitivamente
                 actionBtnsHtml = `
                     ${quickContactBtnsHtml}
                     ${historyBtnHtml}
-                    <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Archivar gestión">📦</button>
-                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Mover a Papelera">🗑️</button>
+                    <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Archivar solicitud">📦</button>
+                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Eliminar definitivamente este mensaje">🗑️</button>
                 `;
             }
 
             html += `
-                <div class="whatsapp-inbox-card solicitud-card ${isUnread ? 'has-unread-msg' : ''} ${isArchiveView ? 'card-archived' : ''} ${isDeletedView ? 'card-deleted' : ''}" data-id="${sol.id}">
+                <div class="whatsapp-inbox-card solicitud-card ${isUnread ? 'has-unread-msg' : ''} ${isArchiveView ? 'card-archived' : ''} ${isSelected ? 'is-selected' : ''}" data-id="${sol.id}">
                     <div class="card-top-header">
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <input type="checkbox" class="card-select-cb" data-id="${sol.id}" ${isSelected ? 'checked' : ''} title="Seleccionar para acción masiva">
                             ${catTagHtml}
                             ${statusBadgeHtml}
                             ${handoverBadgeHtml}
@@ -2017,6 +2062,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         inboxCardsContainer.innerHTML = html;
 
+        // Checkbox individual de cada tarjeta
+        document.querySelectorAll('.card-select-cb').forEach(cb => {
+            cb.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            cb.addEventListener('change', (e) => {
+                const solId = cb.getAttribute('data-id');
+                const card = cb.closest('.solicitud-card');
+                if (cb.checked) {
+                    selectedSolicitudIds.add(solId);
+                    if (card) card.classList.add('is-selected');
+                } else {
+                    selectedSolicitudIds.delete(solId);
+                    if (card) card.classList.remove('is-selected');
+                }
+                updateBulkActionsBar();
+            });
+        });
+
         // Botón Ver Historial Chatbot
         document.querySelectorAll('.btn-view-chat-history').forEach(btn => {
             btn.addEventListener('click', async (e) => {
@@ -2030,25 +2094,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Event listener: abrir modal al click en la tarjeta
         document.querySelectorAll('.solicitud-card').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.btn-delete-solicitud') || e.target.closest('.btn-archive-solicitud') || e.target.closest('.btn-restore-solicitud') || e.target.closest('.btn-view-chat-history')) return;
+                if (e.target.closest('.btn-delete-solicitud') || e.target.closest('.btn-archive-solicitud') || e.target.closest('.btn-restore-solicitud') || e.target.closest('.btn-view-chat-history') || e.target.closest('.card-select-cb')) return;
                 const solId = card.getAttribute('data-id');
                 const sol = allSolicitudes.find(s => s.id === solId);
                 if (sol) openReplyModal(sol);
             });
         });
 
-        // Botón Eliminar → mover a Papelera (soft-delete)
+        // Botón Eliminar individual (uno a uno definitivo)
         document.querySelectorAll('.btn-delete-solicitud').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const solId = btn.getAttribute('data-id');
-                if (confirm('¿Mover esta solicitud a la Papelera? Puedes restaurarla desde la vista «Papelera».')) {
+                if (confirm('¿Eliminar definitivamente esta solicitud? Esta acción no se puede deshacer.')) {
                     try {
                         await fetch(`/api/admin/solicitudes/${solId}`, {
                             method: 'DELETE',
                             headers: { 'x-admin-token': adminToken }
                         });
                         unreadSolicitudIds.delete(solId);
+                        selectedSolicitudIds.delete(solId);
                         await fetchSolicitudes();
                     } catch (err) {
                         alert('Error al eliminar solicitud: ' + err.message);
@@ -2068,6 +2133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         headers: { 'x-admin-token': adminToken }
                     });
                     unreadSolicitudIds.delete(solId);
+                    selectedSolicitudIds.delete(solId);
                     await fetchSolicitudes();
                 } catch (err) {
                     alert('Error al archivar solicitud: ' + err.message);
@@ -2086,6 +2152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
                         body: JSON.stringify({ estadoDestino: 'PENDIENTE' })
                     });
+                    selectedSolicitudIds.delete(solId);
                     await fetchSolicitudes();
                 } catch (err) {
                     alert('Error al restaurar solicitud: ' + err.message);
@@ -2749,6 +2816,78 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInboxInput.addEventListener('input', (e) => {
             currentInboxSearch = e.target.value;
             renderInboxCards();
+        });
+    }
+
+    // ── Selección Múltiple: Seleccionar Todo ──────────────────────────────────
+    const selectAllCb = document.getElementById('inbox-select-all-cb');
+    if (selectAllCb) {
+        selectAllCb.addEventListener('change', () => {
+            const isChecked = selectAllCb.checked;
+            const visibleCards = inboxCardsContainer.querySelectorAll('.solicitud-card');
+            visibleCards.forEach(card => {
+                const solId = card.getAttribute('data-id');
+                const cb = card.querySelector('.card-select-cb');
+                if (cb) cb.checked = isChecked;
+                if (isChecked) {
+                    selectedSolicitudIds.add(solId);
+                    card.classList.add('is-selected');
+                } else {
+                    selectedSolicitudIds.delete(solId);
+                    card.classList.remove('is-selected');
+                }
+            });
+            updateBulkActionsBar();
+        });
+    }
+
+    // ── Eliminación Masiva de Solicitudes ────────────────────────────────────
+    const bulkDeleteBtn = document.getElementById('inbox-bulk-delete-btn');
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', async () => {
+            const count = selectedSolicitudIds.size;
+            if (count === 0) return;
+            if (confirm(`¿Eliminar definitivamente las ${count} solicitudes seleccionadas? Esta acción no se puede deshacer.`)) {
+                try {
+                    const idsArray = Array.from(selectedSolicitudIds);
+                    await fetch('/api/admin/solicitudes/bulk-delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                        body: JSON.stringify({ ids: idsArray })
+                    });
+                    idsArray.forEach(id => {
+                        unreadSolicitudIds.delete(id);
+                        selectedSolicitudIds.delete(id);
+                    });
+                    await fetchSolicitudes();
+                } catch (err) {
+                    alert('Error en eliminación masiva: ' + err.message);
+                }
+            }
+        });
+    }
+
+    // ── Archivado Masivo de Solicitudes ──────────────────────────────────────
+    const bulkArchiveBtn = document.getElementById('inbox-bulk-archive-btn');
+    if (bulkArchiveBtn) {
+        bulkArchiveBtn.addEventListener('click', async () => {
+            const count = selectedSolicitudIds.size;
+            if (count === 0) return;
+            try {
+                const idsArray = Array.from(selectedSolicitudIds);
+                await fetch('/api/admin/solicitudes/bulk-archive', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                    body: JSON.stringify({ ids: idsArray })
+                });
+                idsArray.forEach(id => {
+                    unreadSolicitudIds.delete(id);
+                    selectedSolicitudIds.delete(id);
+                });
+                await fetchSolicitudes();
+            } catch (err) {
+                alert('Error al archivar solicitudes: ' + err.message);
+            }
         });
     }
 

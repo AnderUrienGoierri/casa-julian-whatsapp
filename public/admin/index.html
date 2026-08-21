@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260820-V261-FULL-HEIGHT-HISTORY">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260821-V262-INBOX-UNIFY-BULK-DELETE">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -298,7 +298,7 @@
 
                         <!-- Contenido colapsable -->
                         <div id="inbox-filters-body" class="inbox-toolbar-body">
-                            <!-- Fila 1: Buscador + Ordenación + Selector de Vista -->
+                            <!-- Fila 1: Buscador + Ordenación + Selector de Vista Unificada -->
                             <div class="inbox-top-controls">
                                 <div class="search-box inbox-search">
                                     <span class="search-icon">🔍</span>
@@ -319,7 +319,6 @@
                                 <div class="inbox-view-group">
                                     <button class="filter-chip active" data-inbox-view="active" id="view-chip-active">📥 Activas</button>
                                     <button class="filter-chip" data-inbox-view="ARCHIVADA" id="view-chip-archived">📦 Archivadas</button>
-                                    <button class="filter-chip" data-inbox-view="ELIMINADA" id="view-chip-deleted">🗑️ Papelera</button>
                                 </div>
                             </div>
 
@@ -347,6 +346,24 @@
                                     <button class="filter-chip" data-inbox-status="RECHAZADA">🚫 Rechazadas</button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Acciones Masivas y Selección Múltiple -->
+                    <div id="inbox-bulk-bar" class="inbox-bulk-bar" style="display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #cbd5e1; font-size: 0.85rem; font-weight: 600; user-select: none;">
+                                <input type="checkbox" id="inbox-select-all-cb" style="width: 17px; height: 17px; cursor: pointer; accent-color: #ef4444;">
+                                <span>Seleccionar todo (<span id="inbox-selected-count">0</span> seleccionadas)</span>
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button id="inbox-bulk-archive-btn" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px; display: none; align-items: center; gap: 5px; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4);">
+                                📦 Archivar seleccionadas
+                            </button>
+                            <button id="inbox-bulk-delete-btn" class="btn-danger" style="font-size: 0.8rem; padding: 6px 12px; display: none; align-items: center; gap: 5px; background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.5);">
+                                🗑️ Eliminar seleccionadas
+                            </button>
                         </div>
                     </div>
 
