@@ -1878,6 +1878,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 const data = await res.json();
                 allWhatsAppChats = data.chats || [];
+                console.log("💬 [Chats WhatsApp] Cargadas conversaciones:", allWhatsAppChats.length, allWhatsAppChats);
                 
                 // Actualizar badge de contador en la pestaña
                 const chatsCountBadge = document.getElementById('chats-count-badge');
@@ -1887,6 +1888,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 renderWhatsAppChats();
+            } else {
+                console.warn("⚠️ [Chats WhatsApp] Error HTTP en /api/admin/chats:", res.status);
             }
         } catch (err) {
             console.error("⚠️ Error cargando conversaciones de WhatsApp:", err);
