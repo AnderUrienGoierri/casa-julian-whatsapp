@@ -459,7 +459,7 @@ async function getUserChatHistory(telefono) {
     if (pool) {
         try {
             const res = await pool.query(
-                `SELECT * FROM bot_chat_history WHERE telefono = $1 ORDER BY created_at ASC`,
+                `SELECT * FROM bot_chat_history WHERE telefono = $1 ORDER BY created_at ASC, id ASC`,
                 [cleanTel]
             );
             if (res.rows) {
