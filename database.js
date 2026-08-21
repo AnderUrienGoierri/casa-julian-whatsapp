@@ -98,6 +98,8 @@ const {
     getAllWhatsAppConversations
 } = require('./db/solicitudes');
 
+const silencedNumbers = require('./db/silencedNumbers');
+
 module.exports = {
     pool,
     DB_PATH,
@@ -171,10 +173,13 @@ module.exports = {
     createSolicitud,
     getAllSolicitudes,
     getActiveHumanHandoverSolicitud,
-    appendMessageToSolicitud,
-    updateSolicitudStatus,
-    deleteSolicitud,
     logUserChatHistory,
     getUserChatHistory,
-    getAllWhatsAppConversations
+    getAllWhatsAppConversations,
+    getAllSilencedNumbers: silencedNumbers.getAllSilencedNumbers,
+    isPhoneSilenced: silencedNumbers.isPhoneSilenced,
+    addOrUpdateSilencedNumber: silencedNumbers.addOrUpdateSilencedNumber,
+    deleteSilencedNumber: silencedNumbers.deleteSilencedNumber,
+    toggleSilencedNumberActive: silencedNumbers.toggleSilencedNumberActive,
+    seedSilencedNumbersFromTxt: silencedNumbers.seedSilencedNumbersFromTxt
 };

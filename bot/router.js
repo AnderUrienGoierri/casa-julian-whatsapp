@@ -51,7 +51,40 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
         console.error("⚠️ Error guardando historial de chat de cliente:", histErr.message);
     }
 
-    // 0. VERIFICAR SI EL CHATBOT ESTÁ ACTIVO O PAUSADO GLOBALMENTE (DESDE AJUSTES DEL CMS)
+    // 0. VERIFICAR SI EL NÚMERO ESTÁ EN LA LISTA DE NÚMEROS SILENCIADOS (PROVEEDORES / EMPLEADOS / ALBA)
+    try {
+        const silenced = await db.isPhoneSilenced(from);
+        if (silenced) {
+            console.log(`🔇 [MODO SILENCIOSO AUTOMÁTICO] Teléfono ${from} (${silenced.nombre || 'Contacto'} - ${silenced.categoria}) está en la lista silenciada. Bot en silencio permanente.`);
+            
+            // Crear o adjuntar mensaje a solicitud para recepción
+            const activeSol = await db.getActiveHumanHandoverSolicitud(from);
+            if (activeSol) {
+                await db.appendMessageToSolicitud(activeSol.id, {
+                    emisor: 'cliente',
+                    texto: body || ''
+                });
+            } else {
+                const catLabel = (silenced.categoria === 'empleado' || silenced.categoria === 'alba') ? '👷 Empleado / Personal' : '🚚 Proveedor';
+                await db.createSolicitud({
+                    tipoAccion: `CONTACTO SILENCIADO: ${silenced.nombre || 'Proveedor/Empleado'}`,
+                    categoria: silenced.categoria || 'proveedor',
+                    categoriaLabel: catLabel,
+                    telefonoCliente: from,
+                    nombreCliente: `${silenced.nombre || 'Contacto'} (${catLabel})`,
+                    telefonoReserva: from,
+                    datosDetallados: `💬 Mensaje directo de ${silenced.nombre || 'contacto'}:\n${body || ''}`,
+                    estado: 'PENDIENTE',
+                    enAtencionHumana: true
+                });
+            }
+            return; // ⏸️ BYPASS TOTAL: EL BOT NUNCA INTERACTÚA CON ESTOS NÚMEROS
+        }
+    } catch (silenceErr) {
+        console.error("⚠️ Error verificando número silenciado:", silenceErr.message);
+    }
+
+    // 0a. VERIFICAR SI EL CHATBOT ESTÁ ACTIVO O PAUSADO GLOBALMENTE (DESDE AJUSTES DEL CMS)
     try {
         const settings = await db.getSystemSettings();
         if (settings && settings.botActive === false) {

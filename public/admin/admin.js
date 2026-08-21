@@ -167,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (tabId === 'tab-inbox') fetchSolicitudes();
             if (tabId === 'tab-chats') fetchWhatsAppChats();
+            if (tabId === 'tab-silenced') fetchSilencedNumbers();
             if (tabId === 'tab-flow') renderUseCasesFlow();
             if (tabId === 'tab-texts') renderTextsGrid();
             if (tabId === 'tab-menu') renderMenuTable();
@@ -184,10 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Aplicar restricciones visuales por rol de usuario
         const role = localStorage.getItem('casa_julian_user_role') || 'admin';
         if (role === 'recepcion') {
-            // RECEPCIÓN: Buzón de Solicitudes y Chats WhatsApp visibles
+            // RECEPCIÓN: Buzón de Solicitudes, Chats WhatsApp y Números Silenciados visibles
             document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
                 const t = btn.getAttribute('data-tab');
-                btn.style.display = (t === 'tab-inbox' || t === 'tab-chats') ? 'inline-block' : 'none';
+                btn.style.display = (t === 'tab-inbox' || t === 'tab-chats' || t === 'tab-silenced') ? 'inline-block' : 'none';
             });
             // Ocultar el simulador de móvil (no necesario para recepción)
             document.body.classList.add('mode-recepcion');
@@ -195,9 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const inboxContent = document.getElementById('tab-inbox');
             if (inboxContent) inboxContent.classList.add('active');
-            // Cargar solicitudes y chats y empezar polling en tiempo real cada 3.5s
+            // Cargar solicitudes, chats y números silenciados y empezar polling en tiempo real cada 3.5s
             await fetchSolicitudes();
             await fetchWhatsAppChats();
+            await fetchSilencedNumbers();
             if (!inboxPollingInterval) {
                 inboxPollingInterval = setInterval(() => {
                     fetchSolicitudes();
@@ -222,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Iniciar polling continuo en tiempo real (cada 3.5s) tanto para solicitudes como para chats
         await fetchSolicitudes();
         await fetchWhatsAppChats();
+        await fetchSilencedNumbers();
         if (!inboxPollingInterval) {
             inboxPollingInterval = setInterval(() => {
                 fetchSolicitudes();
@@ -1981,13 +1984,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <div class="solicitud-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <div style="display: flex; gap: 6px;">
+                        <div style="display: flex; gap: 6px; align-items: center;">
                             <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35);" title="Llamar directamente">
                                 📞 Llamar
                             </a>
                             <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.35);" title="Abrir en WhatsApp">
                                 📲 WhatsApp
                             </a>
+                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);" title="Silenciar respuestas automáticas del bot para este contacto">
+                                🔇 Silenciar
+                            </button>
                         </div>
                         <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Cliente')}" data-solid="${c.solicitudId || ''}" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1);">
                             💬 Abrir Chat &amp; Responder
@@ -2004,6 +2010,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const phone = card.getAttribute('data-phone');
                 const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
                 openHistoryModal(phone, name);
+            });
+        });
+
+        container.querySelectorAll('.btn-silence-chat-card').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
+                openSilencedModal(phone, name);
             });
         });
 
@@ -2181,6 +2196,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
 
+            // Botón Silenciar Chatbot (Bypass)
+            const silenceBtnHtml = `
+                <button class="btn-silence-contact-quick" data-phone="${cleanPhoneNum}" data-name="${encodeURIComponent(sol.nombreCliente || 'Contacto')}" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Silenciar respuestas automáticas del bot para este contacto (Proveedores, Empleados...)">
+                    🔇 Silenciar
+                </button>
+            `;
+
             // Botones de acción según vista
             let actionBtnsHtml = '';
             if (isArchiveView) {
@@ -2188,14 +2210,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 actionBtnsHtml = `
                     ${quickContactBtnsHtml}
                     ${historyBtnHtml}
+                    ${silenceBtnHtml}
                     <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;" title="Restaurar a Activas">↩️ Restaurar</button>
                     <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Eliminar definitivamente este mensaje">🗑️</button>
                 `;
             } else {
-                // Vista Activas: Contacto + Historial + Archivar + Eliminar definitivamente
+                // Vista Activas: Contacto + Historial + Silenciar + Archivar + Eliminar definitivamente
                 actionBtnsHtml = `
                     ${quickContactBtnsHtml}
                     ${historyBtnHtml}
+                    ${silenceBtnHtml}
                     <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Archivar solicitud">📦</button>
                     <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Eliminar definitivamente este mensaje">🗑️</button>
                 `;
@@ -2310,6 +2334,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (err) {
                     alert('Error al archivar solicitud: ' + err.message);
                 }
+            });
+        });
+
+        // Botón Silenciar Contacto Rápido
+        document.querySelectorAll('.btn-silence-contact-quick').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
+                openSilencedModal(phone, name);
             });
         });
 
@@ -3453,17 +3487,242 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveMaintenanceSettingsBtn.disabled = false;
             }
         });
+    // ==========================================
+    // SECCIÓN: GESTIÓN DE NÚMEROS SILENCIADOS (PROVEEDORES / EMPLEADOS / ALBA)
+    // ==========================================
+    let allSilencedNumbers = [];
+    let currentSilencedFilter = 'all';
+    let currentSilencedSearch = '';
+
+    const silencedTableBody = document.getElementById('silenced-numbers-table-body');
+    const silencedCountBadge = document.getElementById('silenced-count-badge');
+    const searchSilencedInput = document.getElementById('search-silenced-input');
+    const refreshSilencedBtn = document.getElementById('refresh-silenced-btn');
+    const addSilencedNumberBtn = document.getElementById('add-silenced-number-btn');
+    const silencedModal = document.getElementById('silenced-modal');
+    const silencedModalTitle = document.getElementById('silenced-modal-title');
+    const silencedNumberForm = document.getElementById('silenced-number-form');
+    const silencedPhoneInput = document.getElementById('silenced-phone-input');
+    const silencedNameInput = document.getElementById('silenced-name-input');
+    const silencedCatSelect = document.getElementById('silenced-cat-select');
+    const silencedNotesInput = document.getElementById('silenced-notes-input');
+    const closeSilencedModalBtn = document.getElementById('close-silenced-modal-btn');
+
+    async function fetchSilencedNumbers() {
+        try {
+            const res = await fetch('/api/admin/silenced-numbers', {
+                headers: { 'x-admin-token': adminToken }
+            });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.numbers)) {
+                allSilencedNumbers = data.numbers;
+                renderSilencedNumbersTable();
+            }
+        } catch (err) {
+            console.error("⚠️ Error cargando números silenciados:", err.message);
+        }
     }
 
-    // Inicializar estado del bot en la cabecera al cargar
-    fetch('/api/admin/settings', { headers: { 'x-admin-token': adminToken } })
-        .then(r => r.json())
-        .then(d => {
-            if (d.success && d.settings) {
-                currentSystemSettings = d.settings;
-                updateBotActiveUI(currentSystemSettings.botActive !== false);
+    function renderSilencedNumbersTable() {
+        if (!silencedTableBody) return;
+
+        // Actualizar contadores
+        const total = allSilencedNumbers.length;
+        const countProv = allSilencedNumbers.filter(n => n.categoria === 'proveedor').length;
+        const countEmp = allSilencedNumbers.filter(n => n.categoria === 'empleado' || n.categoria === 'alba').length;
+        const countOtro = allSilencedNumbers.filter(n => n.categoria !== 'proveedor' && n.categoria !== 'empleado' && n.categoria !== 'alba').length;
+
+        if (silencedCountBadge) {
+            silencedCountBadge.textContent = total;
+            silencedCountBadge.style.display = total > 0 ? 'inline-block' : 'none';
+        }
+        const cAll = document.getElementById('count-silenced-all');
+        const cProv = document.getElementById('count-silenced-prov');
+        const cEmp = document.getElementById('count-silenced-emp');
+        const cOtro = document.getElementById('count-silenced-otro');
+        if (cAll) cAll.textContent = total;
+        if (cProv) cProv.textContent = countProv;
+        if (cEmp) cEmp.textContent = countEmp;
+        if (cOtro) cOtro.textContent = countOtro;
+
+        let filtered = [...allSilencedNumbers];
+
+        // Filtrar por categoría
+        if (currentSilencedFilter !== 'all') {
+            if (currentSilencedFilter === 'empleado') {
+                filtered = filtered.filter(n => n.categoria === 'empleado' || n.categoria === 'alba');
+            } else if (currentSilencedFilter === 'otro') {
+                filtered = filtered.filter(n => n.categoria !== 'proveedor' && n.categoria !== 'empleado' && n.categoria !== 'alba');
+            } else {
+                filtered = filtered.filter(n => n.categoria === currentSilencedFilter);
             }
-        })
-        .catch(() => {});
+        }
+
+        // Filtrar por búsqueda
+        if (currentSilencedSearch.trim()) {
+            const q = currentSilencedSearch.toLowerCase().trim();
+            filtered = filtered.filter(n => 
+                (n.nombre || '').toLowerCase().includes(q) ||
+                (n.telefono || '').toLowerCase().includes(q) ||
+                (n.notas || '').toLowerCase().includes(q)
+            );
+        }
+
+        if (filtered.length === 0) {
+            silencedTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">
+                        No se encontraron números silenciados con los filtros actuales.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        silencedTableBody.innerHTML = filtered.map(item => {
+            let catBadge = `<span style="background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">🚚 Proveedor</span>`;
+            if (item.categoria === 'empleado' || item.categoria === 'alba') {
+                catBadge = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">👷 Empleado / Personal</span>`;
+            } else if (item.categoria !== 'proveedor') {
+                catBadge = `<span style="background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">📌 ${item.categoria}</span>`;
+            }
+
+            const cleanPhone = (item.telefono || '').toString().replace(/\D/g, '');
+            const isSilencedActive = item.activo !== false;
+            const statusHtml = isSilencedActive
+                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700;">🔇 Silenciado (Bypass)</span>`
+                : `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700;">🤖 Bot Activo</span>`;
+
+            return `
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                    <td style="padding: 12px 16px; font-weight: 600; color: #f8fafc;">
+                        ${item.nombre || 'Contacto'}
+                    </td>
+                    <td style="padding: 12px 16px; color: #38bdf8; font-family: monospace;">
+                        +${item.telefono}
+                    </td>
+                    <td style="padding: 12px 16px;">
+                        ${catBadge}
+                    </td>
+                    <td style="padding: 12px 16px; color: #94a3b8; font-size: 0.84rem;">
+                        ${item.notas || '-'}
+                    </td>
+                    <td style="padding: 12px 16px; text-align: center;">
+                        ${statusHtml}
+                    </td>
+                    <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
+                        <button class="btn-toggle-silence" data-id="${item.id}" data-active="${isSilencedActive}" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; margin-right: 6px;" title="${isSilencedActive ? 'Desactivar silencio (reactivar bot)' : 'Activar silencio permanente'}">
+                            ${isSilencedActive ? '🔔 Activar Bot' : '🔇 Silenciar'}
+                        </button>
+                        <button class="btn-delete-silence" data-id="${item.id}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Eliminar de la lista">
+                            🗑️
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        // Listeners para acciones de la tabla
+        silencedTableBody.querySelectorAll('.btn-toggle-silence').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                const currentActive = btn.getAttribute('data-active') === 'true';
+                try {
+                    await fetch(`/api/admin/silenced-numbers/${id}/toggle`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                        body: JSON.stringify({ activo: !currentActive })
+                    });
+                    await fetchSilencedNumbers();
+                } catch (err) {
+                    alert('Error cambiando estado: ' + err.message);
+                }
+            });
+        });
+
+        silencedTableBody.querySelectorAll('.btn-delete-silence').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
+                if (!confirm(`¿Eliminar a "${name}" de la lista de números silenciados? El bot volverá a responderle con menús automáticos.`)) return;
+                try {
+                    await fetch(`/api/admin/silenced-numbers/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'x-admin-token': adminToken }
+                    });
+                    await fetchSilencedNumbers();
+                } catch (err) {
+                    alert('Error al eliminar: ' + err.message);
+                }
+            });
+        });
+    }
+
+    function openSilencedModal(prefillPhone = '', prefillName = '') {
+        if (!silencedModal) return;
+        if (silencedPhoneInput) silencedPhoneInput.value = prefillPhone;
+        if (silencedNameInput) silencedNameInput.value = prefillName;
+        if (silencedCatSelect) silencedCatSelect.value = 'proveedor';
+        if (silencedNotesInput) silencedNotesInput.value = '';
+        silencedModal.style.display = 'flex';
+    }
+
+    function closeSilencedModal() {
+        if (silencedModal) silencedModal.style.display = 'none';
+    }
+
+    if (closeSilencedModalBtn) closeSilencedModalBtn.addEventListener('click', closeSilencedModal);
+    if (addSilencedNumberBtn) addSilencedNumberBtn.addEventListener('click', () => openSilencedModal());
+    if (refreshSilencedBtn) refreshSilencedBtn.addEventListener('click', fetchSilencedNumbers);
+
+    if (searchSilencedInput) {
+        searchSilencedInput.addEventListener('input', (e) => {
+            currentSilencedSearch = e.target.value;
+            renderSilencedNumbersTable();
+        });
+    }
+
+    document.querySelectorAll('[data-silenced-cat]').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('[data-silenced-cat]').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentSilencedFilter = chip.getAttribute('data-silenced-cat');
+            renderSilencedNumbersTable();
+        });
+    });
+
+    if (silencedNumberForm) {
+        silencedNumberForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = silencedPhoneInput ? silencedPhoneInput.value.trim() : '';
+            const name = silencedNameInput ? silencedNameInput.value.trim() : '';
+            const cat = silencedCatSelect ? silencedCatSelect.value : 'proveedor';
+            const notes = silencedNotesInput ? silencedNotesInput.value.trim() : '';
+
+            if (!phone || !name) {
+                alert('Por favor, introduce al menos el teléfono y el nombre.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/silenced-numbers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                    body: JSON.stringify({ telefono: phone, nombre: name, categoria: cat, notas })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeSilencedModal();
+                    await fetchSilencedNumbers();
+                    alert(`✅ Número ${phone} (${name}) guardado exitosamente en Modo Silencioso.`);
+                } else {
+                    alert('Error guardando contacto: ' + (data.error || 'Error desconocido'));
+                }
+            } catch (err) {
+                alert('Error de conexión: ' + err.message);
+            }
+        });
+    }
 
 });
+

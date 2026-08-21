@@ -822,6 +822,52 @@ router.get('/chats', requireAdminAuth, async (req, res) => {
     }
 });
 
+// 18f. NÚMEROS SILENCIADOS (PROVEEDORES, EMPLEADOS, ETC.)
+router.get('/silenced-numbers', requireAdminAuth, async (req, res) => {
+    try {
+        const { getAllSilencedNumbers } = require('./database');
+        const numbers = await getAllSilencedNumbers();
+        return res.json({ success: true, numbers });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/silenced-numbers', requireAdminAuth, async (req, res) => {
+    try {
+        const { addOrUpdateSilencedNumber } = require('./database');
+        const { telefono, nombre, categoria, notas } = req.body;
+        if (!telefono) return res.status(400).json({ error: "El teléfono es obligatorio." });
+        const result = await addOrUpdateSilencedNumber({ telefono, nombre, categoria, notas });
+        return res.json({ success: true, result });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.patch('/silenced-numbers/:id/toggle', requireAdminAuth, async (req, res) => {
+    try {
+        const { toggleSilencedNumberActive } = require('./database');
+        const { id } = req.params;
+        const { activo } = req.body;
+        const result = await toggleSilencedNumberActive(id, activo);
+        return res.json({ success: true, result });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.delete('/silenced-numbers/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { deleteSilencedNumber } = require('./database');
+        const { id } = req.params;
+        await deleteSilencedNumber(id);
+        return res.json({ success: true });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 // 19. Obtener lista completa de tarjetas regalo con estados y fecha de caducidad a 6 meses
 router.get('/tarjetas-regalo', requireAdminAuth, async (req, res) => {
     try {

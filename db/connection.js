@@ -249,11 +249,31 @@ if (process.env.DATABASE_URL) {
             created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
         );
 
-        CREATE INDEX IF NOT EXISTS idx_bot_chat_history_telefono ON bot_chat_history(telefono);
+        CREATE TABLE IF NOT EXISTS bot_silenced_numbers (
+            id SERIAL PRIMARY KEY,
+            telefono VARCHAR(50) UNIQUE NOT NULL,
+            nombre VARCHAR(150) DEFAULT 'Contacto',
+            categoria VARCHAR(50) DEFAULT 'proveedor',
+            notas TEXT,
+            activo BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid'),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() AT TIME ZONE 'Europe/Madrid')
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_bot_silenced_numbers_telefono ON bot_silenced_numbers(telefono);
 
         ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS en_atencion_humana BOOLEAN DEFAULT FALSE;
         ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS mensajes TEXT DEFAULT '[]';
-    `).catch(err => console.error("⚠️ Error en Auto-Migración de BD:", err.message));
+    `).then(async () => {
+        try {
+            const path = require('path');
+            const { seedSilencedNumbersFromTxt } = require('./silencedNumbers');
+            const txtPath = path.join(__dirname, '..', 'telefonos_contactos_silenciar_bot', 'silenciar.txt');
+            await seedSilencedNumbersFromTxt(txtPath);
+        } catch (seedErr) {
+            console.error("⚠️ Error seeding silenced numbers:", seedErr.message);
+        }
+    }).catch(err => console.error("⚠️ Error en Auto-Migración de BD:", err.message));
 }
 
 module.exports = {
