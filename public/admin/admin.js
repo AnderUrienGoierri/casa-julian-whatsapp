@@ -226,6 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success && Array.isArray(data.numbers)) {
                 allSilencedNumbers = data.numbers;
                 renderSilencedNumbersTable();
+            } else {
+                console.error("⚠️ Respuesta inesperada de /silenced-numbers:", data);
             }
         } catch (err) {
             console.error("⚠️ Error cargando números silenciados:", err.message);
@@ -233,7 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderSilencedNumbersTable() {
-        if (!silencedTableBody) return;
+        const tbody = document.getElementById('silenced-numbers-table-body');
+        const badge = document.getElementById('silenced-count-badge');
+        if (!tbody) return;
 
         // Actualizar contadores
         const total = allSilencedNumbers.length;
@@ -241,9 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const countEmp = allSilencedNumbers.filter(n => n.categoria === 'empleado' || n.categoria === 'alba').length;
         const countOtro = allSilencedNumbers.filter(n => n.categoria !== 'proveedor' && n.categoria !== 'empleado' && n.categoria !== 'alba').length;
 
-        if (silencedCountBadge) {
-            silencedCountBadge.textContent = total;
-            silencedCountBadge.style.display = total > 0 ? 'inline-block' : 'none';
+        if (badge) {
+            badge.textContent = total;
+            badge.style.display = total > 0 ? 'inline-block' : 'none';
         }
         const cAll = document.getElementById('count-silenced-all');
         const cProv = document.getElementById('count-silenced-prov');
@@ -278,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (filtered.length === 0) {
-            silencedTableBody.innerHTML = `
+            tbody.innerHTML = `
                 <tr>
                     <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">
                         No se encontraron números silenciados con los filtros actuales.
@@ -288,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        silencedTableBody.innerHTML = filtered.map(item => {
+        tbody.innerHTML = filtered.map(item => {
             let catBadge = `<span style="background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">🚚 Proveedor</span>`;
             if (item.categoria === 'empleado' || item.categoria === 'alba') {
                 catBadge = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">👷 Empleado / Personal</span>`;
@@ -332,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         // Listeners para acciones de la tabla
-        silencedTableBody.querySelectorAll('.btn-toggle-silence').forEach(btn => {
+        tbody.querySelectorAll('.btn-toggle-silence').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
                 const currentActive = btn.getAttribute('data-active') === 'true';
@@ -349,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        silencedTableBody.querySelectorAll('.btn-delete-silence').forEach(btn => {
+        tbody.querySelectorAll('.btn-delete-silence').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
                 const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
