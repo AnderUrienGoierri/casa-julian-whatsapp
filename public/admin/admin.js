@@ -1836,6 +1836,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalSelected = selectedSolicitudIds.size;
         if (countEl) countEl.textContent = totalSelected;
 
+        document.querySelectorAll('.bulk-count-num').forEach(el => {
+            el.textContent = totalSelected;
+        });
+
         if (bulkDeleteBtn) {
             bulkDeleteBtn.style.display = totalSelected > 0 ? 'inline-flex' : 'none';
         }
