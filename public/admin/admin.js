@@ -105,9 +105,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // FORMULARIO LOGIN
+    const togglePassBtn = document.getElementById('toggle-password-visibility');
+    const adminPassInput = document.getElementById('admin-password');
+
+    if (togglePassBtn && adminPassInput) {
+        togglePassBtn.addEventListener('click', () => {
+            if (adminPassInput.type === 'password') {
+                adminPassInput.type = 'text';
+                togglePassBtn.textContent = '🙈';
+                togglePassBtn.title = 'Ocultar contraseña';
+            } else {
+                adminPassInput.type = 'password';
+                togglePassBtn.textContent = '👁️';
+                togglePassBtn.title = 'Mostrar contraseña';
+            }
+        });
+    }
+
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const password = document.getElementById('admin-password').value;
+        const password = adminPassInput ? adminPassInput.value : '';
         loginError.style.display = 'none';
 
         try {

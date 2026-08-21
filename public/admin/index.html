@@ -35,9 +35,14 @@
 
                 <div class="form-group">
                     <label for="admin-password" id="password-label">Contraseña de Recepción:</label>
-                    <input type="password" id="admin-password" placeholder="Introduce la contraseña..." required autocomplete="current-password">
+                    <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                        <input type="password" id="admin-password" placeholder="Introduce la contraseña..." required autocomplete="current-password" style="padding-right: 44px;">
+                        <button type="button" id="toggle-password-visibility" style="position: absolute; right: 8px; background: none; border: none; font-size: 1.15rem; cursor: pointer; color: #94a3b8; padding: 6px; display: flex; align-items: center; justify-content: center; z-index: 10;" title="Mostrar / Ocultar contraseña">
+                            👁️
+                        </button>
+                    </div>
                 </div>
-                <div id="login-error" class="error-msg" style="display: none;"></div>
+                <div id="login-error" class="error-msg" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; text-align: left; font-size: 0.85rem;"></div>
                 <button type="submit" class="btn-primary full-width">🔐 Iniciar Sesión</button>
                 <!-- Botón para limpiar sesión si hay token viejo -->
                 <div style="text-align: center; margin-top: 14px;">

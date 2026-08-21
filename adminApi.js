@@ -45,15 +45,30 @@ router.post('/login', (req, res) => {
     const { password } = req.body || {};
     const inputPass = (password || '').toString().trim();
 
-    if (inputPass === RECEPCION_PASSWORD || inputPass.toLowerCase() === 'recepcion' || inputPass.toLowerCase() === 'recepción') {
+    if (!inputPass) {
+        return res.status(400).json({ success: false, error: 'Por favor, introduce una contraseña.' });
+    }
+
+    // Perfil Recepción: Acepta 'recepcion', 'recepcion2026', 'recepción'
+    if (
+        inputPass === RECEPCION_PASSWORD || 
+        inputPass.toLowerCase() === 'recepcion' || 
+        inputPass.toLowerCase() === 'recepción' ||
+        inputPass.toLowerCase() === 'recepcion2026' ||
+        inputPass.toLowerCase() === 'recepción2026'
+    ) {
         return res.json({ success: true, token: VALID_RECEPCION_TOKEN, role: 'recepcion' });
     }
 
-    if (inputPass === ADMIN_PASSWORD) {
+    // Perfil Administración: Acepta 'julian2026' o la variable ADMIN_PASSWORD
+    if (inputPass === ADMIN_PASSWORD || inputPass === 'julian2026') {
         return res.json({ success: true, token: VALID_ADMIN_TOKEN, role: 'admin' });
     }
 
-    return res.status(401).json({ success: false, error: 'Contraseña de acceso incorrecta.' });
+    return res.status(401).json({ 
+        success: false, 
+        error: '❌ Contraseña de acceso incorrecta. Comprueba mayúsculas/minúsculas y el perfil seleccionado (Recepción o Administración).' 
+    });
 });
 
 // 2. Obtener estructura completa y datos del chatbot
