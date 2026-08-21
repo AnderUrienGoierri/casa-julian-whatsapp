@@ -498,9 +498,9 @@ async function getAllWhatsAppConversations() {
                     (SELECT texto FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_texto,
                     (SELECT emisor FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_emisor,
                     (SELECT tipo FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_tipo,
-                    (SELECT nombre FROM clientes WHERE replace(telefono, '+', '') = b.telefono OR telefono = b.telefono LIMIT 1) as nombre_cliente,
+                    (SELECT nombre_cliente FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as nombre_cliente,
                     (SELECT id FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as solicitud_id,
-                    (SELECT tipo_solicitud FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as tipo_solicitud,
+                    (SELECT tipo_accion FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as tipo_solicitud,
                     (SELECT estado FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as solicitud_estado
                 FROM bot_chat_history b
                 GROUP BY b.telefono

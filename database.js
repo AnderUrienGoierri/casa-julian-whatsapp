@@ -175,5 +175,6 @@ module.exports = {
     updateSolicitudStatus,
     deleteSolicitud,
     logUserChatHistory,
-    getUserChatHistory
+    getUserChatHistory,
+    getAllWhatsAppConversations
 };
