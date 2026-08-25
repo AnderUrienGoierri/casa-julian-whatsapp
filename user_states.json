@@ -1,12 +1,5 @@
 {
-  "states": {
-    "sim_test_admin": {
-      "step": "select_language",
-      "data": {}
-    }
-  },
-  "languages": {
-    "34664037707": "eu"
-  },
+  "states": {},
+  "languages": {},
   "locations": {}
 }

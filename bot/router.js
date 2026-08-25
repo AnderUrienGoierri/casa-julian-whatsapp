@@ -154,18 +154,29 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
 
     // 1. Interceptar selección de idioma por botón/lista
     if (interactiveData && (interactiveData.type === 'button' || interactiveData.type === 'list')) {
-        const buttonId = interactiveData.id;
+        const buttonId = interactiveData.id || '';
+        const buttonTitle = (interactiveData.title || '').toLowerCase();
         
         if (buttonId === 'page_lang_1' || buttonId === 'page_lang_2') {
             await sendLanguageMenu(from, userLanguages, userStates);
             return;
         }
 
-        if (buttonId && buttonId.startsWith('lang_')) {
-            const langCode = buttonId.replace('lang_', '');
-            userLanguages.set(from, langCode);
+        let selectedLang = null;
+        if (buttonId.startsWith('lang_')) {
+            selectedLang = buttonId.replace('lang_', '');
+        } else if (buttonTitle.includes('español') || buttonTitle.includes('espanol') || buttonTitle.startsWith('es ')) {
+            selectedLang = 'es';
+        } else if (buttonTitle.includes('euskara') || buttonTitle.includes('euskera') || buttonTitle.startsWith('eu ')) {
+            selectedLang = 'eu';
+        } else if (buttonTitle.includes('english') || buttonTitle.startsWith('en ')) {
+            selectedLang = 'en';
+        }
+
+        if (selectedLang) {
+            userLanguages.set(from, selectedLang);
             userStates.set(from, { step: 'select_location', data: {} });
-            
+            console.log(`🌐 Idioma de ${from} fijado a "${selectedLang}"`);
             await showLocationOrMainMenu(from, userLocations, userLanguages, userStates);
             return;
         }
