@@ -82,3 +82,29 @@ Para que Meta pueda conectar con el Synology NAS y el panel sea accesible desde 
    * El bot **NO responde automáticamente**.
    * El mensaje entra directo al buzón en modo humano.
 3. **Prueba de Acceso Remoto:** Conectar al panel web desde un móvil con datos 4G/5G en `https://casajuliantolosa.synology.me/admin/`.
+
+---
+
+## 📈 6. Desbloqueo del Límite de 2.000 Mensajes y Activación de WhatsApp Business Calling API (Llamadas VoIP)
+
+### ⏱️ ¿Cuándo y Cómo Desbloquea Meta el Límite de 2.000 Mensajes (Tier 2K)?
+Para poder activar **WhatsApp Business Calling API** y permitir llamadas de voz VoIP directas al panel de recepción (especialmente útiles para turistas extranjeros y clientes sin cobertura móvil tradicional), Meta exige que la cuenta alcance el nivel **Tier 2K** (2.000 conversaciones únicas diarias).
+
+* **Tiempo Estimado:** **Entre 2 y 7 días hábiles** desde la puesta en marcha en producción con el número oficial `+34 943 67 14 17`.
+* **Proceso de Escalado Automático de Meta:**
+  1. **Nivel Inicial (Tier 1K):** Al registrar y verificar el número oficial por llamada/SMS, Meta asigna un límite de 1.000 conversaciones diarias.
+  2. **Subida Automática a Tier 2K:** Meta incrementa el límite a 2.000 de forma 100% automática si durante los primeros días:
+     * La **calificación de calidad (Quality Rating)** se mantiene en **Verde / Alta** (los clientes no reportan spam).
+     * El bot gestiona conversaciones reales con clientes entrantes.
+     * Se acumula un volumen de uso continuo.
+  3. **Acelerador (Verificación de Empresa en Meta):** Si en el **Paso 3. Verificación de la empresa** de Meta Developers se valida el CIF/documentación de Casa Julián de Tolosa S.L., Meta eleva los límites en **24-48 horas**.
+
+### 🔍 Dónde Comprobar el Nivel de Límite en Tiempo Real:
+1. Acceder a **Meta Business Manager** (`https://business.facebook.com/`).
+2. Ir a **WhatsApp Manager** $\rightarrow$ **Cuentas de WhatsApp** $\rightarrow$ **Números de teléfono**.
+3. En la fila del `+34 943 67 14 17`, revisar la columna **Límite de mensajes** (pasará de *1.000 / día* a *2.000 / día*).
+
+### 🚀 Hoja de Ruta para las Llamadas:
+1. **Fase Inicial (Hoy):** Operativa del Chatbot activa en el `+34 943 67 14 17` para reservas, menús, cartas y bypass de proveedores. Las llamadas de voz se atienden de forma habitual por la línea telefónica convencional del restaurante.
+2. **Fase Posterior (A partir de Tier 2K):** Habilitación del módulo WebRTC en el Synology NAS para recibir llamadas VoIP entrantes por datos de WhatsApp directamente en el panel web de recepción.
+
