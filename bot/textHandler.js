@@ -129,10 +129,11 @@ async function handleTextMessage(from, text) {
     ].some(k => cleanText === k || cleanText.startsWith(k + ' '));
 
     if (isFarewell) {
+        const userLang = userLanguages.get(from) || lang || 'es';
+        await sendMessage(from, getTranslation(userLang, 'thanksClosingMsg'));
         userStates.delete(from);
         userLocations.delete(from);
         userLanguages.delete(from);
-        await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
         return;
     }
 

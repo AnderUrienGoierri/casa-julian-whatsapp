@@ -52,6 +52,7 @@ loadPersistentStates();
 const rawStateSet = userStates.set.bind(userStates);
 const rawStateDelete = userStates.delete.bind(userStates);
 const rawLangSet = userLanguages.set.bind(userLanguages);
+const rawLangDelete = userLanguages.delete.bind(userLanguages);
 const rawLocSet = userLocations.set.bind(userLocations);
 const rawLocDelete = userLocations.delete.bind(userLocations);
 
@@ -69,6 +70,12 @@ userStates.delete = function(key) {
 
 userLanguages.set = function(key, value) {
     const res = rawLangSet(key, value);
+    savePersistentStates();
+    return res;
+};
+
+userLanguages.delete = function(key) {
+    const res = rawLangDelete(key);
     savePersistentStates();
     return res;
 };
