@@ -47,7 +47,7 @@ const translations = {
         "opt1Title": "1. Solicitar reserva",
         "opt1Desc": "Solicitar reserva online, tarjeta regalo o lista de espera.",
         "opt2Title": "2. Modificar reserva",
-        "opt2Desc": "Modificar nº de comensales, día u hora de reserva.",
+        "opt2Desc": "Solicitar modificación Nº de comensales, día u hora de la reserva.",
         "opt3Title": "3. Cancelar reserva",
         "opt3Desc": "Solicitar cancelación de una reserva.",
         "optConsultaAbiertaTitle": "4. Consulta abierta",
