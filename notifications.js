@@ -363,116 +363,18 @@ async function sendInternalStaffAlertInSpanish(tipoAccion, telefonoCliente, dato
         console.error("⚠️ Error guardando solicitud en Base de Datos:", dbErr.message);
     }
 
-    // 1. Enviar alerta WhatsApp en tiempo real al teléfono del restaurante/maitre (34671652717)
+    // 1. Enviar alerta WhatsApp en tiempo real al teléfono del restaurante/maitre (si está configurado)
     try {
-        const staffPhone = process.env.STAFF_PHONE || '34671652717';
-        await sendMessage(staffPhone, alertMessage);
-        console.log(`   └─ ✅ Alerta WhatsApp enviada al teléfono del maitre (${staffPhone})`);
+        const staffPhone = process.env.STAFF_PHONE;
+        if (staffPhone && staffPhone !== '34671652717') {
+            await sendMessage(staffPhone, alertMessage);
+            console.log(`   └─ ✅ Alerta WhatsApp enviada al teléfono del maitre (${staffPhone})`);
+        }
     } catch (error) {
         console.error('⚠️ Error al enviar alerta WhatsApp al personal:', error.message);
     }
 
-    const emailHtmlResend = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-        <div style="width: 100%; text-align: center; background-color: #111; max-height: 240px; overflow: hidden;"><img src="${headerImageUrl}" alt="Asador Casa Julián" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" /></div>
-        <div style="background-color: #8B0000; color: #ffffff; padding: 14px; text-align: center;">
-            <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
-            <p style="margin: 6px 0 0 0; font-size: 15px; font-weight: bold;">${categoryInfo.colorTag}</p>
-        </div>
-        <div style="padding: 20px;">
-            <p style="font-size: 16px; color: #333; margin-top: 0;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
-            <p style="font-size: 15px; color: #333;"><strong>Nombre del Cliente:</strong> ${nombreDisplay}</p>
-            <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telDisplay}</p>
-            <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
-            
-            <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                <h3 style="margin-top: 0; color: #8B0000; font-size: 16px; margin-bottom: 10px;">📋 Datos Recibidos del Cliente:</h3>
-                ${formatDetailsAsHtmlTable(datosDetallados)}
-            </div>
-        </div>
-        <div style="border-top: 1px solid #eee; padding: 12px; text-align: center; font-size: 12px; color: #888; background-color: #fafafa;">
-            <p style="margin: 0;">Notificación Automática del Sistema de Reservas - Asador Casa Julián</p>
-        </div>
-    </div>
-    `;
-
-    const subject = `${categoryInfo.subjectTag} Casa Julián - ${nombreDisplay} (${telDisplay})`;
-
-    // Intento 1: API REST HTTPS Brevo (si está configurada la API KEY)
-    const brevoResult = await sendViaBrevoHttpApi(targetEmail, subject, emailHtmlResend);
-    if (brevoResult.success) {
-        return brevoResult;
-    }
-
-    // Intento 2: API REST HTTPS Resend (Ejecución rápida ~200ms por puerto 443)
-    const resendResult = await sendViaResendHttpApi(targetEmail, subject, emailHtmlResend);
-    if (resendResult.success) {
-        return resendResult;
-    }
-
-    // Intento 2: Fallback Nodemailer SMTP
-    let activeTransporter = getTransporter(465);
-
-    if (activeTransporter) {
-        const headerImageHtml = hasHeaderImage 
-            ? `<div style="width: 100%; text-align: center; background-color: #111; max-height: 240px; overflow: hidden;"><img src="cid:casa_julian_header" alt="Asador Casa Julián" style="width: 100%; max-height: 240px; object-fit: cover; display: block;" /></div>`
-            : '';
-
-        const emailHtmlSmtp = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid #8B0000; border-radius: 8px; overflow: hidden; background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-            ${headerImageHtml}
-            <div style="background-color: #8B0000; color: #ffffff; padding: 14px; text-align: center;">
-                <h2 style="margin: 0;">Asador Casa Julián de Tolosa</h2>
-                <p style="margin: 6px 0 0 0; font-size: 15px; font-weight: bold;">${categoryInfo.colorTag}</p>
-            </div>
-            <div style="padding: 20px;">
-                <p style="font-size: 16px; color: #333; margin-top: 0;"><strong>Categoría:</strong> <span style="color: #8B0000; font-weight: bold;">${categoryInfo.colorTag}</span></p>
-                <p style="font-size: 15px; color: #333;"><strong>Nombre del Cliente:</strong> ${nombreDisplay}</p>
-                <p style="font-size: 15px; color: #333;"><strong>Teléfono del Cliente:</strong> ${telDisplay}</p>
-                <p style="font-size: 14px; color: #666;"><strong>Fecha y Hora de Registro:</strong> ${timestamp}</p>
-                
-                <div style="background-color: #fdf8f5; border-left: 4px solid #8B0000; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                    <h3 style="margin-top: 0; color: #8B0000; font-size: 16px; margin-bottom: 10px;">📋 Datos Recibidos del Cliente:</h3>
-                    ${formatDetailsAsHtmlTable(datosDetallados)}
-                </div>
-            </div>
-            <div style="border-top: 1px solid #eee; padding: 12px; text-align: center; font-size: 12px; color: #888; background-color: #fafafa;">
-                <p style="margin: 0;">Notificación Automática del Sistema de Reservas - Asador Casa Julián</p>
-            </div>
-        </div>
-        `;
-
-        const mailOptions = {
-            from: `"Casa Julian Bot" <${process.env.SMTP_USER || 'anurte@gmail.com'}>`,
-            to: targetEmail,
-            subject: subject,
-            html: emailHtmlSmtp,
-            attachments: hasHeaderImage ? [{
-                filename: 'casa_julian_erretegia.jpg',
-                path: headerImagePath,
-                cid: 'casa_julian_header'
-            }] : []
-        };
-
-        try {
-            const info = await activeTransporter.sendMail(mailOptions);
-            console.log(`   └─ ✅ Email de alerta entregado con éxito a ${targetEmail} vía Gmail SMTP (ID: ${info.messageId})`);
-            return { success: true, method: 'port_465_ssl', messageId: info.messageId, targetEmail };
-        } catch (error) {
-            console.error('⚠️ Falló puerto 465, probando fallback puerto 587:', error.message);
-            try {
-                const fallbackTransporter = getTransporter(587);
-                const info2 = await fallbackTransporter.sendMail(mailOptions);
-                console.log(`   └─ ✅ Email de alerta entregado con éxito (vía Fallback 587) a ${targetEmail} (ID: ${info2.messageId})`);
-                return { success: true, method: 'port_587_tls_fallback', messageId: info2.messageId, targetEmail };
-            } catch (fallbackErr) {
-                console.error('⚠️ Error en Nodemailer SMTP (465/587):', fallbackErr.message);
-                return { success: false, targetEmail, resendErr: resendResult.error, errPort465: error.message, errPort587: fallbackErr.message };
-            }
-        }
-    }
-
-    return resendResult;
+    return { success: true, method: 'reception_database_inbox' };
 }
 
 /**
