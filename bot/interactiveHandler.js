@@ -701,6 +701,8 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_terminar': {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
+            userLocations.delete(from);
+            userLanguages.delete(from);
             break;
         }
 
@@ -814,6 +816,8 @@ async function handleButtonResponse(from, buttonId) {
         case 'btn_salir_menu': {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
+            userLocations.delete(from);
+            userLanguages.delete(from);
             break;
         }
 
