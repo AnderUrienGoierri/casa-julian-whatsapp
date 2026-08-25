@@ -685,6 +685,21 @@ async function handleButtonResponse(from, buttonId) {
                 }
                 await sendMessage(from, webMsg);
             }
+
+            // Enviar inmediatamente los dos botones de acción post-reserva
+            await new Promise(resolve => setTimeout(resolve, 800));
+            const postButtons = [
+                { id: 'btn_volver_menu', title: (getTranslation(lang, 'btnPostMenuPrincipal') || 'Menú Principal').slice(0, 20) },
+                { id: 'btn_terminar', title: (getTranslation(lang, 'btnPostTerminar') || 'Terminar').slice(0, 20) }
+            ];
+            const postPrompt = getTranslation(lang, 'postWebReservaPrompt') || '¿Deseas realizar alguna otra gestión o finalizar la conversación?';
+            await sendInteractiveButtons(from, postPrompt, postButtons);
+            userStates.delete(from);
+            break;
+        }
+
+        case 'btn_terminar': {
+            await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
             break;
         }

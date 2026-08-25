@@ -194,7 +194,10 @@ const translations = {
         "menuTradMaxTableCardsNotice": "📌 *Has alcanzado el límite máximo por mesa (6 comensales / 3 tarjetas regalo).* Vamos a proceder con los datos de tu reserva.",
         "reservaCardPrompt": "💳 *¿Cuenta con una Tarjeta de Regalo (Menú Tradición)?*",
         "reservaCardBtnSi": "Sí, tengo una",
-        "reservaCardBtnNo": "No tengo"
+        "reservaCardBtnNo": "No tengo",
+        "postWebReservaPrompt": "¿Deseas realizar alguna otra gestión o finalizar la conversación?",
+        "btnPostMenuPrincipal": "Menú Principal",
+        "btnPostTerminar": "Terminar"
     },
     "eu": {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
