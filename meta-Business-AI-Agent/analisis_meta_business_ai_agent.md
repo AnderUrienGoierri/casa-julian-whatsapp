@@ -33,6 +33,7 @@ A continuación se detalla la comparativa técnica y funcional entre ambas soluc
 | **Tarjetas Regalo (Validación y Canje)** | ❌ **No tiene acceso a base de datos**. No puede validar códigos ni canjearlos. | ✅ **Verificación y canje en tiempo real** contra la base de datos de tarjetas regalo. |
 | **Lista de Espera Inteligente (Turnos 13:00 / 15:00)** | ❌ No tiene lógica de turnos ni registro estructurado. | ✅ **Registro estructurado** por fecha, turno, comensales y teléfono. |
 | **Riesgo de "Alucinación" (Datos Falsos)** | ⚠️ **Alto**. La IA puede prometer mesas, inventar precios o platos no disponibles. | 🟢 **Nulo**. El bot responde estrictamente la información parametrizada desde el panel. |
+| **Etiquetado y Clasificación Automática de Chats** | ⚠️ **Muy Limitado**. En la app móvil las etiquetas de colores son 100% manuales. Meta solo auto-clasifica eventos básicos de anuncios (Leads/Compras), pero **no puede auto-etiquetar por intención** (ej. "Modificación", "Cancelación", "Tarjeta Regalo", "Proveedor"). | ✅ **100% Automático por Categoría**. El sistema clasifica automáticamente cada solicitud en el buzón web con etiquetas de color: 🔵 *Modificación*, 🔴 *Cancelación*, 🥩 *Menú Tradición*, 🎁 *Tarjeta Regalo*, 🔇 *Proveedor Silenciado*. |
 | **Bypass para Proveedores y Empleados (30 contactos)** | ❌ **No disponible**. La IA responderá con textos genéricos a proveedores y trabajadores. | ✅ **30 números silenciados** con desvío directo a recepción en modo humano. |
 | **Llamadas de Voz por WhatsApp** | ✅ **Disponibles** (al mantener la app móvil tradicional). | ❌ Desactivadas por política técnica de Meta Cloud API (las llamadas telefónicas fijas/móviles siguen activas). |
 | **Acceso Multidispositivo Remoto para Recepción** | ⚠️ Limitado a WhatsApp Web (máximo 4 dispositivos vinculados). | ✅ Acceso web seguro ilimitado vía `https://casajuliantolosa.synology.me/admin/` (móvil y PC). |
@@ -61,6 +62,8 @@ Uno de los puntos clave planteados es el uso del teléfono para llamadas de What
    * Proveedores como carniceros, distribuidores de bebida o personal recibirán respuestas automáticas de la IA cuando intenten comunicarse con recepción para temas operativos.
 4. **Falta de Trazabilidad:**
    * No hay registro de qué reservas se han atendido, qué tarjetas regalo se han utilizado o qué peticiones están pendientes de confirmación.
+5. **Etiquetado y Clasificación de Chats Manual:**
+   * En la app de WhatsApp Business, las etiquetas (los colores para organizar) siguen siendo **manuales**. La IA de Meta **NO** asigna etiquetas automáticas según lo que pide el cliente (por ejemplo, no etiqueta automáticamente *"Modificación"*, *"Cancelación"* o *"Tarjeta Regalo"*). En cambio, nuestra plataforma web **clasifica y etiqueta automáticamente** cada mensaje según su intención en el buzón de recepción.
 
 ---
 
