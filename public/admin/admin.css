@@ -194,19 +194,19 @@ button {
 .main-header {
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
-    padding: 14px 20px;
+    padding: 12px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
 }
 
 .logo-area {
@@ -275,7 +275,8 @@ button {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 /* Header Menu Dropdown */
@@ -2513,6 +2514,77 @@ div.inbox-toolbar-header,
    OPTIMIZACIÓN MOBILE-FIRST: CHAT E HISTORIAL A PANTALLA COMPLETA NATIVA
    ========================================================================== */
 @media (max-width: 768px) {
+    /* Header en pantallas pequeñas / móviles: Menú siempre alineado a la derecha */
+    .main-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 10px 14px !important;
+        flex-wrap: nowrap !important;
+        gap: 8px !important;
+    }
+
+    .header-left {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .logo-area {
+        gap: 8px !important;
+        min-width: 0 !important;
+    }
+
+    .header-logo-img {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .logo-area h1 {
+        font-size: 0.92rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .logo-area .subtitle {
+        display: none !important;
+    }
+
+    .status-pill {
+        display: none !important;
+    }
+
+    .header-right {
+        display: flex !important;
+        align-items: center !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
+    }
+
+    .header-menu-container {
+        position: relative !important;
+    }
+
+    .header-menu-btn {
+        padding: 6px 12px !important;
+        font-size: 0.82rem !important;
+    }
+
+    .header-menu-dropdown {
+        position: absolute !important;
+        top: calc(100% + 8px) !important;
+        right: 0 !important;
+        left: auto !important;
+        width: 275px !important;
+        max-width: calc(100vw - 20px) !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
+        z-index: 99999 !important;
+    }
+
     /* Los overlays pasan a ser contenedor fijo a pantalla completa real */
     #reply-modal.modal-overlay,
     #history-modal.modal-overlay {
