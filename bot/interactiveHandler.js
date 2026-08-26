@@ -686,8 +686,8 @@ async function handleButtonResponse(from, buttonId) {
                 await sendMessage(from, webMsg);
             }
 
-            // Enviar inmediatamente los dos botones de acción post-reserva
-            await new Promise(resolve => setTimeout(resolve, 800));
+            // Enviar los dos botones de acción post-reserva (esperar 2500ms para garantizar que la plantilla de Meta se entregue y muestre primero)
+            await new Promise(resolve => setTimeout(resolve, 2500));
             const postButtons = [
                 { id: 'btn_volver_menu', title: (getTranslation(lang, 'btnPostMenuPrincipal') || 'Menú Principal').slice(0, 20) },
                 { id: 'btn_terminar', title: (getTranslation(lang, 'btnPostTerminar') || 'Terminar').slice(0, 20) }

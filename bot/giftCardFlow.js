@@ -20,7 +20,7 @@ async function handleRegalarMenuTradicion(from, lang, userStates) {
         const messageText = getTranslation(lang, 'regalarMenuMsg');
         await sendMessage(from, messageText);
     }
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise(resolve => setTimeout(resolve, 2500));
     await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
     userStates.delete(from);
 }
