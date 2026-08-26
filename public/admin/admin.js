@@ -3020,7 +3020,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         replySolicitudId.value = sol.id;
-        replyClientName.textContent = `Cliente: ${sol.nombreCliente || 'Cliente Casa Julián'}`;
+        replyClientName.textContent = sol.nombreCliente || 'Cliente Casa Julián';
         const cleanPhoneStr = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
         replyClientPhone.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
 
