@@ -3012,9 +3012,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeHistoryPollInterval = null;
     let currentHistoryPhone = null;
     let currentHistoryName = 'Cliente';
-    let lastRenderedHistoryLength = -1;
+    let lastRenderedSig = '';
 
-    // Función de renderizado y refresco automático continuo
+    // Función de renderizado y refresco automático continuo (cada 1s)
     async function fetchAndRenderHistory(isInitial = false) {
         const historyModal = document.getElementById('history-modal');
         const historyMsgCount = document.getElementById('history-msg-count');
@@ -3027,21 +3027,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-            const res = await fetch(`/api/admin/solicitudes/history/${currentHistoryPhone}`, {
+            const res = await fetch(`/api/admin/solicitudes/history/${currentHistoryPhone}?_t=${Date.now()}`, {
                 headers: { 
                     'x-admin-token': currentToken,
-                    'Authorization': `Bearer ${currentToken}`
+                    'Authorization': `Bearer ${currentToken}`,
+                    'Cache-Control': 'no-cache'
                 }
             });
             const data = await res.json();
             const history = data.history || [];
 
-            // Si el número de mensajes no ha cambiado y no es la carga inicial, no re-renderizamos para evitar parpadeos
-            if (!isInitial && history.length === lastRenderedHistoryLength) {
+            // Signature única para detectar cambios reales en cantidad o en último ID
+            const lastMsg = history[history.length - 1];
+            const currentSig = `${history.length}_${lastMsg ? (lastMsg.id || lastMsg.created_at) : ''}`;
+
+            if (!isInitial && currentSig === lastRenderedSig) {
                 return;
             }
 
-            lastRenderedHistoryLength = history.length;
+            lastRenderedSig = currentSig;
 
             if (historyMsgCount) {
                 historyMsgCount.textContent = `${history.length} ${history.length === 1 ? 'interacción' : 'interacciones'}`;
@@ -3059,7 +3063,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Comprobar si el usuario estaba abajo para hacer auto-scroll inteligente
-            const isNearBottom = historyViewport.scrollHeight - historyViewport.scrollTop - historyViewport.clientHeight < 150;
+            const isNearBottom = (historyViewport.scrollHeight - historyViewport.scrollTop - historyViewport.clientHeight) < 200;
 
             historyViewport.innerHTML = '';
             history.forEach(item => {
@@ -3105,10 +3109,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 historyViewport.appendChild(bubble);
             });
 
-            // Si es la carga inicial o el usuario estaba leyendo abajo, auto-scroll al final
+            // Auto-scroll al final en carga inicial o cuando el scroll esté abajo
             if (isInitial || isNearBottom) {
                 historyViewport.scrollTop = historyViewport.scrollHeight;
                 setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 60);
+                setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 200);
             }
         } catch (err) {
             if (isInitial) {
@@ -3123,6 +3128,7 @@ document.addEventListener('DOMContentLoaded', () => {
             activeHistoryPollInterval = null;
         }
         currentHistoryPhone = null;
+        lastRenderedSig = '';
     }
 
     // Abrir Modal de Historial Completo del Chatbot con un Cliente
@@ -3138,7 +3144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cleanPhone = (phone || '').replace(/\D/g, '');
         currentHistoryPhone = cleanPhone;
         currentHistoryName = name || 'Cliente';
-        lastRenderedHistoryLength = -1;
+        lastRenderedSig = '';
 
         if (historyClientName) historyClientName.textContent = `Historial: ${name || 'Cliente'}`;
         if (historyClientPhone) historyClientPhone.textContent = `📞 WhatsApp: +${cleanPhone}`;
@@ -3147,7 +3153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         historyModal.style.display = 'flex';
 
-        // Detener polling previo si existía
+        // Detener cualquier polling previo
         stopHistoryPolling();
         currentHistoryPhone = cleanPhone;
         currentHistoryName = name || 'Cliente';
@@ -3155,10 +3161,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Carga inicial inmediata
         await fetchAndRenderHistory(true);
 
-        // Iniciar refresco automático cada 1.5 segundos en segundo plano mientras el modal esté abierto
+        // Iniciar refresco automático cada 1 segundo exacto mientras el modal esté abierto
         activeHistoryPollInterval = setInterval(() => {
             fetchAndRenderHistory(false);
-        }, 1500);
+        }, 1000);
     }
 
     // Listener cerrar modal de historial
