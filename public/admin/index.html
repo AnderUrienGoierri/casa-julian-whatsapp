@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260826-V325-INBOX-CARD-ACTIONS-TOP-RIGHT">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260826-V326-INBOX-FILTERS-COLLAPSED-BY-DEFAULT">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -357,11 +357,11 @@
                                 <span class="inbox-toolbar-title">Filtros &amp; Ordenación</span>
                                 <span id="inbox-active-filters-summary" class="inbox-filters-summary-badge"></span>
                             </div>
-                            <span id="inbox-filters-toggle-icon" class="inbox-toggle-arrow">▲</span>
+                            <span id="inbox-filters-toggle-icon" class="inbox-toggle-arrow">▼</span>
                         </div>
 
-                        <!-- Contenido colapsable -->
-                        <div id="inbox-filters-body" class="inbox-toolbar-body">
+                        <!-- Contenido colapsable (cerrado por defecto) -->
+                        <div id="inbox-filters-body" class="inbox-toolbar-body is-collapsed" style="display: none;">
                             <!-- Fila 1: Buscador + Ordenación + Selector de Vista Unificada -->
                             <div class="inbox-top-controls">
                                 <div class="search-box inbox-search">
@@ -930,6 +930,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260826-V325-INBOX-CARD-ACTIONS-TOP-RIGHT"></script>
+    <script src="/admin/admin.js?v=20260826-V326-INBOX-FILTERS-COLLAPSED-BY-DEFAULT"></script>
 </body>
 </html>

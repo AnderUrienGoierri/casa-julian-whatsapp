@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentInboxSearch = '';
     let currentInboxView = 'active';      // 'active' | 'ARCHIVADA' | 'ELIMINADA'
     let currentInboxSort = 'date_desc';   // 'date_desc' | 'date_asc' | 'alpha_asc' | 'alpha_desc' | 'estado'
-    let inboxFiltersOpen = true;          // Toggle colapsable
+    let inboxFiltersOpen = false;         // Toggle colapsable (por defecto sin desplegar)
     let activeReplySolicitud = null;
     let minimizedSolicitudesMap = new Map();
     let inboxPollingInterval = null;
@@ -3484,6 +3484,11 @@ document.addEventListener('DOMContentLoaded', () => {
         inboxFiltersToggleBtn.style.setProperty('flex-direction', 'row', 'important');
         inboxFiltersToggleBtn.style.setProperty('justify-content', 'space-between', 'important');
         
+        // Estado inicial por defecto: sin desplegar (cerrado)
+        inboxFiltersBody.classList.add('is-collapsed');
+        inboxFiltersBody.style.setProperty('display', 'none', 'important');
+        if (inboxFiltersToggleIcon) inboxFiltersToggleIcon.textContent = '▼';
+
         inboxFiltersToggleBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();

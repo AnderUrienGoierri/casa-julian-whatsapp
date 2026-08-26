@@ -48,7 +48,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-26-CMS-V325-INBOX-CARD-ACTIONS-TOP-RIGHT';
+const DEPLOY_VERSION = 'v2026-08-26-CMS-V326-INBOX-FILTERS-COLLAPSED-BY-DEFAULT';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
