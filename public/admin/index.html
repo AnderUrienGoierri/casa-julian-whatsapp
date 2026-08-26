@@ -219,8 +219,13 @@
             <div class="whatsapp-modal-body">
                 <div class="whatsapp-chat-main">
                     <div class="chat-thread-header" style="background: rgba(15, 23, 42, 0.85); padding: 12px 18px;">
-                        <span style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">💬 Conversación Cronológica Completa (Cliente & Chatbot)</span>
-                        <span id="history-msg-count" class="chat-count-badge">0 interacciones</span>
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">💬 Conversación Cronológica Completa (Cliente &amp; Chatbot)</span>
+                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                            <span id="history-live-badge" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; color: #34d399; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 8px; border-radius: 12px; font-weight: 600;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #34d399; display: inline-block;"></span> En vivo 100%
+                            </span>
+                            <span id="history-msg-count" class="chat-count-badge">0 interacciones</span>
+                        </div>
                     </div>
                     <div id="history-chat-viewport" class="whatsapp-chat-viewport">
                         <!-- Burbujas insertadas dinámicamente -->
@@ -873,6 +878,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260821-V285-INSTANT-EMBEDDED"></script>
+    <script src="/admin/admin.js?v=20260826-V311-REALTIME-POLLING-100"></script>
 </body>
 </html>

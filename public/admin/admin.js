@@ -3008,27 +3008,26 @@ document.addEventListener('DOMContentLoaded', () => {
         renderInboxCards();
     }
 
-    // Abrir Modal de Historial Completo del Chatbot con un Cliente
-    async function openHistoryModal(phone, name = 'Cliente') {
+    // Variables de control de polling en tiempo real para el modal de Historial
+    let activeHistoryPollInterval = null;
+    let currentHistoryPhone = null;
+    let currentHistoryName = 'Cliente';
+    let lastRenderedHistoryLength = -1;
+
+    // Función de renderizado y refresco automático continuo
+    async function fetchAndRenderHistory(isInitial = false) {
         const historyModal = document.getElementById('history-modal');
-        const historyClientName = document.getElementById('history-client-name');
-        const historyClientPhone = document.getElementById('history-client-phone');
         const historyMsgCount = document.getElementById('history-msg-count');
         const historyViewport = document.getElementById('history-chat-viewport');
 
-        if (!historyModal || !historyViewport) return;
-
-        const cleanPhone = (phone || '').replace(/\D/g, '');
-        if (historyClientName) historyClientName.textContent = `Historial: ${name || 'Cliente'}`;
-        if (historyClientPhone) historyClientPhone.textContent = `📞 WhatsApp: +${cleanPhone}`;
-        if (historyMsgCount) historyMsgCount.textContent = 'Cargando...';
-        historyViewport.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 30px;">⏳ Cargando historial de interacciones...</div>';
-
-        historyModal.style.display = 'flex';
+        if (!historyModal || !historyViewport || historyModal.style.display === 'none' || !currentHistoryPhone) {
+            stopHistoryPolling();
+            return;
+        }
 
         try {
             const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-            const res = await fetch(`/api/admin/solicitudes/history/${cleanPhone}`, {
+            const res = await fetch(`/api/admin/solicitudes/history/${currentHistoryPhone}`, {
                 headers: { 
                     'x-admin-token': currentToken,
                     'Authorization': `Bearer ${currentToken}`
@@ -3036,6 +3035,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await res.json();
             const history = data.history || [];
+
+            // Si el número de mensajes no ha cambiado y no es la carga inicial, no re-renderizamos para evitar parpadeos
+            if (!isInitial && history.length === lastRenderedHistoryLength) {
+                return;
+            }
+
+            lastRenderedHistoryLength = history.length;
 
             if (historyMsgCount) {
                 historyMsgCount.textContent = `${history.length} ${history.length === 1 ? 'interacción' : 'interacciones'}`;
@@ -3051,6 +3057,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 return;
             }
+
+            // Comprobar si el usuario estaba abajo para hacer auto-scroll inteligente
+            const isNearBottom = historyViewport.scrollHeight - historyViewport.scrollTop - historyViewport.clientHeight < 150;
 
             historyViewport.innerHTML = '';
             history.forEach(item => {
@@ -3084,7 +3093,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 bubble.innerHTML = `
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
                         <span style="font-size: 0.75rem; font-weight: 700; color: ${isClient ? '#4ade80' : '#38bdf8'}; display: flex; align-items: center; gap: 4px;">
-                            ${isClient ? '👤 ' + (name || 'Cliente') : '🤖 Chatbot Casa Julián'}
+                            ${isClient ? '👤 ' + (currentHistoryName || 'Cliente') : '🤖 Chatbot Casa Julián'}
                         </span>
                         <div style="display: flex; align-items: center; gap: 6px;">
                             ${metaBadge}
@@ -3096,19 +3105,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 historyViewport.appendChild(bubble);
             });
 
-            // Auto-scroll robusto al final de la conversación
-            historyViewport.scrollTop = historyViewport.scrollHeight;
-            setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 50);
-            setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 150);
+            // Si es la carga inicial o el usuario estaba leyendo abajo, auto-scroll al final
+            if (isInitial || isNearBottom) {
+                historyViewport.scrollTop = historyViewport.scrollHeight;
+                setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 60);
+            }
         } catch (err) {
-            historyViewport.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Error al cargar historial: ${err.message}</div>`;
+            if (isInitial) {
+                historyViewport.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Error al cargar historial: ${err.message}</div>`;
+            }
         }
+    }
+
+    function stopHistoryPolling() {
+        if (activeHistoryPollInterval) {
+            clearInterval(activeHistoryPollInterval);
+            activeHistoryPollInterval = null;
+        }
+        currentHistoryPhone = null;
+    }
+
+    // Abrir Modal de Historial Completo del Chatbot con un Cliente
+    async function openHistoryModal(phone, name = 'Cliente') {
+        const historyModal = document.getElementById('history-modal');
+        const historyClientName = document.getElementById('history-client-name');
+        const historyClientPhone = document.getElementById('history-client-phone');
+        const historyMsgCount = document.getElementById('history-msg-count');
+        const historyViewport = document.getElementById('history-chat-viewport');
+
+        if (!historyModal || !historyViewport) return;
+
+        const cleanPhone = (phone || '').replace(/\D/g, '');
+        currentHistoryPhone = cleanPhone;
+        currentHistoryName = name || 'Cliente';
+        lastRenderedHistoryLength = -1;
+
+        if (historyClientName) historyClientName.textContent = `Historial: ${name || 'Cliente'}`;
+        if (historyClientPhone) historyClientPhone.textContent = `📞 WhatsApp: +${cleanPhone}`;
+        if (historyMsgCount) historyMsgCount.textContent = 'Cargando...';
+        historyViewport.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 30px;">⏳ Cargando historial en tiempo real...</div>';
+
+        historyModal.style.display = 'flex';
+
+        // Detener polling previo si existía
+        stopHistoryPolling();
+        currentHistoryPhone = cleanPhone;
+        currentHistoryName = name || 'Cliente';
+
+        // Carga inicial inmediata
+        await fetchAndRenderHistory(true);
+
+        // Iniciar refresco automático cada 1.5 segundos en segundo plano mientras el modal esté abierto
+        activeHistoryPollInterval = setInterval(() => {
+            fetchAndRenderHistory(false);
+        }, 1500);
     }
 
     // Listener cerrar modal de historial
     const closeHistoryBtn = document.getElementById('close-history-modal-btn');
     if (closeHistoryBtn) {
         closeHistoryBtn.addEventListener('click', () => {
+            stopHistoryPolling();
             const historyModal = document.getElementById('history-modal');
             if (historyModal) historyModal.style.display = 'none';
         });
