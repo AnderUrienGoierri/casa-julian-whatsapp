@@ -1501,9 +1501,13 @@ async function handleButtonResponse(from, buttonId) {
         case 'Terminar':
         case 'terminar':
         case 'Amaitu':
-        case 'Finish': {
+        case 'amaitu':
+        case 'Finish':
+        case 'finish': {
             await sendMessage(from, getTranslation(lang, 'thanksClosingMsg'));
             userStates.delete(from);
+            userLocations.delete(from);
+            userLanguages.delete(from);
             break;
         }
 

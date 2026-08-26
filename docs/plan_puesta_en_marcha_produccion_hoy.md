@@ -20,53 +20,10 @@ Este documento establece la hoja de ruta paso a paso para activar hoy el Chatbot
 ## 🛠️ Plan de Ejecución Paso a Paso
 
 ### PASO 1: Desactivar Notificaciones por Gmail en el Código
-* **Acción en el Código:**
-  * Modificar `notifications.js` para suprimir las llamadas a Resend / Brevo / SMTP que enviaban copias a `anurte@gmail.com`.
-  * Mantener el guardado inmediato en la base de datos PostgreSQL (`createSolicitud`) y el registro en el historial.
-  * Desplegar en GitHub y Synology NAS.
 
----
-
-### PASO 2: FASE 5 — Abrir el Puerto 443 en el Router de Casa Julián
-Para que Meta pueda conectar con el Synology NAS y el panel sea accesible desde fuera del restaurante:
-1. Acceder al panel de administración del router de la conexión a Internet del restaurante (habitualmente `192.168.1.1` o `192.168.110.1` desde un equipo conectado a la red).
-2. Ir a la sección **Port Forwarding / Reenvío de Puertos / Servidor Virtual / NAT**.
-3. Añadir la regla:
-   * **Nombre de la Regla:** `Synology HTTPS Webhook`
-   * **Protocolo:** `TCP`
-   * **Puerto Externo / WAN:** `443`
-   * **IP Destino / Interna (NAS):** `192.168.110.57`
-   * **Puerto Interno / LAN:** `443`
-4. Guardar y aplicar los cambios.
-
----
-
-### PASO 3: Configurar Meta Developers (Paso 2 y Webhook)
-
-#### 1. Configurar y Verificar el Webhook
-* En la pantalla de **Paso 2. Configuración de producción** $\rightarrow$ **Configurar Webhooks**:
-  * **URL de devolución de llamada (Callback URL):** `https://casajuliantolosa.synology.me/webhook`
-  * **Identificador de verificación (Verify Token):** `casa_julian_secure_webhook_token_2026`
-  * Pulsar **Verificar y Guardar**.
-  * En los campos de suscripción, marcar la casilla **`messages`**.
-
-#### 2. Registrar el Número de Teléfono Oficial
-* En **Registrar tu número de teléfono de WhatsApp**:
-  * Introducir el número: `+34 943 67 14 17`.
-  * **Nombre para mostrar de la empresa:** `Asador Casa Julián` (o `Casa Julián de Tolosa`).
-  * **Categoría:** *Restaurante*.
-  * **Método de Verificación:** Seleccionar **Llamada de voz** (Recomendado para líneas fijas) o **SMS**.
-  * Introducir el código de 6 dígitos que Meta proporcionará.
-* Copiar el nuevo **Phone Number ID** que Meta generará para el número `943 67 14 17`.
-
-#### 3. Actualizar Credenciales en `.env` en el Synology NAS
-* Actualizar `PHONE_NUMBER_ID` con el ID del número oficial.
-* Actualizar `WHATSAPP_TOKEN` con el token de sistema permanente.
-
----
-
-### PASO 4: Verificación del Historial Completo (Cliente $\leftrightarrow$ Bot)
+* ![](blob:https://web.whatsapp.com/0745be8d-a352-44f0-81f8-8370c77cb37a)
 * Comprobar que en la pestaña **💬 Chats WhatsApp** y en el modal **📜 Historial Bot**:
+
   * Se registren y visualicen todos los mensajes entrantes del cliente (`emisor: 'cliente'`).
   * Se registren y visualicen todos los mensajes, menús y botones enviados por el bot (`emisor: 'bot'`).
   * Las respuestas manuales emitidas por los recepcionistas aparezcan identificadas con la etiqueta `[Staff / Recepción]`.
@@ -74,6 +31,7 @@ Para que Meta pueda conectar con el Synology NAS y el panel sea accesible desde 
 ---
 
 ### PASO 5: Batería de Pruebas en Producción
+
 1. **Prueba de Cliente Nuevo:** Enviar *"Hola"* desde un teléfono móvil al `+34 943 67 14 17` y comprobar:
    * Menú de bienvenida e idiomas (`Castellano`, `Euskera`, `English`).
    * Solicitud de Menú Tradición / Reserva Web.
@@ -88,6 +46,7 @@ Para que Meta pueda conectar con el Synology NAS y el panel sea accesible desde 
 ## 📈 6. Desbloqueo del Límite de 2.000 Mensajes y Activación de WhatsApp Business Calling API (Llamadas VoIP)
 
 ### ⏱️ ¿Cuándo y Cómo Desbloquea Meta el Límite de 2.000 Mensajes (Tier 2K)?
+
 Para poder activar **WhatsApp Business Calling API** y permitir llamadas de voz VoIP directas al panel de recepción (especialmente útiles para turistas extranjeros y clientes sin cobertura móvil tradicional), Meta exige que la cuenta alcance el nivel **Tier 2K** (2.000 conversaciones únicas diarias).
 
 * **Tiempo Estimado:** **Entre 2 y 7 días hábiles** desde la puesta en marcha en producción con el número oficial `+34 943 67 14 17`.
@@ -100,11 +59,12 @@ Para poder activar **WhatsApp Business Calling API** y permitir llamadas de voz 
   3. **Acelerador (Verificación de Empresa en Meta):** Si en el **Paso 3. Verificación de la empresa** de Meta Developers se valida el CIF/documentación de Casa Julián de Tolosa S.L., Meta eleva los límites en **24-48 horas**.
 
 ### 🔍 Dónde Comprobar el Nivel de Límite en Tiempo Real:
+
 1. Acceder a **Meta Business Manager** (`https://business.facebook.com/`).
 2. Ir a **WhatsApp Manager** $\rightarrow$ **Cuentas de WhatsApp** $\rightarrow$ **Números de teléfono**.
 3. En la fila del `+34 943 67 14 17`, revisar la columna **Límite de mensajes** (pasará de *1.000 / día* a *2.000 / día*).
 
 ### 🚀 Hoja de Ruta para las Llamadas:
+
 1. **Fase Inicial (Hoy):** Operativa del Chatbot activa en el `+34 943 67 14 17` para reservas, menús, cartas y bypass de proveedores. Las llamadas de voz se atienden de forma habitual por la línea telefónica convencional del restaurante.
 2. **Fase Posterior (A partir de Tier 2K):** Habilitación del módulo WebRTC en el Synology NAS para recibir llamadas VoIP entrantes por datos de WhatsApp directamente en el panel web de recepción.
-

@@ -374,10 +374,18 @@ const translations = {
         "nacSkipTitle": "❌ Herrialdea utzi",
         "nacSkipDesc": "Ez zehaztu jatorrizko herrialdea",
         "formLangSkipTitle": "❌ Hizkuntza utzi",
-        "formLangSkipDesc": "Ez zehaztu harreman-hizkuntza",
         "reservaCardPrompt": "💳 *Opari-txartela (Tradizio Menua) al duzu?*",
         "reservaCardBtnSi": "Bai, badut bat",
-        "reservaCardBtnNo": "Ez dut"
+        "reservaCardBtnNo": "Ez dut",
+        "consultaSuccessMsg": "✅ *Kontsulta Arrakastaz Bidali Da*\n\nZure kontsulta erregistratu dugu. Asador Casa Julián-eko harrera-taldeak aztertuko du eta adierazitako telefonora ahalik eta azkarren erantzungo dizu.",
+        "postWebReservaPrompt": "¿Beste kudeaketaren bat egin edo elkarrizketa amaitu nahi duzu?",
+        "btnPostMenuPrincipal": "Menu Nagusia",
+        "btnPostTerminar": "Amaitu",
+        "menuTradStep2Comensales": "🎁 *Tradizio Menua*\n\nAdierazi zenbat *pertsonarentzat* nahi duzun erreserba (adibidez: 2, 4):",
+        "invalidDateFormatMsg": "⚠️ Data-formatua ez da baliozkoa edo datak ez datoz bat hautatutako egunekin. Mesedez, berrikusi eta saiatu berriro:",
+        "faq12Title": "1. Karta ikusi",
+        "faq12Desc": "Karta eta plateren prezioak kontsultatu.",
+        "faq12Msg": "📜 *KARTA - ASADOR CASA JULIÁN (TOLOSA)*\n\n🥩 *HASIERAKOAK ETA HESTEBETEAK:*\n• Urdaiazpiko Iberikoa — 32 €\n• Zezina — 36 €\n• Hestebeteak — 34 €\n• Txuleta Tartarra — 32 €\n\n🥩 *BARAZKIAK ETA HASIERAKO BEROAK:*\n• Porrua — 18 €\n• Zainzuria — 18 €\n• Pikillo piperrak — 18 €\n• Entsalada — 4 €\n\n🥩 *GURE BEREZITASUNA:*\n• Txuleta — 100 € / kg\n\n🥩 *POSTREAK:*\n• Flana — 9 €\n• Gazta Tarta — 10 €\n• Marrubiak — 8 €"
     },
     "en": {
         "welcomeMessage": "Welcome to Casa Julián! It will be a pleasure to assist you. Which language would you like to continue in?",
@@ -554,10 +562,18 @@ const translations = {
         "nacSkipTitle": "❌ Skip Country",
         "nacSkipDesc": "Do not specify country of origin",
         "formLangSkipTitle": "❌ Skip Language",
-        "formLangSkipDesc": "Do not specify contact language",
         "reservaCardPrompt": "💳 *Do you have a Gift Card (Tradition Menu)?*",
         "reservaCardBtnSi": "Yes, I have one",
-        "reservaCardBtnNo": "No, I don't"
+        "reservaCardBtnNo": "No, I don't",
+        "consultaSuccessMsg": "✅ *Inquiry Successfully Sent*\n\nWe have recorded your inquiry. The reception team at Asador Casa Julián will review it and reply to the provided phone number as soon as possible.",
+        "postWebReservaPrompt": "Would you like to perform any other action or end the conversation?",
+        "btnPostMenuPrincipal": "Main Menu",
+        "btnPostTerminar": "Finish",
+        "menuTradStep2Comensales": "🎁 *Tradition Menu*\n\nPlease specify how many *guests* you would like to book for (example: 2, 4):",
+        "invalidDateFormatMsg": "⚠️ The date format is invalid or the dates do not match the selected days. Please check and try again:",
+        "faq12Title": "1. View menu",
+        "faq12Desc": "Check the menu and dish prices.",
+        "faq12Msg": "📜 *MENU - ASADOR CASA JULIÁN (TOLOSA)*\n\n🥩 *STARTERS & CHARCUTERIE:*\n• Iberian Ham — 32 €\n• Cecina (Cured Beef) — 36 €\n• Charcuterie Platter — 34 €\n• Ribeye Tartare — 32 €\n\n🥩 *VEGETABLES & HOT STARTERS:*\n• Leeks — 18 €\n• Asparagus — 18 €\n• Piquillo Peppers — 18 €\n• Salad — 4 €\n\n🥩 *OUR SPECIALTY:*\n• Txuleta (Basque Ribeye) — 100 € / kg\n\n🥩 *DESSERTS:*\n• Flan — 9 €\n• Cheesecake — 10 €\n• Strawberries — 8 €"
     }
 };
 

@@ -122,7 +122,7 @@ async function handleTextMessage(from, text) {
     // 3. Interceptador de Despedida / Finalización / Reinicio de Flujo
     const isFarewell = [
         'terminar', 'terminado', 'fin', 'finalizar', 'end', 'finish',
-        'bukatuta', 'amaitu', 'irten', 'agur', 'adios', 'adiós', 'bye', 'goodbye',
+        'bukatu', 'bukatuta', 'amaitu', 'amaituta', 'atera', 'irten', 'agur', 'adios', 'adiós', 'bye', 'goodbye',
         'borrar', 'ezabatu', 'cancelar', 'reset', 'reiniciar', 'salir',
         'gracias', 'eskerrik asko', 'thank you', 'thanks', 'merci', 'danke',
         'chao', 'chau', 'hasta luego', 'hasta pronto'
