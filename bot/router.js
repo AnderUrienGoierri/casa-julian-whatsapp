@@ -53,7 +53,7 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
     try {
         await db.logUserChatHistory(from, {
             emisor: 'cliente',
-            tipo,
+            tipo: type || 'text',
             texto: body || '',
             metadata: interactiveData || {}
         });
