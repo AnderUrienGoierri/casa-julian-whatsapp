@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260826-V313-CIRCULAR-LOGO">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260826-V314-HEADER-DROPDOWN-MENU">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -253,31 +253,76 @@
                 <span class="status-pill online"><span class="dot"></span> Bot Activo 24/7</span>
             </div>
             <div class="header-right">
-                <div class="lang-selector-header">
-                    <label for="current-lang-select">🌐 Idioma de Edición:</label>
-                    <select id="current-lang-select" class="custom-select">
-                        <option value="es">Español 🇪🇸</option>
-                        <option value="eu">Euskara 🇪🇺</option>
-                        <option value="en">English 🇬🇧</option>
-                    </select>
+                <!-- Dropdown Menú de Gestión y Ajustes -->
+                <div class="header-menu-container">
+                    <button type="button" id="header-menu-btn" class="header-menu-btn" title="Menú de Opciones y Configuración" aria-expanded="false">
+                        <span class="header-menu-icon">☰</span>
+                        <span class="header-menu-label">Menú</span>
+                        <span id="header-menu-badge" class="header-menu-badge" style="display: none;">0</span>
+                    </button>
+
+                    <div id="header-menu-dropdown" class="header-menu-dropdown">
+                        <!-- Navegación Rápida -->
+                        <div class="dropdown-section-label">📌 Pestañas de Gestión</div>
+                        <button type="button" class="dropdown-menu-item" id="dropdown-tab-inbox" data-tab-target="tab-inbox">
+                            <span class="dropdown-item-icon">📥</span>
+                            <span class="dropdown-item-text">Buzón Recepción &amp; Solicitudes</span>
+                            <span id="dropdown-inbox-badge" class="dropdown-badge" style="background:#ef4444; color:#fff;">0</span>
+                        </button>
+                        <button type="button" class="dropdown-menu-item" id="dropdown-tab-chats" data-tab-target="tab-chats">
+                            <span class="dropdown-item-icon">💬</span>
+                            <span class="dropdown-item-text">Chats WhatsApp</span>
+                            <span id="dropdown-chats-badge" class="dropdown-badge" style="background:#10b981; color:#fff;">0</span>
+                        </button>
+                        <button type="button" class="dropdown-menu-item" id="dropdown-tab-silenced" data-tab-target="tab-silenced">
+                            <span class="dropdown-item-icon">🔇</span>
+                            <span class="dropdown-item-text">Números Silenciados</span>
+                            <span id="dropdown-silenced-badge" class="dropdown-badge" style="background:#a855f7; color:#fff;">0</span>
+                        </button>
+
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Selector de Idioma -->
+                        <div class="dropdown-section-label">🌐 Idioma de Edición</div>
+                        <div class="dropdown-lang-group">
+                            <button type="button" class="dropdown-lang-btn active" data-lang-val="es">🇪🇸 Español</button>
+                            <button type="button" class="dropdown-lang-btn" data-lang-val="eu">🇪🇺 Euskara</button>
+                            <button type="button" class="dropdown-lang-btn" data-lang-val="en">🇬🇧 English</button>
+                        </div>
+                        <select id="current-lang-select" class="custom-select" style="display: none;">
+                            <option value="es">Español 🇪🇸</option>
+                            <option value="eu">Euskara 🇪🇺</option>
+                            <option value="en">English 🇬🇧</option>
+                        </select>
+
+                        <div class="dropdown-divider"></div>
+
+                        <!-- Ajustes y Diagnóstico -->
+                        <button type="button" class="dropdown-menu-item" id="open-settings-modal-btn">
+                            <span class="dropdown-item-icon">⚙️</span>
+                            <span class="dropdown-item-text">Ajustes &amp; Diagnóstico</span>
+                        </button>
+
+                        <!-- Cerrar Sesión -->
+                        <button type="button" class="dropdown-menu-item dropdown-item-danger" id="logout-btn">
+                            <span class="dropdown-item-icon">🔒</span>
+                            <span class="dropdown-item-text">Cerrar Sesión</span>
+                        </button>
+                    </div>
                 </div>
-                <button id="open-settings-modal-btn" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3);">
-                    ⚙️ Ajustes
-                </button>
-                <button id="logout-btn" class="btn-secondary">🔒 Cerrar Sesión</button>
             </div>
         </header>
 
         <!-- Navegación por Pestañas -->
         <nav class="tabs-nav">
-            <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón Recepción & Solicitudes <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
+            <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón Recepción &amp; Solicitudes <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-chats" style="background: linear-gradient(135deg, #064e3b, #022c22); border-bottom: 3px solid #10b981;">💬 Chats WhatsApp <span id="chats-count-badge" class="draft-badge" style="background:#10b981; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-silenced" style="background: linear-gradient(135deg, #3b0764, #1e1b4b); border-bottom: 3px solid #a855f7;">🔇 Números Silenciados <span id="silenced-count-badge" class="draft-badge" style="background:#a855f7; color:#fff; display:inline-block;">0</span></button>
-            <button class="tab-btn" data-tab="tab-flow">🌳 Estructura & Árbol de Flujos</button>
-            <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes & Textos</button>
-            <button class="tab-btn" data-tab="tab-rules">⚙️ Flujo & Respuestas por Palabras Clave</button>
+            <button class="tab-btn" data-tab="tab-flow">🌳 Estructura &amp; Árbol de Flujos</button>
+            <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes &amp; Textos</button>
+            <button class="tab-btn" data-tab="tab-rules">⚙️ Flujo &amp; Respuestas por Palabras Clave</button>
             <button class="tab-btn btn-tab-publish" data-tab="tab-publish">🚀 Comprobar y Subir <span id="draft-count-badge" class="draft-badge" style="display:none;">0</span></button>
-            <button class="tab-btn" data-tab="tab-settings" id="tab-btn-settings" style="margin-left: auto;">⚙️ Diagnóstico & Ajustes</button>
+            <button class="tab-btn" data-tab="tab-settings" id="tab-btn-settings" style="margin-left: auto;">⚙️ Diagnóstico &amp; Ajustes</button>
         </nav>
 
         <!-- Contenedor Principal (Workspace + Simulador Móvil) -->
@@ -290,8 +335,7 @@
                 <div id="tab-inbox" class="tab-content active">
                     <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div>
-                            <h2>📥 Buzón de Recepción & Solicitudes de Clientes</h2>
-                            <p>Revisa las solicitudes recibidas vía WhatsApp Cloud API y responde manualmente a los clientes en tiempo real.</p>
+                            <h2>📥 Buzón de Recepción &amp; Solicitudes de Clientes</h2>
                         </div>
                         <button id="refresh-inbox-btn" class="btn-primary" style="display: flex; align-items: center; gap: 6px;">🔄 Actualizar Solicitudes</button>
                     </div>
@@ -878,6 +922,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260826-V313-CIRCULAR-LOGO"></script>
+    <script src="/admin/admin.js?v=20260826-V314-HEADER-DROPDOWN-MENU"></script>
 </body>
 </html>

@@ -156,20 +156,92 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // CERRAR SESIÓN
-    logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('casa_julian_admin_token');
-        adminToken = '';
-        showLoginModal();
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('casa_julian_admin_token');
+            adminToken = '';
+            showLoginModal();
+        });
+    }
 
-    // CAMBIO DE IDIOMA
-    currentLangSelect.addEventListener('change', (e) => {
-        currentLang = e.target.value;
-        if (currentStructure) {
-            renderTextsGrid();
-            renderFaqsList();
-        }
-    });
+    // ==========================================
+    // MENÚ DESPLEGABLE DEL HEADER (DROPDOWN)
+    // ==========================================
+    const headerMenuBtn = document.getElementById('header-menu-btn');
+    const headerMenuDropdown = document.getElementById('header-menu-dropdown');
+
+    if (headerMenuBtn && headerMenuDropdown) {
+        headerMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = headerMenuDropdown.classList.toggle('show');
+            headerMenuBtn.classList.toggle('active', isOpen);
+            headerMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!headerMenuDropdown.contains(e.target) && e.target !== headerMenuBtn) {
+                headerMenuDropdown.classList.remove('show');
+                headerMenuBtn.classList.remove('active');
+                headerMenuBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Navegación a pestañas desde el menú desplegable
+        headerMenuDropdown.querySelectorAll('[data-tab-target]').forEach(item => {
+            item.addEventListener('click', () => {
+                const targetTab = item.getAttribute('data-tab-target');
+                const matchingTabBtn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
+                if (matchingTabBtn) {
+                    matchingTabBtn.click();
+                } else {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    const targetEl = document.getElementById(targetTab);
+                    if (targetEl) targetEl.classList.add('active');
+                    if (targetTab === 'tab-inbox') fetchSolicitudes();
+                    if (targetTab === 'tab-chats') fetchWhatsAppChats();
+                    if (targetTab === 'tab-silenced') fetchSilencedNumbers();
+                }
+                headerMenuDropdown.classList.remove('show');
+                headerMenuBtn.classList.remove('active');
+                headerMenuBtn.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        // Selector de idioma en el dropdown
+        headerMenuDropdown.querySelectorAll('.dropdown-lang-btn').forEach(langBtn => {
+            langBtn.addEventListener('click', () => {
+                const lang = langBtn.getAttribute('data-lang-val');
+                currentLang = lang;
+                headerMenuDropdown.querySelectorAll('.dropdown-lang-btn').forEach(b => b.classList.remove('active'));
+                langBtn.classList.add('active');
+                if (currentLangSelect) currentLangSelect.value = lang;
+                if (currentStructure) {
+                    renderTextsGrid();
+                    renderFaqsList();
+                }
+                headerMenuDropdown.classList.remove('show');
+                headerMenuBtn.classList.remove('active');
+                headerMenuBtn.setAttribute('aria-expanded', 'false');
+            });
+        });
+    }
+
+    // CAMBIO DE IDIOMA ORIGINAL
+    if (currentLangSelect) {
+        currentLangSelect.addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            if (headerMenuDropdown) {
+                headerMenuDropdown.querySelectorAll('.dropdown-lang-btn').forEach(b => {
+                    b.classList.toggle('active', b.getAttribute('data-lang-val') === currentLang);
+                });
+            }
+            if (currentStructure) {
+                renderTextsGrid();
+                renderFaqsList();
+            }
+        });
+    }
 
     // PESTAÑAS
     tabBtns.forEach(btn => {
@@ -282,6 +354,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (badge) {
             badge.textContent = total;
             badge.style.display = total > 0 ? 'inline-block' : 'none';
+        }
+        const dropdownSilencedBadge = document.getElementById('dropdown-silenced-badge');
+        if (dropdownSilencedBadge) {
+            dropdownSilencedBadge.textContent = total;
+            dropdownSilencedBadge.style.display = total > 0 ? 'inline-block' : 'none';
         }
         const cAll = document.getElementById('count-silenced-all');
         const cProv = document.getElementById('count-silenced-prov');
@@ -2191,11 +2268,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 allWhatsAppChats = data.chats || [];
                 console.log("💬 [Chats WhatsApp] Cargadas conversaciones:", allWhatsAppChats.length, allWhatsAppChats);
                 
-                // Actualizar badge de contador en la pestaña
+                // Actualizar badge de contador en la pestaña y en el menú desplegable
                 const chatsCountBadge = document.getElementById('chats-count-badge');
+                const dropdownChatsBadge = document.getElementById('dropdown-chats-badge');
                 if (chatsCountBadge) {
                     chatsCountBadge.textContent = allWhatsAppChats.length;
                     chatsCountBadge.style.display = allWhatsAppChats.length > 0 ? 'inline-block' : 'none';
+                }
+                if (dropdownChatsBadge) {
+                    dropdownChatsBadge.textContent = allWhatsAppChats.length;
+                    dropdownChatsBadge.style.display = allWhatsAppChats.length > 0 ? 'inline-block' : 'none';
                 }
 
                 renderWhatsAppChats();
@@ -2454,6 +2536,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inboxCountBadge) {
             inboxCountBadge.textContent = pendingCount;
             inboxCountBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        }
+        const dropdownInboxBadge = document.getElementById('dropdown-inbox-badge');
+        if (dropdownInboxBadge) {
+            dropdownInboxBadge.textContent = pendingCount;
+            dropdownInboxBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
         }
 
         // Limpiar seleccionados que ya no existen o no están visibles si cambió la vista
