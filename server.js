@@ -48,7 +48,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-26-CMS-V304-DELAY-7S-METADATA';
+const DEPLOY_VERSION = 'v2026-08-26-CMS-V309-FULL-BIDIRECTIONAL-CHATS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
