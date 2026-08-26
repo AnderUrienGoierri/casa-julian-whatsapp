@@ -3442,6 +3442,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeSidebarMobileBtn) closeSidebarMobileBtn.addEventListener('click', closeSidebarDrawer);
     if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebarDrawer);
 
+    const replyModalHistoryBtn = document.getElementById('reply-modal-history-btn');
+    if (replyModalHistoryBtn) {
+        replyModalHistoryBtn.addEventListener('click', () => {
+            if (activeReplySolicitud) {
+                const phone = activeReplySolicitud.telefonoCliente || activeReplySolicitud.telefonoReserva || '';
+                const name = activeReplySolicitud.nombreCliente || 'Cliente';
+                openHistoryModal(phone, name);
+            }
+        });
+    }
+
     if (minimizeBtn) minimizeBtn.addEventListener('click', minimizeReplyModal);
     if (maximizeBtn) maximizeBtn.addEventListener('click', toggleMaximizeModal);
 

@@ -2195,11 +2195,13 @@ div.inbox-toolbar-header,
         font-size: 0.95rem;
     }
 
-    .btn-toggle-summary span {
+    .btn-toggle-summary span,
+    .btn-toggle-history span {
         display: none;
     }
 
-    .btn-toggle-summary {
+    .btn-toggle-summary,
+    .btn-toggle-history {
         padding: 0 6px !important;
     }
 
