@@ -3000,7 +3000,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             historyViewport.innerHTML = '';
             history.forEach(item => {
-                const isClient = item.emisor === 'cliente';
+                const isClient = item.emisor !== 'bot';
                 const timeStr = item.created_at ? new Date(item.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '';
                 const bubble = document.createElement('div');
                 bubble.style.cssText = `

@@ -11,6 +11,7 @@ const { handleListResponse, handleButtonResponse } = require('./interactiveHandl
 const { handleTextMessage } = require('./textHandler');
 
 async function processMessage(message) {
+    if (!message || !message.from) return;
     const from = message.from;
     const type = message.type;
 
@@ -27,12 +28,21 @@ async function processMessage(message) {
             const buttonId = interactive.button_reply.id;
             const buttonTitle = interactive.button_reply.title || buttonId;
             await handleUserMessage(from, buttonTitle, 'interactive', { type: 'button', id: buttonId, title: buttonTitle });
+        } else if (interactive && interactive.type === 'nfm_reply') {
+            const flowData = interactive.nfm_reply.response_json;
+            await handleUserMessage(from, "Formulario Meta Flow enviado", 'interactive', { type: 'flow', data: flowData });
+        } else {
+            const genericTitle = (interactive && (interactive.title || interactive.id)) ? (interactive.title || interactive.id) : 'Opción pulsada';
+            await handleUserMessage(from, genericTitle, 'interactive', { type: 'interactive', data: interactive });
         }
     } else if (type === 'button') {
         const button = message.button;
         const buttonId = (button && (button.payload || button.text)) ? (button.payload || button.text) : '';
         const buttonTitle = (button && button.text) ? button.text : buttonId;
         await handleUserMessage(from, buttonTitle, 'interactive', { type: 'button', id: buttonId, title: buttonTitle });
+    } else {
+        const fallbackText = (message[type] && (message[type].caption || message[type].text)) ? (message[type].caption || message[type].text) : `[Mensaje entrante de tipo: ${type}]`;
+        await handleUserMessage(from, fallbackText, type);
     }
 }
 
