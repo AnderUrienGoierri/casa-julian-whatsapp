@@ -68,6 +68,7 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ 
         success: false, 
         error: '❌ Contraseña de acceso incorrecta. Comprueba mayúsculas/minúsculas y el perfil seleccionado (Recepción o Administración).' 
+    });
 });
 
 // 1b. Reiniciar contenedor en Synology NAS
