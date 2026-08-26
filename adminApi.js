@@ -68,7 +68,15 @@ router.post('/login', (req, res) => {
     return res.status(401).json({ 
         success: false, 
         error: '❌ Contraseña de acceso incorrecta. Comprueba mayúsculas/minúsculas y el perfil seleccionado (Recepción o Administración).' 
-    });
+});
+
+// 1b. Reiniciar contenedor en Synology NAS
+router.post('/restart', requireAdminAuth, (req, res) => {
+    res.json({ success: true, message: 'Reiniciando el servicio en Synology NAS...' });
+    setTimeout(() => {
+        console.log('🔄 Reiniciando el proceso Node.js por solicitud remota...');
+        process.exit(0);
+    }, 500);
 });
 
 // 2. Obtener estructura completa y datos del chatbot

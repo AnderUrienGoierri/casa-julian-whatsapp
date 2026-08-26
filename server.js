@@ -48,7 +48,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-21-CMS-V284-SILENCED-NUMBERS-API';
+const DEPLOY_VERSION = 'v2026-08-26-CMS-V300-ORQUESTACION-METADATA-DELAYS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
