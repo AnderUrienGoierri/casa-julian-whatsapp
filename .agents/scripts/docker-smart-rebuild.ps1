@@ -13,63 +13,29 @@ try {
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectDir = Split-Path -Parent (Split-Path -Parent $scriptDir)
 
-# Verificar que docker esta disponible
-if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-    Write-Output "{}"
-    exit 0
-}
+# Automatización de Sincronización y Reinicio en Synology NAS (192.168.110.57)
+$nasPath = "\\192.168.110.57\docker\casa-julian-whatsapp"
 
-# Comprobar si el contenedor esta corriendo
-$containerRunning = docker inspect --format "{{.State.Running}}" casa-julian-whatsapp-bot 2>$null
-if ($containerRunning -ne "true") {
-    # Contenedor no activo: levantarlo con docker compose (con volumen bind mount)
-    Push-Location $projectDir
-    docker compose up -d 2>$null
-    Pop-Location
-    Write-Output "{}"
-    exit 0
-}
+if (Test-Path $nasPath) {
+    Write-Host "[AUTO-SYNC] Sincronizando cambios locales hacia Synology NAS ($nasPath)..." -ForegroundColor Cyan
+    robocopy $projectDir $nasPath /MIR /XD node_modules .git scratch .tempmediaStorage /XF db.json /R:1 /W:1 | Out-Null
+    Write-Host "[AUTO-SYNC] Archivos sincronizados en Synology NAS." -ForegroundColor Green
 
-# Verificar si tiene bind mount activo (.:/app)
-$mounts = docker inspect --format "{{range .Mounts}}{{.Type}}:{{.Source}}{{end}}" casa-julian-whatsapp-bot 2>$null
-$hasBind = $mounts -match "bind"
-
-if (-not $hasBind) {
-    # El contenedor NO tiene bind mount: necesita reconstruirse con docker compose
-    Write-Host "[HOOK] Contenedor sin bind mount. Reconstruyendo con docker compose..." -ForegroundColor Yellow
-    Push-Location $projectDir
-    docker rm -f casa-julian-whatsapp-bot 2>$null
-    docker compose up -d 2>$null
-    Pop-Location
-    Write-Host "[HOOK] Contenedor reconstruido con bind mount activo." -ForegroundColor Green
-} else {
-    # El contenedor tiene bind mount: los archivos estaticos (CSS/JS/HTML) se sirven en tiempo real.
-    # Detectar si se modifico un archivo del servidor Node.js que requiere reinicio
-    $targetFile = ""
+    # Enviar señal de reinicio automático al servidor Node.js en Synology NAS
     try {
-        if ($inputJson -and $inputJson.toolCall -and $inputJson.toolCall.args) {
-            $targetFile = $inputJson.toolCall.args.TargetFile
-        }
+        $restartUrl = "http://192.168.110.57:3000/api/admin/restart"
+        Invoke-RestMethod -Uri $restartUrl -Method Post -TimeoutSec 3 -ErrorAction SilentlyContinue | Out-Null
+        Write-Host "[AUTO-SYNC] 🔄 Contenedor Docker en Synology NAS reiniciado automáticamente." -ForegroundColor Green
     } catch {}
-
-    # Archivos del servidor que requieren reinicio del proceso Node.js
-    $serverFiles = @("server.js", "server.cjs", "app.js", "package.json", "package-lock.json", ".env", "chatbot.js", "routes.js")
-    $needsRestart = $false
-    foreach ($sf in $serverFiles) {
-        if ($targetFile -and $targetFile.EndsWith($sf)) {
-            $needsRestart = $true
-            break
+} else {
+    # Fallback local si no está en la red del NAS
+    if (Get-Command docker -ErrorAction SilentlyContinue) {
+        $containerRunning = docker inspect --format "{{.State.Running}}" casa-julian-whatsapp-bot 2>$null
+        if ($containerRunning -eq "true") {
+            docker restart casa-julian-whatsapp-bot 2>$null
         }
     }
-
-    if ($needsRestart) {
-        Write-Host "[HOOK] Archivo del servidor modificado ($targetFile). Reiniciando contenedor..." -ForegroundColor Yellow
-        docker restart casa-julian-whatsapp-bot 2>$null
-        Write-Host "[HOOK] Contenedor reiniciado." -ForegroundColor Green
-    }
-    # Si es CSS/JS/HTML del front: NO hace falta reiniciar, el bind mount sirve en tiempo real.
 }
 
-# Salida requerida por el sistema de hooks
 Write-Output "{}"
 exit 0
