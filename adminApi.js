@@ -846,6 +846,30 @@ router.get('/chats', requireAdminAuth, async (req, res) => {
     }
 });
 
+// 18e-2. Eliminar conversación de WhatsApp completa por teléfono
+router.delete('/chats/:telefono', requireAdminAuth, async (req, res) => {
+    try {
+        const { deleteUserChatHistory } = require('./database');
+        const { telefono } = req.params;
+        await deleteUserChatHistory(telefono);
+        return res.json({ success: true, message: `Conversación ${telefono} eliminada correctamente.` });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 18e-3. Archivar conversación de WhatsApp por teléfono
+router.post('/chats/:telefono/archive', requireAdminAuth, async (req, res) => {
+    try {
+        const { archiveUserChatHistory } = require('./database');
+        const { telefono } = req.params;
+        await archiveUserChatHistory(telefono);
+        return res.json({ success: true, message: `Conversación ${telefono} archivada.` });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 // 18f. NÚMEROS SILENCIADOS (PROVEEDORES, EMPLEADOS, ETC.)
 router.get('/silenced-numbers', requireAdminAuth, async (req, res) => {
     try {

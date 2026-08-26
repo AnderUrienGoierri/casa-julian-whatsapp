@@ -484,6 +484,60 @@ async function getUserChatHistory(telefono) {
 }
 
 /**
+ * Elimina permanentemente el historial de chat y solicitudes de un teléfono.
+ */
+async function deleteUserChatHistory(telefono) {
+    if (!telefono) return false;
+    const cleanTel = telefono.toString().replace(/\D/g, '');
+
+    if (pool) {
+        try {
+            await pool.query('DELETE FROM bot_chat_history WHERE telefono = $1', [cleanTel]);
+            await pool.query("DELETE FROM solicitudes WHERE replace(telefono_cliente, '+', '') = $1", [cleanTel]);
+        } catch (e) {
+            console.error("Error eliminando bot_chat_history en Postgres:", e.message);
+        }
+    }
+
+    const db = loadDb();
+    if (db.bot_chat_history) {
+        db.bot_chat_history = db.bot_chat_history.filter(h => h.telefono !== cleanTel);
+    }
+    if (db.solicitudes) {
+        db.solicitudes = db.solicitudes.filter(s => (s.telefonoCliente || '').replace(/\D/g, '') !== cleanTel);
+    }
+    saveDb(db);
+    return true;
+}
+
+/**
+ * Archiva el historial de chat y solicitudes de un teléfono.
+ */
+async function archiveUserChatHistory(telefono) {
+    if (!telefono) return false;
+    const cleanTel = telefono.toString().replace(/\D/g, '');
+
+    if (pool) {
+        try {
+            await pool.query("UPDATE solicitudes SET estado = 'ARCHIVADA' WHERE replace(telefono_cliente, '+', '') = $1", [cleanTel]);
+        } catch (e) {
+            console.error("Error archivando solicitudes en Postgres:", e.message);
+        }
+    }
+
+    const db = loadDb();
+    if (db.solicitudes) {
+        db.solicitudes.forEach(s => {
+            if ((s.telefonoCliente || '').replace(/\D/g, '') === cleanTel) {
+                s.estado = 'ARCHIVADA';
+            }
+        });
+        saveDb(db);
+    }
+    return true;
+}
+
+/**
  * Obtiene el listado de todas las conversaciones de WhatsApp activas/previas
  * agrupadas por teléfono, con el último mensaje, emisor, fecha y nombre de cliente si existe.
  */
@@ -566,5 +620,7 @@ module.exports = {
     deleteSolicitud,
     logUserChatHistory,
     getUserChatHistory,
+    deleteUserChatHistory,
+    archiveUserChatHistory,
     getAllWhatsAppConversations
 };

@@ -178,6 +178,8 @@ module.exports = {
     deleteSolicitud,
     logUserChatHistory,
     getUserChatHistory,
+    deleteUserChatHistory,
+    archiveUserChatHistory,
     getAllWhatsAppConversations,
     getAllSilencedNumbers: silencedNumbers.getAllSilencedNumbers,
     isPhoneSilenced: silencedNumbers.isPhoneSilenced,

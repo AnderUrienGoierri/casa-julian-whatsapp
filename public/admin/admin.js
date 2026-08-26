@@ -2288,6 +2288,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);" title="Silenciar respuestas automáticas del bot para este contacto">
                                 🔇 Silenciar
                             </button>
+                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.35);" title="Archivar esta conversación">
+                                📦 Archivar
+                            </button>
+                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35);" title="Eliminar conversación e historial definitivamente">
+                                🗑️ Eliminar
+                            </button>
                         </div>
                         <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Cliente')}" data-solid="${c.solicitudId || ''}" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1);">
                             💬 Abrir Chat &amp; Responder
@@ -2313,6 +2319,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 const phone = btn.getAttribute('data-phone');
                 const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
                 openSilencedModal(phone, name);
+            });
+        });
+
+        container.querySelectorAll('.btn-archive-chat-card').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                if (!confirm(`¿Deseas archivar la conversación del teléfono +${phone}?`)) return;
+                try {
+                    const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    const res = await fetch(`/api/admin/chats/${phone}/archive`, {
+                        method: 'POST',
+                        headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('📦 Conversación archivada.');
+                        loadRealtimeChats();
+                    } else {
+                        alert('Error al archivar conversación: ' + (data.error || 'Desconocido'));
+                    }
+                } catch (err) {
+                    alert('Error al archivar conversación: ' + err.message);
+                }
+            });
+        });
+
+        container.querySelectorAll('.btn-delete-chat-card').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE todo el historial del chat +${phone}? Esta acción no se puede deshacer.`)) return;
+                try {
+                    const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    const res = await fetch(`/api/admin/chats/${phone}`, {
+                        method: 'DELETE',
+                        headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('🗑️ Conversación eliminada definitivamente.');
+                        loadRealtimeChats();
+                    } else {
+                        alert('Error al eliminar conversación: ' + (data.error || 'Desconocido'));
+                    }
+                } catch (err) {
+                    alert('Error al eliminar conversación: ' + err.message);
+                }
             });
         });
 
