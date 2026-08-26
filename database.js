@@ -95,6 +95,8 @@ const {
     deleteSolicitud,
     logUserChatHistory,
     getUserChatHistory,
+    deleteUserChatHistory,
+    archiveUserChatHistory,
     getAllWhatsAppConversations
 } = require('./db/solicitudes');
 
