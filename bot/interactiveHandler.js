@@ -686,8 +686,8 @@ async function handleButtonResponse(from, buttonId) {
                 await sendMessage(from, webMsg);
             }
 
-            // Enviar los dos botones de acción post-reserva (esperar 4500ms para garantizar que la plantilla de Meta con botón CTA se entregue y muestre primero en la pantalla del usuario)
-            await new Promise(resolve => setTimeout(resolve, 4500));
+            // Enviar los dos botones de acción post-reserva (esperar 7000ms para garantizar que la plantilla de Meta con botón CTA complete su entrega en la app de WhatsApp del cliente antes de enviar la pregunta final)
+            await new Promise(resolve => setTimeout(resolve, 7000));
             const postButtons = [
                 { id: 'btn_volver_menu', title: (getTranslation(lang, 'btnPostMenuPrincipal') || 'Menú Principal').slice(0, 20) },
                 { id: 'btn_terminar', title: (getTranslation(lang, 'btnPostTerminar') || 'Terminar').slice(0, 20) }
