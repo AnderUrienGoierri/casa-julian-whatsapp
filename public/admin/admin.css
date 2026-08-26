@@ -2064,29 +2064,134 @@ div.inbox-toolbar-header,
     align-items: center;
 }
 
-/* Botón Toggle Resumen en Header */
-.btn-toggle-summary {
+/* Botones Toggle Resumen e Historial en Header de Chat */
+.whatsapp-window-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.whatsapp-control-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+    font-size: 0.82rem;
+}
+
+.whatsapp-control-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.whatsapp-control-btn.btn-toggle-summary {
     width: auto !important;
-    padding: 0 10px !important;
-    gap: 5px !important;
-    font-size: 0.8rem !important;
+    min-width: unset !important;
+    padding: 0 12px !important;
+    gap: 6px !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
     background: rgba(56, 189, 248, 0.12) !important;
     border: 1px solid rgba(56, 189, 248, 0.3) !important;
     color: #38bdf8 !important;
-    display: inline-flex !important;
-    align-items: center;
+    white-space: nowrap !important;
 }
 
-.btn-toggle-summary:hover {
+.whatsapp-control-btn.btn-toggle-summary:hover {
     background: rgba(56, 189, 248, 0.25) !important;
     color: #ffffff !important;
 }
 
-.btn-toggle-summary.active {
+.whatsapp-control-btn.btn-toggle-summary.active {
     background: #0284c7 !important;
     border-color: #38bdf8 !important;
     color: #ffffff !important;
     box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.whatsapp-control-btn.btn-toggle-history {
+    width: auto !important;
+    min-width: unset !important;
+    padding: 0 12px !important;
+    gap: 6px !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    background: rgba(168, 85, 247, 0.18) !important;
+    border: 1px solid rgba(168, 85, 247, 0.4) !important;
+    color: #d8b4fe !important;
+    white-space: nowrap !important;
+}
+
+.whatsapp-control-btn.btn-toggle-history:hover {
+    background: rgba(168, 85, 247, 0.35) !important;
+    border-color: #a855f7 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+}
+
+.whatsapp-control-btn.close-btn:hover {
+    background: rgba(239, 68, 68, 0.35) !important;
+    border-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.whatsapp-header-user {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.whatsapp-user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+}
+
+.whatsapp-client-title h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+
+.whatsapp-client-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.whatsapp-client-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 1px;
+}
+
+.whatsapp-quick-call-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .btn-close-sidebar-mobile {
@@ -2781,28 +2886,96 @@ div.inbox-toolbar-header,
         flex-direction: column !important;
     }
 
-    /* Encabezado del chat en móvil: compacto y accesible */
+    /* Encabezado del chat en móvil: 100% ordenado, profesional y accesible */
     .whatsapp-modal-header {
-        padding: 10px 14px !important;
-        background: #202c33 !important;
+        padding: 10px 12px !important;
+        background: #182229 !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
         flex-shrink: 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .whatsapp-header-user {
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
     }
 
     .whatsapp-avatar,
     .whatsapp-client-avatar {
         width: 38px !important;
         height: 38px !important;
-        font-size: 1.2rem !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+        font-size: 1.15rem !important;
+        flex-shrink: 0 !important;
+        border-radius: 50% !important;
+        background: #2a3942 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
-    .whatsapp-client-title h3,
-    .whatsapp-client-title span {
-        font-size: 0.98rem !important;
+    .whatsapp-user-details {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    .whatsapp-client-title h3 {
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+    }
+
+    .whatsapp-client-meta-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .whatsapp-client-meta-row .badge,
+    .whatsapp-client-meta-row .status-pill-small {
+        font-size: 0.7rem !important;
+        padding: 2px 7px !important;
+    }
+
+    .whatsapp-client-actions-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-wrap: wrap !important;
+        margin-top: 2px !important;
     }
 
     .whatsapp-client-sub {
-        font-size: 0.75rem !important;
+        font-size: 0.76rem !important;
+        color: #38bdf8 !important;
+        font-family: monospace !important;
+    }
+
+    .whatsapp-window-controls {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+        margin-top: 2px !important;
     }
 
     /* Ocultar botones de minimizar / maximizar en móvil (ya ocupa toda la pantalla) */
@@ -2812,22 +2985,40 @@ div.inbox-toolbar-header,
         display: none !important;
     }
 
+    /* Botones de acción en cabecera de chat en móvil */
+    .whatsapp-control-btn.btn-toggle-summary,
+    .whatsapp-control-btn.btn-toggle-history {
+        height: 32px !important;
+        padding: 0 8px !important;
+        font-size: 0.76rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        width: auto !important;
+        min-width: unset !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+    }
+
+    .whatsapp-control-btn.btn-toggle-summary span,
+    .whatsapp-control-btn.btn-toggle-history span {
+        display: inline !important;
+    }
+
     .whatsapp-control-btn.close-btn {
-        width: 36px !important;
-        height: 36px !important;
-        font-size: 1.1rem !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        font-size: 1rem !important;
         background: rgba(239, 68, 68, 0.25) !important;
         border-color: rgba(239, 68, 68, 0.5) !important;
         color: #fff !important;
         border-radius: 8px !important;
-    }
-
-    /* Botón de resumen en cabecera */
-    .btn-toggle-summary {
-        font-size: 0.76rem !important;
-        padding: 4px 8px !important;
-        height: 34px !important;
-        width: auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     /* Cuerpo del modal a pantalla completa */
