@@ -48,7 +48,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-26-CMS-V321-CHAT-HEADER-PERFECT';
+const DEPLOY_VERSION = 'v2026-08-26-CMS-V322-3ROW-CHAT-HEADER-PERFECT';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
