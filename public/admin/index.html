@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260826-V322-3ROW-CHAT-HEADER-PERFECT">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260826-V323-FULL-WIDTH-CLIENT-NAME">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -93,14 +93,18 @@
         <div id="whatsapp-sidebar-backdrop" class="whatsapp-sidebar-backdrop"></div>
 
         <div class="whatsapp-modal-container">
-            <!-- Header con estilo WhatsApp Web (3 Filas Ordenadas) -->
+            <!-- Header con estilo WhatsApp Web -->
             <div class="whatsapp-modal-header">
-                <!-- Fila 1: Avatar + Nombre del Cliente + Controles de Ventana -->
+                <!-- Fila 1: Avatar + Nombre Completo del Cliente (100% ancho) -->
                 <div class="whatsapp-header-top-row">
                     <div class="whatsapp-header-user-title">
                         <div class="whatsapp-avatar">👤</div>
                         <h3 id="reply-client-name">Cliente: Juan Pérez</h3>
                     </div>
+                </div>
+
+                <!-- Fila 2: Botones de Control (Resumen, Historial, Cerrar) -->
+                <div class="whatsapp-header-controls-row">
                     <div class="whatsapp-window-controls">
                         <button type="button" id="toggle-sidebar-btn" class="whatsapp-control-btn btn-toggle-summary" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
                         <button type="button" id="reply-modal-history-btn" class="whatsapp-control-btn btn-toggle-history" title="Ver Historial Completo de este Cliente">📜 <span>Historial</span></button>
@@ -110,13 +114,13 @@
                     </div>
                 </div>
 
-                <!-- Fila 2: Píldoras de Estado y Categoría (En la MISMA fila) -->
+                <!-- Fila 3: Píldoras de Estado y Categoría (En la MISMA fila) -->
                 <div class="whatsapp-client-meta-row">
                     <span id="reply-category-badge" class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; white-space: nowrap;">📌 Solicitud</span>
                     <span id="reply-handover-status" class="status-pill-small" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700; background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); white-space: nowrap;">⚪ Bot Activo</span>
                 </div>
 
-                <!-- Fila 3: Teléfono y Botones de Llamada / WhatsApp (En la MISMA fila) -->
+                <!-- Fila 4: Teléfono y Botones de Llamada / WhatsApp (En la MISMA fila) -->
                 <div class="whatsapp-client-actions-row">
                     <div class="whatsapp-client-sub" id="reply-client-phone">📞 WhatsApp: +34 612 34 56 78</div>
                     <div class="whatsapp-quick-call-group">
@@ -926,6 +930,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260826-V322-3ROW-CHAT-HEADER-PERFECT"></script>
+    <script src="/admin/admin.js?v=20260826-V323-FULL-WIDTH-CLIENT-NAME"></script>
 </body>
 </html>

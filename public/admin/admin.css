@@ -2149,15 +2149,19 @@ div.inbox-toolbar-header,
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    gap: 12px;
 }
 
 .whatsapp-header-user-title {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex: 1 1 auto;
-    min-width: 0;
+    width: 100%;
+}
+
+.whatsapp-header-controls-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
 }
 
 .whatsapp-avatar {
@@ -2910,7 +2914,7 @@ div.inbox-toolbar-header,
         flex-direction: column !important;
     }
 
-    /* Encabezado del chat en móvil: 3 Filas 100% Ordenadas, Elegantes y Sin Cortes */
+    /* Encabezado del chat en móvil: Nombre 100% visible + Botones en Fila 2 */
     .whatsapp-modal-header {
         padding: 8px 12px !important;
         background: #182229 !important;
@@ -2923,21 +2927,19 @@ div.inbox-toolbar-header,
         box-sizing: border-box !important;
     }
 
+    /* Fila 1: Nombre completo con 100% del ancho */
     .whatsapp-header-top-row {
         display: flex !important;
         flex-direction: row !important;
-        justify-content: space-between !important;
         align-items: center !important;
         width: 100% !important;
-        gap: 8px !important;
     }
 
     .whatsapp-header-user-title {
         display: flex !important;
         align-items: center !important;
-        gap: 8px !important;
-        flex: 1 1 auto !important;
-        min-width: 0 !important;
+        gap: 10px !important;
+        width: 100% !important;
     }
 
     .whatsapp-avatar,
@@ -2956,16 +2958,67 @@ div.inbox-toolbar-header,
     }
 
     .whatsapp-header-user-title h3 {
-        font-size: 0.94rem !important;
+        font-size: 0.98rem !important;
         font-weight: 700 !important;
         color: #ffffff !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        line-height: 1.2 !important;
         margin: 0 !important;
+        line-height: 1.25 !important;
+        word-break: break-word !important;
+        flex: 1 1 auto !important;
     }
 
+    /* Fila 2: Botones de control [📋 Resumen] [📜 Historial] [✕] */
+    .whatsapp-header-controls-row {
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    .whatsapp-window-controls {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .whatsapp-control-btn.btn-toggle-summary,
+    .whatsapp-control-btn.btn-toggle-history {
+        flex: 1 1 auto !important;
+        height: 32px !important;
+        padding: 0 10px !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 5px !important;
+        width: auto !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+    }
+
+    .whatsapp-control-btn.btn-toggle-summary span,
+    .whatsapp-control-btn.btn-toggle-history span {
+        display: inline !important;
+    }
+
+    .whatsapp-control-btn.close-btn {
+        width: 34px !important;
+        height: 32px !important;
+        min-width: 34px !important;
+        font-size: 1rem !important;
+        background: rgba(239, 68, 68, 0.25) !important;
+        border-color: rgba(239, 68, 68, 0.5) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Fila 3: Píldoras de categoría y bot (En la MISMA fila) */
     .whatsapp-client-meta-row {
         display: flex !important;
         flex-direction: row !important;
@@ -2984,6 +3037,7 @@ div.inbox-toolbar-header,
         flex-shrink: 0 !important;
     }
 
+    /* Fila 4: Teléfono y Botones de Llamada / WhatsApp (En la MISMA fila) */
     .whatsapp-client-actions-row {
         display: flex !important;
         flex-direction: row !important;
@@ -3014,13 +3068,6 @@ div.inbox-toolbar-header,
         font-size: 0.72rem !important;
         padding: 2px 8px !important;
         white-space: nowrap !important;
-    }
-
-    .whatsapp-window-controls {
-        display: flex !important;
-        align-items: center !important;
-        gap: 6px !important;
-        flex-shrink: 0 !important;
     }
 
     /* Ocultar botones de minimizar / maximizar en móvil (ya ocupa toda la pantalla) */
