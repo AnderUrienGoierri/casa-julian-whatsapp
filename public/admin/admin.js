@@ -418,29 +418,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700;">🤖 Bot Activo</span>`;
 
             return `
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
-                    <td style="padding: 12px 16px; font-weight: 600; color: #f8fafc;">
-                        ${item.nombre || 'Contacto'}
+                <tr class="silenced-row-item" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                    <td class="col-name" style="padding: 12px 16px; font-weight: 600; color: #f8fafc;">
+                        <div class="silenced-mobile-header">
+                            <span class="silenced-contact-name">${item.nombre || 'Contacto'}</span>
+                            <span class="silenced-cat-badge mobile-only-cat">${catBadge}</span>
+                        </div>
                     </td>
-                    <td style="padding: 12px 16px; color: #38bdf8; font-family: monospace;">
-                        +${item.telefono}
+                    <td class="col-phone" style="padding: 12px 16px; color: #38bdf8; font-family: monospace;">
+                        <a href="https://wa.me/${cleanPhone}" target="_blank" class="silenced-phone-link" style="color: #38bdf8; text-decoration: none;">
+                            📞 +${item.telefono}
+                        </a>
                     </td>
-                    <td style="padding: 12px 16px;">
+                    <td class="col-cat desktop-only-cell" style="padding: 12px 16px;">
                         ${catBadge}
                     </td>
-                    <td style="padding: 12px 16px; color: #94a3b8; font-size: 0.84rem;">
-                        ${item.notas || '-'}
+                    <td class="col-notes" style="padding: 12px 16px; color: #94a3b8; font-size: 0.84rem;">
+                        <span class="silenced-notes-text">${item.notas ? '📝 ' + item.notas : '-'}</span>
                     </td>
-                    <td style="padding: 12px 16px; text-align: center;">
+                    <td class="col-status" style="padding: 12px 16px; text-align: center;">
                         ${statusHtml}
                     </td>
-                    <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
-                        <button class="btn-toggle-silence" data-id="${item.id}" data-active="${isSilencedActive}" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; margin-right: 6px;" title="${isSilencedActive ? 'Desactivar silencio (reactivar bot)' : 'Activar silencio permanente'}">
-                            ${isSilencedActive ? '🔔 Activar Bot' : '🔇 Silenciar'}
-                        </button>
-                        <button class="btn-delete-silence" data-id="${item.id}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="Eliminar de la lista">
-                            🗑️
-                        </button>
+                    <td class="col-actions" style="padding: 12px 16px; text-align: right; white-space: nowrap;">
+                        <div class="silenced-actions-group">
+                            <button class="btn-toggle-silence" data-id="${item.id}" data-active="${isSilencedActive}" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="${isSilencedActive ? 'Desactivar silencio (reactivar bot)' : 'Activar silencio permanente'}">
+                                ${isSilencedActive ? '🔔 Activar Bot' : '🔇 Silenciar'}
+                            </button>
+                            <button class="btn-delete-silence" data-id="${item.id}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="Eliminar de la lista">
+                                🗑️ Eliminar
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
