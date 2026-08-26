@@ -2645,27 +2645,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             `;
 
-            // Botones de acción según vista
-            let actionBtnsHtml = '';
+            // Botones de acción superior (A la derecha del nombre del cliente)
+            let topActionBtnsHtml = '';
             if (isArchiveView) {
-                // Vista Archivada: Restaurar + Eliminar definitivamente
-                actionBtnsHtml = `
-                    ${quickContactBtnsHtml}
-                    ${historyBtnHtml}
-                    ${silenceBtnHtml}
-                    <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.78rem; padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap;" title="Restaurar a Activas">↩️ Restaurar</button>
-                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Eliminar definitivamente este mensaje">🗑️</button>
+                topActionBtnsHtml = `
+                    <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.78rem; padding: 4px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;" title="Restaurar a Activas">↩️ Restaurar</button>
+                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar definitivamente este mensaje">🗑️</button>
                 `;
             } else {
-                // Vista Activas: Contacto + Historial + Silenciar + Archivar + Eliminar definitivamente
-                actionBtnsHtml = `
-                    ${quickContactBtnsHtml}
-                    ${historyBtnHtml}
-                    ${silenceBtnHtml}
-                    <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Archivar solicitud">📦</button>
-                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 5px 8px; border-radius: 6px; cursor: pointer;" title="Eliminar definitivamente este mensaje">🗑️</button>
+                topActionBtnsHtml = `
+                    <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Archivar solicitud">📦</button>
+                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar definitivamente este mensaje">🗑️</button>
                 `;
             }
+
+            // Fila inferior de botones de interacción rápida
+            const bottomActionBtnsHtml = `
+                <span class="msg-count-chip">${msgCountStr}</span>
+                ${quickContactBtnsHtml}
+                ${historyBtnHtml}
+                ${silenceBtnHtml}
+            `;
 
             html += `
                 <div class="whatsapp-inbox-card solicitud-card ${isUnread ? 'has-unread-msg' : ''} ${isArchiveView ? 'card-archived' : ''} ${isSelected ? 'is-selected' : ''}" data-id="${sol.id}">
@@ -2681,17 +2681,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
 
                     <div class="card-main-content">
-                        <div class="card-user-info">
-                            <div class="card-avatar">👤</div>
-                            <div>
-                                <div class="card-client-name">${sol.nombreCliente || 'Cliente'}</div>
-                                <div class="card-client-phone">📞 WhatsApp: +${phoneFormatted}</div>
+                        <!-- Fila del Nombre del Cliente + Botones Archivar y Eliminar a la derecha -->
+                        <div class="card-user-info-row">
+                            <div class="card-user-info">
+                                <div class="card-avatar">👤</div>
+                                <div class="card-user-text">
+                                    <div class="card-client-name">${sol.nombreCliente || 'Cliente'}</div>
+                                    <div class="card-client-phone">📞 WhatsApp: +${phoneFormatted}</div>
+                                </div>
+                            </div>
+                            <div class="card-top-actions">
+                                ${topActionBtnsHtml}
                             </div>
                         </div>
 
-                        <div class="card-badges-right" style="display: flex; align-items: center; gap: 6px;">
-                            <span class="msg-count-chip">${msgCountStr}</span>
-                            ${actionBtnsHtml}
+                        <!-- Fila inferior: Mensajes, Llamada, WhatsApp, Historial Bot, Silenciar -->
+                        <div class="card-badges-bottom-row">
+                            ${bottomActionBtnsHtml}
                         </div>
                     </div>
                 </div>

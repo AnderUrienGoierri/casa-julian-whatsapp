@@ -2222,6 +2222,133 @@ div.inbox-toolbar-header,
     flex-shrink: 0;
 }
 
+/* Tarjetas de Solicitud en Buzón de Entrada */
+.solicitud-card {
+    background: #182229;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.solicitud-card:hover {
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.solicitud-card.has-unread-msg {
+    border-left: 4px solid #38bdf8 !important;
+}
+
+.card-top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.card-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.card-user-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.card-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.card-avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+    background: #2a3942;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.card-user-text {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.card-client-name {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 0.96rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
+}
+
+.card-client-phone {
+    font-size: 0.78rem;
+    color: #38bdf8;
+    font-family: monospace;
+    font-weight: 600;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-top-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.card-badges-bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.msg-count-chip {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+}
+
 .btn-close-sidebar-mobile {
     display: none;
     background: rgba(255, 255, 255, 0.1);
