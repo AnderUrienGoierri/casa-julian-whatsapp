@@ -2243,7 +2243,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFromClient = c.ultimoEmisor === 'cliente';
             const emisorBadge = isFromClient 
                 ? `<span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 700;">👤 Cliente</span>`
-                : `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 700;">🤖 Bot</span>`;
+                : `<span style="background: rgba(217, 119, 6, 0.2); color: #fbbf24; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 13px; height: 13px; border-radius: 50%; object-fit: cover;"> Bot</span>`;
 
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
@@ -2887,8 +2887,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     border: 1px solid rgba(255,255,255,0.05);
                 `;
                 bubble.innerHTML = `
-                    <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px;">
-                        ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '👩‍💼 Recepción Casa Julián'}
+                    <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px; display: flex; align-items: center; gap: 5px;">
+                        ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(217, 119, 6, 0.7); vertical-align: middle; display: inline-block;"> Recepción Casa Julián'}
                     </div>
                     <div>${formattedBody}</div>
                     <div style="text-align: right; font-size: 0.68rem; color: #8696a0; margin-top: 4px;">${timeStr}</div>
@@ -3096,8 +3096,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 bubble.innerHTML = `
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: ${isClient ? '#4ade80' : '#38bdf8'}; display: flex; align-items: center; gap: 4px;">
-                            ${isClient ? '👤 ' + (currentHistoryName || 'Cliente') : '🤖 Chatbot Casa Julián'}
+                        <span style="font-size: 0.75rem; font-weight: 700; color: ${isClient ? '#4ade80' : '#38bdf8'}; display: flex; align-items: center; gap: 5px;">
+                            ${isClient ? '👤 ' + (currentHistoryName || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(217, 119, 6, 0.7); vertical-align: middle; display: inline-block;"> Chatbot Casa Julián'}
                         </span>
                         <div style="display: flex; align-items: center; gap: 6px;">
                             ${metaBadge}

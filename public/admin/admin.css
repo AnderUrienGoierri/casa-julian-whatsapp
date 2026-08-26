@@ -212,7 +212,24 @@ button {
 .logo-area {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+}
+
+.header-logo-img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-gold);
+    box-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
+    display: inline-block;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.header-logo-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 14px rgba(217, 119, 6, 0.6);
 }
 
 .logo-icon {
