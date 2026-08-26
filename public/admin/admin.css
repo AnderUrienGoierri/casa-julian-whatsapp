@@ -328,17 +328,20 @@ button {
     top: calc(100% + 8px);
     right: 0;
     width: 290px;
+    max-width: calc(100vw - 20px);
     background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 14px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
-    padding: 10px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    padding: 10px 8px;
     z-index: 1000;
     display: none;
     flex-direction: column;
     gap: 4px;
     backdrop-filter: blur(16px);
     animation: dropdownFadeIn 0.18s ease forwards;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .header-menu-dropdown.show {
@@ -362,24 +365,26 @@ button {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #94a3b8;
-    padding: 6px 10px 2px;
+    padding: 6px 8px 2px;
 }
 
 .dropdown-menu-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 8px;
     width: 100%;
     background: transparent;
     border: none;
-    padding: 9px 12px;
+    padding: 8px 10px;
     border-radius: 8px;
     color: #e2e8f0;
-    font-size: 0.85rem;
+    font-size: 0.84rem;
     font-weight: 500;
     cursor: pointer;
     text-align: left;
     transition: all 0.15s ease;
+    box-sizing: border-box;
 }
 
 .dropdown-menu-item:hover {
@@ -399,10 +404,14 @@ button {
     line-height: 1;
     width: 20px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .dropdown-item-text {
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dropdown-badge {
@@ -410,6 +419,7 @@ button {
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 10px;
+    flex-shrink: 0;
 }
 
 .dropdown-divider {
@@ -419,23 +429,29 @@ button {
 }
 
 .dropdown-lang-group {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    padding: 4px 6px;
+    display: flex;
+    gap: 5px;
+    padding: 4px 2px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .dropdown-lang-btn {
+    flex: 1;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #cbd5e1;
-    padding: 6px 4px;
+    padding: 6px 2px;
     border-radius: 8px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
     cursor: pointer;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     transition: all 0.15s ease;
+    box-sizing: border-box;
 }
 
 .dropdown-lang-btn:hover {
@@ -2525,37 +2541,50 @@ div.inbox-toolbar-header,
         gap: 8px !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        background: #0f172a !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
     }
 
     .header-left {
         display: flex !important;
         align-items: center !important;
-        gap: 8px !important;
+        gap: 10px !important;
         flex: 1 1 auto !important;
         min-width: 0 !important;
-        overflow: hidden !important;
+        overflow: visible !important;
         flex-wrap: nowrap !important;
     }
 
     .logo-area {
         display: flex !important;
         align-items: center !important;
-        gap: 8px !important;
+        gap: 10px !important;
         min-width: 0 !important;
     }
 
     .header-logo-img {
-        width: 34px !important;
-        height: 34px !important;
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
+        min-height: 38px !important;
+        display: block !important;
         flex-shrink: 0 !important;
+        border-radius: 50% !important;
+        border: 2px solid var(--accent-gold) !important;
+        box-shadow: 0 0 10px rgba(217, 119, 6, 0.4) !important;
     }
 
     .logo-area h1 {
-        font-size: 0.9rem !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         margin: 0 !important;
+        line-height: 1.2 !important;
     }
 
     .logo-area .subtitle {
@@ -2582,15 +2611,19 @@ div.inbox-toolbar-header,
         padding: 6px 12px !important;
         font-size: 0.82rem !important;
         white-space: nowrap !important;
+        border-radius: 8px !important;
     }
 
     .header-menu-dropdown {
         position: fixed !important;
-        top: 54px !important;
-        right: 12px !important;
+        top: 52px !important;
+        right: 8px !important;
         left: auto !important;
         width: 280px !important;
-        max-width: calc(100vw - 24px) !important;
+        max-width: calc(100vw - 16px) !important;
+        box-sizing: border-box !important;
+        padding: 10px 8px !important;
+        overflow: hidden !important;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.18) !important;
         z-index: 999999 !important;
     }
