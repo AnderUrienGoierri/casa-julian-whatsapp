@@ -24,12 +24,36 @@
     padding: 0;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     background-color: var(--bg-dark);
     color: var(--text-primary);
     font-family: var(--font-family);
     line-height: 1.5;
     min-height: 100vh;
+    min-height: 100dvh;
+}
+
+body:has(#tab-inbox.active),
+body.is-inbox-active-body {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+#app-container {
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 /* MODAL DE LOGIN */
@@ -660,8 +684,9 @@ body.mode-recepcion .tabs-nav {
     flex-direction: column !important;
     max-width: 100% !important;
     width: 100% !important;
-    height: calc(100vh - 98px) !important;
-    height: calc(100dvh - 98px) !important;
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    min-height: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
     gap: 0 !important;
@@ -673,7 +698,7 @@ body.mode-recepcion .tabs-nav {
     width: 100% !important;
     max-width: 100% !important;
     height: 100% !important;
-    flex: 1 !important;
+    flex: 1 1 0% !important;
     min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
@@ -1933,13 +1958,20 @@ body.mode-recepcion .inbox-cards-grid {
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
 }
 
 .wa-web-container {
     display: grid;
     grid-template-columns: 420px 1fr;
-    height: calc(100vh - 105px);
-    min-height: 550px;
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
     width: 100%;
     max-width: 100%;
     margin: 0;
@@ -1956,7 +1988,9 @@ body.mode-recepcion .inbox-cards-grid {
 .wa-left-pane {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
     background: #111b21;
     border-right: 1px solid rgba(134, 150, 160, 0.15);
     overflow-y: auto;
@@ -1992,7 +2026,9 @@ body.mode-recepcion .inbox-cards-grid {
 .wa-right-pane {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
     background: #0b141a;
     position: relative;
     overflow: hidden;
@@ -2004,7 +2040,9 @@ body.mode-recepcion .inbox-cards-grid {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
     padding: 40px;
     text-align: center;
     background: #111b21;

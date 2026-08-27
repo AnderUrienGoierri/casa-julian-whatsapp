@@ -185,6 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateHeaderActiveTab(tabId) {
         currentActiveTabId = tabId;
 
+        document.body.classList.toggle('is-inbox-active-body', tabId === 'tab-inbox');
+
         const mainLayout = document.querySelector('.main-layout');
         if (mainLayout) {
             mainLayout.classList.toggle('is-inbox-active', tabId === 'tab-inbox');
