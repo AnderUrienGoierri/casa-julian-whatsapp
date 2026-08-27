@@ -2020,8 +2020,8 @@ body.mode-recepcion .inbox-cards-grid {
     height: 96px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid rgba(217, 119, 6, 0.6);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .wa-empty-title {
@@ -4161,8 +4161,8 @@ div.inbox-toolbar-header,
         display: block !important;
         flex-shrink: 0 !important;
         border-radius: 50% !important;
-        border: 2px solid var(--accent-gold) !important;
-        box-shadow: 0 0 10px rgba(217, 119, 6, 0.4) !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
     .logo-area h1 {

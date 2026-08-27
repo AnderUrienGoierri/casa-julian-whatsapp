@@ -3287,7 +3287,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     bubble.innerHTML = `
                         <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                             <span style="display: flex; align-items: center; gap: 5px;">
-                                ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(217, 119, 6, 0.7); vertical-align: middle; display: inline-block;"> Recepción Casa Julián'}
+                                ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: none; vertical-align: middle; display: inline-block;"> Recepción Casa Julián'}
                             </span>
                             ${metaBadge}
                         </div>
