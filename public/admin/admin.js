@@ -2740,7 +2740,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        container.innerHTML = filtered.map(c => {
+        // Generar separadores de sección (Fijados / Chats)
+        const hasPinned = filtered.some(c => isChatPinned((c.telefono || '').replace(/\D/g, '')));
+        let pinnedHeaderAdded = false;
+        let regularHeaderAdded = false;
+
+        const cardsHtml = [];
+
+        filtered.forEach(c => {
             const cleanPhone = (c.telefono || '').replace(/\D/g, '');
             const clientDisplayName = getClientDisplayName(c.nombreCliente, cleanPhone);
             const smartTime = formatSmartDateTime(c.ultimoMensajeFecha);
@@ -2794,7 +2801,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
-            return `
+            // Separadores de sección Fijados / Chats
+            if (isPinned && !pinnedHeaderAdded) {
+                cardsHtml.push(`<div class="wa-section-header" style="padding: 6px 16px; font-size: 0.72rem; font-weight: 600; color: #8696a0; letter-spacing: 0.8px; text-transform: uppercase; background: #0c1519; border-bottom: 1px solid rgba(134,150,160,0.1);">📌 Fijados</div>`);
+                pinnedHeaderAdded = true;
+            } else if (!isPinned && !regularHeaderAdded && hasPinned) {
+                cardsHtml.push(`<div class="wa-section-header" style="padding: 6px 16px; font-size: 0.72rem; font-weight: 600; color: #8696a0; letter-spacing: 0.8px; text-transform: uppercase; background: #0c1519; border-bottom: 1px solid rgba(134,150,160,0.1);">💬 Todos los chats</div>`);
+                regularHeaderAdded = true;
+            }
+
+            cardsHtml.push(`
                 <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''} ${isSelected ? 'is-selected' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
                     ${avatarHtml}
                     <div class="wa-chat-content">
@@ -2843,8 +2859,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 </div>
-            `;
-        }).join('');
+            `);
+        });
+
+        container.innerHTML = cardsHtml.join('');
 
         // Event listeners para las filas de conversación (click para seleccionar en 2 columnas o abrir chat)
         container.querySelectorAll('.chat-card-item').forEach(card => {
@@ -2983,43 +3001,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const paneMoreDropdown = document.getElementById('pane-more-actions-dropdown');
         if (!paneMoreBtn || !paneMoreDropdown) return;
 
-        // Toggle al pulsar el botón ⋮
-        let _paneCloseHandler = null;
-
+        // Toggle al pulsar el botón ⋮ (sin document listener para evitar cierre accidental en mobile)
         function closePaneDropdown() {
             paneMoreDropdown.style.display = 'none';
-            if (_paneCloseHandler) {
-                document.removeEventListener('click', _paneCloseHandler);
-                _paneCloseHandler = null;
-            }
         }
 
         function openPaneDropdown() {
             paneMoreDropdown.style.display = 'block';
-            // Añadir listener de cierre de forma DIFERIDA (evita dispararse en el mismo tick)
-            // y auto-eliminable tras el primer clic fuera
-            if (_paneCloseHandler) {
-                document.removeEventListener('click', _paneCloseHandler);
-                _paneCloseHandler = null;
-            }
-            setTimeout(() => {
-                _paneCloseHandler = (ev) => {
-                    if (!ev.target.closest('.pane-more-actions-wrapper')) {
-                        closePaneDropdown();
-                    }
-                };
-                document.addEventListener('click', _paneCloseHandler);
-            }, 150);
         }
 
         paneMoreBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            e.preventDefault();
             const isOpen = paneMoreDropdown.style.display === 'block';
             if (isOpen) {
                 closePaneDropdown();
             } else {
                 openPaneDropdown();
             }
+        });
+
+        // Cerrar al pulsar Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePaneDropdown();
         });
 
         // Hover styles para los items
