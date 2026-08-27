@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentActiveTabId = 'tab-inbox';
     let currentInboxCatFilter = 'all';
     let currentInboxStatusFilter = 'all';
+    let currentInboxTopicFilter = 'all';
     let currentInboxSearch = '';
     let currentInboxView = 'active';      // 'active' | 'ARCHIVADA' | 'ELIMINADA'
     let currentInboxSort = 'date_desc';   // 'date_desc' | 'date_asc' | 'alpha_asc' | 'alpha_desc' | 'estado'
@@ -2591,64 +2592,110 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ── Clasificación Inteligente de Categorías y Temáticas ────────────────
+    function getConversationCategory(c) {
+        const cat = (c.categoria || '').toLowerCase();
+        const tags = Array.isArray(c.etiquetas) ? c.etiquetas.map(t => String(t).toLowerCase()) : [];
+        if (cat === 'proveedor' || cat === 'proveedores' || tags.some(t => t.includes('prov'))) return 'proveedor';
+        if (cat === 'hoteles' || cat === 'hotel' || tags.some(t => t.includes('hotel'))) return 'hoteles';
+        if (cat === 'empleado' || cat === 'empleados' || cat === 'alba' || cat === 'personal' || tags.some(t => t.includes('alba') || t.includes('emplead') || t.includes('personal'))) return 'empleado';
+        if (cat === 'otro' || cat === 'taxi' || cat === 'taxis' || tags.some(t => t.includes('taxi') || t.includes('otro'))) return 'otro';
+        return 'cliente';
+    }
+
+    function getConversationTopic(c) {
+        const tipo = (c.tipoSolicitud || '').toUpperCase();
+        const text = (c.ultimoTexto || '').toLowerCase();
+        const tags = Array.isArray(c.etiquetas) ? c.etiquetas.map(t => String(t).toLowerCase()) : [];
+
+        if (tipo === 'MENU_TRADICION' || tags.some(t => t.includes('menu') || t.includes('tradici')) || /men[uú]|tradici[oó]n|degustaci|carta|chuleta|txuleta|txuleton/i.test(text)) {
+            return 'menu_tradicion';
+        }
+        if (tipo === 'MODIFICACION' || tags.some(t => t.includes('modif')) || /modifi|cambi|hora|personas|ampliar|retras/i.test(text)) {
+            return 'modificacion';
+        }
+        if (tipo === 'CANCELACION' || tags.some(t => t.includes('cancel')) || /cancel|anul|no podemos ir|no podre/i.test(text)) {
+            return 'cancelacion';
+        }
+        if (tipo === 'PREGUNTAS_FRECUENTES' || tipo === 'FAQ' || tags.some(t => t.includes('faq') || t.includes('pregunt')) || /horario|donde|d[oó]nde|ubicaci[oó]n|c[oó]mo llegar|aparc|parking|direccion/i.test(text)) {
+            return 'faq';
+        }
+        if (tipo === 'OTRAS_CUESTIONES' || tipo === 'DUDA' || tags.some(t => t.includes('otra')) || /otra|cuesti|duda|consulta|evento|grupo|alergia|celiac/i.test(text)) {
+            return 'otras_cuestiones';
+        }
+        return 'otras_cuestiones';
+    }
+
     // Renderizar Tarjetas Unificadas de Conversación en Buzón Recepción
     function renderInboxCards() {
         const container = document.getElementById('inbox-cards-container');
         const summaryEl = document.getElementById('inbox-total-summary');
         if (!container) return;
 
-        // Calcular contadores por categoría
+        // Calcular contadores Fila 1: Contactos y Estado
         const total = allUnifiedConversations.length;
-        const countCli = allUnifiedConversations.filter(c => !c.categoria || c.categoria === 'cliente').length;
-        const countProv = allUnifiedConversations.filter(c => c.categoria === 'proveedor').length;
-        const countAlba = allUnifiedConversations.filter(c => c.categoria === 'alba').length;
-        const countHoteles = allUnifiedConversations.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel').length;
-        const countTaxi = allUnifiedConversations.filter(c => c.categoria === 'taxi').length;
+        const countPend = allUnifiedConversations.filter(c => getConversationStatus(c) === 'pendiente').length;
+        const countProv = allUnifiedConversations.filter(c => getConversationCategory(c) === 'proveedor').length;
+        const countHoteles = allUnifiedConversations.filter(c => getConversationCategory(c) === 'hoteles').length;
+        const countEmpleados = allUnifiedConversations.filter(c => getConversationCategory(c) === 'empleado').length;
+        const countCli = allUnifiedConversations.filter(c => getConversationCategory(c) === 'cliente').length;
+        const countOtros = allUnifiedConversations.filter(c => getConversationCategory(c) === 'otro').length;
 
         const cAll = document.getElementById('count-cat-all');
-        const cCli = document.getElementById('count-cat-cli');
-        const cProv = document.getElementById('count-cat-prov');
-        const cAlba = document.getElementById('count-cat-alba');
-        const cHoteles = document.getElementById('count-cat-hoteles');
-        const cTaxi = document.getElementById('count-cat-taxi');
-        if (cAll) cAll.textContent = total;
-        if (cCli) cCli.textContent = countCli;
-        if (cProv) cProv.textContent = countProv;
-        if (cAlba) cAlba.textContent = countAlba;
-        if (cHoteles) cHoteles.textContent = countHoteles;
-        if (cTaxi) cTaxi.textContent = countTaxi;
-
-        // Calcular contadores por estado
-        const countPend = allUnifiedConversations.filter(c => getConversationStatus(c) === 'pendiente').length;
-        const countRead = allUnifiedConversations.filter(c => getConversationStatus(c) === 'leido').length;
-        const cStatAll = document.getElementById('count-status-all');
         const cStatPend = document.getElementById('count-status-pend');
-        const cStatRead = document.getElementById('count-status-read');
-        if (cStatAll) cStatAll.textContent = total;
+        const cProv = document.getElementById('count-cat-prov');
+        const cHoteles = document.getElementById('count-cat-hoteles');
+        const cEmpleados = document.getElementById('count-cat-empleados');
+        const cCli = document.getElementById('count-cat-cli');
+        const cOtros = document.getElementById('count-cat-otros');
+
+        if (cAll) cAll.textContent = total;
         if (cStatPend) cStatPend.textContent = countPend;
-        if (cStatRead) cStatRead.textContent = countRead;
+        if (cProv) cProv.textContent = countProv;
+        if (cHoteles) cHoteles.textContent = countHoteles;
+        if (cEmpleados) cEmpleados.textContent = countEmpleados;
+        if (cCli) cCli.textContent = countCli;
+        if (cOtros) cOtros.textContent = countOtros;
+
+        // Calcular contadores Fila 2: Tipos de Solicitud y Temáticas
+        const countTopicMenu = allUnifiedConversations.filter(c => getConversationTopic(c) === 'menu_tradicion').length;
+        const countTopicMod = allUnifiedConversations.filter(c => getConversationTopic(c) === 'modificacion').length;
+        const countTopicCancel = allUnifiedConversations.filter(c => getConversationTopic(c) === 'cancelacion').length;
+        const countTopicOtras = allUnifiedConversations.filter(c => getConversationTopic(c) === 'otras_cuestiones').length;
+        const countTopicFaq = allUnifiedConversations.filter(c => getConversationTopic(c) === 'faq').length;
+
+        const cTopicMenu = document.getElementById('count-topic-menu');
+        const cTopicMod = document.getElementById('count-topic-mod');
+        const cTopicCancel = document.getElementById('count-topic-cancel');
+        const cTopicOtras = document.getElementById('count-topic-otras');
+        const cTopicFaq = document.getElementById('count-topic-faq');
+
+        if (cTopicMenu) cTopicMenu.textContent = countTopicMenu;
+        if (cTopicMod) cTopicMod.textContent = countTopicMod;
+        if (cTopicCancel) cTopicCancel.textContent = countTopicCancel;
+        if (cTopicOtras) cTopicOtras.textContent = countTopicOtras;
+        if (cTopicFaq) cTopicFaq.textContent = countTopicFaq;
 
         updateHeaderAndMenuBadges();
 
         let filtered = [...allUnifiedConversations];
 
-        // 1. Filtrar por categoría
+        // 1. Filtrar por categoría (Fila 1)
         if (currentInboxCatFilter !== 'all') {
-            if (currentInboxCatFilter === 'cliente') {
-                filtered = filtered.filter(c => !c.categoria || c.categoria === 'cliente');
-            } else if (currentInboxCatFilter === 'hoteles') {
-                filtered = filtered.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel');
-            } else {
-                filtered = filtered.filter(c => c.categoria === currentInboxCatFilter);
-            }
+            filtered = filtered.filter(c => getConversationCategory(c) === currentInboxCatFilter);
         }
 
-        // 2. Filtrar por estado
+        // 2. Filtrar por estado (Fila 1)
         if (currentInboxStatusFilter !== 'all') {
             filtered = filtered.filter(c => getConversationStatus(c) === currentInboxStatusFilter);
         }
 
-        // 3. Filtrar por buscador (Soporta números con o sin espacios, ej: +44 7879 488933 y +447879488933)
+        // 3. Filtrar por temática / tipo de solicitud (Fila 2)
+        if (currentInboxTopicFilter !== 'all') {
+            filtered = filtered.filter(c => getConversationTopic(c) === currentInboxTopicFilter);
+        }
+
+        // 4. Filtrar por buscador (Soporta números con o sin espacios, ej: +44 7879 488933 y +447879488933)
         if (currentInboxSearch.trim()) {
             const q = currentInboxSearch.toLowerCase().trim();
             const qDigits = q.replace(/\D/g, '');
@@ -2930,7 +2977,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ── Píldoras de Filtro Horizontales (Estilo WhatsApp Business) ─────────
+    // ── Píldoras de Filtro Horizontales (Estilo WhatsApp Business en 2 Filas)
     document.querySelectorAll('.wa-pill').forEach(pill => {
         pill.addEventListener('click', () => {
             document.querySelectorAll('.wa-pill').forEach(p => p.classList.remove('active'));
@@ -2938,16 +2985,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const cat = pill.getAttribute('data-inbox-cat');
             const status = pill.getAttribute('data-inbox-status');
+            const topic = pill.getAttribute('data-inbox-topic');
 
-            if (cat === 'all' && status === 'all') {
+            if (cat === 'all' && status === 'all' && (!topic || topic === 'all')) {
+                currentInboxCatFilter = 'all';
+                currentInboxStatusFilter = 'all';
+                currentInboxTopicFilter = 'all';
+            } else if (topic) {
+                currentInboxTopicFilter = topic;
                 currentInboxCatFilter = 'all';
                 currentInboxStatusFilter = 'all';
             } else if (status) {
                 currentInboxStatusFilter = status;
                 currentInboxCatFilter = 'all';
+                currentInboxTopicFilter = 'all';
             } else if (cat) {
                 currentInboxCatFilter = cat;
                 currentInboxStatusFilter = 'all';
+                currentInboxTopicFilter = 'all';
             }
 
             renderInboxCards();

@@ -1538,16 +1538,22 @@ body.mode-recepcion .inbox-cards-grid {
     user-select: none;
 }
 
+.wa-filter-rows-container {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
 .wa-filter-pills-row {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
     scrollbar-width: thin;
 }
 
 .wa-filter-pills-row::-webkit-scrollbar {
-    height: 4px;
+    height: 3px;
 }
 .wa-filter-pills-row::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
@@ -1559,7 +1565,7 @@ body.mode-recepcion .inbox-cards-grid {
     color: #8696a0;
     border: 1px solid rgba(134, 150, 160, 0.15);
     border-radius: 16px;
-    padding: 5px 14px;
+    padding: 5px 13px;
     font-size: 0.82rem;
     font-weight: 500;
     white-space: nowrap;
@@ -1578,6 +1584,26 @@ body.mode-recepcion .inbox-cards-grid {
     border-color: #00a884;
     font-weight: 700;
     box-shadow: 0 2px 8px rgba(0, 168, 132, 0.3);
+}
+
+.filter-chip.wa-topic-pill {
+    background: #182229;
+    border: 1px solid rgba(134, 150, 160, 0.12);
+    color: #94a3b8;
+    font-size: 0.80rem;
+}
+
+.filter-chip.wa-topic-pill:hover {
+    background: #222e35;
+    color: #e9edef;
+}
+
+.filter-chip.wa-topic-pill.active {
+    background: #00a884;
+    color: #111b21;
+    border-color: #00a884;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 168, 132, 0.35);
 }
 
 /* Barra de Archivados estilo WhatsApp */
