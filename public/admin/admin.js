@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allSolicitudes = [];
     let allWhatsAppChats = [];
     let allUnifiedConversations = [];
+    let currentActiveTabId = 'tab-inbox';
     let currentInboxCatFilter = 'all';
     let currentInboxStatusFilter = 'all';
     let currentInboxSearch = '';
@@ -179,6 +180,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Título de la pestaña activa en el Header
+    function updateHeaderActiveTab(tabId) {
+        currentActiveTabId = tabId;
+        const iconEl = document.getElementById('header-active-tab-icon');
+        const nameEl = document.getElementById('header-active-tab-name');
+        const badgeEl = document.getElementById('header-active-tab-badge');
+        if (!nameEl) return;
+
+        if (tabId === 'tab-inbox') {
+            if (iconEl) iconEl.textContent = '📥';
+            nameEl.textContent = 'Buzón Recepción';
+            if (badgeEl) {
+                const count = getPendingConversationsCount();
+                badgeEl.textContent = count;
+                badgeEl.style.background = '#ef4444';
+                badgeEl.style.color = '#fff';
+                badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        } else if (tabId === 'tab-silenced') {
+            if (iconEl) iconEl.textContent = '🔇';
+            nameEl.textContent = 'Números Silenciados';
+            if (badgeEl) {
+                const count = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) 
+                    ? allSilencedNumbers.length 
+                    : 0;
+                badgeEl.textContent = count;
+                badgeEl.style.background = '#a855f7';
+                badgeEl.style.color = '#fff';
+                badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        } else if (tabId === 'tab-flow') {
+            if (iconEl) iconEl.textContent = '🌳';
+            nameEl.textContent = 'Estructura & Árbol de Flujos';
+            if (badgeEl) badgeEl.style.display = 'none';
+        } else if (tabId === 'tab-texts') {
+            if (iconEl) iconEl.textContent = '📝';
+            nameEl.textContent = 'Editor de Mensajes & Textos';
+            if (badgeEl) badgeEl.style.display = 'none';
+        } else if (tabId === 'tab-rules') {
+            if (iconEl) iconEl.textContent = '⚙️';
+            nameEl.textContent = 'Flujo & Respuestas Clave';
+            if (badgeEl) badgeEl.style.display = 'none';
+        } else if (tabId === 'tab-publish') {
+            if (iconEl) iconEl.textContent = '🚀';
+            nameEl.textContent = 'Comprobar y Subir';
+            if (badgeEl) badgeEl.style.display = 'none';
+        } else if (tabId === 'tab-settings') {
+            if (iconEl) iconEl.textContent = '⚙️';
+            nameEl.textContent = 'Diagnóstico & Ajustes';
+            if (badgeEl) badgeEl.style.display = 'none';
+        }
+    }
+
     // ==========================================
     // MENÚ DESPLEGABLE DEL HEADER (DROPDOWN)
     // ==========================================
@@ -200,61 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 headerMenuBtn.setAttribute('aria-expanded', 'false');
             }
         });
-
-        // Título de la pestaña activa en el Header
-        let currentActiveTabId = 'tab-inbox';
-
-        function updateHeaderActiveTab(tabId) {
-            currentActiveTabId = tabId;
-            const iconEl = document.getElementById('header-active-tab-icon');
-            const nameEl = document.getElementById('header-active-tab-name');
-            const badgeEl = document.getElementById('header-active-tab-badge');
-            if (!nameEl) return;
-
-            if (tabId === 'tab-inbox') {
-                if (iconEl) iconEl.textContent = '📥';
-                nameEl.textContent = 'Buzón Recepción';
-                if (badgeEl) {
-                    const count = getPendingConversationsCount();
-                    badgeEl.textContent = count;
-                    badgeEl.style.background = '#ef4444';
-                    badgeEl.style.color = '#fff';
-                    badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
-                }
-            } else if (tabId === 'tab-silenced') {
-                if (iconEl) iconEl.textContent = '🔇';
-                nameEl.textContent = 'Números Silenciados';
-                if (badgeEl) {
-                    const count = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) 
-                        ? allSilencedNumbers.length 
-                        : 0;
-                    badgeEl.textContent = count;
-                    badgeEl.style.background = '#a855f7';
-                    badgeEl.style.color = '#fff';
-                    badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
-                }
-            } else if (tabId === 'tab-flow') {
-                if (iconEl) iconEl.textContent = '🌳';
-                nameEl.textContent = 'Estructura & Árbol de Flujos';
-                if (badgeEl) badgeEl.style.display = 'none';
-            } else if (tabId === 'tab-texts') {
-                if (iconEl) iconEl.textContent = '📝';
-                nameEl.textContent = 'Editor de Mensajes & Textos';
-                if (badgeEl) badgeEl.style.display = 'none';
-            } else if (tabId === 'tab-rules') {
-                if (iconEl) iconEl.textContent = '⚙️';
-                nameEl.textContent = 'Flujo & Respuestas Clave';
-                if (badgeEl) badgeEl.style.display = 'none';
-            } else if (tabId === 'tab-publish') {
-                if (iconEl) iconEl.textContent = '🚀';
-                nameEl.textContent = 'Comprobar y Subir';
-                if (badgeEl) badgeEl.style.display = 'none';
-            } else if (tabId === 'tab-settings') {
-                if (iconEl) iconEl.textContent = '⚙️';
-                nameEl.textContent = 'Diagnóstico & Ajustes';
-                if (badgeEl) badgeEl.style.display = 'none';
-            }
-        }
 
         // Navegación a pestañas desde el menú desplegable
         headerMenuDropdown.querySelectorAll('[data-tab-target]').forEach(item => {
