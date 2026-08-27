@@ -604,10 +604,14 @@ body.mode-recepcion .tabs-nav {
         flex-shrink: 0;
     }
 
-    .header-menu-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 1.15rem;
+    .tabs-nav {
+        padding: 6px 10px 0 10px;
+        gap: 4px;
+    }
+
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 0.78rem;
     }
 }
 
@@ -622,17 +626,6 @@ body.mode-recepcion .tabs-nav {
 
     .header-active-name {
         font-size: 0.82rem;
-    }
-}
-
-    .tabs-nav {
-        padding: 6px 10px 0 10px;
-        gap: 4px;
-    }
-
-    .tab-btn {
-        padding: 8px 12px;
-        font-size: 0.78rem;
     }
 }
 
