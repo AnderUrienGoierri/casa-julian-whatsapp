@@ -4415,7 +4415,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Botón de Volver a la Lista en Móviles (< 900px)
-    const waBackToListBtn = document.getElementById('wa-back-to-list-btn');
+    const waBackToListBtn = document.getElementById('wa-back-to-list-btn') || document.getElementById('btn-back-to-inbox');
     if (waBackToListBtn) {
         waBackToListBtn.addEventListener('click', () => {
             const webContainer = document.querySelector('.wa-web-container');

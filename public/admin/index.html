@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V390-BUZON-SEARCH-TOGGLE">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V391-FIX-HEADER-BACK-BTN">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -371,10 +371,10 @@
                         <div class="wa-right-pane" id="wa-active-chat-panel" style="display: none;">
                             <!-- Header de la conversación activa -->
                             <div class="wa-chat-header">
-                                <div class="wa-chat-header-info">
-                                    <button type="button" class="btn-back-to-inbox" id="btn-back-to-inbox" title="Volver al buzón">←</button>
+                                <div class="wa-chat-header-left">
+                                    <button type="button" class="wa-back-btn btn-back-to-inbox" id="wa-back-to-list-btn" title="Volver a la lista de chats">←</button>
                                     <div class="wa-avatar-container" id="pane-chat-avatar">👤</div>
-                                    <div class="wa-contact-details">
+                                    <div class="wa-chat-header-info">
                                         <div class="wa-contact-name-row">
                                             <span class="wa-header-contact-name" id="pane-chat-client-name">+34 000 00 00 00</span>
                                             <span class="wa-category-badge" id="pane-chat-category-badge"></span>
@@ -908,6 +908,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V390-BUZON-SEARCH-TOGGLE"></script>
+    <script src="/admin/admin.js?v=20260827-V391-FIX-HEADER-BACK-BTN"></script>
 </body>
 </html>

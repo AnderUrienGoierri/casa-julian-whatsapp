@@ -2170,20 +2170,15 @@ body.mode-recepcion .inbox-cards-grid {
     overflow: hidden;
 }
 
-.wa-back-btn {
-    display: none;
-    background: transparent;
-    border: none;
-    color: #8696a0;
-    font-size: 1.35rem;
-    cursor: pointer;
-    padding: 2px 4px;
-    line-height: 1;
-    flex-shrink: 0;
+.wa-back-btn,
+.btn-back-to-inbox {
+    display: none !important;
 }
 
-.wa-back-btn:hover {
-    color: #e9edef;
+.wa-back-btn:hover,
+.btn-back-to-inbox:hover {
+    background: #00a884;
+    color: #ffffff;
 }
 
 .whatsapp-avatar,
@@ -2611,13 +2606,24 @@ body.mode-recepcion .inbox-cards-grid {
         overflow: hidden !important;
     }
 
-    .wa-back-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-        padding: 0 4px;
-        margin-right: 2px;
+    .wa-back-btn,
+    .btn-back-to-inbox {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        font-size: 1.15rem !important;
+        padding: 0 !important;
+        margin: 0 4px 0 0 !important;
+        border-radius: 50% !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: #e9edef !important;
+        cursor: pointer !important;
+        flex-shrink: 0 !important;
+        line-height: 1 !important;
     }
 
     .wa-chat-header {
