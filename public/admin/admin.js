@@ -2201,6 +2201,111 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ── Notificaciones Toast Visuales ────────────────────────────────────────
+    function showToast(message, type = 'info') {
+        let container = document.getElementById('global-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'global-toast-container';
+            container.style.position = 'fixed';
+            container.style.bottom = '24px';
+            container.style.left = '50%';
+            container.style.transform = 'translateX(-50%)';
+            container.style.zIndex = '99999';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.gap = '8px';
+            container.style.pointerEvents = 'none';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = 'admin-toast';
+        toast.style.background = '#1e293b';
+        toast.style.color = '#ffffff';
+        toast.style.padding = '10px 18px';
+        toast.style.borderRadius = '24px';
+        toast.style.border = '1px solid rgba(255, 255, 255, 0.18)';
+        toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+        toast.style.fontSize = '0.85rem';
+        toast.style.fontWeight = '600';
+        toast.style.display = 'flex';
+        toast.style.alignItems = 'center';
+        toast.style.gap = '8px';
+        toast.style.pointerEvents = 'auto';
+        toast.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(12px)';
+        toast.textContent = message;
+
+        container.appendChild(toast);
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        });
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-8px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 2800);
+    }
+
+    // ── Formato Inteligente de Fecha y Hora ──────────────────────────────────
+    function formatSmartDateTime(dateInput) {
+        if (!dateInput) return '';
+        const d = new Date(dateInput);
+        if (isNaN(d.getTime())) return '';
+        
+        const now = new Date();
+        const isToday = d.getFullYear() === now.getFullYear() &&
+                        d.getMonth() === now.getMonth() &&
+                        d.getDate() === now.getDate();
+        
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const timeStr = `${hours}:${minutes}`;
+        
+        if (isToday) {
+            return timeStr;
+        }
+        
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        const datePart = (year === now.getFullYear()) ? `${day}/${month}` : `${day}/${month}/${year}`;
+        return `${datePart} ${timeStr}`;
+    }
+
+    // ── Chats Fijados con Chincheta ──────────────────────────────────────────
+    function getPinnedChatsMap() {
+        try {
+            return JSON.parse(localStorage.getItem('casa_julian_pinned_chats') || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function toggleChatPinned(phone) {
+        const clean = (phone || '').replace(/\D/g, '');
+        if (!clean) return false;
+        const map = getPinnedChatsMap();
+        if (map[clean]) {
+            delete map[clean];
+            localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(map));
+            return false;
+        } else {
+            map[clean] = true;
+            localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(map));
+            return true;
+        }
+    }
+
+    function isChatPinned(phone) {
+        const clean = (phone || '').replace(/\D/g, '');
+        const map = getPinnedChatsMap();
+        return !!map[clean];
+    }
+
     // ── Estado Unificado del Buzón de Recepción ──────────────────────────────
 
     // Mapa de estados manuales (persistido en localStorage)
@@ -2421,8 +2526,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 3. Ordenar cronológicamente descendente: Más reciente primero
+        // 3. Ordenar: Primero los chats fijados con chincheta (📌), luego los más recientes
+        const pinnedMap = getPinnedChatsMap();
         allUnifiedConversations = Array.from(map.values()).sort((a, b) => {
+            const cleanA = (a.telefono || '').replace(/\D/g, '');
+            const cleanB = (b.telefono || '').replace(/\D/g, '');
+            const pinA = !!pinnedMap[cleanA];
+            const pinB = !!pinnedMap[cleanB];
+            if (pinA && !pinB) return -1;
+            if (!pinA && pinB) return 1;
             const tA = new Date(a.ultimoMensajeFecha || 0).getTime();
             const tB = new Date(b.ultimoMensajeFecha || 0).getTime();
             return tB - tA;
@@ -2540,79 +2652,88 @@ document.addEventListener('DOMContentLoaded', () => {
             const cleanPhone = (c.telefono || '').replace(/\D/g, '');
             const clientDisplayName = getClientDisplayName(c.nombreCliente, cleanPhone);
             const catBadge = getCategoryBadgeHtml(c.categoria);
-            const timeStr = c.ultimoMensajeFecha ? new Date(c.ultimoMensajeFecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
+            const smartTime = formatSmartDateTime(c.ultimoMensajeFecha);
             const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
-            const emisorBadge = isFromClient 
-                ? `<span style="background: rgba(255, 255, 255, 0.1); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 600;">👤 Cliente</span>`
-                : `<span style="background: rgba(255, 255, 255, 0.06); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12); font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 13px; height: 13px; border-radius: 50%; object-fit: cover;"> Bot</span>`;
-
             const status = getConversationStatus(c);
             const isPending = status === 'pendiente';
+            const isPinned = isChatPinned(cleanPhone);
 
             const statusBadge = isPending
                 ? `<span style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700;">⏳ Pendiente</span>`
                 : `<span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">✅ Leído</span>`;
 
+            const pinBadge = isPinned
+                ? `<span style="background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.72rem; padding: 2px 7px; border-radius: 12px; font-weight: 700;">📌 Fijado</span>`
+                : '';
+
             const toggleReadBtnHtml = isPending
-                ? `<button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="leido" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.14); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); white-space: nowrap;" title="Marcar esta conversación como atendida/leída">✓ Marcar Leído</button>`
-                : `<button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="pendiente" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.14); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;" title="Marcar esta conversación como pendiente de responder">⏳ Marcar Pendiente</button>`;
+                ? `<button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="leido" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.14); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); white-space: nowrap;" title="Marcar esta conversación como atendida/leída">✓ Marcar Leído</button>`
+                : `<button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="pendiente" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.14); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;" title="Marcar esta conversación como pendiente de responder">⏳ Marcar Pendiente</button>`;
 
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
-            const cardBorderColor = isPending ? '#ef4444' : 'rgba(255, 255, 255, 0.15)';
+            // Color del borde de la tarjeta: dorado si fijado, rojo si pendiente, sutil si leído
+            let cardBorderColor = 'rgba(255, 255, 255, 0.15)';
+            if (isPinned) {
+                cardBorderColor = '#f59e0b';
+            } else if (isPending) {
+                cardBorderColor = '#ef4444';
+            }
 
             return `
-                <div class="solicitud-card chat-card-item ${isPending ? 'has-unread-msg' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="border-left: 4px solid ${cardBorderColor}; cursor: pointer;">
+                <div class="solicitud-card chat-card-item ${isPending ? 'has-unread-msg' : ''} ${isPinned ? 'chat-card-pinned' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="border-left: 4px solid ${cardBorderColor}; cursor: pointer;">
                     <div class="solicitud-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div class="card-avatar" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; font-size: 1.2rem; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1);">
-                                ${isFromClient ? '👤' : '💬'}
+                            <div class="card-avatar" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; font-size: 1.15rem; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); position: relative;">
+                                ${isPinned ? '📌' : (isFromClient ? '👤' : '💬')}
                             </div>
                             <div>
-                                <h3 class="solicitud-client-name" style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">${clientDisplayName}</h3>
+                                <h3 class="solicitud-client-name" style="font-size: 0.98rem; font-weight: 700; color: #fff; margin: 0;">${clientDisplayName}</h3>
                                 <div class="solicitud-client-phone" style="font-size: 0.8rem; color: #cbd5e1; font-family: monospace;">📞 +${cleanPhone}</div>
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                             <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                                ${pinBadge}
                                 ${catBadge}
                                 ${statusBadge}
                             </div>
-                            <span style="font-size: 0.72rem; color: #94a3b8;">⏰ ${timeStr}</span>
+                            ${smartTime ? `<span style="font-size: 0.72rem; color: #94a3b8; font-weight: 500;">⏰ ${smartTime}</span>` : ''}
                         </div>
                     </div>
 
-                    <div class="solicitud-body" style="margin: 12px 0 14px 0; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 5px;">
-                            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Última interacción:</span>
-                            ${emisorBadge}
-                        </div>
-                        <div style="font-size: 0.84rem; color: #e2e8f0; line-height: 1.4; word-break: break-word;">
-                            ${formatWhatsAppText(previewText)}
-                        </div>
-                    </div>
+                    ${previewText ? `
+                    <div class="solicitud-preview-snippet" style="font-size: 0.83rem; color: #cbd5e1; margin: 8px 0 10px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                        <span style="opacity: 0.65; font-size: 0.78rem;">${isFromClient ? '👤' : '🤖'}</span>
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${formatWhatsAppText(previewText)}</span>
+                    </div>` : ''}
 
-                    <div class="solicitud-footer" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-                        <div style="display: flex; gap: 6px; align-items: center; width: 100%; flex-wrap: wrap;">
-                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Llamar directamente">
+                    <div class="solicitud-footer" style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
+                        <div style="display: flex; gap: 6px; align-items: center; width: 100%; justify-content: space-between;">
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                <button class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: ${isPinned ? 'rgba(245, 158, 11, 0.22)' : 'rgba(255, 255, 255, 0.06)'}; color: ${isPinned ? '#fbbf24' : '#94a3b8'}; border: 1px solid ${isPinned ? 'rgba(245, 158, 11, 0.45)' : 'rgba(255, 255, 255, 0.12)'};" title="${isPinned ? 'Desfijar de la parte superior' : 'Fijar conversación arriba'}">
+                                    ${isPinned ? '📌 Fijado' : '📌 Fijar'}
+                                </button>
+                                ${toggleReadBtnHtml}
+                            </div>
+                            <button class="btn-card-more-actions" data-phone="${cleanPhone}" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12);" title="Ver opciones">
+                                ⋮ Opciones ▼
+                            </button>
+                        </div>
+                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: none; padding-top: 8px; margin-top: 4px; border-top: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap; gap: 6px; width: 100%;">
+                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Llamar directamente">
                                 📞 Llamar
                             </a>
-                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Abrir en WhatsApp">
+                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Abrir en WhatsApp">
                                 📲 WhatsApp
                             </a>
-                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Silenciar respuestas automáticas del bot para este contacto">
+                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Silenciar respuestas automáticas del bot">
                                 🔇 Silenciar
                             </button>
-                            ${toggleReadBtnHtml}
-                        </div>
-                        <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
-                            <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" data-solid="${c.solicitudId || ''}" style="flex: 1; padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #1f232b; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); cursor: pointer;">
-                                💬 Abrir Chat &amp; Responder
-                            </button>
-                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 6px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); white-space: nowrap;" title="Archivar esta conversación">
+                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 5px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); white-space: nowrap;" title="Archivar conversación">
                                 📦 Archivar
                             </button>
-                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 6px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;" title="Eliminar conversación e historial definitivamente">
+                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 5px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;" title="Eliminar conversación e historial definitivamente">
                                 🗑️ Eliminar
                             </button>
                         </div>
@@ -2621,7 +2742,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Event listeners para las tarjetas de conversación
+        // Event listeners para las tarjetas de conversación (click para abrir chat)
         container.querySelectorAll('.chat-card-item').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('a') || e.target.closest('button')) return;
@@ -2636,6 +2757,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 openHistoryModal(phone, name);
+            });
+        });
+
+        // Botón interactivo de Chincheta (Fijar / Desfijar)
+        container.querySelectorAll('.btn-pin-chat-card').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                const isNowPinned = toggleChatPinned(phone);
+                showToast(isNowPinned ? '📌 Conversación fijada arriba' : 'Conversación desfijada');
+                syncUnifiedConversations();
+                renderInboxCards();
+            });
+        });
+
+        // Botón interactivo para alternar desplegable de más opciones
+        container.querySelectorAll('.btn-card-more-actions').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                const menu = document.getElementById(`dropdown-actions-${phone}`);
+                if (menu) {
+                    const isVisible = menu.style.display === 'flex';
+                    menu.style.display = isVisible ? 'none' : 'flex';
+                    btn.textContent = isVisible ? '⋮ Opciones ▼' : '⋮ Opciones ▲';
+                }
             });
         });
 
@@ -2722,24 +2869,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (err) {
                     alert('Error al eliminar conversación: ' + err.message);
                 }
-            });
-        });
-
-        container.querySelectorAll('.btn-open-chat-modal').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const phone = btn.getAttribute('data-phone');
-                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Cliente');
-                const solId = btn.getAttribute('data-solid');
-                
-                if (solId) {
-                    const sol = allSolicitudes.find(s => s.id === solId);
-                    if (sol) {
-                        openReplyModal(sol);
-                        return;
-                    }
-                }
-                openHistoryModal(phone, name);
             });
         });
     }

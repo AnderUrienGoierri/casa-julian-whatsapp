@@ -1461,6 +1461,45 @@ body.mode-recepcion .inbox-cards-grid {
     box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35), 0 4px 16px rgba(239, 68, 68, 0.15);
 }
 
+/* Tarjeta Fijada con Chincheta */
+.solicitud-card.chat-card-pinned {
+    background: rgba(30, 27, 20, 0.65);
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 4px 16px rgba(245, 158, 11, 0.08);
+}
+
+.solicitud-card.chat-card-pinned:hover {
+    border-color: rgba(245, 158, 11, 0.55);
+    background: rgba(40, 35, 25, 0.85);
+}
+
+/* Botón Chincheta */
+.btn-pin-chat-card {
+    transition: all 0.15s ease;
+}
+
+.btn-pin-chat-card:hover {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+/* Dropdown de opciones dentro del bloque de chat */
+.card-actions-dropdown-menu a,
+.card-actions-dropdown-menu button {
+    transition: all 0.15s ease;
+}
+
+.card-actions-dropdown-menu a:hover,
+.card-actions-dropdown-menu button:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.btn-delete-chat-card:hover {
+    background: rgba(239, 68, 68, 0.25) !important;
+    border-color: #ef4444 !important;
+}
+
 /* Tarjetas de Solicitud en el Buzón (Vista Compacta WhatsApp) */
 .whatsapp-inbox-card {
     padding: 14px 18px;
