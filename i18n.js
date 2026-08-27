@@ -1,7 +1,7 @@
 const translations = {
     "es": {
-        "welcomeImageUrl": "🔥🥩 *Casa Julián Tolosa* ",
-        "welcomeMessage": "🔥🥩 *Casa Julián Tolosa* ",
+        "welcomeImageUrl": "CASA JULIAN TOLOSA",
+        "welcomeMessage": "CASA JULIAN TOLOSA",
         "lang_es": "🇪🇸 Español",
         "lang_eu": "🇪🇺 Euskara",
         "lang_en": "🇬🇧 English",
