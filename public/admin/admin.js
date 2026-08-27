@@ -2740,6 +2740,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const status = getConversationStatus(c);
             const isPending = status === 'pendiente';
             const isPinned = isChatPinned(cleanPhone);
+            const isSelected = activeConversationPhone === cleanPhone;
 
             // Icono de doble check si es mensaje enviado por recepción
             const outgoingCheckHtml = !isFromClient 
@@ -2786,7 +2787,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
             return `
-                <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
+                <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''} ${isSelected ? 'is-selected' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
                     ${avatarHtml}
                     <div class="wa-chat-content">
                         <div class="wa-row-top">
@@ -2837,13 +2838,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Event listeners para las filas de conversación (click para abrir chat unificado)
+        // Event listeners para las filas de conversación (click para seleccionar en 2 columnas o abrir chat)
         container.querySelectorAll('.chat-card-item').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu')) return;
                 const phone = card.getAttribute('data-phone');
                 const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
-                openReplyModal(phone, name);
+                selectConversation(phone, name);
             });
         });
 
@@ -3165,8 +3166,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
-    // Variables de control de polling en tiempo real para el modal de chat
+    // Variables de control de polling en tiempo real para el modal y panel de chat
     let activeReplyChatPollInterval = null;
+    let activePaneChatPollInterval = null;
+    let activeConversationPhone = null;
     let currentChatPhone = null;
     let lastChatRenderedSig = '';
 
@@ -3175,15 +3178,22 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(activeReplyChatPollInterval);
             activeReplyChatPollInterval = null;
         }
+        if (activePaneChatPollInterval) {
+            clearInterval(activePaneChatPollInterval);
+            activePaneChatPollInterval = null;
+        }
         currentChatPhone = null;
         lastChatRenderedSig = '';
     }
 
-    // Helper: Obtener y renderizar historial de mensajes en tiempo real en el hilo del modal
+    // Helper: Obtener y renderizar historial de mensajes en tiempo real (tanto en modal como en panel de 2 columnas)
     async function fetchAndRenderChatThread(cleanPhoneStr, sol, forceRender = false) {
-        const threadContainer = document.getElementById('reply-chat-thread');
+        const containers = [
+            document.getElementById('reply-chat-thread'),
+            document.getElementById('pane-chat-thread')
+        ].filter(Boolean);
         const msgCountEl = document.getElementById('thread-msg-count');
-        if (!threadContainer || !cleanPhoneStr) return;
+        if (containers.length === 0 || !cleanPhoneStr) return;
 
         try {
             const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
@@ -3227,70 +3237,261 @@ document.addEventListener('DOMContentLoaded', () => {
                 msgCountEl.textContent = `${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}`;
             }
 
-            if (msgList.length === 0) {
-                threadContainer.innerHTML = `
-                    <div style="text-align: center; color: #8696a0; padding: 40px 20px; font-size: 0.88rem;">
-                        <div style="font-size: 2rem; margin-bottom: 8px;">💬</div>
-                        <strong style="color: #e9edef; display: block; margin-bottom: 4px;">Conversación iniciada</strong>
-                        <span>Escribe un mensaje de WhatsApp a continuación para chatear con el cliente.</span>
-                    </div>
-                `;
-                return;
-            }
-
-            const isNearBottom = (threadContainer.scrollHeight - threadContainer.scrollTop - threadContainer.clientHeight) < 180;
-
-            threadContainer.innerHTML = '';
-            msgList.forEach(m => {
-                const isClient = m.emisor === 'cliente';
-                const timeStr = m.fecha ? new Date(m.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }) : '';
-                const formattedBody = formatWhatsAppText(m.texto);
-                
-                const bubble = document.createElement('div');
-                bubble.style.cssText = `
-                    max-width: 80%;
-                    align-self: ${isClient ? 'flex-start' : 'flex-end'};
-                    background: ${isClient ? '#202c33' : '#005c4b'};
-                    color: #e9edef;
-                    padding: 9px 13px;
-                    border-radius: ${isClient ? '0 12px 12px 12px' : '12px 0 12px 12px'};
-                    font-size: 0.88rem;
-                    line-height: 1.45;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-                    word-break: break-word;
-                    border: 1px solid ${isClient ? 'rgba(255,255,255,0.06)' : 'rgba(37, 211, 102, 0.2)'};
-                    margin-bottom: 4px;
-                `;
-
-                let metaBadge = '';
-                if (m.tipo === 'interactive' || m.tipo === 'button' || m.tipo === 'list') {
-                    metaBadge = `<span style="background: rgba(139, 92, 246, 0.25); color: #c4b5fd; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">👆 Opción seleccionada</span>`;
+            containers.forEach(threadContainer => {
+                if (msgList.length === 0) {
+                    threadContainer.innerHTML = `
+                        <div style="text-align: center; color: #8696a0; padding: 40px 20px; font-size: 0.88rem;">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">💬</div>
+                            <strong style="color: #e9edef; display: block; margin-bottom: 4px;">Conversación iniciada</strong>
+                            <span>Escribe un mensaje de WhatsApp a continuación para chatear con el cliente.</span>
+                        </div>
+                    `;
+                    return;
                 }
 
-                bubble.innerHTML = `
-                    <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                        <span style="display: flex; align-items: center; gap: 5px;">
-                            ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(217, 119, 6, 0.7); vertical-align: middle; display: inline-block;"> Recepción Casa Julián'}
-                        </span>
-                        ${metaBadge}
-                    </div>
-                    <div>${formattedBody}</div>
-                    <div style="text-align: right; font-size: 0.68rem; color: #8696a0; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
-                        <span>${timeStr}</span>
-                        ${!isClient ? '<span style="color: #53bdeb; font-size: 0.75rem; font-weight: bold;">✓✓</span>' : ''}
-                    </div>
-                `;
-                threadContainer.appendChild(bubble);
-            });
+                const isNearBottom = (threadContainer.scrollHeight - threadContainer.scrollTop - threadContainer.clientHeight) < 180;
 
-            if (forceRender || isNearBottom) {
-                threadContainer.scrollTop = threadContainer.scrollHeight;
-                setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 60);
-                setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 200);
-            }
+                threadContainer.innerHTML = '';
+                msgList.forEach(m => {
+                    const isClient = m.emisor === 'cliente';
+                    const timeStr = m.fecha ? new Date(m.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }) : '';
+                    const formattedBody = formatWhatsAppText(m.texto);
+                    
+                    const bubble = document.createElement('div');
+                    bubble.style.cssText = `
+                        max-width: 78%;
+                        align-self: ${isClient ? 'flex-start' : 'flex-end'};
+                        background: ${isClient ? '#202c33' : '#005c4b'};
+                        color: #e9edef;
+                        padding: 9px 13px;
+                        border-radius: ${isClient ? '0 12px 12px 12px' : '12px 0 12px 12px'};
+                        font-size: 0.88rem;
+                        line-height: 1.45;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+                        word-break: break-word;
+                        border: 1px solid ${isClient ? 'rgba(255,255,255,0.06)' : 'rgba(37, 211, 102, 0.2)'};
+                        margin-bottom: 4px;
+                    `;
+
+                    let metaBadge = '';
+                    if (m.tipo === 'interactive' || m.tipo === 'button' || m.tipo === 'list') {
+                        metaBadge = `<span style="background: rgba(139, 92, 246, 0.25); color: #c4b5fd; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">👆 Opción seleccionada</span>`;
+                    }
+
+                    bubble.innerHTML = `
+                        <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <span style="display: flex; align-items: center; gap: 5px;">
+                                ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(217, 119, 6, 0.7); vertical-align: middle; display: inline-block;"> Recepción Casa Julián'}
+                            </span>
+                            ${metaBadge}
+                        </div>
+                        <div>${formattedBody}</div>
+                        <div style="text-align: right; font-size: 0.68rem; color: #8696a0; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                            <span>${timeStr}</span>
+                            ${!isClient ? '<span style="color: #53bdeb; font-size: 0.75rem; font-weight: bold;">✓✓</span>' : ''}
+                        </div>
+                    `;
+                    threadContainer.appendChild(bubble);
+                });
+
+                if (forceRender || isNearBottom) {
+                    threadContainer.scrollTop = threadContainer.scrollHeight;
+                    setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 60);
+                    setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 200);
+                }
+            });
         } catch (e) {
             console.warn("⚠️ Error obteniendo historial del chat:", e);
         }
+    }
+
+    // Seleccionar Conversación en Interfaz 2 Columnas Estilo WhatsApp Web
+    async function selectConversation(solOrPhone, name = '', prefilledText = '') {
+        let sol = null;
+        let cleanPhoneStr = '';
+
+        if (solOrPhone && typeof solOrPhone === 'object' && solOrPhone.id) {
+            sol = solOrPhone;
+            cleanPhoneStr = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
+        } else {
+            cleanPhoneStr = (solOrPhone || '').toString().replace(/\D/g, '');
+            sol = allSolicitudes.find(s => (s.telefonoCliente || s.telefonoReserva || '').replace(/\D/g, '') === cleanPhoneStr);
+            if (!sol) {
+                const conv = allUnifiedConversations.find(c => c.telefono === cleanPhoneStr);
+                const contactName = name || (conv ? conv.nombreCliente : getClientDisplayName('', cleanPhoneStr));
+                sol = {
+                    id: `chat_${cleanPhoneStr}`,
+                    telefonoCliente: cleanPhoneStr,
+                    nombreCliente: contactName,
+                    categoria: conv ? conv.categoria : 'cliente',
+                    categoriaLabel: '💬 Chat WhatsApp',
+                    etiquetas: conv ? conv.etiquetas : [],
+                    datosDetallados: null,
+                    enAtencionHumana: false,
+                    estado: 'PENDIENTE',
+                    mensajes: []
+                };
+            }
+        }
+
+        activeConversationPhone = cleanPhoneStr;
+        activeReplySolicitud = sol;
+
+        // Limpiar estado de no leído para esta conversación
+        if (sol.id) unreadSolicitudIds.delete(sol.id);
+        if (cleanPhoneStr) setManualChatStatus(cleanPhoneStr, 'leido');
+        if (unreadSolicitudIds.size === 0) {
+            stopTitleFlash();
+        }
+
+        // Resaltar elemento seleccionado en la columna izquierda
+        const container = document.getElementById('inbox-cards-container');
+        if (container) {
+            container.querySelectorAll('.whatsapp-chat-row').forEach(row => {
+                const rowPhone = row.getAttribute('data-phone');
+                if (rowPhone === cleanPhoneStr) {
+                    row.classList.add('is-selected');
+                    row.classList.remove('is-unread');
+                    const unreadBadge = row.querySelector('.wa-unread-badge');
+                    if (unreadBadge) unreadBadge.remove();
+                } else {
+                    row.classList.remove('is-selected');
+                }
+            });
+        }
+
+        const emptyState = document.getElementById('wa-empty-state');
+        const activePanel = document.getElementById('wa-active-chat-panel');
+        const webContainer = document.querySelector('.wa-web-container');
+
+        if (emptyState) emptyState.style.display = 'none';
+        if (activePanel) activePanel.style.display = 'flex';
+        if (webContainer) webContainer.classList.add('mobile-chat-open');
+
+        const clientDisplayName = getClientDisplayName(sol.nombreCliente, cleanPhoneStr);
+
+        // Header del panel derecho
+        const nameEl = document.getElementById('pane-chat-client-name');
+        const phoneEl = document.getElementById('pane-chat-phone');
+        const avatarEl = document.getElementById('pane-chat-avatar');
+        const btnCall = document.getElementById('pane-btn-call-phone');
+        const btnWa = document.getElementById('pane-btn-open-wa');
+        const catBadgeEl = document.getElementById('pane-chat-category-badge');
+        const handoverStatusEl = document.getElementById('pane-chat-handover-status');
+        const btnToggleHuman = document.getElementById('pane-btn-toggle-human');
+        const btnConclude = document.getElementById('pane-btn-conclude');
+        const paneSolIdInput = document.getElementById('pane-reply-solicitud-id');
+
+        if (nameEl) nameEl.textContent = clientDisplayName;
+        if (phoneEl) phoneEl.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
+        if (btnCall) btnCall.href = cleanPhoneStr ? `tel:+${cleanPhoneStr}` : '#';
+        if (btnWa) btnWa.href = cleanPhoneStr ? `https://wa.me/${cleanPhoneStr}` : '#';
+        if (paneSolIdInput) paneSolIdInput.value = sol.id || `chat_${cleanPhoneStr}`;
+
+        // Avatar dinámico
+        if (avatarEl) {
+            const lower = clientDisplayName.toLowerCase();
+            if (lower.includes('entretiempo') || lower.includes('ricardo')) {
+                avatarEl.textContent = 'E';
+                avatarEl.style.background = '#0284c7';
+                avatarEl.style.color = '#fff';
+            } else if (lower.includes('xabi') || lower.includes('gorrotxategi')) {
+                avatarEl.textContent = 'XG';
+                avatarEl.style.background = '#1e3a8a';
+                avatarEl.style.color = '#93c5fd';
+            } else if (cleanPhoneStr === '41795958760') {
+                avatarEl.textContent = '+41';
+                avatarEl.style.background = '#065f46';
+                avatarEl.style.color = '#6ee7b7';
+            } else if (cleanPhoneStr === '923218428609') {
+                avatarEl.textContent = 'SA';
+                avatarEl.style.background = '#701a75';
+                avatarEl.style.color = '#f5d0fe';
+            } else if (clientDisplayName && !clientDisplayName.startsWith('+')) {
+                const words = clientDisplayName.trim().split(/\s+/);
+                const initials = words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].slice(0, 2).toUpperCase();
+                avatarEl.textContent = initials;
+                avatarEl.style.background = '#2a3942';
+                avatarEl.style.color = '#e9edef';
+            } else {
+                avatarEl.textContent = '👤';
+                avatarEl.style.background = '#202c33';
+                avatarEl.style.color = '#8696a0';
+            }
+        }
+
+        // Categoría Badge
+        if (catBadgeEl) {
+            catBadgeEl.textContent = sol.categoriaLabel || sol.tipoAccion || '📌 Conversación';
+            if (sol.categoria === 'reservas_menu_tradicion') {
+                catBadgeEl.textContent = '🎁 Reservas Menú Tradición';
+                catBadgeEl.style.color = '#34d399';
+                catBadgeEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            } else if (sol.categoria === 'cancelacion') {
+                catBadgeEl.textContent = '❌ Cancelación';
+                catBadgeEl.style.color = '#f87171';
+                catBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            } else {
+                catBadgeEl.textContent = '💬 WhatsApp';
+                catBadgeEl.style.color = '#38bdf8';
+                catBadgeEl.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+            }
+        }
+
+        // Modo Humano
+        const isHandoverActive = sol.enAtencionHumana === true && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
+        if (handoverStatusEl) {
+            handoverStatusEl.textContent = isHandoverActive ? '🟢 Modo Humano (Bot Pausado)' : '⚪ Bot Activo';
+            handoverStatusEl.style.background = isHandoverActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.2)';
+            handoverStatusEl.style.color = isHandoverActive ? '#34d399' : '#94a3b8';
+            handoverStatusEl.style.borderColor = isHandoverActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(100, 116, 139, 0.3)';
+        }
+        if (btnToggleHuman && btnConclude) {
+            if (isHandoverActive) {
+                btnToggleHuman.style.display = 'none';
+                btnConclude.style.display = 'inline-flex';
+            } else {
+                btnToggleHuman.style.display = 'inline-flex';
+                btnConclude.style.display = 'none';
+            }
+        }
+
+        // Sidebar Resumen
+        const summaryEl = document.getElementById('pane-solicitud-summary');
+        if (summaryEl) {
+            if (sol.datosDetallados) {
+                summaryEl.innerHTML = renderSummaryTable(sol.datosDetallados);
+            } else {
+                summaryEl.innerHTML = `
+                    <div style="color: #94a3b8; font-size: 0.84rem; padding: 18px 12px; text-align: center;">
+                        <div style="font-size: 1.8rem; margin-bottom: 8px;">💬</div>
+                        <strong style="color: #e2e8f0; display: block; margin-bottom: 4px;">Conversación WhatsApp</strong>
+                        <span style="font-size: 0.78rem; color: #8696a0; line-height: 1.4; display: block;">Los resúmenes estructurados (fecha, comensales, peticiones) se generarán automáticamente en nuevas reservas e interacciones con el chatbot.</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Textarea prefilled text
+        const textArea = document.getElementById('pane-reply-message-text');
+        if (textArea) {
+            textArea.value = prefilledText || '';
+        }
+
+        // Cargar historial en el hilo de mensajes
+        stopChatPolling();
+        currentChatPhone = cleanPhoneStr;
+        lastChatRenderedSig = '';
+        await fetchAndRenderChatThread(cleanPhoneStr, sol, true);
+
+        // Polling en tiempo real para el panel de mensajes cada 1.5s
+        activePaneChatPollInterval = setInterval(() => {
+            if (activeConversationPhone === cleanPhoneStr) {
+                fetchAndRenderChatThread(cleanPhoneStr, activeReplySolicitud, false);
+            } else {
+                stopChatPolling();
+            }
+        }, 1500);
     }
 
     // Abrir Modal de Chat Unificado e Interactivo con Resumen de Solicitud
@@ -3980,6 +4181,233 @@ document.addEventListener('DOMContentLoaded', () => {
                 replyErrorMsg.style.display = 'block';
             } finally {
                 if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // CONTROLADORES DE EVENTOS PARA EL PANEL DE 2 COLUMNAS (WHATSAPP WEB)
+    // -------------------------------------------------------------
+    
+    // Envío desde el formulario del panel de la columna derecha
+    const paneReplyForm = document.getElementById('pane-reply-form');
+    if (paneReplyForm) {
+        paneReplyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const paneSolIdInput = document.getElementById('pane-reply-solicitud-id');
+            const paneMessageInput = document.getElementById('pane-reply-message-text');
+            const paneErrorMsg = document.getElementById('pane-reply-error-msg');
+            const solId = paneSolIdInput ? paneSolIdInput.value : '';
+            const text = paneMessageInput ? paneMessageInput.value.trim() : '';
+
+            if (!solId || !text) {
+                if (paneErrorMsg) {
+                    paneErrorMsg.textContent = "Por favor escribe un mensaje de respuesta.";
+                    paneErrorMsg.style.display = 'block';
+                }
+                return;
+            }
+
+            const sendBtn = document.getElementById('pane-send-reply-btn');
+            if (sendBtn) sendBtn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/admin/solicitudes/${solId}/responder`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': adminToken
+                    },
+                    body: JSON.stringify({
+                        respuestaText: text,
+                        nuevoEstado: 'EN_GESTION'
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (paneMessageInput) paneMessageInput.value = '';
+                    if (paneErrorMsg) paneErrorMsg.style.display = 'none';
+                    if (activeReplySolicitud) {
+                        const cleanPhoneStr = (activeReplySolicitud.telefonoCliente || activeReplySolicitud.telefonoReserva || '').toString().replace(/\D/g, '');
+                        await fetchAndRenderChatThread(cleanPhoneStr, activeReplySolicitud, true);
+                    }
+                    await fetchSolicitudes();
+                    await fetchWhatsAppChats();
+                    syncUnifiedConversations();
+                } else {
+                    if (paneErrorMsg) {
+                        paneErrorMsg.textContent = data.error || "Error al enviar WhatsApp al cliente.";
+                        paneErrorMsg.style.display = 'block';
+                    }
+                }
+            } catch (err) {
+                if (paneErrorMsg) {
+                    paneErrorMsg.textContent = "Error de conexión: " + err.message;
+                    paneErrorMsg.style.display = 'block';
+                }
+            } finally {
+                if (sendBtn) sendBtn.disabled = false;
+            }
+        });
+    }
+
+    // Botón de Volver a la Lista en Móviles (< 900px)
+    const waBackToListBtn = document.getElementById('wa-back-to-list-btn');
+    if (waBackToListBtn) {
+        waBackToListBtn.addEventListener('click', () => {
+            const webContainer = document.querySelector('.wa-web-container');
+            const emptyState = document.getElementById('wa-empty-state');
+            const activePanel = document.getElementById('wa-active-chat-panel');
+            if (webContainer) webContainer.classList.remove('mobile-chat-open');
+            if (activePanel) activePanel.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'flex';
+            activeConversationPhone = null;
+            stopChatPolling();
+            const container = document.getElementById('inbox-cards-container');
+            if (container) {
+                container.querySelectorAll('.whatsapp-chat-row').forEach(r => r.classList.remove('is-selected'));
+            }
+        });
+    }
+
+    // Toggle y Cierre del Resumen de Solicitud en el Panel Derecho
+    const paneToggleSummaryBtn = document.getElementById('pane-toggle-summary-btn');
+    const paneCloseSidebarBtn = document.getElementById('pane-close-sidebar-btn');
+    const paneRequestSidebar = document.getElementById('pane-request-sidebar');
+
+    if (paneToggleSummaryBtn) {
+        paneToggleSummaryBtn.addEventListener('click', () => {
+            if (!paneRequestSidebar) return;
+            const isVisible = paneRequestSidebar.style.display !== 'none';
+            paneRequestSidebar.style.display = isVisible ? 'none' : 'flex';
+            paneToggleSummaryBtn.classList.toggle('active', !isVisible);
+        });
+    }
+    if (paneCloseSidebarBtn) {
+        paneCloseSidebarBtn.addEventListener('click', () => {
+            if (paneRequestSidebar) paneRequestSidebar.style.display = 'none';
+            if (paneToggleSummaryBtn) paneToggleSummaryBtn.classList.remove('active');
+        });
+    }
+
+    // Plantillas de Respuestas Rápidas para el Panel Derecho
+    document.querySelectorAll('.pane-template-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const templateType = btn.getAttribute('data-template');
+            const clientName = activeReplySolicitud ? (activeReplySolicitud.nombreCliente || 'estimado/a cliente') : 'estimado/a cliente';
+            let templateText = '';
+
+            switch (templateType) {
+                case 'confirm':
+                    templateText = `¡Hola ${clientName}! 👋 Te confirmamos con mucho gusto tu reserva en el Asador Casa Julián de Tolosa. ¡Os esperamos!`;
+                    break;
+                case 'alt_time':
+                    templateText = `Hola ${clientName}, para la hora solicitada tenemos el comedor completo. ¿Te encajaría venir a las [HORA ALTERNATIVA]? Quedamos atentos.`;
+                    break;
+                case 'reject':
+                    templateText = `Hola ${clientName}, lamentablemente para esa fecha/turno tenemos el aforo completamente completo en Casa Julián. Disculpa las molestias.`;
+                    break;
+            }
+
+            const paneMsgInput = document.getElementById('pane-reply-message-text');
+            if (paneMsgInput) {
+                paneMsgInput.value = templateText;
+                paneMsgInput.focus();
+            }
+        });
+    });
+
+    // Modo Humano en Panel Derecho
+    const paneBtnToggleHuman = document.getElementById('pane-btn-toggle-human');
+    if (paneBtnToggleHuman) {
+        paneBtnToggleHuman.addEventListener('click', async () => {
+            if (!activeReplySolicitud) return;
+            const solId = activeReplySolicitud.id;
+            paneBtnToggleHuman.disabled = true;
+            try {
+                const res = await fetch(`/api/admin/solicitudes/${solId}/atencion-humana`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': adminToken
+                    },
+                    body: JSON.stringify({ activar: true })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    activeReplySolicitud.enAtencionHumana = true;
+                    const handoverStatusEl = document.getElementById('pane-chat-handover-status');
+                    if (handoverStatusEl) {
+                        handoverStatusEl.textContent = '🟢 Modo Humano (Bot Pausado)';
+                        handoverStatusEl.style.background = 'rgba(16, 185, 129, 0.2)';
+                        handoverStatusEl.style.color = '#34d399';
+                        handoverStatusEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                    }
+                    const btnToggle = document.getElementById('pane-btn-toggle-human');
+                    const btnConc = document.getElementById('pane-btn-conclude');
+                    if (btnToggle) btnToggle.style.display = 'none';
+                    if (btnConc) btnConc.style.display = 'inline-flex';
+
+                    await fetchSolicitudes();
+                    syncUnifiedConversations();
+                }
+            } catch (err) {
+                console.error("Error toggling human mode:", err);
+            } finally {
+                paneBtnToggleHuman.disabled = false;
+            }
+        });
+    }
+
+    const paneBtnConclude = document.getElementById('pane-btn-conclude');
+    if (paneBtnConclude) {
+        paneBtnConclude.addEventListener('click', async () => {
+            if (!activeReplySolicitud) return;
+            const solId = activeReplySolicitud.id;
+            const paneMsgInput = document.getElementById('pane-reply-message-text');
+            const text = paneMsgInput ? paneMsgInput.value.trim() : '';
+
+            if (confirm("¿Deseas concluir esta gestión y reactivar el bot automático para este cliente?")) {
+                paneBtnConclude.disabled = true;
+                try {
+                    const res = await fetch(`/api/admin/solicitudes/${solId}/concluir`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-token': adminToken
+                        },
+                        body: JSON.stringify({
+                            estadoFinal: 'CONFIRMADA',
+                            mensajeCierre: text || null
+                        })
+                    });
+
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast(data.message || "✅ Gestión concluida y bot reactivado.");
+                        activeReplySolicitud.enAtencionHumana = false;
+                        const handoverStatusEl = document.getElementById('pane-chat-handover-status');
+                        if (handoverStatusEl) {
+                            handoverStatusEl.textContent = '⚪ Bot Activo';
+                            handoverStatusEl.style.background = 'rgba(100, 116, 139, 0.2)';
+                            handoverStatusEl.style.color = '#94a3b8';
+                            handoverStatusEl.style.borderColor = 'rgba(100, 116, 139, 0.3)';
+                        }
+                        const btnToggle = document.getElementById('pane-btn-toggle-human');
+                        const btnConc = document.getElementById('pane-btn-conclude');
+                        if (btnToggle) btnToggle.style.display = 'inline-flex';
+                        if (btnConc) btnConc.style.display = 'none';
+
+                        await fetchSolicitudes();
+                        await fetchWhatsAppChats();
+                        syncUnifiedConversations();
+                    }
+                } catch (err) {
+                    console.error("Error concluding management:", err);
+                } finally {
+                    paneBtnConclude.disabled = false;
+                }
             }
         });
     }

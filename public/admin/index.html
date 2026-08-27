@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V361-UNIFIED-CHAT-MODAL">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V362-WHATSAPP-WEB-2COLUMNS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -303,57 +303,149 @@
             <!-- Panel Izquierdo: Editor de Contenidos -->
             <section class="editor-section">
                 
-                <!-- Pestaña 0: Buzón de Recepción y Chats WhatsApp (Unificado) -->
-                <div id="tab-inbox" class="tab-content active">
+                <!-- Pestaña 0: Buzón de Recepción y Chats WhatsApp (Layout 2 Columnas Estilo WhatsApp Web) -->
+                <div id="tab-inbox" class="tab-content active wa-web-tab">
+                    <div class="wa-web-container">
+                        <!-- COLUMNA IZQUIERDA: LISTA DE CHATS -->
+                        <div class="wa-left-pane" id="wa-left-pane">
+                            <!-- Cabecera y Barra de Filtros Nativa WhatsApp Business -->
+                            <div class="whatsapp-business-header-container">
+                                <!-- Título Grande Chats -->
+                                <div class="wa-header-top-row">
+                                    <h2 class="wa-screen-title">Chats</h2>
+                                    <span id="inbox-total-summary" class="wa-screen-subtitle">0 conversaciones</span>
+                                </div>
 
-                    <!-- Cabecera y Barra de Filtros Nativa WhatsApp Business -->
-                    <div class="whatsapp-business-header-container">
-                        <!-- Título Grande Chats -->
-                        <div class="wa-header-top-row">
-                            <h2 class="wa-screen-title">Chats</h2>
-                            <span id="inbox-total-summary" class="wa-screen-subtitle">0 conversaciones</span>
-                        </div>
+                                <!-- Buscador Nativo WhatsApp -->
+                                <div class="wa-search-container">
+                                    <span class="wa-search-icon">🔍</span>
+                                    <input type="text" id="search-inbox-input" class="wa-search-input" placeholder="Buscar un chat o iniciar uno nuevo...">
+                                </div>
 
-                        <!-- Buscador Nativo WhatsApp -->
-                        <div class="wa-search-container">
-                            <span class="wa-search-icon">🔍</span>
-                            <input type="text" id="search-inbox-input" class="wa-search-input" placeholder="Buscar">
-                        </div>
+                                <!-- Píldoras Horizontales de Filtro estilo WhatsApp (2 Filas) -->
+                                <div class="wa-filter-rows-container">
+                                    <!-- Fila 1: Contactos y Estado -->
+                                    <div class="wa-filter-pills-row">
+                                        <button class="filter-chip wa-pill active" data-inbox-status="all" data-inbox-cat="all" data-inbox-topic="all">Todos</button>
+                                        <button class="filter-chip wa-pill" data-inbox-status="pendiente">No leídos <span id="count-status-pend">0</span></button>
+                                        <button class="filter-chip wa-pill" data-inbox-cat="proveedor">Proveedores (<span id="count-cat-prov">0</span>)</button>
+                                        <button class="filter-chip wa-pill" data-inbox-cat="hoteles">Hoteles (<span id="count-cat-hoteles">0</span>)</button>
+                                        <button class="filter-chip wa-pill" data-inbox-cat="empleado">Empleados (<span id="count-cat-empleados">0</span>)</button>
+                                        <button class="filter-chip wa-pill" data-inbox-cat="cliente">Clientes (<span id="count-cat-cli">0</span>)</button>
+                                        <button class="filter-chip wa-pill" data-inbox-cat="otro">Otros (<span id="count-cat-otros">0</span>)</button>
+                                    </div>
 
-                        <!-- Píldoras Horizontales de Filtro estilo WhatsApp (2 Filas) -->
-                        <div class="wa-filter-rows-container">
-                            <!-- Fila 1: Contactos y Estado -->
-                            <div class="wa-filter-pills-row">
-                                <button class="filter-chip wa-pill active" data-inbox-status="all" data-inbox-cat="all" data-inbox-topic="all">Todos</button>
-                                <button class="filter-chip wa-pill" data-inbox-status="pendiente">No leídos <span id="count-status-pend">0</span></button>
-                                <button class="filter-chip wa-pill" data-inbox-cat="proveedor">Proveedores (<span id="count-cat-prov">0</span>)</button>
-                                <button class="filter-chip wa-pill" data-inbox-cat="hoteles">Hoteles (<span id="count-cat-hoteles">0</span>)</button>
-                                <button class="filter-chip wa-pill" data-inbox-cat="empleado">Empleados (<span id="count-cat-empleados">0</span>)</button>
-                                <button class="filter-chip wa-pill" data-inbox-cat="cliente">Clientes (<span id="count-cat-cli">0</span>)</button>
-                                <button class="filter-chip wa-pill" data-inbox-cat="otro">Otros (<span id="count-cat-otros">0</span>)</button>
+                                    <!-- Fila 2: Tipos de Solicitud y Temática -->
+                                    <div class="wa-filter-pills-row wa-filter-row-secondary">
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="menu_tradicion">Menú tradición (<span id="count-topic-menu">0</span>)</button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="modificacion">Modificaciones (<span id="count-topic-mod">0</span>)</button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="cancelacion">Cancelaciones (<span id="count-topic-cancel">0</span>)</button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="otras_cuestiones">Otras cuestiones (<span id="count-topic-otras">0</span>)</button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="faq">Preguntas frecuentes (<span id="count-topic-faq">0</span>)</button>
+                                    </div>
+                                </div>
                             </div>
 
-                            <!-- Fila 2: Tipos de Solicitud y Temática -->
-                            <div class="wa-filter-pills-row wa-filter-row-secondary">
-                                <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="menu_tradicion">Menú tradición (<span id="count-topic-menu">0</span>)</button>
-                                <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="modificacion">Modificaciones (<span id="count-topic-mod">0</span>)</button>
-                                <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="cancelacion">Cancelaciones (<span id="count-topic-cancel">0</span>)</button>
-                                <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="otras_cuestiones">Otras cuestiones (<span id="count-topic-otras">0</span>)</button>
-                                <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="faq">Preguntas frecuentes (<span id="count-topic-faq">0</span>)</button>
+                            <!-- Fila de Chats Archivados -->
+                            <div class="wa-archived-bar" id="btn-toggle-archived" style="display: flex;">
+                                <span class="wa-archived-icon">📁</span>
+                                <span class="wa-archived-label">Archivados</span>
+                                <span class="wa-archived-count" id="archived-count-badge">0</span>
+                            </div>
+
+                            <!-- Lista de Conversaciones de WhatsApp Business -->
+                            <div id="inbox-cards-container" class="whatsapp-chats-list">
+                                <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando conversaciones de WhatsApp...</div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Fila de Chats Archivados -->
-                    <div class="wa-archived-bar" id="btn-toggle-archived" style="display: flex;">
-                        <span class="wa-archived-icon">📁</span>
-                        <span class="wa-archived-label">Archivados</span>
-                        <span class="wa-archived-count" id="archived-count-badge">2</span>
-                    </div>
+                        <!-- COLUMNA DERECHA: CONVERSACIÓN ACTIVA Y CHAT DIRECTO -->
+                        <div class="wa-right-pane" id="wa-right-pane">
+                            <!-- Estado Vacío cuando no hay chat seleccionado -->
+                            <div id="wa-empty-state" class="wa-empty-conversation-state">
+                                <div class="wa-empty-icon-wrap">
+                                    <img src="/admin/casa_julian_logo_CJ.jpeg" alt="Casa Julián Tolosa" class="wa-empty-logo">
+                                </div>
+                                <h3 class="wa-empty-title">Asador Casa Julián Tolosa</h3>
+                                <p class="wa-empty-subtitle">Selecciona un chat en la lista de la izquierda para responder en tiempo real, confirmar reservas y atender solicitudes.</p>
+                                <div class="wa-empty-encryption-notice">
+                                    <span>🔒 Mensajes sincronizados 24/7 con Meta WhatsApp Cloud API</span>
+                                </div>
+                            </div>
 
-                    <!-- Lista de Conversaciones de WhatsApp Business -->
-                    <div id="inbox-cards-container" class="whatsapp-chats-list">
-                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando conversaciones de WhatsApp...</div>
+                            <!-- Panel de Conversación Activa (Se activa al pulsar un chat) -->
+                            <div id="wa-active-chat-panel" class="wa-active-chat-panel" style="display: none;">
+                                <!-- Header de la conversación activa -->
+                                <div class="wa-chat-header">
+                                    <div class="wa-chat-header-left">
+                                        <button type="button" id="wa-back-to-list-btn" class="wa-back-btn" title="Volver a la lista de chats">←</button>
+                                        <div class="whatsapp-avatar" id="pane-chat-avatar">👤</div>
+                                        <div class="wa-chat-header-info">
+                                            <div class="wa-chat-header-name-row">
+                                                <h3 id="pane-chat-client-name" class="wa-header-contact-name">Cliente</h3>
+                                                <span id="pane-chat-category-badge" class="badge">📌 Conversación</span>
+                                                <span id="pane-chat-handover-status" class="status-pill-small">⚪ Bot Activo</span>
+                                            </div>
+                                            <div class="wa-chat-header-sub-row">
+                                                <span id="pane-chat-phone" class="wa-header-contact-phone">📞 WhatsApp: +34...</span>
+                                                <a id="pane-btn-call-phone" href="#" target="_blank" class="badge-call" title="Iniciar llamada tradicional">📞 Llamar</a>
+                                                <a id="pane-btn-open-wa" href="#" target="_blank" class="badge-wa" title="Abrir en WhatsApp">📲 WhatsApp</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="wa-chat-header-actions">
+                                        <button type="button" id="pane-toggle-summary-btn" class="wa-header-action-btn btn-summary" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
+                                        <button type="button" id="pane-btn-toggle-human" class="wa-header-action-btn btn-human-mode" title="Activar Atención Humana">👤 Modo Humano</button>
+                                        <button type="button" id="pane-btn-conclude" class="wa-header-action-btn btn-conclude-mode" style="display: none;" title="Concluir Gestión y Reactivar Bot">✅ Concluir</button>
+                                    </div>
+                                </div>
+
+                                <!-- Cuerpo de la conversación (Hilo de mensajes + Sidebar de Resumen deslizable) -->
+                                <div class="wa-chat-body-wrapper">
+                                    <!-- Drawer lateral para el Resumen de Solicitud (Colapsable) -->
+                                    <div id="pane-request-sidebar" class="pane-request-sidebar" style="display: none;">
+                                        <div class="pane-sidebar-header">
+                                            <span>📋 Resumen de Solicitud</span>
+                                            <button type="button" id="pane-close-sidebar-btn" class="btn-close-sidebar-x" title="Cerrar Resumen">✕</button>
+                                        </div>
+                                        <div class="pane-sidebar-content">
+                                            <div id="pane-solicitud-summary"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Área central con fondo de WhatsApp y mensajes -->
+                                    <div class="wa-chat-messages-area">
+                                        <div id="pane-chat-thread" class="whatsapp-chat-viewport">
+                                            <!-- Burbujas insertadas dinámicamente -->
+                                        </div>
+
+                                        <!-- Barra de Respuestas Rápidas -->
+                                        <div class="whatsapp-templates-bar">
+                                            <span class="templates-title">⚡ Respuestas Rápidas:</span>
+                                            <div class="template-chips-container">
+                                                <button type="button" class="template-chip pane-template-btn" data-template="confirm">🟢 Confirmar Reserva</button>
+                                                <button type="button" class="template-chip pane-template-btn" data-template="alt_time">🕐 Proponer Horario</button>
+                                                <button type="button" class="template-chip pane-template-btn" data-template="reject">🚫 Sin Disponibilidad</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Formulario de Redacción y Envío -->
+                                        <form id="pane-reply-form" class="whatsapp-input-form">
+                                            <input type="hidden" id="pane-reply-solicitud-id" value="">
+                                            <div class="whatsapp-input-row">
+                                                <div class="whatsapp-textarea-wrapper">
+                                                    <textarea id="pane-reply-message-text" rows="1" placeholder="Escribe un mensaje de WhatsApp que se enviará al cliente..." required></textarea>
+                                                </div>
+                                                <button type="submit" id="pane-send-reply-btn" class="btn-send-whatsapp-icon" title="Enviar WhatsApp">
+                                                    <img src="/admin/icono_enviar_whatsapp.png" alt="Enviar WhatsApp" class="send-icon-img">
+                                                </button>
+                                            </div>
+                                            <div id="pane-reply-error-msg" class="error-msg" style="display: none; margin-top: 4px;"></div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -808,6 +900,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V361-UNIFIED-CHAT-MODAL"></script>
+    <script src="/admin/admin.js?v=20260827-V362-WHATSAPP-WEB-2COLUMNS"></script>
 </body>
 </html>
