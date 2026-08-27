@@ -203,7 +203,7 @@ const translations = {
         "welcomeMessage": "Ongi etorri Casa Juliánera! Plazerra izango da zuri laguntzea. Zein hizkuntzatan jarraitu nahi duzu?",
         "menuButtonText": "Aukerak Ikusi",
         "selectLocationTitle": "📍 *Jatetxea aukeratu*",
-        "selectLocationBody": "Gure zein jatetxetan zaude interesatuta?",
+        "selectLocationBody": "Zein jatetxetan zaude interesatuta?",
         "locPaisVasco": "Tolosa (Euskadi)",
         "locMadrid": "Madril (Madril K.A.)",
         "madridMsg": "Euskal Herriko jatetxearekin ari zara harremanetan. Madrilgo jatetxeekin harremanetan jartzeko:\n\n*Cava Baja:* +34 925 94 28 94 (Whatsapp)\n*Calle Ibiza:* +34 925 94 28 91 (Whatsapp)",
