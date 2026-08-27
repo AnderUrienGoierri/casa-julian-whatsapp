@@ -2051,20 +2051,23 @@ body.mode-recepcion .inbox-cards-grid {
 /* Encabezado del Chat en la Columna Derecha */
 .wa-chat-header {
     background: #202c33;
-    padding: 10px 18px;
+    padding: 8px 16px;
     border-bottom: 1px solid rgba(134, 150, 160, 0.15);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-shrink: 0;
     z-index: 10;
+    gap: 8px;
+    min-height: 52px;
 }
 
 .wa-chat-header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     min-width: 0;
+    flex: 1;
 }
 
 .wa-back-btn {
@@ -2072,9 +2075,10 @@ body.mode-recepcion .inbox-cards-grid {
     background: transparent;
     border: none;
     color: #8696a0;
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     cursor: pointer;
-    padding: 4px 8px 4px 0;
+    padding: 4px 6px 4px 0;
+    line-height: 1;
 }
 
 .wa-back-btn:hover {
@@ -2084,6 +2088,7 @@ body.mode-recepcion .inbox-cards-grid {
 .wa-chat-header-info {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 2px;
     min-width: 0;
 }
@@ -2092,7 +2097,8 @@ body.mode-recepcion .inbox-cards-grid {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    min-width: 0;
 }
 
 .wa-header-contact-name {
@@ -2103,19 +2109,6 @@ body.mode-recepcion .inbox-cards-grid {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.wa-chat-header-sub-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.wa-header-contact-phone {
-    font-size: 0.8rem;
-    color: #8696a0;
-    font-family: monospace;
 }
 
 .wa-chat-header-actions {
@@ -2319,7 +2312,7 @@ body.mode-recepcion .inbox-cards-grid {
     color: #e9edef;
     font-size: 0.92rem;
     font-family: inherit;
-    resize: none;
+    resize: none !important;
     padding: 8px 0;
     max-height: 100px;
     line-height: 1.4;
@@ -2359,18 +2352,31 @@ body.mode-recepcion .inbox-cards-grid {
    RESPONSIVE: MÓVIL Y TABLET (< 900px)
    ========================================================================= */
 @media (max-width: 900px) {
+    .main-layout:has(#tab-inbox.active),
+    .main-layout.is-inbox-active {
+        height: calc(100dvh - 52px) !important;
+        min-height: calc(100dvh - 52px) !important;
+    }
+
+    .wa-web-tab {
+        height: 100% !important;
+    }
+
     .wa-web-container {
         grid-template-columns: 1fr;
-        height: calc(100vh - 100px);
+        height: calc(100dvh - 52px) !important;
+        min-height: calc(100dvh - 52px) !important;
     }
 
     .wa-left-pane {
         width: 100%;
+        height: 100%;
     }
 
     .wa-right-pane {
         display: none;
         width: 100%;
+        height: 100%;
     }
 
     /* Cuando hay chat activo en móvil */
@@ -2380,10 +2386,64 @@ body.mode-recepcion .inbox-cards-grid {
 
     .wa-web-container.mobile-chat-open .wa-right-pane {
         display: flex;
+        height: 100%;
     }
 
     .wa-back-btn {
         display: inline-flex;
+        align-items: center;
+    }
+
+    .wa-chat-header {
+        padding: 6px 10px;
+        gap: 6px;
+        min-height: 48px;
+    }
+
+    .wa-header-contact-name {
+        font-size: 0.92rem;
+        max-width: 135px;
+    }
+
+    .wa-header-action-btn {
+        padding: 5px 8px;
+        font-size: 0.72rem;
+        border-radius: 6px;
+        gap: 3px;
+    }
+
+    .wa-avatar-container,
+    #pane-chat-avatar {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        font-size: 0.9rem !important;
+        margin-right: 2px !important;
+    }
+
+    .status-pill-small {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+    }
+
+    /* Expansión del área de mensajes y formulario hasta el final absoluto */
+    .wa-chat-messages-area {
+        height: 100%;
+    }
+
+    .wa-chat-messages-area .whatsapp-chat-viewport {
+        padding: 12px 14px;
+    }
+
+    .wa-chat-messages-area .whatsapp-input-form {
+        padding: 8px 10px;
+        margin-bottom: 0;
+    }
+
+    .wa-chat-messages-area textarea {
+        font-size: 0.88rem;
+        padding: 6px 0;
+        resize: none !important;
     }
 }
 

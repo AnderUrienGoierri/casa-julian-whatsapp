@@ -3426,21 +3426,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Categoría Badge
+        // Categoría Badge (Solo mostrar si es especial: Menú Tradición o Cancelación, nunca 'WhatsApp' ni 'Conversación')
         if (catBadgeEl) {
-            catBadgeEl.textContent = sol.categoriaLabel || sol.tipoAccion || '📌 Conversación';
             if (sol.categoria === 'reservas_menu_tradicion') {
-                catBadgeEl.textContent = '🎁 Reservas Menú Tradición';
+                catBadgeEl.textContent = '🎁 Menú Tradición';
+                catBadgeEl.style.display = 'inline-block';
                 catBadgeEl.style.color = '#34d399';
                 catBadgeEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
             } else if (sol.categoria === 'cancelacion') {
                 catBadgeEl.textContent = '❌ Cancelación';
+                catBadgeEl.style.display = 'inline-block';
                 catBadgeEl.style.color = '#f87171';
                 catBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
             } else {
-                catBadgeEl.textContent = '💬 WhatsApp';
-                catBadgeEl.style.color = '#38bdf8';
-                catBadgeEl.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+                catBadgeEl.textContent = '';
+                catBadgeEl.style.display = 'none';
             }
         }
 
