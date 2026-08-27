@@ -1,7 +1,7 @@
 const translations = {
     "es": {
-        "welcomeImageUrl": "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0CASA JULIAN TOLOSA",
-        "welcomeMessage": "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0CASA JULIAN TOLOSA",
+        "welcomeImageUrl": "\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800CASA JULIAN TOLOSA",
+        "welcomeMessage": "\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800CASA JULIAN TOLOSA",
         "lang_es": "🇪🇸 Español",
         "lang_eu": "🇪🇺 Euskara",
         "lang_en": "🇬🇧 English",
