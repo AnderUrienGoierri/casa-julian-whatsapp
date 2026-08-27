@@ -642,7 +642,7 @@ body.mode-recepcion .tabs-nav {
     }
 }
 
-/* LAYOUT PRINCIPAL (70% Editor, 30% Simulador) */
+/* LAYOUT PRINCIPAL (70% Editor, 30% Simulador en pestañas de configuración) */
 .main-layout {
     display: grid;
     grid-template-columns: 1fr 380px;
@@ -650,10 +650,31 @@ body.mode-recepcion .tabs-nav {
     padding: 24px 32px;
     max-width: 1600px;
     margin: 0 auto;
+    width: 100%;
 }
 
-.editor-section {
-    min-width: 0;
+/* Modo Pantalla Completa para el Buzón Recepción (Sin márgenes ni huecos laterales) */
+.main-layout:has(#tab-inbox.active),
+.main-layout.is-inbox-active {
+    display: block !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0 !important;
+}
+
+.main-layout:has(#tab-inbox.active) .editor-section,
+.main-layout.is-inbox-active .editor-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.main-layout:has(#tab-inbox.active) .simulator-section,
+.main-layout.is-inbox-active .simulator-section {
+    display: none !important;
 }
 
 .tab-content {
@@ -1894,25 +1915,31 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 /* =========================================================================
-   ESTILO NATIVO WHATSAPP WEB - INTERFAZ 2 COLUMNAS (ESCRITORIO & RESPONSIVE)
+   ESTILO NATIVO WHATSAPP WEB - INTERFAZ 2 COLUMNAS (FULL WIDTH EDGE-TO-EDGE)
    ========================================================================= */
 
 .wa-web-tab {
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
     max-width: 100% !important;
 }
 
 .wa-web-container {
     display: grid;
     grid-template-columns: 420px 1fr;
-    height: calc(100vh - 125px);
-    min-height: 620px;
+    height: calc(100vh - 105px);
+    min-height: 550px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
     background: #111b21;
-    border-radius: 12px;
-    border: 1px solid rgba(134, 150, 160, 0.15);
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid rgba(134, 150, 160, 0.15);
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    box-shadow: none;
 }
 
 /* Columna Izquierda: Lista de Chats */

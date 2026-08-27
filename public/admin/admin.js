@@ -184,6 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Título de la pestaña activa en el Header
     function updateHeaderActiveTab(tabId) {
         currentActiveTabId = tabId;
+
+        const mainLayout = document.querySelector('.main-layout');
+        if (mainLayout) {
+            mainLayout.classList.toggle('is-inbox-active', tabId === 'tab-inbox');
+        }
+
         const iconEl = document.getElementById('header-active-tab-icon');
         const nameEl = document.getElementById('header-active-tab-name');
         const badgeEl = document.getElementById('header-active-tab-badge');
