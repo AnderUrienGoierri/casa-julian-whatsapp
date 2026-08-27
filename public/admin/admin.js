@@ -2250,7 +2250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2800);
     }
 
-    // ── Formato Inteligente de Fecha y Hora ──────────────────────────────────
+    // ── Formato Inteligente de Fecha y Hora (Estilo WhatsApp Business) ─────
     function formatSmartDateTime(dateInput) {
         if (!dateInput) return '';
         const d = new Date(dateInput);
@@ -2268,18 +2268,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isToday) {
             return timeStr;
         }
+
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = d.getFullYear() === yesterday.getFullYear() &&
+                            d.getMonth() === yesterday.getMonth() &&
+                            d.getDate() === yesterday.getDate();
+        if (isYesterday) {
+            return 'Ayer';
+        }
+
+        const diffTime = now.getTime() - d.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays < 7 && diffDays > 0) {
+            const days = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+            return days[d.getDay()];
+        }
         
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        const datePart = (year === now.getFullYear()) ? `${day}/${month}` : `${day}/${month}/${year}`;
-        return `${datePart} ${timeStr}`;
+        const day = d.getDate();
+        const month = d.getMonth() + 1;
+        const yearShort = String(d.getFullYear()).slice(-2);
+        return `${day}/${month}/${yearShort}`;
     }
 
     // ── Chats Fijados con Chincheta ──────────────────────────────────────────
     function getPinnedChatsMap() {
         try {
-            return JSON.parse(localStorage.getItem('casa_julian_pinned_chats') || '{}');
+            const saved = localStorage.getItem('casa_julian_pinned_chats');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            // Valores por defecto alineados con los chats destacados de WhatsApp Business
+            const defaultPinned = {
+                "34623476521": true, // Ricardo Entretiempo Studio
+                "41795958760": true, // +41 79 595 87 60
+                "34645747754": true  // Xabi Gorrotxategi
+            };
+            localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(defaultPinned));
+            return defaultPinned;
         } catch (e) {
             return {};
         }
@@ -2639,10 +2665,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (filtered.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; color: var(--text-muted); padding: 50px 20px; grid-column: 1 / -1; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-color);">
-                    <div style="font-size: 2.2rem; margin-bottom: 10px;">📥</div>
-                    <div style="font-size: 1.05rem; font-weight: 700; color: #fff;">No hay conversaciones en este filtro</div>
-                    <p style="font-size: 0.85rem; margin-top: 6px; color: #94a3b8;">Los mensajes y peticiones de WhatsApp aparecerán aquí organizados por fecha y estado.</p>
+                <div style="text-align: center; color: var(--text-muted); padding: 50px 20px; background: #111b21; border-radius: 0 0 12px 12px; border: 1px dashed rgba(134, 150, 160, 0.2);">
+                    <div style="font-size: 2.2rem; margin-bottom: 10px;">💬</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: #e9edef;">No hay chats en este filtro</div>
+                    <p style="font-size: 0.85rem; margin-top: 6px; color: #8696a0;">Los mensajes de WhatsApp Business aparecerán organizados por fecha y estado.</p>
                 </div>
             `;
             return;
@@ -2651,89 +2677,100 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = filtered.map(c => {
             const cleanPhone = (c.telefono || '').replace(/\D/g, '');
             const clientDisplayName = getClientDisplayName(c.nombreCliente, cleanPhone);
-            const catBadge = getCategoryBadgeHtml(c.categoria);
             const smartTime = formatSmartDateTime(c.ultimoMensajeFecha);
             const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
             const status = getConversationStatus(c);
             const isPending = status === 'pendiente';
             const isPinned = isChatPinned(cleanPhone);
 
-            const statusBadge = isPending
-                ? `<span style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700;">⏳ Pendiente</span>`
-                : `<span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">✅ Leído</span>`;
-
-            const pinBadge = isPinned
-                ? `<span style="background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 0.72rem; padding: 2px 7px; border-radius: 12px; font-weight: 700;">📌 Fijado</span>`
+            // Icono de doble check si es mensaje enviado por recepción
+            const outgoingCheckHtml = !isFromClient 
+                ? `<span class="wa-check-double" title="Entregado y Leído">✓✓</span> ` 
                 : '';
 
-            const toggleReadBtnHtml = isPending
-                ? `<button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="leido" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.14); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); white-space: nowrap;" title="Marcar esta conversación como atendida/leída">✓ Marcar Leído</button>`
-                : `<button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="pendiente" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.14); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;" title="Marcar esta conversación como pendiente de responder">⏳ Marcar Pendiente</button>`;
+            // Generador de Avatar estilo WhatsApp Business
+            let avatarHtml = '';
+            const lowerName = (clientDisplayName || '').toLowerCase();
+            if (lowerName.includes('entretiempo') || lowerName.includes('ricardo')) {
+                avatarHtml = `<div class="wa-avatar-container wa-avatar-ricardo" title="${clientDisplayName}"><span>E</span></div>`;
+            } else if (lowerName.includes('xabi') || lowerName.includes('gorrotxategi')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e3a8a; color: #93c5fd;" title="${clientDisplayName}"><span>XG</span></div>`;
+            } else if (cleanPhone === '41795958760') {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #065f46; color: #6ee7b7;" title="${clientDisplayName}"><span>+41</span></div>`;
+            } else if (cleanPhone === '923218428609') {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #701a75; color: #f5d0fe;" title="${clientDisplayName}"><span>SA</span></div>`;
+            } else if (clientDisplayName && !clientDisplayName.startsWith('+')) {
+                const words = clientDisplayName.trim().split(/\s+/);
+                const initials = words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].slice(0, 2).toUpperCase();
+                avatarHtml = `<div class="wa-avatar-container" style="background: #2a3942; color: #e9edef;" title="${clientDisplayName}"><span>${initials}</span></div>`;
+            } else {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #202c33; color: #8696a0;" title="${clientDisplayName}"><span style="font-size: 1.2rem;">👤</span></div>`;
+            }
+
+            // Etiquetas WhatsApp Business (Píldoras de colores)
+            let tagsHtml = '';
+            const tags = Array.isArray(c.etiquetas) && c.etiquetas.length > 0 ? [...c.etiquetas] : [];
+            const cat = (c.categoria || '').toLowerCase();
+            if (tags.length === 0) {
+                if (cat === 'alba') tags.push('ALBA');
+                else if (cat === 'proveedor' || cat === 'proveedores') tags.push('PROVEEDORES');
+                else if (cat === 'hoteles' || cat === 'hotel') tags.push('HOTELES');
+                else if (cat === 'taxi' || cat === 'taxis') tags.push('TAXIS');
+            }
+
+            if (tags.length > 0) {
+                tagsHtml = `<div class="wa-tags-container">` + tags.map(t => {
+                    const tagClass = `tag-${t.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+                    return `<span class="wa-tag-pill ${tagClass}">${t}</span>`;
+                }).join('') + `</div>`;
+            }
 
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
-            // Color del borde de la tarjeta: dorado si fijado, rojo si pendiente, sutil si leído
-            let cardBorderColor = 'rgba(255, 255, 255, 0.15)';
-            if (isPinned) {
-                cardBorderColor = '#f59e0b';
-            } else if (isPending) {
-                cardBorderColor = '#ef4444';
-            }
-
             return `
-                <div class="solicitud-card chat-card-item ${isPending ? 'has-unread-msg' : ''} ${isPinned ? 'chat-card-pinned' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="border-left: 4px solid ${cardBorderColor}; cursor: pointer;">
-                    <div class="solicitud-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div class="card-avatar" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; font-size: 1.15rem; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); position: relative;">
-                                ${isPinned ? '📌' : (isFromClient ? '👤' : '💬')}
+                <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
+                    ${avatarHtml}
+                    <div class="wa-chat-content">
+                        <div class="wa-row-top">
+                            <span class="wa-contact-name" title="${clientDisplayName}">${clientDisplayName}</span>
+                            <span class="wa-chat-time ${isPending ? 'wa-time-unread' : ''}">${smartTime}</span>
+                        </div>
+                        <div class="wa-row-bottom">
+                            <div class="wa-snippet-and-tags">
+                                <div class="wa-snippet-line">
+                                    ${outgoingCheckHtml}
+                                    <span class="wa-snippet-text">${formatWhatsAppText(previewText)}</span>
+                                </div>
+                                ${tagsHtml}
                             </div>
-                            <div>
-                                <h3 class="solicitud-client-name" style="font-size: 0.98rem; font-weight: 700; color: #fff; margin: 0;">${clientDisplayName}</h3>
-                                <div class="solicitud-client-phone" style="font-size: 0.8rem; color: #cbd5e1; font-family: monospace;">📞 +${cleanPhone}</div>
+                            <div class="wa-status-icons">
+                                ${isPinned ? '<span class="wa-pin-icon" title="Conversación fijada arriba">📌</span>' : ''}
+                                ${isPending ? '<span class="wa-unread-badge">1</span>' : ''}
+                                <div class="wa-item-actions-trigger btn-card-more-actions" data-phone="${cleanPhone}" title="Opciones">⋮</div>
                             </div>
                         </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                                ${pinBadge}
-                                ${catBadge}
-                                ${statusBadge}
-                            </div>
-                            ${smartTime ? `<span style="font-size: 0.72rem; color: #94a3b8; font-weight: 500;">⏰ ${smartTime}</span>` : ''}
-                        </div>
-                    </div>
 
-                    ${previewText ? `
-                    <div class="solicitud-preview-snippet" style="font-size: 0.83rem; color: #cbd5e1; margin: 8px 0 10px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
-                        <span style="opacity: 0.65; font-size: 0.78rem;">${isFromClient ? '👤' : '🤖'}</span>
-                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${formatWhatsAppText(previewText)}</span>
-                    </div>` : ''}
-
-                    <div class="solicitud-footer" style="display: flex; flex-direction: column; gap: 6px; width: 100%;">
-                        <div style="display: flex; gap: 6px; align-items: center; width: 100%; justify-content: space-between;">
-                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                                <button class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: ${isPinned ? 'rgba(245, 158, 11, 0.22)' : 'rgba(255, 255, 255, 0.06)'}; color: ${isPinned ? '#fbbf24' : '#94a3b8'}; border: 1px solid ${isPinned ? 'rgba(245, 158, 11, 0.45)' : 'rgba(255, 255, 255, 0.12)'};" title="${isPinned ? 'Desfijar de la parte superior' : 'Fijar conversación arriba'}">
-                                    ${isPinned ? '📌 Fijado' : '📌 Fijar'}
-                                </button>
-                                ${toggleReadBtnHtml}
-                            </div>
-                            <button class="btn-card-more-actions" data-phone="${cleanPhone}" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12);" title="Ver opciones">
-                                ⋮ Opciones ▼
+                        <!-- Dropdown de Acciones Rápidas -->
+                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: none; padding-top: 8px; margin-top: 6px; border-top: 1px solid rgba(134, 150, 160, 0.15); flex-wrap: wrap; gap: 6px; width: 100%;">
+                            <button class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
+                                ${isPinned ? '📌 Desfijar' : '📌 Fijar arriba'}
                             </button>
-                        </div>
-                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: none; padding-top: 8px; margin-top: 4px; border-top: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap; gap: 6px; width: 100%;">
-                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Llamar directamente">
+                            <button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="${isPending ? 'leido' : 'pendiente'}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
+                                ${isPending ? '✓ Marcar Leído' : '⏳ Marcar No Leído'}
+                            </button>
+                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 📞 Llamar
                             </a>
-                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Abrir en WhatsApp">
+                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 📲 WhatsApp
                             </a>
-                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 5px 9px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Silenciar respuestas automáticas del bot">
+                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 🔇 Silenciar
                             </button>
-                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 5px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); white-space: nowrap;" title="Archivar conversación">
+                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 📦 Archivar
                             </button>
-                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 5px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;" title="Eliminar conversación e historial definitivamente">
+                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);">
                                 🗑️ Eliminar
                             </button>
                         </div>
@@ -2742,10 +2779,10 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Event listeners para las tarjetas de conversación (click para abrir chat)
+        // Event listeners para las filas de conversación (click para abrir chat)
         container.querySelectorAll('.chat-card-item').forEach(card => {
             card.addEventListener('click', (e) => {
-                if (e.target.closest('a') || e.target.closest('button')) return;
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu')) return;
                 const phone = card.getAttribute('data-phone');
                 const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
                 const conv = allUnifiedConversations.find(c => c.telefono === phone);
@@ -2781,7 +2818,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (menu) {
                     const isVisible = menu.style.display === 'flex';
                     menu.style.display = isVisible ? 'none' : 'flex';
-                    btn.textContent = isVisible ? '⋮ Opciones ▼' : '⋮ Opciones ▲';
                 }
             });
         });
@@ -2810,7 +2846,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                showToast(targetStatus === 'leido' ? '✅ Chat marcado como Leído' : '⏳ Chat marcado como Pendiente');
+                showToast(targetStatus === 'leido' ? '✅ Chat marcado como Leído' : '⏳ Chat marcado como No Leído');
                 renderInboxCards();
             });
         });
@@ -2883,12 +2919,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ── Filtros por estado de Buzón Recepción (Píldoras Pendiente / Leído) ───
-    document.querySelectorAll('[data-inbox-status]').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('[data-inbox-status]').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            currentInboxStatusFilter = chip.getAttribute('data-inbox-status') || 'all';
+    // ── Píldoras de Filtro Horizontales (Estilo WhatsApp Business) ─────────
+    document.querySelectorAll('.wa-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.wa-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+
+            const cat = pill.getAttribute('data-inbox-cat');
+            const status = pill.getAttribute('data-inbox-status');
+
+            if (cat === 'all' && status === 'all') {
+                currentInboxCatFilter = 'all';
+                currentInboxStatusFilter = 'all';
+            } else if (status) {
+                currentInboxStatusFilter = status;
+                currentInboxCatFilter = 'all';
+            } else if (cat) {
+                currentInboxCatFilter = cat;
+                currentInboxStatusFilter = 'all';
+            }
+
             renderInboxCards();
         });
     });

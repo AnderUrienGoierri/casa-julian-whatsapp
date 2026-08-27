@@ -1457,47 +1457,404 @@ body.mode-recepcion .inbox-cards-grid {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
-.solicitud-card.has-unread-msg {
-    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35), 0 4px 16px rgba(239, 68, 68, 0.15);
+/* =========================================================================
+   ESTILO NATIVO WHATSAPP BUSINESS - BANDEJA DE CHATS & BUZÓN
+   ========================================================================= */
+
+.whatsapp-business-header-container {
+    background: #111b21;
+    border-radius: 12px 12px 0 0;
+    padding: 16px 16px 12px 16px;
+    border: 1px solid rgba(134, 150, 160, 0.15);
+    border-bottom: none;
+    margin-bottom: 0;
 }
 
-/* Tarjeta Fijada con Chincheta */
-.solicitud-card.chat-card-pinned {
-    background: rgba(30, 27, 20, 0.65);
-    border-color: rgba(245, 158, 11, 0.35);
-    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25), 0 4px 16px rgba(245, 158, 11, 0.08);
+.wa-header-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
 }
 
-.solicitud-card.chat-card-pinned:hover {
-    border-color: rgba(245, 158, 11, 0.55);
-    background: rgba(40, 35, 25, 0.85);
+.wa-screen-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #e9edef;
+    margin: 0;
+    letter-spacing: -0.02em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Botón Chincheta */
-.btn-pin-chat-card {
+.wa-screen-subtitle {
+    font-size: 0.82rem;
+    color: #8696a0;
+    font-weight: 500;
+}
+
+.wa-search-container {
+    display: flex;
+    align-items: center;
+    background: #202c33;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    gap: 8px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.wa-search-container:focus-within {
+    border-color: #00a884;
+    background: #111b21;
+}
+
+.wa-search-icon {
+    font-size: 0.95rem;
+    color: #8696a0;
+}
+
+.wa-search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #e9edef;
+    font-size: 0.92rem;
+    width: 100%;
+    font-family: inherit;
+}
+
+.wa-search-input::placeholder {
+    color: #8696a0;
+}
+
+.wa-filter-pills-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+}
+
+.wa-filter-pills-row::-webkit-scrollbar {
+    height: 4px;
+}
+.wa-filter-pills-row::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+.filter-chip.wa-pill {
+    background: #202c33;
+    color: #8696a0;
+    border: 1px solid rgba(134, 150, 160, 0.15);
+    border-radius: 16px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
     transition: all 0.15s ease;
 }
 
-.btn-pin-chat-card:hover {
-    background: rgba(245, 158, 11, 0.18) !important;
-    color: #fbbf24 !important;
-    border-color: rgba(245, 158, 11, 0.35) !important;
+.filter-chip.wa-pill:hover {
+    background: #2a3942;
+    color: #e9edef;
 }
 
-/* Dropdown de opciones dentro del bloque de chat */
-.card-actions-dropdown-menu a,
-.card-actions-dropdown-menu button {
+.filter-chip.wa-pill.active {
+    background: #00a884;
+    color: #111b21;
+    border-color: #00a884;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 168, 132, 0.3);
+}
+
+/* Barra de Archivados estilo WhatsApp */
+.wa-archived-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    background: #111b21;
+    border: 1px solid rgba(134, 150, 160, 0.15);
+    border-top: 1px solid rgba(134, 150, 160, 0.1);
+    border-bottom: 1px solid rgba(134, 150, 160, 0.15);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    user-select: none;
+}
+
+.wa-archived-bar:hover {
+    background: #202c33;
+}
+
+.wa-archived-icon {
+    font-size: 1.15rem;
+    color: #00a884;
+}
+
+.wa-archived-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e9edef;
+    flex: 1;
+}
+
+.wa-archived-count {
+    font-size: 0.82rem;
+    color: #00a884;
+    font-weight: 700;
+}
+
+/* Lista de Chats WhatsApp Business */
+.whatsapp-chats-list {
+    display: flex;
+    flex-direction: column;
+    background: #111b21;
+    border: 1px solid rgba(134, 150, 160, 0.15);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+}
+
+.whatsapp-chat-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: #111b21;
+    border-bottom: 1px solid rgba(134, 150, 160, 0.1);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    position: relative;
+    user-select: none;
+}
+
+.whatsapp-chat-row:last-child {
+    border-bottom: none;
+}
+
+.whatsapp-chat-row:hover {
+    background: #202c33;
+}
+
+.whatsapp-chat-row.is-pinned {
+    background: #152028;
+}
+.whatsapp-chat-row.is-pinned:hover {
+    background: #222e37;
+}
+
+/* Avatar circular WhatsApp */
+.wa-avatar-container {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    margin-right: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #2a3942;
+    color: #aebac1;
+    font-weight: 700;
+    font-size: 1.1rem;
+    position: relative;
+}
+
+.wa-avatar-ricardo {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-radius: 50%;
+    font-weight: 800;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #3b82f6;
+}
+
+.wa-avatar-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* Contenido del Chat */
+.wa-chat-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* Fila Superior: Nombre y Hora */
+.wa-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.wa-contact-name {
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: #e9edef;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+}
+
+.wa-chat-time {
+    font-size: 0.75rem;
+    color: #8696a0;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+.wa-time-unread {
+    color: #25d366 !important;
+    font-weight: 600;
+}
+
+/* Fila Inferior: Snippet, Etiquetas y Estados */
+.wa-row-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.wa-snippet-and-tags {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wa-snippet-line {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.86rem;
+    color: #8696a0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+.wa-snippet-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wa-check-double {
+    color: #53bdeb;
+    font-size: 0.82rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Etiquetas WhatsApp Business */
+.wa-tags-container {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.wa-tag-pill {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.tag-alba {
+    background: rgba(244, 114, 182, 0.25);
+    color: #f472b6;
+    border: 1px solid rgba(244, 114, 182, 0.4);
+}
+
+.tag-proveedores, .tag-proveedor {
+    background: rgba(163, 230, 53, 0.25);
+    color: #a3e635;
+    border: 1px solid rgba(163, 230, 53, 0.4);
+}
+
+.tag-hoteles, .tag-hotel {
+    background: rgba(250, 204, 21, 0.25);
+    color: #facc15;
+    border: 1px solid rgba(250, 204, 21, 0.4);
+}
+
+.tag-taxis, .tag-taxi {
+    background: rgba(251, 146, 60, 0.25);
+    color: #fb923c;
+    border: 1px solid rgba(251, 146, 60, 0.4);
+}
+
+.tag-clientes, .tag-cliente {
+    background: rgba(56, 189, 248, 0.25);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+/* Iconos de la derecha: Pin y Contador no leídos */
+.wa-status-icons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.wa-pin-icon {
+    font-size: 0.95rem;
+    color: #8696a0;
+    display: inline-block;
+}
+
+.wa-unread-badge {
+    background: #25d366;
+    color: #111b21;
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.wa-item-actions-trigger {
+    color: #8696a0;
+    font-size: 1.15rem;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
     transition: all 0.15s ease;
 }
 
-.card-actions-dropdown-menu a:hover,
-.card-actions-dropdown-menu button:hover {
-    background: rgba(255, 255, 255, 0.12) !important;
-}
-
-.btn-delete-chat-card:hover {
-    background: rgba(239, 68, 68, 0.25) !important;
-    border-color: #ef4444 !important;
+.wa-item-actions-trigger:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #e9edef;
 }
 
 /* Tarjetas de Solicitud en el Buzón (Vista Compacta WhatsApp) */

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V357-PIN-AND-ACTIONS-DROPDOWN">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V358-WHATSAPP-BUSINESS-UI-AND-FULL-IMPORT">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -344,42 +344,43 @@
                 <!-- Pestaña 0: Buzón de Recepción y Chats WhatsApp (Unificado) -->
                 <div id="tab-inbox" class="tab-content active">
 
-                    <!-- Toolbar de Búsqueda y Píldoras de Filtro estilo WhatsApp -->
-                    <div class="inbox-toolbar-card" style="margin-bottom: 18px; padding: 14px 18px;">
-                        
-                        <!-- Fila 1: Buscador en tiempo real -->
-                        <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap; margin-bottom: 12px;">
-                            <div class="search-box" style="flex: 1; min-width: 220px; margin: 0;">
-                                <span class="search-icon">🔍</span>
-                                <input type="text" id="search-inbox-input" placeholder="Buscar por cliente, teléfono, datos de reserva, mensaje...">
-                            </div>
-                            <span id="inbox-total-summary" style="font-size: 0.85rem; color: #94a3b8; font-weight: 600; white-space: nowrap;">0 conversaciones</span>
+                    <!-- Cabecera y Barra de Filtros Nativa WhatsApp Business -->
+                    <div class="whatsapp-business-header-container">
+                        <!-- Título Grande Chats -->
+                        <div class="wa-header-top-row">
+                            <h2 class="wa-screen-title">Chats</h2>
+                            <span id="inbox-total-summary" class="wa-screen-subtitle">0 conversaciones</span>
                         </div>
 
-                        <!-- Fila 2: Píldoras de Filtro por Categorías / Etiquetas -->
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px;">
-                            <span style="font-size: 0.74rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-right: 2px;">Etiquetas:</span>
-                            <button class="filter-chip active" data-inbox-cat="all">Todos (<span id="count-cat-all">0</span>)</button>
-                            <button class="filter-chip" data-inbox-cat="cliente">👥 Clientes (<span id="count-cat-cli">0</span>)</button>
-                            <button class="filter-chip" data-inbox-cat="proveedor">🟢 Proveedores (<span id="count-cat-prov">0</span>)</button>
-                            <button class="filter-chip" data-inbox-cat="alba">🌸 Alba (<span id="count-cat-alba">0</span>)</button>
-                            <button class="filter-chip" data-inbox-cat="hoteles">🟡 Hoteles (<span id="count-cat-hoteles">0</span>)</button>
-                            <button class="filter-chip" data-inbox-cat="taxi">🚕 Taxis (<span id="count-cat-taxi">0</span>)</button>
+                        <!-- Buscador Nativo WhatsApp -->
+                        <div class="wa-search-container">
+                            <span class="wa-search-icon">🔍</span>
+                            <input type="text" id="search-inbox-input" class="wa-search-input" placeholder="Buscar">
                         </div>
 
-                        <!-- Fila 3: Píldoras de Filtro por Estado (Pendientes vs Leídos) -->
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                            <span style="font-size: 0.74rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-right: 2px;">Estado:</span>
-                            <button class="filter-chip active" data-inbox-status="all">Todos (<span id="count-status-all">0</span>)</button>
-                            <button class="filter-chip" data-inbox-status="pendiente">⏳ Pendientes (<span id="count-status-pend">0</span>)</button>
-                            <button class="filter-chip" data-inbox-status="leido">✅ Leídos (<span id="count-status-read">0</span>)</button>
+                        <!-- Píldoras Horizontales de Filtro estilo WhatsApp -->
+                        <div class="wa-filter-pills-row">
+                            <button class="filter-chip wa-pill active" data-inbox-status="all" data-inbox-cat="all">Todos</button>
+                            <button class="filter-chip wa-pill" data-inbox-status="pendiente">No leídos <span id="count-status-pend">0</span></button>
+                            <button class="filter-chip wa-pill" data-inbox-status="leido">Leídos <span id="count-status-read">0</span></button>
+                            <button class="filter-chip wa-pill" data-inbox-cat="proveedor">🟢 Proveedores (<span id="count-cat-prov">0</span>)</button>
+                            <button class="filter-chip wa-pill" data-inbox-cat="alba">🌸 Alba (<span id="count-cat-alba">0</span>)</button>
+                            <button class="filter-chip wa-pill" data-inbox-cat="hoteles">🟡 Hoteles (<span id="count-cat-hoteles">0</span>)</button>
+                            <button class="filter-chip wa-pill" data-inbox-cat="taxi">🚕 Taxis (<span id="count-cat-taxi">0</span>)</button>
+                            <button class="filter-chip wa-pill" data-inbox-cat="cliente">👥 Clientes (<span id="count-cat-cli">0</span>)</button>
                         </div>
-
                     </div>
 
-                    <!-- Lista de Tarjetas de Conversación Unificadas -->
-                    <div id="inbox-cards-container" class="inbox-cards-grid">
-                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando conversaciones y solicitudes...</div>
+                    <!-- Fila de Chats Archivados -->
+                    <div class="wa-archived-bar" id="btn-toggle-archived" style="display: flex;">
+                        <span class="wa-archived-icon">📁</span>
+                        <span class="wa-archived-label">Archivados</span>
+                        <span class="wa-archived-count" id="archived-count-badge">2</span>
+                    </div>
+
+                    <!-- Lista de Conversaciones de WhatsApp Business -->
+                    <div id="inbox-cards-container" class="whatsapp-chats-list">
+                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando conversaciones de WhatsApp...</div>
                     </div>
                 </div>
 
@@ -834,6 +835,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V357-PIN-AND-ACTIONS-DROPDOWN"></script>
+    <script src="/admin/admin.js?v=20260827-V358-WHATSAPP-BUSINESS-UI-AND-FULL-IMPORT"></script>
 </body>
 </html>

@@ -552,6 +552,9 @@ async function getAllWhatsAppConversations() {
                     (SELECT texto FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_texto,
                     (SELECT emisor FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_emisor,
                     (SELECT tipo FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_tipo,
+                    (SELECT metadata FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_metadata,
+                    (SELECT nombre FROM bot_silenced_numbers WHERE telefono = b.telefono LIMIT 1) as silenced_nombre,
+                    (SELECT categoria FROM bot_silenced_numbers WHERE telefono = b.telefono LIMIT 1) as silenced_categoria,
                     (SELECT nombre_cliente FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as nombre_cliente,
                     (SELECT id FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as solicitud_id,
                     (SELECT tipo_accion FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as tipo_solicitud,
@@ -561,18 +564,35 @@ async function getAllWhatsAppConversations() {
                 ORDER BY MAX(b.created_at) DESC`
             );
             if (res.rows && res.rows.length > 0) {
-                return res.rows.map(r => ({
-                    telefono: r.telefono,
-                    ultimoMensajeFecha: r.ultimo_mensaje_fecha,
-                    totalInteracciones: parseInt(r.total_interacciones, 10) || 0,
-                    ultimoTexto: r.ultimo_texto || '',
-                    ultimoEmisor: r.ultimo_emisor || 'bot',
-                    ultimoTipo: r.ultimo_tipo || 'text',
-                    nombreCliente: r.nombre_cliente || (r.telefono.startsWith('34') || r.telefono.length > 9 ? `+${r.telefono}` : r.telefono),
-                    solicitudId: r.solicitud_id || null,
-                    tipoSolicitud: r.tipo_solicitud || null,
-                    solicitudEstado: r.solicitud_estado || null
-                }));
+                return res.rows.map(r => {
+                    let meta = {};
+                    try {
+                        meta = typeof r.ultimo_metadata === 'object' && r.ultimo_metadata !== null 
+                            ? r.ultimo_metadata 
+                            : JSON.parse(r.ultimo_metadata || '{}');
+                    } catch (e) {
+                        meta = {};
+                    }
+
+                    const nombreFinal = r.silenced_nombre || r.nombre_cliente || meta.nombreCliente || (r.telefono.startsWith('34') || r.telefono.length > 9 ? `+${r.telefono}` : r.telefono);
+                    const categoriaFinal = r.silenced_categoria || meta.categoria || 'cliente';
+                    const etiquetasFinales = Array.isArray(meta.etiquetas) ? meta.etiquetas : [];
+
+                    return {
+                        telefono: r.telefono,
+                        ultimoMensajeFecha: r.ultimo_mensaje_fecha,
+                        totalInteracciones: parseInt(r.total_interacciones, 10) || 0,
+                        ultimoTexto: r.ultimo_texto || '',
+                        ultimoEmisor: r.ultimo_emisor || 'bot',
+                        ultimoTipo: r.ultimo_tipo || 'text',
+                        nombreCliente: nombreFinal,
+                        categoria: categoriaFinal,
+                        etiquetas: etiquetasFinales,
+                        solicitudId: r.solicitud_id || null,
+                        tipoSolicitud: r.tipo_solicitud || null,
+                        solicitudEstado: r.solicitud_estado || null
+                    };
+                });
             }
         } catch (e) {
             console.error("Error consultando conversaciones agrupadas en Postgres:", e.message);
@@ -634,11 +654,15 @@ async function getAllWhatsAppConversations() {
                 ultimoTipo: h.tipo || 'text',
                 nombreCliente: clientName,
                 categoria: category,
+                etiquetas: Array.isArray(meta.etiquetas) ? meta.etiquetas : [],
                 origen: meta.origen || 'CHAT_EN_VIVO'
             });
         } else {
             const item = grouped.get(tel);
             item.totalInteracciones += 1;
+            if (Array.isArray(meta.etiquetas) && meta.etiquetas.length > 0) {
+                item.etiquetas = meta.etiquetas;
+            }
             if (meta.nombreCliente && (!item.nombreCliente || item.nombreCliente.startsWith('+') || item.nombreCliente === 'Cliente WhatsApp')) {
                 item.nombreCliente = meta.nombreCliente;
             }
