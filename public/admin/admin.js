@@ -2843,9 +2843,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Cancelar bot para este número" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 🔇 Cancelar Bot
                             </button>
-                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
-                                📦 Archivar
-                            </button>
                             <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);">
                                 🗑️ Eliminar
                             </button>
@@ -2935,31 +2932,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const phone = btn.getAttribute('data-phone');
                 const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
                 openSilencedModal(phone, name);
-            });
-        });
-
-        container.querySelectorAll('.btn-archive-chat-card').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                activeCardDropdownPhone = null;
-                const phone = btn.getAttribute('data-phone');
-                if (!confirm(`¿Deseas archivar la conversación del teléfono +${phone}?`)) return;
-                try {
-                    const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-                    const res = await fetch(`/api/admin/chats/${phone}/archive`, {
-                        method: 'POST',
-                        headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        showToast('📦 Conversación archivada.');
-                        await fetchWhatsAppChats();
-                    } else {
-                        alert('Error al archivar conversación: ' + (data.error || 'Desconocido'));
-                    }
-                } catch (err) {
-                    alert('Error al archivar conversación: ' + err.message);
-                }
             });
         });
 
@@ -3079,29 +3051,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Acción: Archivar
-        const archiveBtn = document.getElementById('pane-action-archive');
-        if (archiveBtn) {
-            archiveBtn.addEventListener('click', async () => {
-                paneMoreDropdown.style.display = 'none';
-                if (!activeConversationPhone) return;
-                if (!confirm(`¿Deseas archivar la conversación de +${activeConversationPhone}?`)) return;
-                try {
-                    const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-                    const res = await fetch(`/api/admin/chats/${activeConversationPhone}/archive`, {
-                        method: 'POST',
-                        headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        showToast('📦 Conversación archivada.');
-                        await fetchWhatsAppChats();
-                    } else {
-                        alert('Error al archivar: ' + (data.error || 'Desconocido'));
-                    }
-                } catch (err) { alert('Error al archivar: ' + err.message); }
-            });
-        }
+
 
         // Acción: Eliminar chat
         const deleteBtn = document.getElementById('pane-action-delete');

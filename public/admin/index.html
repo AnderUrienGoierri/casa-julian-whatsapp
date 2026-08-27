@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V387-FIX-DROPDOWN-PERSISTENCE">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V388-REMOVE-ARCHIVED">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -346,13 +346,6 @@
                                 </div>
                             </div>
 
-                            <!-- Fila de Chats Archivados -->
-                            <div class="wa-archived-bar" id="btn-toggle-archived" style="display: flex;">
-                                <span class="wa-archived-icon">📁</span>
-                                <span class="wa-archived-label">Archivados</span>
-                                <span class="wa-archived-count" id="archived-count-badge">0</span>
-                            </div>
-
                             <!-- Lista de Conversaciones de WhatsApp Business -->
                             <div id="inbox-cards-container" class="whatsapp-chats-list">
                                 <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando conversaciones de WhatsApp...</div>
@@ -372,45 +365,45 @@
                                     <span>🔒 Mensajes sincronizados 24/7 con Meta WhatsApp Cloud API</span>
                                 </div>
                             </div>
-
-                            <!-- Panel de Conversación Activa (Se activa al pulsar un chat) -->
-                            <div id="wa-active-chat-panel" class="wa-active-chat-panel" style="display: none;">
-                                <!-- Header de la conversación activa -->
-                                <div class="wa-chat-header">
-                                    <div class="wa-chat-header-left">
-                                        <button type="button" id="wa-back-to-list-btn" class="wa-back-btn" title="Volver a la lista de chats">←</button>
-                                        <div class="whatsapp-avatar" id="pane-chat-avatar">👤</div>
-                                        <div class="wa-chat-header-info">
-                                            <h3 id="pane-chat-client-name" class="wa-header-contact-name">Cliente</h3>
-                                            <div class="wa-header-sub-status">
-                                                <span id="pane-chat-handover-status" class="status-pill-small">⚪ Bot Activo</span>
-                                                <span id="pane-chat-category-badge" class="badge" style="display: none;"></span>
-                                            </div>
+                        <div class="wa-right-pane" id="wa-active-chat-panel" style="display: none;">
+                            <!-- Header de la conversación activa -->
+                            <div class="wa-chat-header">
+                                <div class="wa-chat-header-info">
+                                    <button type="button" class="btn-back-to-inbox" id="btn-back-to-inbox" title="Volver al buzón">←</button>
+                                    <div class="wa-avatar-container" id="pane-chat-avatar">👤</div>
+                                    <div class="wa-contact-details">
+                                        <div class="wa-contact-name-row">
+                                            <span class="wa-header-contact-name" id="pane-chat-client-name">+34 000 00 00 00</span>
+                                            <span class="wa-category-badge" id="pane-chat-category-badge"></span>
+                                        </div>
+                                        <div class="wa-contact-subtext">
+                                            <span class="wa-phone-number" id="pane-chat-phone">📞 WhatsApp</span>
+                                            <span class="wa-handover-status-badge" id="pane-chat-handover-status">⚪ Bot Activo</span>
                                         </div>
                                     </div>
-                                    <div class="wa-chat-header-actions" style="position: relative;">
-                                        <button type="button" id="pane-btn-toggle-human" class="wa-header-action-btn btn-human-mode" title="Activar Atención Humana">👤 Modo Humano</button>
-                                        <button type="button" id="pane-btn-conclude" class="wa-header-action-btn btn-conclude-mode" style="display: none;" title="Concluir Gestión y Reactivar Bot">✅ Concluir</button>
-                                        <!-- Fila inferior: Resumen + ⋮ siempre en la misma línea -->
-                                        <div style="display: flex; flex-direction: row; align-items: center; gap: 4px;">
-                                            <button type="button" id="pane-toggle-summary-btn" class="wa-header-action-btn btn-summary" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
-                                            <!-- Botón ⋮ de acciones rápidas del chat activo -->
-                                            <div class="pane-more-actions-wrapper" style="position: relative;">
-                                                <button type="button" id="pane-more-actions-btn" class="wa-header-action-btn pane-more-actions-trigger" title="Más opciones" style="font-size: 1.1rem; font-weight: bold; padding: 4px 8px; letter-spacing: 0.5px;">⋮</button>
-                                                <div id="pane-more-actions-dropdown" class="pane-more-actions-dropdown" style="display: none; position: absolute; top: calc(100% + 6px); right: 0; background: #233138; border: 1px solid rgba(134,150,160,0.25); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.45); z-index: 9999; min-width: 200px; padding: 6px 0; overflow: hidden;">
-                                                    <button type="button" id="pane-action-pin" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">📌 <span id="pane-action-pin-label">Fijar arriba</span></button>
-                                                    <button type="button" id="pane-action-toggle-read" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">⏳ <span id="pane-action-read-label">Marcar No Leído</span></button>
-                                                    <a id="pane-action-call" href="#" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-decoration: none; transition: background 0.12s;">📞 Llamar</a>
-                                                    <a id="pane-action-wa" href="#" target="_blank" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-decoration: none; transition: background 0.12s;">📲 Abrir WhatsApp</a>
-                                                    <button type="button" id="pane-action-silence" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">🔇 Cancelar Bot</button>
-                                                    <button type="button" id="pane-action-archive" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">📦 Archivar</button>
-                                                    <div style="height: 1px; background: rgba(134,150,160,0.18); margin: 3px 0;"></div>
-                                                    <button type="button" id="pane-action-delete" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #fca5a5; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">🗑️ Eliminar chat</button>
-                                                </div>
+                                </div>
+                                <div class="wa-chat-header-actions" style="position: relative;">
+                                    <button type="button" id="pane-btn-toggle-human" class="wa-header-action-btn btn-human-mode" title="Activar Atención Humana">👤 Modo Humano</button>
+                                    <button type="button" id="pane-btn-conclude" class="wa-header-action-btn btn-conclude-mode" style="display: none;" title="Concluir Gestión y Reactivar Bot">✅ Concluir</button>
+                                    <!-- Fila inferior: Resumen + ⋮ siempre en la misma línea -->
+                                    <div style="display: flex; flex-direction: row; align-items: center; gap: 4px;">
+                                        <button type="button" id="pane-toggle-summary-btn" class="wa-header-action-btn btn-summary" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
+                                        <!-- Botón ⋮ de acciones rápidas del chat activo -->
+                                        <div class="pane-more-actions-wrapper" style="position: relative;">
+                                            <button type="button" id="pane-more-actions-btn" class="wa-header-action-btn pane-more-actions-trigger" title="Más opciones" style="font-size: 1.1rem; font-weight: bold; padding: 4px 8px; letter-spacing: 0.5px;">⋮</button>
+                                            <div id="pane-more-actions-dropdown" class="pane-more-actions-dropdown" style="display: none; position: absolute; top: calc(100% + 6px); right: 0; background: #233138; border: 1px solid rgba(134,150,160,0.25); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.45); z-index: 9999; min-width: 200px; padding: 6px 0; overflow: hidden;">
+                                                <button type="button" id="pane-action-pin" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">📌 <span id="pane-action-pin-label">Fijar arriba</span></button>
+                                                <button type="button" id="pane-action-toggle-read" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">⏳ <span id="pane-action-read-label">Marcar No Leído</span></button>
+                                                <a id="pane-action-call" href="#" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-decoration: none; transition: background 0.12s;">📞 Llamar</a>
+                                                <a id="pane-action-wa" href="#" target="_blank" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-decoration: none; transition: background 0.12s;">📲 Abrir WhatsApp</a>
+                                                <button type="button" id="pane-action-silence" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">🔇 Cancelar Bot</button>
+                                                <div style="height: 1px; background: rgba(134,150,160,0.18); margin: 3px 0;"></div>
+                                                <button type="button" id="pane-action-delete" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #fca5a5; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">🗑️ Eliminar chat</button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
                                 <!-- Cuerpo de la conversación (Hilo de mensajes + Sidebar de Resumen deslizable) -->
                                 <div class="wa-chat-body-wrapper">
@@ -912,6 +905,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V387-FIX-DROPDOWN-PERSISTENCE"></script>
+    <script src="/admin/admin.js?v=20260827-V388-REMOVE-ARCHIVED"></script>
 </body>
 </html>
