@@ -2704,6 +2704,18 @@ div.inbox-toolbar-header,
     max-height: 100px;
 }
 
+.whatsapp-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.whatsapp-input-row .whatsapp-textarea-wrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .whatsapp-textarea-wrapper textarea:focus {
     border-color: #00a884;
     box-shadow: 0 0 0 2px rgba(0, 168, 132, 0.2);
@@ -2711,11 +2723,17 @@ div.inbox-toolbar-header,
 
 .whatsapp-actions-footer {
     display: flex;
-    justify-content: space-between;
+    justify-content: stretch;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 4px;
+    width: 100%;
+    margin-top: 2px;
+}
+
+.btn-human-toggle,
+.btn-conclude-action {
+    flex: 1 1 100%;
+    justify-content: center;
 }
 
 .btn-human-toggle {
@@ -3409,26 +3427,48 @@ div.inbox-toolbar-header,
         flex-shrink: 0 !important;
     }
 
+    .whatsapp-input-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .whatsapp-input-row .whatsapp-textarea-wrapper {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
     .whatsapp-textarea-wrapper textarea {
         font-size: 16px !important; /* Evita zoom automático en Safari iOS */
-        min-height: 44px !important;
+        min-height: 40px !important;
         max-height: 80px !important;
         padding: 8px 12px !important;
     }
 
+    .btn-send-whatsapp-icon {
+        flex: 0 0 auto !important;
+    }
+
+    .btn-send-whatsapp-icon .send-icon-img {
+        width: 38px !important;
+        height: 38px !important;
+    }
+
     .whatsapp-actions-footer {
+        display: flex !important;
+        width: 100% !important;
         gap: 6px !important;
     }
 
     .btn-human-toggle,
-    .btn-conclude-action,
-    .btn-secondary-simple,
-    .btn-send-whatsapp {
+    .btn-conclude-action {
         padding: 7px 10px !important;
         font-size: 0.78rem !important;
-        flex: 1 1 auto !important;
+        flex: 1 1 100% !important;
         justify-content: center !important;
         text-align: center !important;
+        width: 100% !important;
     }
 
     /* Ajuste de tarjetas de solicitud en móvil */

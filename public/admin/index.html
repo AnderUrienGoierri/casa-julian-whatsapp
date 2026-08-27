@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V340-CHAT-HEADER-MINI-CLOSE-AND-SEND-ICON">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V341-INPUT-ROW-SEND-ICON-ALIGNED">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -181,26 +181,25 @@
                     <form id="reply-form" class="whatsapp-input-form">
                         <input type="hidden" id="reply-solicitud-id" value="">
                         
-                        <div class="whatsapp-textarea-wrapper">
-                            <textarea id="reply-message-text" rows="3" placeholder="Escribe el mensaje de WhatsApp que se enviará al cliente..." required></textarea>
+                        <!-- Fila del Input de Texto + Botón Enviar WhatsApp a la derecha -->
+                        <div class="whatsapp-input-row">
+                            <div class="whatsapp-textarea-wrapper">
+                                <textarea id="reply-message-text" rows="2" placeholder="Escribe el mensaje de WhatsApp que se enviará al cliente..." required></textarea>
+                            </div>
+                            <button type="submit" id="send-reply-submit-btn" class="btn-send-whatsapp-icon" title="Enviar WhatsApp">
+                                <img src="/admin/icono_enviar_whatsapp.png" alt="Enviar WhatsApp" class="send-icon-img">
+                            </button>
                         </div>
 
                         <div id="reply-error-msg" class="error-msg" style="display: none; margin-top: 4px;"></div>
 
                         <div class="whatsapp-actions-footer">
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button type="button" id="btn-toggle-human-mode" class="btn-human-toggle">
-                                    👤 Activar Atención Humana
-                                </button>
-                                <button type="button" id="btn-concluir-gestion" class="btn-conclude-action" style="display: none;">
-                                    ✅ Concluir Gestión & Reactivar Bot
-                                </button>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <button type="submit" id="send-reply-submit-btn" class="btn-send-whatsapp-icon" title="Enviar WhatsApp">
-                                    <img src="/admin/icono_enviar_whatsapp.png" alt="Enviar WhatsApp" class="send-icon-img">
-                                </button>
-                            </div>
+                            <button type="button" id="btn-toggle-human-mode" class="btn-human-toggle">
+                                👤 Activar Atención Humana
+                            </button>
+                            <button type="button" id="btn-concluir-gestion" class="btn-conclude-action" style="display: none;">
+                                ✅ Concluir Gestión & Reactivar Bot
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -923,6 +922,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V340-CHAT-HEADER-MINI-CLOSE-AND-SEND-ICON"></script>
+    <script src="/admin/admin.js?v=20260827-V341-INPUT-ROW-SEND-ICON-ALIGNED"></script>
 </body>
 </html>
