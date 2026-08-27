@@ -2301,22 +2301,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ── Chats Fijados con Chincheta ──────────────────────────────────────────
+    let activeCardDropdownPhone = null;
+
     function getPinnedChatsMap() {
         try {
             const saved = localStorage.getItem('casa_julian_pinned_chats');
-            if (saved) {
-                return JSON.parse(saved);
+            let map = saved ? JSON.parse(saved) : null;
+            if (!map || typeof map !== 'object' || Object.keys(map).length === 0) {
+                // Valores por defecto alineados con los chats destacados de WhatsApp Business
+                map = {
+                    "34645747754": true, // Xabi Gorrotxategi
+                    "34623476521": true, // Ricardo Entretiempo Studio
+                    "41795958760": true  // +41 79 595 87 60
+                };
+                localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(map));
             }
-            // Valores por defecto alineados con los chats destacados de WhatsApp Business
-            const defaultPinned = {
-                "34623476521": true, // Ricardo Entretiempo Studio
-                "41795958760": true, // +41 79 595 87 60
-                "34645747754": true  // Xabi Gorrotxategi
-            };
-            localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(defaultPinned));
-            return defaultPinned;
+            return map;
         } catch (e) {
-            return {};
+            return {
+                "34645747754": true,
+                "34623476521": true,
+                "41795958760": true
+            };
         }
     }
 
@@ -2740,11 +2746,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Generar separadores de sección (Fijados / Chats)
-        const hasPinned = filtered.some(c => isChatPinned((c.telefono || '').replace(/\D/g, '')));
-        let pinnedHeaderAdded = false;
-        let regularHeaderAdded = false;
-
         const cardsHtml = [];
 
         filtered.forEach(c => {
@@ -2756,6 +2757,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isPending = status === 'pendiente';
             const isPinned = isChatPinned(cleanPhone);
             const isSelected = activeConversationPhone === cleanPhone;
+            const isDropdownOpen = (activeCardDropdownPhone === cleanPhone);
 
             // Icono de doble check si es mensaje enviado por recepción
             const outgoingCheckHtml = !isFromClient 
@@ -2801,15 +2803,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
-            // Separadores de sección Fijados / Chats
-            if (isPinned && !pinnedHeaderAdded) {
-                cardsHtml.push(`<div class="wa-section-header" style="padding: 6px 16px; font-size: 0.72rem; font-weight: 600; color: #8696a0; letter-spacing: 0.8px; text-transform: uppercase; background: #0c1519; border-bottom: 1px solid rgba(134,150,160,0.1);">📌 Fijados</div>`);
-                pinnedHeaderAdded = true;
-            } else if (!isPinned && !regularHeaderAdded && hasPinned) {
-                cardsHtml.push(`<div class="wa-section-header" style="padding: 6px 16px; font-size: 0.72rem; font-weight: 600; color: #8696a0; letter-spacing: 0.8px; text-transform: uppercase; background: #0c1519; border-bottom: 1px solid rgba(134,150,160,0.1);">💬 Todos los chats</div>`);
-                regularHeaderAdded = true;
-            }
-
             cardsHtml.push(`
                 <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''} ${isSelected ? 'is-selected' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
                     ${avatarHtml}
@@ -2834,7 +2827,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
 
                         <!-- Dropdown de Acciones Rápidas -->
-                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: none; padding-top: 8px; margin-top: 6px; border-top: 1px solid rgba(134, 150, 160, 0.15); flex-wrap: wrap; gap: 6px; width: 100%;">
+                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: ${isDropdownOpen ? 'flex' : 'none'}; padding-top: 8px; margin-top: 6px; border-top: 1px solid rgba(134, 150, 160, 0.15); flex-wrap: wrap; gap: 6px; width: 100%;">
                             <button class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 ${isPinned ? '📌 Desfijar' : '📌 Fijar arriba'}
                             </button>
@@ -2880,24 +2873,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 const phone = btn.getAttribute('data-phone');
                 const isNowPinned = toggleChatPinned(phone);
+                activeCardDropdownPhone = null;
                 showToast(isNowPinned ? '📌 Conversación fijada arriba' : 'Conversación desfijada');
                 syncUnifiedConversations();
                 renderInboxCards();
             });
         });
 
-        // Botón interactivo para alternar desplegable de más opciones (no se cierra solo, solo al clic fuera)
+        // Botón interactivo para alternar desplegable de más opciones (persistente, no se cierra solo por polling)
         container.querySelectorAll('.btn-card-more-actions').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 const phone = btn.getAttribute('data-phone');
-                const menu = document.getElementById(`dropdown-actions-${phone}`);
-                if (!menu) return;
-                const isVisible = menu.style.display === 'flex';
-                // Cerrar todos los otros dropdowns abiertos
-                document.querySelectorAll('.card-actions-dropdown-menu').forEach(m => { m.style.display = 'none'; });
-                // Abrir/cerrar el actual
-                menu.style.display = isVisible ? 'none' : 'flex';
+                if (activeCardDropdownPhone === phone) {
+                    activeCardDropdownPhone = null;
+                } else {
+                    activeCardDropdownPhone = phone;
+                }
+                document.querySelectorAll('.card-actions-dropdown-menu').forEach(m => {
+                    const isTarget = m.id === `dropdown-actions-${phone}`;
+                    m.style.display = (isTarget && activeCardDropdownPhone === phone) ? 'flex' : 'none';
+                });
             });
         });
 
@@ -2908,6 +2905,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const phone = btn.getAttribute('data-phone');
                 const targetStatus = btn.getAttribute('data-target-status'); // 'leido' o 'pendiente'
                 setManualChatStatus(phone, targetStatus);
+                activeCardDropdownPhone = null;
                 
                 // Si tiene solicitud activa vinculada, actualizar estado de solicitud en backend
                 const conv = allUnifiedConversations.find(c => c.telefono === phone);
@@ -2933,6 +2931,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.querySelectorAll('.btn-silence-chat-card').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                activeCardDropdownPhone = null;
                 const phone = btn.getAttribute('data-phone');
                 const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
                 openSilencedModal(phone, name);
@@ -2942,6 +2941,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.querySelectorAll('.btn-archive-chat-card').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
+                activeCardDropdownPhone = null;
                 const phone = btn.getAttribute('data-phone');
                 if (!confirm(`¿Deseas archivar la conversación del teléfono +${phone}?`)) return;
                 try {
@@ -2966,6 +2966,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.querySelectorAll('.btn-delete-chat-card').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
+                activeCardDropdownPhone = null;
                 const phone = btn.getAttribute('data-phone');
                 if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE todo el historial del chat +${phone}? Esta acción no se puede deshacer.`)) return;
                 try {
@@ -2987,13 +2988,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
-    // ── Cierre Global de Dropdowns de Tarjetas al Clic Fuera ─────────────────
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.btn-card-more-actions') && !e.target.closest('.card-actions-dropdown-menu')) {
-            document.querySelectorAll('.card-actions-dropdown-menu').forEach(m => { m.style.display = 'none'; });
-        }
-    });
 
     // ── Lógica del Dropdown ⋮ del Panel de Chat Activo ─────────────────────────
     (function setupPaneMoreActions() {
