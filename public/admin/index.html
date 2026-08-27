@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V380-FIX-SILENCED-TAB-SWITCH">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V381-RENAME-CANCELAR-BOT">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -249,7 +249,7 @@
                         </button>
                         <button type="button" class="dropdown-menu-item" id="dropdown-tab-silenced" data-tab-target="tab-silenced">
                             <span class="dropdown-item-icon">🔇</span>
-                            <span class="dropdown-item-text">Números Silenciados</span>
+                            <span class="dropdown-item-text">Números Bot Cancelado</span>
                             <span id="dropdown-silenced-badge" class="dropdown-badge" style="background:#a855f7; color:#fff;">0</span>
                         </button>
 
@@ -289,7 +289,7 @@
         <!-- Navegación por Pestañas -->
         <nav class="tabs-nav">
             <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón Recepción <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
-            <button class="tab-btn" data-tab="tab-silenced">🔇 Números Silenciados <span id="silenced-count-badge" class="draft-badge" style="background:#a855f7; color:#fff; display:inline-block;">0</span></button>
+            <button class="tab-btn" data-tab="tab-silenced">🔇 Números Bot Cancelado <span id="silenced-count-badge" class="draft-badge" style="background:#a855f7; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-flow">🌳 Estructura &amp; Árbol de Flujos</button>
             <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes &amp; Textos</button>
             <button class="tab-btn" data-tab="tab-rules">⚙️ Flujo &amp; Respuestas por Palabras Clave</button>
@@ -444,7 +444,7 @@
                     </div>
                 </div>
 
-                <!-- Pestaña 0C: Números Silenciados (Modo Silencioso / Bypass Automático del Bot) -->
+                <!-- Pestaña 0C: Números Bot Cancelado (Bypass Automático del Bot) -->
                 <div id="tab-silenced" class="tab-content">
                     <!-- Toolbar de Filtros y Búsqueda de Números Silenciados -->
                     <div class="inbox-toolbar-card" style="margin-bottom: 18px; padding: 14px 18px;">
@@ -481,7 +481,7 @@
                             </thead>
                             <tbody id="silenced-numbers-table-body">
                                 <tr>
-                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando lista de números silenciados...</td>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando lista de números con bot cancelado...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -860,10 +860,10 @@
         </div>
     </div>
 
-    <!-- Modal para Añadir / Editar Número Silenciado -->
+    <!-- Modal para Añadir / Editar Número Bot Cancelado -->
     <div id="silenced-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="max-width: 480px;">
-            <h3 id="silenced-modal-title">🔇 Silenciar Número de Teléfono</h3>
+            <h3 id="silenced-modal-title">🔇 Cancelar Bot para Número de Teléfono</h3>
             <p style="font-size: 0.85rem; color: #94a3b8; margin-top: -6px; margin-bottom: 16px;">El chatbot no enviará respuestas automáticas a este contacto.</p>
             
             <form id="silenced-number-form">
@@ -880,7 +880,7 @@
                     <select id="silenced-cat-select" class="custom-select" style="width: 100%;">
                         <option value="proveedor">🚚 Proveedor (Carne, Bebida, Uniformes, etc.)</option>
                         <option value="empleado">👷 Personal / Empleado / Alba</option>
-                        <option value="otro">📌 Otro Contacto Silenciado</option>
+                        <option value="otro">📌 Otro Contacto (Bot Cancelado)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -895,6 +895,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V380-FIX-SILENCED-TAB-SWITCH"></script>
+    <script src="/admin/admin.js?v=20260827-V381-RENAME-CANCELAR-BOT"></script>
 </body>
 </html>

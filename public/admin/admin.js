@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (tabId === 'tab-silenced') {
             if (iconEl) iconEl.textContent = '🔇';
-            nameEl.textContent = 'Números Silenciados';
+            nameEl.textContent = 'Números Bot Cancelado';
             if (badgeEl) {
                 const count = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) 
                     ? allSilencedNumbers.length 
@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cleanPhone = (item.telefono || '').toString().replace(/\D/g, '');
             const isSilencedActive = item.activo !== false;
             const statusHtml = isSilencedActive
-                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700;">🔇 Silenciado (Bypass)</span>`
+                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700;">🔇 Bot Cancelado</span>`
                 : `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700;">🤖 Bot Activo</span>`;
 
             return `
@@ -528,8 +528,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td class="col-actions" style="padding: 12px 16px; text-align: right; white-space: nowrap;">
                         <div class="silenced-actions-group">
-                            <button class="btn-toggle-silence" data-id="${item.id}" data-active="${isSilencedActive}" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="${isSilencedActive ? 'Desactivar silencio (reactivar bot)' : 'Activar silencio permanente'}">
-                                ${isSilencedActive ? '🔔 Activar Bot' : '🔇 Silenciar'}
+                            <button class="btn-toggle-silence" data-id="${item.id}" data-active="${isSilencedActive}" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="${isSilencedActive ? 'Reactivar chatbot para este número' : 'Cancelar respuestas automáticas del bot'}">
+                                ${isSilencedActive ? '🔔 Activar Bot' : '🔇 Cancelar Bot'}
                             </button>
                             <button class="btn-delete-silence" data-id="${item.id}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="Eliminar de la lista">
                                 🗑️ Eliminar
@@ -562,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
                 const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
-                if (!confirm(`¿Eliminar a "${name}" de la lista de números silenciados? El bot volverá a responderle con menús automáticos.`)) return;
+                if (!confirm(`¿Eliminar a "${name}" de la lista de números con bot cancelado? El bot volverá a responderle con menús automáticos.`)) return;
                 try {
                     await fetch(`/api/admin/silenced-numbers/${id}`, {
                         method: 'DELETE',
@@ -632,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success) {
                     closeSilencedModal();
                     await fetchSilencedNumbers();
-                    alert(`✅ Número ${phone} (${name}) guardado exitosamente en Modo Silencioso.`);
+                    alert(`✅ Número ${phone} (${name}) guardado exitosamente en la lista de Números Bot Cancelado.`);
                 } else {
                     alert('Error guardando contacto: ' + (data.error || 'Error desconocido'));
                 }
@@ -2831,8 +2831,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 📲 WhatsApp
                             </a>
-                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
-                                🔇 Silenciar
+                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Cancelar bot para este número" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
+                                🔇 Cancelar Bot
                             </button>
                             <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 📦 Archivar
