@@ -4323,7 +4323,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 paneMsgInput.value = templateText;
                 paneMsgInput.focus();
                 paneMsgInput.style.height = 'auto';
-                paneMsgInput.style.height = Math.min(Math.max(paneMsgInput.scrollHeight, 48), 180) + 'px';
+                paneMsgInput.style.height = Math.min(Math.max(paneMsgInput.scrollHeight, 68), 220) + 'px';
             }
         });
     });
@@ -4333,7 +4333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (paneReplyTextareaEl) {
         paneReplyTextareaEl.addEventListener('input', () => {
             paneReplyTextareaEl.style.height = 'auto';
-            paneReplyTextareaEl.style.height = Math.min(Math.max(paneReplyTextareaEl.scrollHeight, 48), 180) + 'px';
+            paneReplyTextareaEl.style.height = Math.min(Math.max(paneReplyTextareaEl.scrollHeight, 68), 220) + 'px';
         });
     }
 
