@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // INBOX & SOLICITUDES DOM & STATE
     let allSolicitudes = [];
+    let allWhatsAppChats = [];
+    let allUnifiedConversations = [];
     let currentInboxCatFilter = 'all';
     let currentInboxStatusFilter = 'all';
     let currentInboxSearch = '';
@@ -213,23 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (iconEl) iconEl.textContent = '📥';
                 nameEl.textContent = 'Buzón Recepción';
                 if (badgeEl) {
-                    const count = (typeof allSolicitudes !== 'undefined' && Array.isArray(allSolicitudes)) 
-                        ? allSolicitudes.filter(s => s.estado !== 'ARCHIVADA' && s.estado !== 'ELIMINADA').length 
-                        : 0;
+                    const count = getPendingConversationsCount();
                     badgeEl.textContent = count;
                     badgeEl.style.background = '#ef4444';
-                    badgeEl.style.color = '#fff';
-                    badgeEl.style.display = 'inline-block';
-                }
-            } else if (tabId === 'tab-chats') {
-                if (iconEl) iconEl.textContent = '💬';
-                nameEl.textContent = 'Chats WhatsApp';
-                if (badgeEl) {
-                    const count = (typeof allWhatsAppChats !== 'undefined' && Array.isArray(allWhatsAppChats)) 
-                        ? allWhatsAppChats.length 
-                        : 0;
-                    badgeEl.textContent = count;
-                    badgeEl.style.background = '#10b981';
                     badgeEl.style.color = '#fff';
                     badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
                 }
@@ -281,8 +269,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const targetEl = document.getElementById(targetTab);
                     if (targetEl) targetEl.classList.add('active');
                     updateHeaderActiveTab(targetTab);
-                    if (targetTab === 'tab-inbox') fetchSolicitudes();
-                    if (targetTab === 'tab-chats') fetchWhatsAppChats();
+                    if (targetTab === 'tab-inbox') {
+                        fetchSolicitudes();
+                        fetchWhatsAppChats();
+                    }
                     if (targetTab === 'tab-silenced') fetchSilencedNumbers();
                 }
                 headerMenuDropdown.classList.remove('show');
@@ -341,8 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateHeaderActiveTab(tabId);
             }
 
-            if (tabId === 'tab-inbox') fetchSolicitudes();
-            if (tabId === 'tab-chats') fetchWhatsAppChats();
+            if (tabId === 'tab-inbox') {
+                fetchSolicitudes();
+                fetchWhatsAppChats();
+            }
             if (tabId === 'tab-silenced') fetchSilencedNumbers();
             if (tabId === 'tab-flow') renderUseCasesFlow();
             if (tabId === 'tab-texts') renderTextsGrid();
@@ -649,10 +641,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Aplicar restricciones visuales por rol de usuario
         const role = localStorage.getItem('casa_julian_user_role') || 'admin';
         if (role === 'recepcion') {
-            // RECEPCIÓN: Buzón de Solicitudes, Chats WhatsApp y Números Silenciados visibles
+            // RECEPCIÓN: Buzón de Recepción y Números Silenciados visibles
             document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
                 const t = btn.getAttribute('data-tab');
-                btn.style.display = (t === 'tab-inbox' || t === 'tab-chats' || t === 'tab-silenced') ? 'inline-block' : 'none';
+                btn.style.display = (t === 'tab-inbox' || t === 'tab-silenced') ? 'inline-block' : 'none';
             });
             // Ocultar el simulador de móvil (no necesario para recepción)
             document.body.classList.add('mode-recepcion');
@@ -2210,6 +2202,69 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ── Estado Unificado del Buzón de Recepción ──────────────────────────────
+
+    // Mapa de estados manuales (persistido en localStorage)
+    function getManualChatStatusMap() {
+        try {
+            return JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function setManualChatStatus(phone, status) {
+        const map = getManualChatStatusMap();
+        const clean = (phone || '').replace(/\D/g, '');
+        if (clean) {
+            map[clean] = status; // 'pendiente' o 'leido'
+            localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(map));
+        }
+    }
+
+    function getConversationStatus(c) {
+        const cleanPhone = (c.telefono || '').replace(/\D/g, '');
+        const manualMap = getManualChatStatusMap();
+        if (manualMap[cleanPhone]) {
+            return manualMap[cleanPhone]; // 'pendiente' o 'leido'
+        }
+        // Por defecto: si tiene solicitud activa en PENDIENTE o EN_ATENCION, o último mensaje del cliente
+        if (c.solicitudEstado === 'PENDIENTE' || c.solicitudEstado === 'EN_ATENCION') {
+            return 'pendiente';
+        }
+        if (c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user') {
+            return 'pendiente';
+        }
+        return 'leido';
+    }
+
+    function getPendingConversationsCount() {
+        if (!Array.isArray(allUnifiedConversations) || allUnifiedConversations.length === 0) {
+            if (Array.isArray(allSolicitudes)) {
+                return allSolicitudes.filter(s => s.estado === 'PENDIENTE' || s.estado === 'EN_ATENCION').length;
+            }
+            return 0;
+        }
+        return allUnifiedConversations.filter(c => getConversationStatus(c) === 'pendiente').length;
+    }
+
+    function getCategoryBadgeHtml(cat) {
+        const c = (cat || 'cliente').toLowerCase();
+        if (c === 'proveedor' || c === 'proveedores') {
+            return `<span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Proveedor</span>`;
+        }
+        if (c === 'alba') {
+            return `<span style="background: rgba(244, 114, 182, 0.15); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🌸 Alba</span>`;
+        }
+        if (c === 'hoteles' || c === 'hotel') {
+            return `<span style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟡 Hotel</span>`;
+        }
+        if (c === 'taxi' || c === 'taxis') {
+            return `<span style="background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🚕 Taxi</span>`;
+        }
+        return `<span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">👥 Cliente</span>`;
+    }
+
     // Cargar Solicitudes desde Backend y Detectar Mensajes Nuevos en Tiempo Real
     async function fetchSolicitudes() {
         if (!adminToken) return;
@@ -2267,7 +2322,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         latestClientMsgInfo.text
                     );
 
-                    // Si la barra flotante minimizada está visible, encender indicador de nuevo mensaje
                     const miniWidget = document.getElementById('minimized-chat-widget');
                     const miniBadge = document.getElementById('minimized-unread-badge');
                     if (miniWidget && miniWidget.style.display !== 'none') {
@@ -2275,7 +2329,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (miniBadge) miniBadge.style.display = 'inline-block';
                     }
 
-                    // Si el modal está abierto con este mismo cliente, actualizar el chat en vivo
                     if (activeReplySolicitud && activeReplySolicitud.id === latestClientMsgInfo.solId) {
                         const updatedActiveSol = allSolicitudes.find(s => s.id === latestClientMsgInfo.solId);
                         if (updatedActiveSol) {
@@ -2285,87 +2338,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
+                syncUnifiedConversations();
                 renderInboxCards();
                 renderMinimizedChatsStack();
             }
         } catch (err) {
             console.error("⚠️ Error cargando solicitudes del buzón:", err);
         }
-    }
-
-    // Conjunto de IDs seleccionados para acciones masivas
-    let selectedSolicitudIds = new Set();
-
-    // Actualiza la barra de acciones masivas
-    function updateBulkActionsBar() {
-        const countEl = document.getElementById('inbox-selected-count');
-        const bulkDeleteBtn = document.getElementById('inbox-bulk-delete-btn');
-        const bulkArchiveBtn = document.getElementById('inbox-bulk-archive-btn');
-        const selectAllCb = document.getElementById('inbox-select-all-cb');
-
-        const totalSelected = selectedSolicitudIds.size;
-        if (countEl) countEl.textContent = totalSelected;
-
-        document.querySelectorAll('.bulk-count-num').forEach(el => {
-            el.textContent = totalSelected;
-        });
-
-        if (bulkDeleteBtn) {
-            bulkDeleteBtn.style.display = totalSelected > 0 ? 'inline-flex' : 'none';
-        }
-        if (bulkArchiveBtn) {
-            // Mostrar botón archivar seleccionadas solo si estamos en vista Activas
-            bulkArchiveBtn.style.display = (totalSelected > 0 && currentInboxView === 'active') ? 'inline-flex' : 'none';
-        }
-
-        // Marcar/desmarcar checkbox global
-        const visibleCheckboxes = document.querySelectorAll('.card-select-cb');
-        if (selectAllCb) {
-            if (visibleCheckboxes.length > 0 && totalSelected === visibleCheckboxes.length) {
-                selectAllCb.checked = true;
-                selectAllCb.indeterminate = false;
-            } else if (totalSelected > 0 && totalSelected < visibleCheckboxes.length) {
-                selectAllCb.checked = false;
-                selectAllCb.indeterminate = true;
-            } else {
-                selectAllCb.checked = false;
-                selectAllCb.indeterminate = false;
-            }
-        }
-    }
-
-    // Actualiza el resumen de filtros activos en el header del toggle
-    function updateFiltersSummary() {
-        const el = document.getElementById('inbox-active-filters-summary');
-        if (!el) return;
-        const parts = [];
-        if (currentInboxView === 'ARCHIVADA') parts.push('📦 Archivadas');
-        if (currentInboxCatFilter !== 'all') parts.push(currentInboxCatFilter);
-        if (currentInboxStatusFilter !== 'all') parts.push(currentInboxStatusFilter);
-        if (currentInboxSearch.trim()) parts.push(`"${currentInboxSearch.trim()}"`);
-        el.textContent = parts.length ? `— ${parts.join(' · ')}` : '';
-    }
-
-    // ── Estado de Chats WhatsApp ──────────────────────────────────────────
-    let allWhatsAppChats = [];
-    let currentChatCategoryFilter = 'all';
-    let searchChatsFilter = '';
-
-    function getCategoryBadgeHtml(cat) {
-        const c = (cat || 'cliente').toLowerCase();
-        if (c === 'proveedor' || c === 'proveedores') {
-            return `<span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Proveedor</span>`;
-        }
-        if (c === 'alba') {
-            return `<span style="background: rgba(244, 114, 182, 0.15); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🌸 Alba</span>`;
-        }
-        if (c === 'hoteles' || c === 'hotel') {
-            return `<span style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟡 Hotel</span>`;
-        }
-        if (c === 'taxi' || c === 'taxis') {
-            return `<span style="background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🚕 Taxi</span>`;
-        }
-        return `<span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">👥 Cliente</span>`;
     }
 
     async function fetchWhatsAppChats() {
@@ -2380,21 +2359,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 const data = await res.json();
                 allWhatsAppChats = data.chats || [];
-                console.log("💬 [Chats WhatsApp] Cargadas conversaciones:", allWhatsAppChats.length, allWhatsAppChats);
-                
-                // Actualizar badge de contador en la pestaña y en el menú desplegable
-                const chatsCountBadge = document.getElementById('chats-count-badge');
-                const dropdownChatsBadge = document.getElementById('dropdown-chats-badge');
-                if (chatsCountBadge) {
-                    chatsCountBadge.textContent = allWhatsAppChats.length;
-                    chatsCountBadge.style.display = allWhatsAppChats.length > 0 ? 'inline-block' : 'none';
-                }
-                if (dropdownChatsBadge) {
-                    dropdownChatsBadge.textContent = allWhatsAppChats.length;
-                    dropdownChatsBadge.style.display = allWhatsAppChats.length > 0 ? 'inline-block' : 'none';
-                }
-
-                renderWhatsAppChats();
+                syncUnifiedConversations();
+                renderInboxCards();
             } else {
                 console.warn("⚠️ [Chats WhatsApp] Error HTTP en /api/admin/chats:", res.status);
             }
@@ -2403,25 +2369,111 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderWhatsAppChats() {
-        const container = document.getElementById('whatsapp-chats-container');
-        const summaryEl = document.getElementById('chats-total-summary');
+    // Combina chats de historial con solicitudes y contactos para tener la lista completa
+    function syncUnifiedConversations() {
+        const map = new Map();
+
+        // 1. Agregar todas las conversaciones de WhatsApp
+        allWhatsAppChats.forEach(c => {
+            const phoneClean = (c.telefono || '').replace(/\D/g, '');
+            if (!phoneClean) return;
+            map.set(phoneClean, {
+                telefono: phoneClean,
+                nombreCliente: c.nombreCliente || `+${phoneClean}`,
+                categoria: c.categoria || 'cliente',
+                ultimoMensajeFecha: c.ultimoMensajeFecha || new Date().toISOString(),
+                ultimoTexto: c.ultimoTexto || '',
+                ultimoEmisor: c.ultimoEmisor || 'cliente',
+                totalInteracciones: c.totalInteracciones || 1,
+                solicitudId: c.solicitudId || null,
+                solicitudEstado: c.solicitudEstado || null,
+                tipoSolicitud: c.tipoSolicitud || null
+            });
+        });
+
+        // 2. Vincular o insertar solicitudes activas
+        allSolicitudes.forEach(sol => {
+            const phoneClean = (sol.telefonoCliente || sol.telefonoReserva || '').replace(/\D/g, '');
+            if (!phoneClean) return;
+            if (map.has(phoneClean)) {
+                const item = map.get(phoneClean);
+                item.solicitudId = sol.id;
+                item.solicitudEstado = sol.estado;
+                item.tipoSolicitud = sol.tipoAccion || sol.categoria;
+                if (sol.nombreCliente && (!item.nombreCliente || item.nombreCliente.startsWith('+'))) {
+                    item.nombreCliente = sol.nombreCliente;
+                }
+                if (new Date(sol.created_at || 0) > new Date(item.ultimoMensajeFecha)) {
+                    item.ultimoMensajeFecha = sol.created_at;
+                }
+            } else {
+                map.set(phoneClean, {
+                    telefono: phoneClean,
+                    nombreCliente: sol.nombreCliente || `+${phoneClean}`,
+                    categoria: sol.categoria || 'cliente',
+                    ultimoMensajeFecha: sol.created_at || new Date().toISOString(),
+                    ultimoTexto: sol.datosDetallados || 'Nueva solicitud',
+                    ultimoEmisor: 'cliente',
+                    totalInteracciones: Array.isArray(sol.mensajes) ? sol.mensajes.length : 1,
+                    solicitudId: sol.id,
+                    solicitudEstado: sol.estado,
+                    tipoSolicitud: sol.tipoAccion || sol.categoria
+                });
+            }
+        });
+
+        // 3. Ordenar cronológicamente descendente: Más reciente primero
+        allUnifiedConversations = Array.from(map.values()).sort((a, b) => {
+            const tA = new Date(a.ultimoMensajeFecha || 0).getTime();
+            const tB = new Date(b.ultimoMensajeFecha || 0).getTime();
+            return tB - tA;
+        });
+
+        // 4. Actualizar contadores del header y dropdown
+        updateHeaderAndMenuBadges();
+    }
+
+    function updateHeaderAndMenuBadges() {
+        const pendingCount = getPendingConversationsCount();
+        const inboxCountBadge = document.getElementById('inbox-count-badge');
+        const dropdownInboxBadge = document.getElementById('dropdown-inbox-badge');
+        const headerActiveBadge = document.getElementById('header-active-tab-badge');
+
+        if (inboxCountBadge) {
+            inboxCountBadge.textContent = pendingCount;
+            inboxCountBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        }
+        if (dropdownInboxBadge) {
+            dropdownInboxBadge.textContent = pendingCount;
+            dropdownInboxBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        }
+        if (currentActiveTabId === 'tab-inbox' && headerActiveBadge) {
+            headerActiveBadge.textContent = pendingCount;
+            headerActiveBadge.style.background = '#ef4444';
+            headerActiveBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    // Renderizar Tarjetas Unificadas de Conversación en Buzón Recepción
+    function renderInboxCards() {
+        const container = document.getElementById('inbox-cards-container');
+        const summaryEl = document.getElementById('inbox-total-summary');
         if (!container) return;
 
-        // Actualizar contadores por categoría
-        const total = allWhatsAppChats.length;
-        const countCli = allWhatsAppChats.filter(c => !c.categoria || c.categoria === 'cliente').length;
-        const countProv = allWhatsAppChats.filter(c => c.categoria === 'proveedor').length;
-        const countAlba = allWhatsAppChats.filter(c => c.categoria === 'alba').length;
-        const countHoteles = allWhatsAppChats.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel').length;
-        const countTaxi = allWhatsAppChats.filter(c => c.categoria === 'taxi').length;
+        // Calcular contadores por categoría
+        const total = allUnifiedConversations.length;
+        const countCli = allUnifiedConversations.filter(c => !c.categoria || c.categoria === 'cliente').length;
+        const countProv = allUnifiedConversations.filter(c => c.categoria === 'proveedor').length;
+        const countAlba = allUnifiedConversations.filter(c => c.categoria === 'alba').length;
+        const countHoteles = allUnifiedConversations.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel').length;
+        const countTaxi = allUnifiedConversations.filter(c => c.categoria === 'taxi').length;
 
-        const cAll = document.getElementById('count-chat-all');
-        const cCli = document.getElementById('count-chat-cli');
-        const cProv = document.getElementById('count-chat-prov');
-        const cAlba = document.getElementById('count-chat-alba');
-        const cHoteles = document.getElementById('count-chat-hoteles');
-        const cTaxi = document.getElementById('count-chat-taxi');
+        const cAll = document.getElementById('count-cat-all');
+        const cCli = document.getElementById('count-cat-cli');
+        const cProv = document.getElementById('count-cat-prov');
+        const cAlba = document.getElementById('count-cat-alba');
+        const cHoteles = document.getElementById('count-cat-hoteles');
+        const cTaxi = document.getElementById('count-cat-taxi');
         if (cAll) cAll.textContent = total;
         if (cCli) cCli.textContent = countCli;
         if (cProv) cProv.textContent = countProv;
@@ -2429,39 +2481,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cHoteles) cHoteles.textContent = countHoteles;
         if (cTaxi) cTaxi.textContent = countTaxi;
 
-        let filtered = [...allWhatsAppChats];
+        // Calcular contadores por estado
+        const countPend = allUnifiedConversations.filter(c => getConversationStatus(c) === 'pendiente').length;
+        const countRead = allUnifiedConversations.filter(c => getConversationStatus(c) === 'leido').length;
+        const cStatAll = document.getElementById('count-status-all');
+        const cStatPend = document.getElementById('count-status-pend');
+        const cStatRead = document.getElementById('count-status-read');
+        if (cStatAll) cStatAll.textContent = total;
+        if (cStatPend) cStatPend.textContent = countPend;
+        if (cStatRead) cStatRead.textContent = countRead;
 
-        // Filtro por categoría
-        if (currentChatCategoryFilter !== 'all') {
-            if (currentChatCategoryFilter === 'cliente') {
+        updateHeaderAndMenuBadges();
+
+        let filtered = [...allUnifiedConversations];
+
+        // 1. Filtrar por categoría
+        if (currentInboxCatFilter !== 'all') {
+            if (currentInboxCatFilter === 'cliente') {
                 filtered = filtered.filter(c => !c.categoria || c.categoria === 'cliente');
-            } else if (currentChatCategoryFilter === 'hoteles') {
+            } else if (currentInboxCatFilter === 'hoteles') {
                 filtered = filtered.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel');
             } else {
-                filtered = filtered.filter(c => c.categoria === currentChatCategoryFilter);
+                filtered = filtered.filter(c => c.categoria === currentInboxCatFilter);
             }
         }
 
-        // Filtro por búsqueda
-        if (searchChatsFilter.trim()) {
-            const q = searchChatsFilter.toLowerCase().trim();
-            filtered = filtered.filter(c => 
+        // 2. Filtrar por estado
+        if (currentInboxStatusFilter !== 'all') {
+            filtered = filtered.filter(c => getConversationStatus(c) === currentInboxStatusFilter);
+        }
+
+        // 3. Filtrar por buscador
+        if (currentInboxSearch.trim()) {
+            const q = currentInboxSearch.toLowerCase().trim();
+            filtered = filtered.filter(c =>
                 (c.telefono && c.telefono.toLowerCase().includes(q)) ||
                 (c.nombreCliente && c.nombreCliente.toLowerCase().includes(q)) ||
-                (c.ultimoTexto && c.ultimoTexto.toLowerCase().includes(q))
+                (c.ultimoTexto && c.ultimoTexto.toLowerCase().includes(q)) ||
+                (c.tipoSolicitud && c.tipoSolicitud.toLowerCase().includes(q))
             );
         }
 
         if (summaryEl) {
-            summaryEl.textContent = `${filtered.length} de ${allWhatsAppChats.length} conversaciones`;
+            summaryEl.textContent = `${filtered.length} de ${total} conversaciones`;
         }
 
         if (filtered.length === 0) {
             container.innerHTML = `
                 <div style="text-align: center; color: var(--text-muted); padding: 50px 20px; grid-column: 1 / -1; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-color);">
-                    <div style="font-size: 2.2rem; margin-bottom: 10px;">💬</div>
-                    <div style="font-size: 1.05rem; font-weight: 700; color: #fff;">No hay chats registrados</div>
-                    <p style="font-size: 0.85rem; margin-top: 6px; color: #94a3b8;">Cuando cualquier cliente escriba al WhatsApp del restaurante, su conversación aparecerá aquí desde el primer mensaje.</p>
+                    <div style="font-size: 2.2rem; margin-bottom: 10px;">📥</div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: #fff;">No hay conversaciones en este filtro</div>
+                    <p style="font-size: 0.85rem; margin-top: 6px; color: #94a3b8;">Los mensajes y peticiones de WhatsApp aparecerán aquí organizados por fecha y estado.</p>
                 </div>
             `;
             return;
@@ -2472,15 +2542,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const clientDisplayName = getClientDisplayName(c.nombreCliente, cleanPhone);
             const catBadge = getCategoryBadgeHtml(c.categoria);
             const timeStr = c.ultimoMensajeFecha ? new Date(c.ultimoMensajeFecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
-            const isFromClient = c.ultimoEmisor === 'cliente';
+            const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
             const emisorBadge = isFromClient 
                 ? `<span style="background: rgba(255, 255, 255, 0.1); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 600;">👤 Cliente</span>`
                 : `<span style="background: rgba(255, 255, 255, 0.06); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12); font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 13px; height: 13px; border-radius: 50%; object-fit: cover;"> Bot</span>`;
 
+            const status = getConversationStatus(c);
+            const isPending = status === 'pendiente';
+
+            const statusBadge = isPending
+                ? `<span style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700;">⏳ Pendiente</span>`
+                : `<span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">✅ Leído</span>`;
+
+            const toggleReadBtnHtml = isPending
+                ? `<button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="leido" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.14); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); white-space: nowrap;" title="Marcar esta conversación como atendida/leída">✓ Marcar Leído</button>`
+                : `<button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="pendiente" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.14); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;" title="Marcar esta conversación como pendiente de responder">⏳ Marcar Pendiente</button>`;
+
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
+            const cardBorderColor = isPending ? '#ef4444' : 'rgba(255, 255, 255, 0.15)';
+
             return `
-                <div class="solicitud-card chat-card-item" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="border-left: 3px solid rgba(255, 255, 255, 0.25); cursor: pointer;">
+                <div class="solicitud-card chat-card-item ${isPending ? 'has-unread-msg' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="border-left: 4px solid ${cardBorderColor}; cursor: pointer;">
                     <div class="solicitud-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div class="card-avatar" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; font-size: 1.2rem; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1);">
@@ -2492,10 +2575,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                            <span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.12); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
-                                ${c.totalInteracciones} ${c.totalInteracciones === 1 ? 'mensaje' : 'mensajes'}
-                            </span>
-                            <span style="font-size: 0.7rem; color: #94a3b8;">${timeStr}</span>
+                            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                                ${catBadge}
+                                ${statusBadge}
+                            </div>
+                            <span style="font-size: 0.72rem; color: #94a3b8;">⏰ ${timeStr}</span>
                         </div>
                     </div>
 
@@ -2520,6 +2604,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Silenciar respuestas automáticas del bot para este contacto">
                                 🔇 Silenciar
                             </button>
+                            ${toggleReadBtnHtml}
                         </div>
                         <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
                             <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" data-solid="${c.solicitudId || ''}" style="flex: 1; padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #1f232b; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); cursor: pointer;">
@@ -2537,13 +2622,50 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Event listeners para los botones de las tarjetas de chat
+        // Event listeners para las tarjetas de conversación
         container.querySelectorAll('.chat-card-item').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('a') || e.target.closest('button')) return;
                 const phone = card.getAttribute('data-phone');
                 const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
+                const conv = allUnifiedConversations.find(c => c.telefono === phone);
+                if (conv && conv.solicitudId) {
+                    const sol = allSolicitudes.find(s => s.id === conv.solicitudId);
+                    if (sol) {
+                        openReplyModal(sol);
+                        return;
+                    }
+                }
                 openHistoryModal(phone, name);
+            });
+        });
+
+        // Botón interactivo para alternar estado Pendiente / Leído
+        container.querySelectorAll('.btn-toggle-read-status').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const phone = btn.getAttribute('data-phone');
+                const targetStatus = btn.getAttribute('data-target-status'); // 'leido' o 'pendiente'
+                setManualChatStatus(phone, targetStatus);
+                
+                // Si tiene solicitud activa vinculada, actualizar estado de solicitud en backend
+                const conv = allUnifiedConversations.find(c => c.telefono === phone);
+                if (conv && conv.solicitudId) {
+                    const newSolStatus = targetStatus === 'leido' ? 'RESUELTA' : 'PENDIENTE';
+                    try {
+                        await fetch(`/api/admin/solicitudes/${conv.solicitudId}/estado`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                            body: JSON.stringify({ estado: newSolStatus })
+                        });
+                        conv.solicitudEstado = newSolStatus;
+                    } catch (err) {
+                        console.warn("⚠️ No se pudo sincronizar estado de solicitud:", err.message);
+                    }
+                }
+
+                showToast(targetStatus === 'leido' ? '✅ Chat marcado como Leído' : '⏳ Chat marcado como Pendiente');
+                renderInboxCards();
             });
         });
 
@@ -2570,7 +2692,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (data.success) {
                         showToast('📦 Conversación archivada.');
-                        loadRealtimeChats();
+                        await fetchWhatsAppChats();
                     } else {
                         alert('Error al archivar conversación: ' + (data.error || 'Desconocido'));
                     }
@@ -2594,7 +2716,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (data.success) {
                         showToast('🗑️ Conversación eliminada definitivamente.');
-                        loadRealtimeChats();
+                        await fetchWhatsAppChats();
                     } else {
                         alert('Error al eliminar conversación: ' + (data.error || 'Desconocido'));
                     }
@@ -2611,7 +2733,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const name = decodeURIComponent(btn.getAttribute('data-name') || 'Cliente');
                 const solId = btn.getAttribute('data-solid');
                 
-                // Si tiene una solicitud activa vinculada, abrir el modal de respuesta completa
                 if (solId) {
                     const sol = allSolicitudes.find(s => s.id === solId);
                     if (sol) {
@@ -2619,374 +2740,36 @@ document.addEventListener('DOMContentLoaded', () => {
                         return;
                     }
                 }
-                // Si es un chat general, abrir el historial de chat interactivo
                 openHistoryModal(phone, name);
             });
         });
     }
 
-    // ── Filtros por categoría de Chats WhatsApp ──────────────────────────────
-    document.querySelectorAll('[data-chat-filter]').forEach(chip => {
+    // ── Filtros por categoría de Buzón Recepción (Píldoras estilo WhatsApp) ───
+    document.querySelectorAll('[data-inbox-cat]').forEach(chip => {
         chip.addEventListener('click', () => {
-            document.querySelectorAll('[data-chat-filter]').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('[data-inbox-cat]').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
-            currentChatCategoryFilter = chip.getAttribute('data-chat-filter') || 'all';
-            renderWhatsAppChats();
+            currentInboxCatFilter = chip.getAttribute('data-inbox-cat') || 'all';
+            renderInboxCards();
         });
     });
 
-    // ── Buscador y Refresco de Chats WhatsApp ─────────────────────────────────
-    const searchChatsInput = document.getElementById('search-chats-input');
-    if (searchChatsInput) {
-        searchChatsInput.addEventListener('input', (e) => {
-            searchChatsFilter = e.target.value;
-            renderWhatsAppChats();
+    // ── Filtros por estado de Buzón Recepción (Píldoras Pendiente / Leído) ───
+    document.querySelectorAll('[data-inbox-status]').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('[data-inbox-status]').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentInboxStatusFilter = chip.getAttribute('data-inbox-status') || 'all';
+            renderInboxCards();
         });
-    }
+    });
 
-    const refreshChatsBtn = document.getElementById('refresh-chats-btn');
-    if (refreshChatsBtn) {
-        refreshChatsBtn.addEventListener('click', async () => {
-            refreshChatsBtn.disabled = true;
-            refreshChatsBtn.textContent = '⏳ Cargando...';
-            await fetchWhatsAppChats();
-            refreshChatsBtn.disabled = false;
-            refreshChatsBtn.innerHTML = '🔄 Actualizar Chats';
-        });
-    }
-
-    // Filtrar y Renderizar Tarjetas de Solicitudes
-    function renderInboxCards() {
-        if (!inboxCardsContainer) return;
-
-        let filtered = [...allSolicitudes];
-
-        // 0. Filtrar por VISTA (activas / archivadas)
-        if (currentInboxView === 'active') {
-            filtered = filtered.filter(s => s.estado !== 'ARCHIVADA' && s.estado !== 'ELIMINADA');
-        } else {
-            filtered = filtered.filter(s => s.estado === 'ARCHIVADA');
-        }
-
-        // 1. Filtrar por categoría
-        if (currentInboxCatFilter !== 'all') {
-            if (currentInboxCatFilter === 'modificaciones') {
-                filtered = filtered.filter(s => 
-                    s.categoria === 'modificaciones' || 
-                    s.categoria === 'mod_comensales' || 
-                    s.categoria === 'mod_dia' || 
-                    s.categoria === 'mod_hora' || 
-                    s.categoria === 'mod_general'
-                );
-            } else {
-                filtered = filtered.filter(s => s.categoria === currentInboxCatFilter);
-            }
-        }
-
-        // 2. Filtrar por estado (solo aplica en vista activas)
-        if (currentInboxView === 'active' && currentInboxStatusFilter !== 'all') {
-            filtered = filtered.filter(s => s.estado === currentInboxStatusFilter);
-        }
-
-        // 3. Filtrar por texto de búsqueda
-        if (currentInboxSearch.trim()) {
-            const q = currentInboxSearch.toLowerCase().trim();
-            filtered = filtered.filter(s =>
-                (s.nombreCliente || '').toLowerCase().includes(q) ||
-                (s.telefonoCliente || '').toLowerCase().includes(q) ||
-                (s.telefonoReserva || '').toLowerCase().includes(q) ||
-                (s.datosDetallados || '').toLowerCase().includes(q) ||
-                (s.tipoAccion || '').toLowerCase().includes(q)
-            );
-        }
-
-        // 4. Ordenar
-        const estadoOrder = { 'PENDIENTE': 0, 'EN_GESTION': 1, 'RESPONDIDA': 2, 'CONFIRMADA': 3, 'RECHAZADA': 4 };
-        filtered.sort((a, b) => {
-            if (currentInboxSort === 'date_asc') return new Date(a.created_at || 0) - new Date(b.created_at || 0);
-            if (currentInboxSort === 'alpha_asc') return (a.nombreCliente || '').localeCompare(b.nombreCliente || '', 'es');
-            if (currentInboxSort === 'alpha_desc') return (b.nombreCliente || '').localeCompare(a.nombreCliente || '', 'es');
-            if (currentInboxSort === 'estado') return (estadoOrder[a.estado] ?? 9) - (estadoOrder[b.estado] ?? 9);
-            return new Date(b.created_at || 0) - new Date(a.created_at || 0); // date_desc por defecto
-        });
-
-        // Actualizar resumen de filtros
-        updateFiltersSummary();
-
-        // Actualizar Badge de Contador Pendientes
-        const pendingCount = allSolicitudes.filter(s => s.estado === 'PENDIENTE').length;
-        if (inboxCountBadge) {
-            inboxCountBadge.textContent = pendingCount;
-            inboxCountBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
-        }
-        const dropdownInboxBadge = document.getElementById('dropdown-inbox-badge');
-        if (dropdownInboxBadge) {
-            dropdownInboxBadge.textContent = pendingCount;
-            dropdownInboxBadge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
-        }
-
-        // Limpiar seleccionados que ya no existen o no están visibles si cambió la vista
-        const currentFilteredIds = new Set(filtered.map(s => s.id));
-        for (const selId of selectedSolicitudIds) {
-            if (!currentFilteredIds.has(selId)) {
-                selectedSolicitudIds.delete(selId);
-            }
-        }
-        updateBulkActionsBar();
-
-        // Empty state
-        const emptyIcon = currentInboxView === 'ARCHIVADA' ? '📦' : '📥';
-        const emptyLabel = currentInboxView === 'ARCHIVADA' ? 'No hay solicitudes archivadas' : 'No hay solicitudes que coincidan con los filtros';
-        if (filtered.length === 0) {
-            inboxCardsContainer.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 20px; background: rgba(15, 23, 42, 0.4); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px;">
-                    <div style="font-size: 2.5rem; margin-bottom: 8px;">${emptyIcon}</div>
-                    <div style="font-size: 1.1rem; font-weight: 600; color: #fff;">${emptyLabel}</div>
-                    <p style="font-size: 0.85rem; margin-top: 4px;">Las nuevas peticiones enviadas por los clientes desde WhatsApp aparecerán aquí automáticamente.</p>
-                </div>
-            `;
-            return;
-        }
-
-        let html = '';
-        const isArchiveView = currentInboxView === 'ARCHIVADA';
-
-        filtered.forEach(sol => {
-            const dateStr = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
-            const isUnread = unreadSolicitudIds.has(sol.id);
-            const isSelected = selectedSolicitudIds.has(sol.id);
-
-            // Badge de Categoría sobrio y elegante
-            let catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
-            if (sol.categoria === 'reservas_menu_tradicion') {
-                catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">🎁 Menú Tradición</span>`;
-            } else if (sol.categoria === 'modificaciones' || sol.categoria === 'mod_comensales' || sol.categoria === 'mod_dia' || sol.categoria === 'mod_hora' || sol.categoria === 'mod_general') {
-                catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">🔄 Modificaciones</span>`;
-            } else if (sol.categoria === 'cancelacion') {
-                catTagHtml = `<span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">❌ Cancelaciones</span>`;
-            } else if (sol.categoria === 'faqs') {
-                catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">❓ Preguntas Frecuentes</span>`;
-            } else if (sol.categoria === 'consulta_abierta') {
-                catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">💬 Consultas Abiertas</span>`;
-            }
-
-            // Badge de Estado
-            let statusBadgeHtml = `<span style="background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">⏳ PENDIENTE</span>`;
-            if (sol.estado === 'RESPONDIDA') {
-                statusBadgeHtml = `<span style="background: rgba(255, 255, 255, 0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">💬 RESPONDIDA</span>`;
-            } else if (sol.estado === 'CONFIRMADA') {
-                statusBadgeHtml = `<span style="background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">✅ CONFIRMADA</span>`;
-            } else if (sol.estado === 'RECHAZADA') {
-                statusBadgeHtml = `<span style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">🚫 RECHAZADA</span>`;
-            } else if (sol.estado === 'ARCHIVADA') {
-                statusBadgeHtml = `<span style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">📦 ARCHIVADA</span>`;
-            }
-
-            const phoneFormatted = sol.telefonoCliente || sol.telefonoReserva || 'Desconocido';
-            const isHandoverActive = sol.enAtencionHumana === true && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
-            const handoverBadgeHtml = isHandoverActive
-                ? `<span style="background: rgba(16, 185, 129, 0.14); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600;">🟢 Modo Humano</span>`
-                : `<span style="background: rgba(255, 255, 255, 0.06); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 500;">⚪ Bot Activo</span>`;
-
-            const msgList = Array.isArray(sol.mensajes) ? sol.mensajes : [];
-            const msgCountStr = msgList.length > 0 ? `💬 ${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}` : '💬 1 mensaje';
-            const unreadPillHtml = isUnread ? `<span class="card-unread-pill" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35);">🔴 ¡Nuevo mensaje!</span>` : '';
-
-            const cleanPhoneNum = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
-            const callHref = cleanPhoneNum ? `tel:+${cleanPhoneNum}` : '#';
-            const waHref = cleanPhoneNum ? `https://wa.me/${cleanPhoneNum}` : '#';
-
-            // Botones de llamada y WhatsApp rápido
-            const quickContactBtnsHtml = cleanPhoneNum ? `
-                <a href="${callHref}" class="btn-quick-call" title="Llamar por teléfono tradicional al cliente" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); text-decoration: none; font-size: 0.76rem; padding: 4px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation();">
-                    📞
-                </a>
-                <a href="${waHref}" target="_blank" class="btn-quick-wa" title="Abrir chat en la aplicación de WhatsApp" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); text-decoration: none; font-size: 0.76rem; padding: 4px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation();">
-                    📲
-                </a>
-            ` : '';
-
-            // Botón Historial Chatbot
-            const historyBtnHtml = `
-                <button class="btn-view-chat-history" data-phone="${phoneFormatted}" data-name="${sol.nombreCliente || 'Cliente'}" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Ver historial completo de interacción con el chatbot">
-                    📜 Historial Bot
-                </button>
-            `;
-
-            // Botón Silenciar Chatbot (Bypass)
-            const silenceBtnHtml = `
-                <button class="btn-silence-contact-quick" data-phone="${cleanPhoneNum}" data-name="${encodeURIComponent(sol.nombreCliente || 'Contacto')}" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Silenciar respuestas automáticas del bot para este contacto (Proveedores, Empleados...)">
-                    🔇 Silenciar
-                </button>
-            `;
-
-            // Botones de acción superior (A la derecha del nombre del cliente)
-            let topActionBtnsHtml = '';
-            if (isArchiveView) {
-                topActionBtnsHtml = `
-                    <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.18); font-size: 0.78rem; padding: 4px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;" title="Restaurar a Activas">↩️ Restaurar</button>
-                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar definitivamente este mensaje">🗑️</button>
-                `;
-            } else {
-                topActionBtnsHtml = `
-                    <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); font-size: 0.78rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Archivar solicitud">📦</button>
-                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar definitivamente este mensaje">🗑️</button>
-                `;
-            }
-
-            // Fila inferior de botones de interacción rápida
-            const bottomActionBtnsHtml = `
-                <span class="msg-count-chip">${msgCountStr}</span>
-                ${quickContactBtnsHtml}
-                ${historyBtnHtml}
-                ${silenceBtnHtml}
-            `;
-
-            html += `
-                <div class="whatsapp-inbox-card solicitud-card ${isUnread ? 'has-unread-msg' : ''} ${isArchiveView ? 'card-archived' : ''} ${isSelected ? 'is-selected' : ''}" data-id="${sol.id}">
-                    <div class="card-top-header">
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <input type="checkbox" class="card-select-cb" data-id="${sol.id}" ${isSelected ? 'checked' : ''} title="Seleccionar para acción masiva">
-                            ${catTagHtml}
-                            ${statusBadgeHtml}
-                            ${handoverBadgeHtml}
-                            ${unreadPillHtml}
-                        </div>
-                        <span style="font-size: 0.78rem; color: #94a3b8;">⏰ ${dateStr}</span>
-                    </div>
-
-                    <div class="card-main-content">
-                        <!-- Fila del Nombre del Cliente + Botones Archivar y Eliminar a la derecha -->
-                        <div class="card-user-info-row">
-                            <div class="card-user-info">
-                                <div class="card-avatar">👤</div>
-                                <div class="card-user-text">
-                                    <div class="card-client-name">${getClientDisplayName(sol.nombreCliente, phoneFormatted)}</div>
-                                    <div class="card-client-phone">📞 WhatsApp: +${phoneFormatted}</div>
-                                </div>
-                            </div>
-                            <div class="card-top-actions">
-                                ${topActionBtnsHtml}
-                            </div>
-                        </div>
-
-                        <!-- Fila inferior: Mensajes, Llamada, WhatsApp, Historial Bot, Silenciar -->
-                        <div class="card-badges-bottom-row">
-                            ${bottomActionBtnsHtml}
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        inboxCardsContainer.innerHTML = html;
-
-        // Checkbox individual de cada tarjeta
-        document.querySelectorAll('.card-select-cb').forEach(cb => {
-            cb.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-            cb.addEventListener('change', (e) => {
-                const solId = cb.getAttribute('data-id');
-                const card = cb.closest('.solicitud-card');
-                if (cb.checked) {
-                    selectedSolicitudIds.add(solId);
-                    if (card) card.classList.add('is-selected');
-                } else {
-                    selectedSolicitudIds.delete(solId);
-                    if (card) card.classList.remove('is-selected');
-                }
-                updateBulkActionsBar();
-            });
-        });
-
-        // Botón Ver Historial Chatbot
-        document.querySelectorAll('.btn-view-chat-history').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const phone = btn.getAttribute('data-phone');
-                const name = btn.getAttribute('data-name');
-                openHistoryModal(phone, name);
-            });
-        });
-
-        // Event listener: abrir modal al click en la tarjeta
-        document.querySelectorAll('.solicitud-card').forEach(card => {
-            card.addEventListener('click', (e) => {
-                if (e.target.closest('.btn-delete-solicitud') || e.target.closest('.btn-archive-solicitud') || e.target.closest('.btn-restore-solicitud') || e.target.closest('.btn-view-chat-history') || e.target.closest('.card-select-cb')) return;
-                const solId = card.getAttribute('data-id');
-                const sol = allSolicitudes.find(s => s.id === solId);
-                if (sol) openReplyModal(sol);
-            });
-        });
-
-        // Botón Eliminar individual (uno a uno definitivo)
-        document.querySelectorAll('.btn-delete-solicitud').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const solId = btn.getAttribute('data-id');
-                if (confirm('¿Eliminar definitivamente esta solicitud? Esta acción no se puede deshacer.')) {
-                    try {
-                        await fetch(`/api/admin/solicitudes/${solId}`, {
-                            method: 'DELETE',
-                            headers: { 'x-admin-token': adminToken }
-                        });
-                        unreadSolicitudIds.delete(solId);
-                        selectedSolicitudIds.delete(solId);
-                        await fetchSolicitudes();
-                    } catch (err) {
-                        alert('Error al eliminar solicitud: ' + err.message);
-                    }
-                }
-            });
-        });
-
-        // Botón Archivar → gestión concluida
-        document.querySelectorAll('.btn-archive-solicitud').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const solId = btn.getAttribute('data-id');
-                try {
-                    await fetch(`/api/admin/solicitudes/${solId}/archivar`, {
-                        method: 'POST',
-                        headers: { 'x-admin-token': adminToken }
-                    });
-                    unreadSolicitudIds.delete(solId);
-                    selectedSolicitudIds.delete(solId);
-                    await fetchSolicitudes();
-                } catch (err) {
-                    alert('Error al archivar solicitud: ' + err.message);
-                }
-            });
-        });
-
-        // Botón Silenciar Contacto Rápido
-        document.querySelectorAll('.btn-silence-contact-quick').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const phone = btn.getAttribute('data-phone');
-                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
-                openSilencedModal(phone, name);
-            });
-        });
-
-        // Botón Restaurar → volver a vista Activas (PENDIENTE)
-        document.querySelectorAll('.btn-restore-solicitud').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const solId = btn.getAttribute('data-id');
-                try {
-                    await fetch(`/api/admin/solicitudes/${solId}/restaurar`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-                        body: JSON.stringify({ estadoDestino: 'PENDIENTE' })
-                    });
-                    selectedSolicitudIds.delete(solId);
-                    await fetchSolicitudes();
-                } catch (err) {
-                    alert('Error al restaurar solicitud: ' + err.message);
-                }
-            });
+    // ── Buscador de Buzón Recepción ──────────────────────────────────────────
+    if (searchInboxInput) {
+        searchInboxInput.addEventListener('input', (e) => {
+            currentInboxSearch = e.target.value;
+            renderInboxCards();
         });
     }
 

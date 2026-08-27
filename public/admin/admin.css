@@ -1396,6 +1396,71 @@ body.mode-recepcion .inbox-cards-grid {
    ESTILOS PREMIUM WHATSAPP WORKSTATION - BUZÓN & CHAT RECEPCIÓN
    ============================================================ */
 
+/* Píldoras de Filtro estilo WhatsApp para Buzón de Recepción */
+.filter-chip {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.filter-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.filter-chip.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+.filter-chip[data-inbox-status="pendiente"].active {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #ef4444;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.filter-chip[data-inbox-status="leido"].active {
+    background: #059669;
+    color: #ffffff;
+    border-color: #10b981;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4);
+}
+
+/* Tarjetas de Conversación y Solicitud Unificadas */
+.solicitud-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.solicitud-card:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.solicitud-card.has-unread-msg {
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.35), 0 4px 16px rgba(239, 68, 68, 0.15);
+}
+
 /* Tarjetas de Solicitud en el Buzón (Vista Compacta WhatsApp) */
 .whatsapp-inbox-card {
     padding: 14px 18px;

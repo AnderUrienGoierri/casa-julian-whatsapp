@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V352-BUZON-RECEPCION-TEXTO">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V353-UNIFICACION-BUZON-CHATS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -281,11 +281,6 @@
                             <span class="dropdown-item-text">Buzón Recepción</span>
                             <span id="dropdown-inbox-badge" class="dropdown-badge" style="background:#ef4444; color:#fff;">0</span>
                         </button>
-                        <button type="button" class="dropdown-menu-item" id="dropdown-tab-chats" data-tab-target="tab-chats">
-                            <span class="dropdown-item-icon">💬</span>
-                            <span class="dropdown-item-text">Chats WhatsApp</span>
-                            <span id="dropdown-chats-badge" class="dropdown-badge" style="background:#10b981; color:#fff;">0</span>
-                        </button>
                         <button type="button" class="dropdown-menu-item" id="dropdown-tab-silenced" data-tab-target="tab-silenced">
                             <span class="dropdown-item-icon">🔇</span>
                             <span class="dropdown-item-text">Números Silenciados</span>
@@ -328,7 +323,6 @@
         <!-- Navegación por Pestañas -->
         <nav class="tabs-nav">
             <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón Recepción <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
-            <button class="tab-btn" data-tab="tab-chats">💬 Chats WhatsApp <span id="chats-count-badge" class="draft-badge" style="background:#10b981; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-silenced">🔇 Números Silenciados <span id="silenced-count-badge" class="draft-badge" style="background:#a855f7; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-flow">🌳 Estructura &amp; Árbol de Flujos</button>
             <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes &amp; Textos</button>
@@ -343,128 +337,45 @@
             <!-- Panel Izquierdo: Editor de Contenidos -->
             <section class="editor-section">
                 
-                <!-- Pestaña 0: Buzón de Recepción y Solicitudes Directas -->
+                <!-- Pestaña 0: Buzón de Recepción y Chats WhatsApp (Unificado) -->
                 <div id="tab-inbox" class="tab-content active">
 
-                    <!-- Toolbar de Filtrado de Solicitudes (colapsable) -->
-                    <div class="inbox-toolbar-card">
-                        <!-- Header colapsable -->
-                        <div id="inbox-filters-toggle" class="inbox-toolbar-header">
-                            <div class="inbox-toolbar-title-group">
-                                <span class="inbox-toolbar-icon">⚙️</span>
-                                <span class="inbox-toolbar-title">Filtros &amp; Opciones de Visualización</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <span id="inbox-filters-toggle-badge" class="inbox-toggle-badge">Mostrar</span>
-                                <span id="inbox-filters-arrow" class="inbox-toggle-arrow">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Cuerpo del Toolbar (desplegable) -->
-                        <div id="inbox-filters-body" class="inbox-toolbar-body" style="display: none;">
-                            
-                            <!-- Buscador en tiempo real -->
-                            <div class="search-box" style="margin-bottom: 12px; width: 100%;">
-                                <span class="search-icon">🔍</span>
-                                <input type="text" id="search-inbox-input" placeholder="Buscar por cliente, teléfono, datos de reserva...">
-                            </div>
-
-                            <!-- Fila 1: Filtro por Categorías -->
-                            <div class="inbox-filter-group">
-                                <span class="inbox-filter-label">Categoría:</span>
-                                <div class="category-filters" id="inbox-category-filters">
-                                    <button class="filter-chip active" data-inbox-cat="all">Todas</button>
-                                    <button class="filter-chip" data-inbox-cat="reserva_humana">🍽️ Reservas Especiales</button>
-                                    <button class="filter-chip" data-inbox-cat="modificacion">✏️ Modificaciones</button>
-                                    <button class="filter-chip" data-inbox-cat="cancelacion">❌ Cancelaciones</button>
-                                    <button class="filter-chip" data-inbox-cat="grupo_evento">👥 Grupos / Eventos</button>
-                                    <button class="filter-chip" data-inbox-cat="tarjeta_regalo">🎁 Tarjetas Regalo</button>
-                                    <button class="filter-chip" data-inbox-cat="consulta_abierta">💬 Consultas Abiertas</button>
-                                </div>
-                            </div>
-
-                            <!-- Fila 2: Filtro por Estados -->
-                            <div class="inbox-filter-group" style="margin-top: 10px;">
-                                <span class="inbox-filter-label">Estado:</span>
-                                <div class="category-filters" id="inbox-status-filters">
-                                    <button class="filter-chip active" data-inbox-status="all">Todos</button>
-                                    <button class="filter-chip" data-inbox-status="PENDIENTE">⏳ Pendientes</button>
-                                    <button class="filter-chip" data-inbox-status="EN_ATENCION">👤 En Atención Humana</button>
-                                    <button class="filter-chip" data-inbox-status="CONFIRMADA">✅ Confirmadas</button>
-                                    <button class="filter-chip" data-inbox-status="RECHAZADA">🚫 Rechazadas</button>
-                                    <button class="filter-chip" data-inbox-status="RESUELTA">✨ Resueltas</button>
-                                    <button class="filter-chip" data-inbox-status="ARCHIVADA">📦 Archivadas</button>
-                                </div>
-                            </div>
-
-                            <!-- Fila 3: Ordenación -->
-                            <div class="inbox-filter-group" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="inbox-filter-label">Ordenar:</span>
-                                    <select id="inbox-sort-select" class="custom-select" style="padding: 4px 8px; font-size: 0.8rem; background: var(--bg-surface); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px;">
-                                        <option value="date_desc">📅 Más recientes primero</option>
-                                        <option value="date_asc">📅 Más antiguas primero</option>
-                                        <option value="alpha_asc">🔤 Nombre (A - Z)</option>
-                                        <option value="alpha_desc">🔤 Nombre (Z - A)</option>
-                                        <option value="estado">📊 Por Estado</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- Barra de Acciones Masivas (Seleccionar todo, Archivar, Eliminar) -->
-                    <div id="inbox-bulk-bar" class="inbox-bulk-bar" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 14px; background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem; color: #cbd5e1; user-select: none;">
-                                <input type="checkbox" id="inbox-select-all-checkbox" style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--primary);">
-                                <span>Seleccionar todo (<span id="inbox-selected-count">0</span>)</span>
-                            </label>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                            <button id="inbox-bulk-archive-btn" class="btn-secondary" style="font-size: 0.78rem; padding: 6px 10px; display: none; align-items: center; gap: 4px; background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 6px; white-space: nowrap;">
-                                📦 Archivar (<span class="bulk-count-num">0</span>)
-                            </button>
-                            <button id="inbox-bulk-delete-btn" class="btn-danger" style="font-size: 0.78rem; padding: 6px 10px; display: none; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 6px; white-space: nowrap;">
-                                🗑️ Eliminar (<span class="bulk-count-num">0</span>)
-                            </button>
-                        </div>
-                    </div>
-
-
-                    <!-- Lista de Tarjetas de Solicitudes -->
-                    <div id="inbox-cards-container" class="inbox-cards-grid">
-                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando solicitudes recibidas...</div>
-                    </div>
-                </div>
-
-                <!-- Pestaña 0B: Chats WhatsApp (Todas las conversaciones activas) -->
-                <div id="tab-chats" class="tab-content">
-                    <!-- Toolbar y Filtros de Chats -->
+                    <!-- Toolbar de Búsqueda y Píldoras de Filtro estilo WhatsApp -->
                     <div class="inbox-toolbar-card" style="margin-bottom: 18px; padding: 14px 18px;">
-                        <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap; margin-bottom: 10px;">
+                        
+                        <!-- Fila 1: Buscador en tiempo real -->
+                        <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap; margin-bottom: 12px;">
                             <div class="search-box" style="flex: 1; min-width: 220px; margin: 0;">
                                 <span class="search-icon">🔍</span>
-                                <input type="text" id="search-chats-input" placeholder="Buscar por teléfono o nombre de cliente/contacto...">
+                                <input type="text" id="search-inbox-input" placeholder="Buscar por cliente, teléfono, datos de reserva, mensaje...">
                             </div>
-                            <span id="chats-total-summary" style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">0 conversaciones</span>
+                            <span id="inbox-total-summary" style="font-size: 0.85rem; color: #94a3b8; font-weight: 600; white-space: nowrap;">0 conversaciones</span>
                         </div>
-                        
-                        <!-- Chips de filtro por categoría de chat -->
+
+                        <!-- Fila 2: Píldoras de Filtro por Categorías / Etiquetas -->
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px;">
+                            <span style="font-size: 0.74rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-right: 2px;">Etiquetas:</span>
+                            <button class="filter-chip active" data-inbox-cat="all">Todos (<span id="count-cat-all">0</span>)</button>
+                            <button class="filter-chip" data-inbox-cat="cliente">👥 Clientes (<span id="count-cat-cli">0</span>)</button>
+                            <button class="filter-chip" data-inbox-cat="proveedor">🟢 Proveedores (<span id="count-cat-prov">0</span>)</button>
+                            <button class="filter-chip" data-inbox-cat="alba">🌸 Alba (<span id="count-cat-alba">0</span>)</button>
+                            <button class="filter-chip" data-inbox-cat="hoteles">🟡 Hoteles (<span id="count-cat-hoteles">0</span>)</button>
+                            <button class="filter-chip" data-inbox-cat="taxi">🚕 Taxis (<span id="count-cat-taxi">0</span>)</button>
+                        </div>
+
+                        <!-- Fila 3: Píldoras de Filtro por Estado (Pendientes vs Leídos) -->
                         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                            <button class="filter-chip active" data-chat-filter="all">Todos (<span id="count-chat-all">0</span>)</button>
-                            <button class="filter-chip" data-chat-filter="cliente">👥 Clientes (<span id="count-chat-cli">0</span>)</button>
-                            <button class="filter-chip" data-chat-filter="proveedor">🟢 Proveedores (<span id="count-chat-prov">0</span>)</button>
-                            <button class="filter-chip" data-chat-filter="alba">🌸 Alba (<span id="count-chat-alba">0</span>)</button>
-                            <button class="filter-chip" data-chat-filter="hoteles">🟡 Hoteles (<span id="count-chat-hoteles">0</span>)</button>
-                            <button class="filter-chip" data-chat-filter="taxi">🚕 Taxis (<span id="count-chat-taxi">0</span>)</button>
+                            <span style="font-size: 0.74rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-right: 2px;">Estado:</span>
+                            <button class="filter-chip active" data-inbox-status="all">Todos (<span id="count-status-all">0</span>)</button>
+                            <button class="filter-chip" data-inbox-status="pendiente">⏳ Pendientes (<span id="count-status-pend">0</span>)</button>
+                            <button class="filter-chip" data-inbox-status="leido">✅ Leídos (<span id="count-status-read">0</span>)</button>
                         </div>
+
                     </div>
 
-                    <!-- Lista de Chats agrupados por cliente -->
-                    <div id="whatsapp-chats-container" class="inbox-cards-grid">
-                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando conversaciones de WhatsApp...</div>
+                    <!-- Lista de Tarjetas de Conversación Unificadas -->
+                    <div id="inbox-cards-container" class="inbox-cards-grid">
+                        <div style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando conversaciones y solicitudes...</div>
                     </div>
                 </div>
 
@@ -919,6 +830,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V352-BUZON-RECEPCION-TEXTO"></script>
+    <script src="/admin/admin.js?v=20260827-V353-UNIFICACION-BUZON-CHATS"></script>
 </body>
 </html>
