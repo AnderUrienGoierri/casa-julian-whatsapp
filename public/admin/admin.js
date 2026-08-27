@@ -4322,9 +4322,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (paneMsgInput) {
                 paneMsgInput.value = templateText;
                 paneMsgInput.focus();
+                paneMsgInput.style.height = 'auto';
+                paneMsgInput.style.height = Math.min(Math.max(paneMsgInput.scrollHeight, 48), 180) + 'px';
             }
         });
     });
+
+    // Auto-expansión del textarea para textos largos de recepción
+    const paneReplyTextareaEl = document.getElementById('pane-reply-message-text');
+    if (paneReplyTextareaEl) {
+        paneReplyTextareaEl.addEventListener('input', () => {
+            paneReplyTextareaEl.style.height = 'auto';
+            paneReplyTextareaEl.style.height = Math.min(Math.max(paneReplyTextareaEl.scrollHeight, 48), 180) + 'px';
+        });
+    }
 
     // Modo Humano en Panel Derecho
     const paneBtnToggleHuman = document.getElementById('pane-btn-toggle-human');

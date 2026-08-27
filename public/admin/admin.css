@@ -2088,10 +2088,12 @@ body.mode-recepcion .inbox-cards-grid {
 
 /* Panel de Conversación Activa */
 .wa-active-chat-panel {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    width: 100% !important;
     position: relative;
     overflow: hidden;
 }
@@ -2104,7 +2106,7 @@ body.mode-recepcion .inbox-cards-grid {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
     z-index: 10;
     gap: 8px;
     min-height: 52px;
@@ -2245,9 +2247,11 @@ body.mode-recepcion .inbox-cards-grid {
 
 /* Cuerpo de la Conversación y Sidebar Desplegable */
 .wa-chat-body-wrapper {
-    display: flex;
-    flex: 1;
-    min-height: 0;
+    display: flex !important;
+    flex-direction: row !important;
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    min-height: 0 !important;
     position: relative;
     overflow: hidden;
 }
@@ -2260,6 +2264,7 @@ body.mode-recepcion .inbox-cards-grid {
     border-right: 1px solid rgba(134, 150, 160, 0.15);
     display: flex;
     flex-direction: column;
+    height: 100% !important;
     overflow-y: auto;
     animation: slideInLeft 0.2s ease;
     z-index: 5;
@@ -2280,6 +2285,7 @@ body.mode-recepcion .inbox-cards-grid {
     font-size: 0.88rem;
     font-weight: 700;
     color: #e9edef;
+    flex-shrink: 0;
 }
 
 .btn-close-sidebar-x {
@@ -2298,23 +2304,27 @@ body.mode-recepcion .inbox-cards-grid {
 .pane-sidebar-content {
     padding: 14px;
     overflow-y: auto;
+    flex: 1;
 }
 
 /* Área de Mensajes y Redacción */
 .wa-chat-messages-area {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-    height: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    width: 100% !important;
     background: #0b141a;
     position: relative;
+    overflow: hidden;
 }
 
 .wa-chat-messages-area .whatsapp-chat-viewport {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
     padding: 16px 20px;
     display: flex;
     flex-direction: column;
@@ -2333,7 +2343,7 @@ body.mode-recepcion .inbox-cards-grid {
     align-items: center;
     gap: 8px;
     overflow-x: auto;
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
 }
 
 .templates-title {
@@ -2363,26 +2373,29 @@ body.mode-recepcion .inbox-cards-grid {
 
 /* Formulario de Entrada de Texto */
 .wa-chat-messages-area .whatsapp-input-form {
-    padding: 8px 14px;
+    padding: 10px 16px;
     background: #202c33;
     border-top: 1px solid rgba(134, 150, 160, 0.15);
-    flex-shrink: 0;
-    margin: 0;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
 }
 
 .wa-chat-messages-area .whatsapp-input-row {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    align-items: flex-end;
+    gap: 10px;
 }
 
 .wa-chat-messages-area .whatsapp-textarea-wrapper {
     flex: 1;
     background: #2a3942;
-    border-radius: 8px;
-    padding: 2px 12px;
+    border-radius: 12px;
+    padding: 6px 14px;
     border: 1px solid transparent;
     transition: all 0.2s ease;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
 }
 
 .wa-chat-messages-area .whatsapp-textarea-wrapper:focus-within {
@@ -2395,12 +2408,14 @@ body.mode-recepcion .inbox-cards-grid {
     border: none;
     outline: none;
     color: #e9edef;
-    font-size: 0.92rem;
+    font-size: 0.94rem;
     font-family: inherit;
     resize: none !important;
-    padding: 8px 0;
-    max-height: 100px;
-    line-height: 1.4;
+    padding: 4px 0;
+    min-height: 48px;
+    height: 48px;
+    max-height: 180px;
+    line-height: 1.45;
 }
 
 .wa-chat-messages-area textarea::placeholder {
@@ -2408,9 +2423,9 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .btn-send-whatsapp-icon {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
     border-radius: 50%;
     background: #00a884;
     border: none;
@@ -2420,6 +2435,18 @@ body.mode-recepcion .inbox-cards-grid {
     cursor: pointer;
     transition: all 0.15s ease;
     box-shadow: 0 2px 8px rgba(0, 168, 132, 0.35);
+    margin-bottom: 4px;
+}
+
+.btn-send-whatsapp-icon:hover {
+    background: #06cf9c;
+    transform: scale(1.05);
+}
+
+.btn-send-whatsapp-icon .send-icon-img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
 }
 
 .btn-send-whatsapp-icon:hover {
