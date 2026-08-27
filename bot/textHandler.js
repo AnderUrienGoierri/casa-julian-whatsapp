@@ -61,13 +61,21 @@ const {
 } = require('./interactiveHandler');
 
 function formatCancellationDetail(reservaFound, queryText, from, lang) {
-    let detalle = `🆔 *Código Reserva / ID:* ${reservaFound.id}\n` +
-        `👤 *Nombre del Cliente:* ${reservaFound.nombre || 'N/A'}\n` +
-        `📞 *Teléfono:* ${reservaFound.telefono || from}\n` +
-        `📅 *Fecha:* ${reservaFound.fecha || 'Sin fecha'}\n` +
-        `🕐 *Hora:* ${reservaFound.hora || 'Sin hora'}\n` +
-        `👥 *Comensales:* ${reservaFound.comensales || 'N/A'}\n` +
-        `📌 *Estado Actual:* ${reservaFound.estado || 'CONFIRMADA'}`;
+    const idLabel = lang === 'eu' ? 'Erreserba kodea / ID:' : (lang === 'en' ? 'Reservation Code / ID:' : 'Código Reserva / ID:');
+    const nameLabel = lang === 'eu' ? 'Titularraren izena:' : (lang === 'en' ? 'Client Name:' : 'Nombre del Cliente:');
+    const phoneLabel = lang === 'eu' ? 'Telefonoa:' : (lang === 'en' ? 'Phone:' : 'Teléfono:');
+    const dateLabel = lang === 'eu' ? 'Data:' : (lang === 'en' ? 'Date:' : 'Fecha:');
+    const timeLabel = lang === 'eu' ? 'Ordua:' : (lang === 'en' ? 'Time:' : 'Hora:');
+    const guestsLabel = lang === 'eu' ? 'Mahaikideak:' : (lang === 'en' ? 'Guests:' : 'Comensales:');
+    const statusLabel = lang === 'eu' ? 'Egungo egoera:' : (lang === 'en' ? 'Current Status:' : 'Estado Actual:');
+
+    let detalle = `🆔 *${idLabel}* ${reservaFound.id}\n` +
+        `👤 *${nameLabel}* ${reservaFound.nombre || (lang === 'eu' ? 'Zehaztu gabe' : (lang === 'en' ? 'N/A' : 'N/A'))}\n` +
+        `📞 *${phoneLabel}* ${reservaFound.telefono || from}\n` +
+        `📅 *${dateLabel}* ${reservaFound.fecha || (lang === 'eu' ? 'Datarik gabe' : (lang === 'en' ? 'No date' : 'Sin fecha'))}\n` +
+        `🕐 *${timeLabel}* ${reservaFound.hora || (lang === 'eu' ? 'Ordurik gabe' : (lang === 'en' ? 'No time' : 'Sin hora'))}\n` +
+        `👥 *${guestsLabel}* ${reservaFound.comensales || (lang === 'eu' ? 'Zehaztu gabe' : 'N/A')}\n` +
+        `📌 *${statusLabel}* ${reservaFound.estado || 'CONFIRMADA'}`;
     return detalle;
 }
 
@@ -829,7 +837,8 @@ async function handleTextMessage(from, text) {
             const telefonoCliente = currentState.data?.telefonoReserva || from.replace(/\D/g, '');
 
             currentState.data.fechaReservaOriginal = fechaReservaOriginal;
-            currentState.data.reservaActual = `${nombreCliente} (${telefonoCliente}) - Fecha: ${fechaReservaOriginal}`;
+            const labelFecha = lang === 'eu' ? 'Data' : (lang === 'en' ? 'Date' : 'Fecha');
+            currentState.data.reservaActual = `${nombreCliente} (${telefonoCliente}) - ${labelFecha}: ${fechaReservaOriginal}`;
 
             const modTipo = currentState.data.modTipo;
             if (modTipo === 'comensales') {

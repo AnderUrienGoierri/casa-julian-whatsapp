@@ -145,6 +145,13 @@ function formatModificationDetail(nombreCliente, telefonoReserva, senderPhone, r
         localizedNuevoValor = nuevoValor.replace(/\bpersonas\b/gi, 'guests');
     }
 
+    let localizedReservaActual = reservaActual;
+    if (lang === 'eu' && typeof reservaActual === 'string') {
+        localizedReservaActual = reservaActual.replace(/-\s*Fecha:\s*/gi, '- Data: ').replace(/\bFecha:\s*/gi, 'Data: ');
+    } else if (lang === 'en' && typeof reservaActual === 'string') {
+        localizedReservaActual = reservaActual.replace(/-\s*Fecha:\s*/gi, '- Date: ').replace(/\bFecha:\s*/gi, 'Date: ');
+    }
+
     const titleLabel = lang === 'eu' ? 'RESERBA ALDATZEKO ESKAERA' : (lang === 'en' ? 'RESERVATION MODIFICATION REQUEST' : 'SOLICITUD MODIFICACIÓN DE RESERVA');
     const holderLabel = lang === 'eu' ? 'Titularraren izena:' : (lang === 'en' ? 'Holder Name:' : 'Nombre del Titular:');
     const phoneLabel = lang === 'eu' ? 'Telefonoa:' : (lang === 'en' ? 'Phone:' : 'Teléfono Reserva:');
@@ -159,7 +166,7 @@ function formatModificationDetail(nombreCliente, telefonoReserva, senderPhone, r
         `👤 *${holderLabel}* ${nombreCliente || notSpecified}\n` +
         `📞 *${phoneLabel}* ${telefonoReserva || notSpecified}\n` +
         `📱 *${senderLabel}* ${senderPhone}\n` +
-        `📌 *${currentResLabel}* ${reservaActual}\n` +
+        `📌 *${currentResLabel}* ${localizedReservaActual}\n` +
         `✏️ *${modLabel}* ${localizedLabelCampo}\n` +
         `🆕 *${valLabel}* ${localizedNuevoValor}\n` +
         `📋 *${requestTypeLabel}* ${titleLabel}`
