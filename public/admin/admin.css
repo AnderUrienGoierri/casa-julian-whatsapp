@@ -4610,6 +4610,102 @@ div.inbox-toolbar-header,
     white-space: nowrap;
 }
 
+/* Botón Gestionar Etiquetas en Cabecera de Chats */
+.wa-manage-tags-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 0 10px !important;
+    width: auto !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #e9edef !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+
+.wa-manage-tags-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #38bdf8 !important;
+    border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+/* Etiquetas en Tarjetas de Conversación WhatsApp (como Ricardo Entretiempo Studio) */
+.wa-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+    align-items: center;
+}
+
+.wa-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.70rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    line-height: 1.2;
+    background: rgba(132, 204, 22, 0.18);
+    color: #a3e635;
+    border: 1px solid rgba(163, 230, 53, 0.4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.wa-tag-pill.tag-proveedor,
+.wa-tag-pill.tag-proveedores {
+    background: rgba(132, 204, 22, 0.18);
+    color: #a3e635;
+    border-color: rgba(163, 230, 53, 0.4);
+}
+
+.wa-tag-pill.tag-hoteles,
+.wa-tag-pill.tag-hotel {
+    background: rgba(56, 189, 248, 0.18);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.4);
+}
+
+.wa-tag-pill.tag-empleado,
+.wa-tag-pill.tag-empleados,
+.wa-tag-pill.tag-alba {
+    background: rgba(168, 85, 247, 0.18);
+    color: #c084fc;
+    border-color: rgba(192, 132, 252, 0.4);
+}
+
+.wa-tag-pill.tag-taxi,
+.wa-tag-pill.tag-taxis {
+    background: rgba(234, 179, 8, 0.18);
+    color: #fde047;
+    border-color: rgba(253, 224, 71, 0.4);
+}
+
+/* Filas en el Gestor de Etiquetas */
+.tag-manager-row-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    gap: 10px;
+    transition: background 0.15s ease;
+}
+
+.tag-manager-row-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
     /* Transformación de tabla de números silenciados a Tarjetas Móviles */
     #tab-silenced .table-container {
         border: none !important;

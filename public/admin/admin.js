@@ -2829,6 +2829,59 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHeaderAndMenuBadges();
     }
 
+    // ── GESTIÓN DE ETIQUETAS DE CONVERSACIONES Y CHATS ──────────────────────
+    const CHAT_TAGS_STORAGE_KEY = 'casa_julian_chat_tags_map';
+
+    // Sets para Filtros con Selección Múltiple
+    let activeInboxStatusFilters = new Set();
+    let activeInboxCatFilters = new Set();
+    let activeInboxTopicFilters = new Set();
+
+    function getChatTagsMap() {
+        try {
+            return JSON.parse(localStorage.getItem(CHAT_TAGS_STORAGE_KEY) || '{}');
+        } catch {
+            return {};
+        }
+    }
+
+    function getChatTags(phone, conv = null) {
+        const cleanPhone = (phone || '').replace(/\D/g, '');
+        const map = getChatTagsMap();
+        if (Array.isArray(map[cleanPhone]) && map[cleanPhone].length > 0) {
+            return map[cleanPhone];
+        }
+        
+        // Si no tiene asignación explícita, inferir de contactos silenciados o categoría
+        const tags = [];
+        const silenced = Array.isArray(allSilencedNumbers) ? allSilencedNumbers.find(s => (s.telefono || '').replace(/\D/g, '') === cleanPhone) : null;
+        if (silenced && silenced.categoria) {
+            const parts = silenced.categoria.split(',').map(p => p.trim()).filter(Boolean);
+            tags.push(...parts);
+        } else if (conv && Array.isArray(conv.etiquetas) && conv.etiquetas.length > 0) {
+            tags.push(...conv.etiquetas);
+        } else {
+            const cat = conv ? (conv.categoria || '').toLowerCase() : '';
+            const name = conv ? (conv.nombreCliente || '').toLowerCase() : '';
+            if (cat === 'proveedor' || cat === 'proveedores' || name.includes('entretiempo') || name.includes('ricardo')) {
+                tags.push('PROVEEDORES');
+            } else if (cat === 'hoteles' || cat === 'hotel') {
+                tags.push('HOTELES');
+            } else if (cat === 'empleado' || cat === 'empleados' || cat === 'alba') {
+                tags.push('EMPLEADOS');
+            }
+        }
+        return [...new Set(tags)];
+    }
+
+    function setChatTags(phone, tagsArray) {
+        const cleanPhone = (phone || '').replace(/\D/g, '');
+        if (!cleanPhone) return;
+        const map = getChatTagsMap();
+        map[cleanPhone] = tagsArray;
+        localStorage.setItem(CHAT_TAGS_STORAGE_KEY, JSON.stringify(map));
+    }
+
     function updateHeaderAndMenuBadges() {
         const pendingCount = getPendingConversationsCount();
         const inboxCountBadge = document.getElementById('inbox-count-badge');
@@ -2853,11 +2906,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Clasificación Inteligente de Categorías y Temáticas ────────────────
     function getConversationCategory(c) {
         const cat = (c.categoria || '').toLowerCase();
-        const tags = Array.isArray(c.etiquetas) ? c.etiquetas.map(t => String(t).toLowerCase()) : [];
-        if (cat === 'proveedor' || cat === 'proveedores' || tags.some(t => t.includes('prov'))) return 'proveedor';
-        if (cat === 'hoteles' || cat === 'hotel' || tags.some(t => t.includes('hotel'))) return 'hoteles';
-        if (cat === 'empleado' || cat === 'empleados' || cat === 'alba' || cat === 'personal' || tags.some(t => t.includes('alba') || t.includes('emplead') || t.includes('personal'))) return 'empleado';
-        if (cat === 'otro' || cat === 'taxi' || cat === 'taxis' || tags.some(t => t.includes('taxi') || t.includes('otro'))) return 'otro';
+        const chatTags = getChatTags(c.telefono, c).map(t => String(t).toLowerCase());
+        if (cat === 'proveedor' || cat === 'proveedores' || chatTags.some(t => t.includes('prov'))) return 'proveedor';
+        if (cat === 'hoteles' || cat === 'hotel' || chatTags.some(t => t.includes('hotel'))) return 'hoteles';
+        if (cat === 'empleado' || cat === 'empleados' || cat === 'alba' || cat === 'personal' || chatTags.some(t => t.includes('alba') || t.includes('emplead') || t.includes('personal'))) return 'empleado';
+        if (cat === 'otro' || cat === 'taxi' || cat === 'taxis' || chatTags.some(t => t.includes('taxi') || t.includes('otro'))) return 'otro';
         return 'cliente';
     }
 
@@ -2890,70 +2943,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryEl = document.getElementById('inbox-total-summary');
         if (!container) return;
 
-        // Calcular contadores Fila 1: Contactos y Estado
-        const total = allUnifiedConversations.length;
-        const countPend = allUnifiedConversations.filter(c => getConversationStatus(c) === 'pendiente').length;
-        const countProv = allUnifiedConversations.filter(c => getConversationCategory(c) === 'proveedor').length;
-        const countHoteles = allUnifiedConversations.filter(c => getConversationCategory(c) === 'hoteles').length;
-        const countEmpleados = allUnifiedConversations.filter(c => getConversationCategory(c) === 'empleado').length;
-        const countCli = allUnifiedConversations.filter(c => getConversationCategory(c) === 'cliente').length;
-        const countOtros = allUnifiedConversations.filter(c => getConversationCategory(c) === 'otro').length;
-
-        const cAll = document.getElementById('count-cat-all');
-        const cStatPend = document.getElementById('count-status-pend');
-        const cProv = document.getElementById('count-cat-prov');
-        const cHoteles = document.getElementById('count-cat-hoteles');
-        const cEmpleados = document.getElementById('count-cat-empleados');
-        const cCli = document.getElementById('count-cat-cli');
-        const cOtros = document.getElementById('count-cat-otros');
-
-        if (cAll) cAll.textContent = total;
-        if (cStatPend) cStatPend.textContent = countPend;
-        if (cProv) cProv.textContent = countProv;
-        if (cHoteles) cHoteles.textContent = countHoteles;
-        if (cEmpleados) cEmpleados.textContent = countEmpleados;
-        if (cCli) cCli.textContent = countCli;
-        if (cOtros) cOtros.textContent = countOtros;
-
-        // Calcular contadores Fila 2: Tipos de Solicitud y Temáticas
-        const countTopicMenu = allUnifiedConversations.filter(c => getConversationTopic(c) === 'menu_tradicion').length;
-        const countTopicMod = allUnifiedConversations.filter(c => getConversationTopic(c) === 'modificacion').length;
-        const countTopicCancel = allUnifiedConversations.filter(c => getConversationTopic(c) === 'cancelacion').length;
-        const countTopicOtras = allUnifiedConversations.filter(c => getConversationTopic(c) === 'otras_cuestiones').length;
-        const countTopicFaq = allUnifiedConversations.filter(c => getConversationTopic(c) === 'faq').length;
-
-        const cTopicMenu = document.getElementById('count-topic-menu');
-        const cTopicMod = document.getElementById('count-topic-mod');
-        const cTopicCancel = document.getElementById('count-topic-cancel');
-        const cTopicOtras = document.getElementById('count-topic-otras');
-        const cTopicFaq = document.getElementById('count-topic-faq');
-
-        if (cTopicMenu) cTopicMenu.textContent = countTopicMenu;
-        if (cTopicMod) cTopicMod.textContent = countTopicMod;
-        if (cTopicCancel) cTopicCancel.textContent = countTopicCancel;
-        if (cTopicOtras) cTopicOtras.textContent = countTopicOtras;
-        if (cTopicFaq) cTopicFaq.textContent = countTopicFaq;
-
         updateHeaderAndMenuBadges();
 
         let filtered = [...allUnifiedConversations];
 
-        // 1. Filtrar por categoría (Fila 1)
-        if (currentInboxCatFilter !== 'all') {
-            filtered = filtered.filter(c => getConversationCategory(c) === currentInboxCatFilter);
+        // 1. Filtrar por Estado Múltiple (ej: 'pendiente' / No leídos)
+        if (activeInboxStatusFilters.size > 0) {
+            filtered = filtered.filter(c => activeInboxStatusFilters.has(getConversationStatus(c)));
         }
 
-        // 2. Filtrar por estado (Fila 1)
-        if (currentInboxStatusFilter !== 'all') {
-            filtered = filtered.filter(c => getConversationStatus(c) === currentInboxStatusFilter);
+        // 2. Filtrar por Categoría / Etiquetas Múltiples (ej: 'proveedor', 'hoteles')
+        if (activeInboxCatFilters.size > 0) {
+            filtered = filtered.filter(c => {
+                const cat = getConversationCategory(c);
+                const chatTags = getChatTags(c.telefono, c).map(t => t.toLowerCase());
+                return activeInboxCatFilters.has(cat) || Array.from(activeInboxCatFilters).some(f => chatTags.some(t => t.includes(f) || f.includes(t)));
+            });
         }
 
-        // 3. Filtrar por temática / tipo de solicitud (Fila 2)
-        if (currentInboxTopicFilter !== 'all') {
-            filtered = filtered.filter(c => getConversationTopic(c) === currentInboxTopicFilter);
+        // 3. Filtrar por Temática Múltiple (ej: 'menu_tradicion')
+        if (activeInboxTopicFilters.size > 0) {
+            filtered = filtered.filter(c => activeInboxTopicFilters.has(getConversationTopic(c)));
         }
 
-        // 4. Filtrar por buscador (Soporta números con o sin espacios, ej: +44 7879 488933 y +447879488933)
+        // 4. Filtrar por buscador
         if (currentInboxSearch.trim()) {
             const q = currentInboxSearch.toLowerCase().trim();
             const qDigits = q.replace(/\D/g, '');
@@ -2964,17 +2977,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nameDigits = rawName.replace(/\D/g, '');
                 const rawText = (c.ultimoTexto || '').toLowerCase();
                 const rawTipo = (c.tipoSolicitud || '').toLowerCase();
+                const chatTags = getChatTags(c.telefono, c).join(' ').toLowerCase();
 
-                // Coincidencia por dígitos del teléfono (permite "+44 7879 488933", "+447879488933", etc.)
                 const digitsMatch = qDigits.length >= 3 && (telDigits.includes(qDigits) || nameDigits.includes(qDigits));
-                
-                // Coincidencia por texto literal (nombre, mensaje, teléfono, tipo)
-                const textMatch = rawTel.includes(q) || rawName.includes(q) || rawText.includes(q) || rawTipo.includes(q);
+                const textMatch = rawTel.includes(q) || rawName.includes(q) || rawText.includes(q) || rawTipo.includes(q) || chatTags.includes(q);
 
                 return digitsMatch || textMatch;
             });
         }
 
+        const total = allUnifiedConversations.length;
         if (summaryEl) {
             summaryEl.textContent = `${filtered.length} de ${total} conversaciones`;
         }
@@ -2984,12 +2996,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="text-align: center; color: var(--text-muted); padding: 50px 20px; background: #111b21; border-radius: 0 0 12px 12px; border: 1px dashed rgba(134, 150, 160, 0.2);">
                     <div style="font-size: 2.2rem; margin-bottom: 10px;">💬</div>
                     <div style="font-size: 1.05rem; font-weight: 700; color: #e9edef;">No hay chats en este filtro</div>
-                    <p style="font-size: 0.85rem; margin-top: 6px; color: #8696a0;">Los mensajes de WhatsApp Business aparecerán organizados por fecha y estado.</p>
+                    <p style="font-size: 0.85rem; margin-top: 6px; color: #8696a0;">Prueba a seleccionar otros filtros o desactivar alguno para ver más conversaciones.</p>
                 </div>
             `;
             return;
         }
 
+        const availableTagsList = typeof getAllAvailableSilencedTags === 'function' ? getAllAvailableSilencedTags() : [];
         const cardsHtml = [];
 
         filtered.forEach(c => {
@@ -3003,7 +3016,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const isSelected = activeConversationPhone === cleanPhone;
             const isDropdownOpen = (activeCardDropdownPhone === cleanPhone);
 
-            // Icono de doble check si es mensaje enviado por recepción
             const outgoingCheckHtml = !isFromClient 
                 ? `<span class="wa-check-double" title="Entregado y Leído">✓✓</span> ` 
                 : '';
@@ -3027,21 +3039,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 avatarHtml = `<div class="wa-avatar-container" style="background: #202c33; color: #8696a0;" title="${clientDisplayName}"><span style="font-size: 1.2rem;">👤</span></div>`;
             }
 
-            // Etiquetas WhatsApp Business (Píldoras de colores)
+            // Etiquetas WhatsApp Business (Píldoras de colores visibles bajo el mensaje)
             let tagsHtml = '';
-            const tags = Array.isArray(c.etiquetas) && c.etiquetas.length > 0 ? [...c.etiquetas] : [];
-            const cat = (c.categoria || '').toLowerCase();
-            if (tags.length === 0) {
-                if (cat === 'alba') tags.push('ALBA');
-                else if (cat === 'proveedor' || cat === 'proveedores') tags.push('PROVEEDORES');
-                else if (cat === 'hoteles' || cat === 'hotel') tags.push('HOTELES');
-                else if (cat === 'taxi' || cat === 'taxis') tags.push('TAXIS');
-            }
+            const tags = getChatTags(cleanPhone, c);
 
             if (tags.length > 0) {
                 tagsHtml = `<div class="wa-tags-container">` + tags.map(t => {
+                    const tagObj = availableTagsList.find(at => at.id === t.toLowerCase() || at.name.toLowerCase() === t.toLowerCase());
+                    const label = (tagObj ? tagObj.name : t).toUpperCase();
+                    const color = tagObj ? tagObj.color : '#a3e635';
+                    const bg = tagObj ? tagObj.bg : 'rgba(132, 204, 22, 0.18)';
                     const tagClass = `tag-${t.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-                    return `<span class="wa-tag-pill ${tagClass}">${t}</span>`;
+                    return `<span class="wa-tag-pill ${tagClass}" style="color: ${color}; background: ${bg}; border-color: ${color}66;">${label}</span>`;
                 }).join('') + `</div>`;
             }
 
@@ -3072,6 +3081,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         <!-- Dropdown de Acciones Rápidas -->
                         <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: ${isDropdownOpen ? 'flex' : 'none'}; padding-top: 8px; margin-top: 6px; border-top: 1px solid rgba(134, 150, 160, 0.15); flex-wrap: wrap; gap: 6px; width: 100%;">
+                            <button class="btn-edit-chat-tags" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">
+                                🏷️ Etiquetas
+                            </button>
                             <button class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 ${isPinned ? '📌 Desfijar' : '📌 Fijar arriba'}
                             </button>
@@ -3105,6 +3117,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const phone = card.getAttribute('data-phone');
                 const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
                 selectConversation(phone, name);
+            });
+        });
+
+        // Botón interactivo para asignar/editar etiquetas del chat
+        container.querySelectorAll('.btn-edit-chat-tags').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                activeCardDropdownPhone = null;
+                const phone = btn.getAttribute('data-phone');
+                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Cliente');
+                openChatTagsModal(phone, name);
             });
         });
 
@@ -3202,6 +3225,150 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('Error al eliminar conversación: ' + err.message);
                 }
             });
+        });
+    }
+
+    // ── MODAL GESTOR DE ETIQUETAS Y MODAL ASIGNAR ETIQUETAS A CHAT ──────────
+    const btnManageInboxTags = document.getElementById('btn-manage-inbox-tags');
+    const inboxTagsManagerModal = document.getElementById('inbox-tags-manager-modal');
+    const closeInboxTagsManagerBtn = document.getElementById('close-inbox-tags-manager-btn');
+    const btnCreateTagFromManager = document.getElementById('btn-create-tag-from-manager');
+    const inboxTagsManagerList = document.getElementById('inbox-tags-manager-list');
+
+    const chatTagsModal = document.getElementById('chat-tags-modal');
+    const chatTagsModalTitle = document.getElementById('chat-tags-modal-title');
+    const chatTagsModalSubtitle = document.getElementById('chat-tags-modal-subtitle');
+    const chatTagsSelectorGrid = document.getElementById('chat-tags-selector-grid');
+    const btnNewTagFromChatModal = document.getElementById('btn-new-tag-from-chat-modal');
+    const closeChatTagsModalBtn = document.getElementById('close-chat-tags-modal-btn');
+    const saveChatTagsBtn = document.getElementById('save-chat-tags-btn');
+
+    let activeChatTagsPhone = '';
+    let selectedChatTagsList = [];
+
+    function openInboxTagsManager() {
+        if (!inboxTagsManagerModal) return;
+        renderInboxTagsManagerList();
+        inboxTagsManagerModal.style.display = 'flex';
+    }
+
+    function closeInboxTagsManager() {
+        if (inboxTagsManagerModal) inboxTagsManagerModal.style.display = 'none';
+    }
+
+    function renderInboxTagsManagerList() {
+        if (!inboxTagsManagerList) return;
+        const tags = getAllAvailableSilencedTags();
+
+        inboxTagsManagerList.innerHTML = tags.map(tag => {
+            const count = allUnifiedConversations.filter(c => {
+                const cTags = getChatTags(c.telefono, c).map(t => t.toLowerCase());
+                return cTags.includes(tag.id) || cTags.includes(tag.name.toLowerCase());
+            }).length;
+
+            const isCustom = !DEFAULT_SILENCED_TAGS.some(d => d.id === tag.id);
+
+            return `
+                <div class="tag-manager-row-item">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="wa-tag-pill" style="color: ${tag.color || '#38bdf8'}; background: ${tag.bg || 'rgba(56, 189, 248, 0.2)'}; font-size: 0.82rem; padding: 4px 10px;">
+                            ${tag.emoji || '🏷️'} ${tag.name}
+                        </span>
+                        <span style="font-size: 0.78rem; color: #94a3b8;">${count} ${count === 1 ? 'chat' : 'chats'}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        ${isCustom ? `
+                            <button class="btn-delete-tag-item" data-tag-id="${tag.id}" data-tag-name="${encodeURIComponent(tag.name)}" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 4px 8px; font-size: 0.74rem; cursor: pointer;" title="Eliminar etiqueta">
+                                🗑️
+                            </button>
+                        ` : '<span style="font-size: 0.72rem; color: #64748b; font-style: italic;">Sistema</span>'}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        inboxTagsManagerList.querySelectorAll('.btn-delete-tag-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tagId = btn.getAttribute('data-tag-id');
+                const tagName = decodeURIComponent(btn.getAttribute('data-tag-name') || '');
+                if (!confirm(`¿Eliminar la etiqueta "${tagName}"? Se desasignará de los chats correspondientes.`)) return;
+                
+                const custom = getCustomSilencedTags().filter(t => t.id !== tagId && t.name.toLowerCase() !== tagName.toLowerCase());
+                localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(custom));
+                
+                renderInboxTagsManagerList();
+                renderSilencedFilters();
+                renderInboxCards();
+            });
+        });
+    }
+
+    function openChatTagsModal(phone, name) {
+        if (!chatTagsModal) return;
+        activeChatTagsPhone = (phone || '').replace(/\D/g, '');
+        if (chatTagsModalTitle) chatTagsModalTitle.textContent = `🏷️ Etiquetas del Chat`;
+        if (chatTagsModalSubtitle) chatTagsModalSubtitle.textContent = `Asigna etiquetas para ${name} (+${activeChatTagsPhone})`;
+
+        const currentTags = getChatTags(activeChatTagsPhone);
+        selectedChatTagsList = [...currentTags];
+
+        renderChatTagsModalGrid();
+        chatTagsModal.style.display = 'flex';
+    }
+
+    function closeChatTagsModal() {
+        if (chatTagsModal) chatTagsModal.style.display = 'none';
+        activeChatTagsPhone = '';
+    }
+
+    function renderChatTagsModalGrid() {
+        if (!chatTagsSelectorGrid) return;
+        const available = getAllAvailableSilencedTags();
+
+        chatTagsSelectorGrid.innerHTML = available.map(tag => {
+            const isSelected = selectedChatTagsList.some(t => t.toLowerCase() === tag.id || t.toLowerCase() === tag.name.toLowerCase());
+            return `
+                <div class="silenced-tag-selectable-chip ${isSelected ? 'selected' : ''}" data-tag-name="${tag.name}">
+                    <span class="tag-check-icon">${isSelected ? '✓' : '+'}</span>
+                    <span>${tag.emoji || '🏷️'} ${tag.name}</span>
+                </div>
+            `;
+        }).join('');
+
+        chatTagsSelectorGrid.querySelectorAll('.silenced-tag-selectable-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const tagName = chip.getAttribute('data-tag-name');
+                const idx = selectedChatTagsList.findIndex(t => t.toLowerCase() === tagName.toLowerCase());
+                if (idx > -1) {
+                    selectedChatTagsList.splice(idx, 1);
+                } else {
+                    selectedChatTagsList.push(tagName);
+                }
+                renderChatTagsModalGrid();
+            });
+        });
+    }
+
+    if (btnManageInboxTags) btnManageInboxTags.addEventListener('click', openInboxTagsManager);
+    if (closeInboxTagsManagerBtn) closeInboxTagsManagerBtn.addEventListener('click', closeInboxTagsManager);
+    if (btnCreateTagFromManager) btnCreateTagFromManager.addEventListener('click', () => {
+        openSilencedTagModal();
+    });
+
+    if (closeChatTagsModalBtn) closeChatTagsModalBtn.addEventListener('click', closeChatTagsModal);
+    if (btnNewTagFromChatModal) btnNewTagFromChatModal.addEventListener('click', () => {
+        openSilencedTagModal();
+    });
+
+    if (saveChatTagsBtn) {
+        saveChatTagsBtn.addEventListener('click', () => {
+            if (activeChatTagsPhone) {
+                setChatTags(activeChatTagsPhone, selectedChatTagsList);
+                showToast(`✅ Etiquetas actualizadas para +${activeChatTagsPhone}`);
+                closeChatTagsModal();
+                syncUnifiedConversations();
+                renderInboxCards();
+            }
         });
     }
 
@@ -3330,41 +3497,62 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
 
     // ── Filtros por categoría de Buzón Recepción (Píldoras estilo WhatsApp) ───
-    document.querySelectorAll('[data-inbox-cat]').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('[data-inbox-cat]').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            currentInboxCatFilter = chip.getAttribute('data-inbox-cat') || 'all';
-            renderInboxCards();
-        });
-    });
-
-    // ── Píldoras de Filtro Horizontales (Estilo WhatsApp Business en 2 Filas)
+    // ── Píldoras de Filtro con Selección Múltiple (Estilo WhatsApp Business) ───
     document.querySelectorAll('.wa-pill').forEach(pill => {
         pill.addEventListener('click', () => {
-            document.querySelectorAll('.wa-pill').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-
             const cat = pill.getAttribute('data-inbox-cat');
             const status = pill.getAttribute('data-inbox-status');
             const topic = pill.getAttribute('data-inbox-topic');
 
-            if (cat === 'all' && status === 'all' && (!topic || topic === 'all')) {
-                currentInboxCatFilter = 'all';
-                currentInboxStatusFilter = 'all';
-                currentInboxTopicFilter = 'all';
-            } else if (topic) {
-                currentInboxTopicFilter = topic;
-                currentInboxCatFilter = 'all';
-                currentInboxStatusFilter = 'all';
-            } else if (status) {
-                currentInboxStatusFilter = status;
-                currentInboxCatFilter = 'all';
-                currentInboxTopicFilter = 'all';
-            } else if (cat) {
-                currentInboxCatFilter = cat;
-                currentInboxStatusFilter = 'all';
-                currentInboxTopicFilter = 'all';
+            const allPill = document.querySelector('.wa-pill[data-inbox-cat="all"], .wa-pill[data-inbox-status="all"]');
+
+            // Si se pulsa "Todos", resetear todos los filtros
+            if ((cat === 'all' && status === 'all') || (!cat && !status && !topic) || (cat === 'all' && !status && !topic)) {
+                activeInboxStatusFilters.clear();
+                activeInboxCatFilters.clear();
+                activeInboxTopicFilters.clear();
+                document.querySelectorAll('.wa-pill').forEach(p => p.classList.remove('active'));
+                if (allPill) allPill.classList.add('active');
+                renderInboxCards();
+                return;
+            }
+
+            // Desmarcar "Todos" al activar un filtro específico
+            if (allPill) allPill.classList.remove('active');
+
+            if (status && status !== 'all') {
+                if (activeInboxStatusFilters.has(status)) {
+                    activeInboxStatusFilters.delete(status);
+                    pill.classList.remove('active');
+                } else {
+                    activeInboxStatusFilters.add(status);
+                    pill.classList.add('active');
+                }
+            }
+
+            if (cat && cat !== 'all') {
+                if (activeInboxCatFilters.has(cat)) {
+                    activeInboxCatFilters.delete(cat);
+                    pill.classList.remove('active');
+                } else {
+                    activeInboxCatFilters.add(cat);
+                    pill.classList.add('active');
+                }
+            }
+
+            if (topic && topic !== 'all') {
+                if (activeInboxTopicFilters.has(topic)) {
+                    activeInboxTopicFilters.delete(topic);
+                    pill.classList.remove('active');
+                } else {
+                    activeInboxTopicFilters.add(topic);
+                    pill.classList.add('active');
+                }
+            }
+
+            // Si no queda ningún filtro activo, reactivar "Todos"
+            if (activeInboxStatusFilters.size === 0 && activeInboxCatFilters.size === 0 && activeInboxTopicFilters.size === 0) {
+                if (allPill) allPill.classList.add('active');
             }
 
             renderInboxCards();
