@@ -45,6 +45,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const replyMessageText = document.getElementById('reply-message-text');
     const replyErrorMsg = document.getElementById('reply-error-msg');
 
+    // Helper unificado para obtener el nombre del cliente o su teléfono si no tiene nombre registrado
+    function getClientDisplayName(name, phone) {
+        const cleanPhone = (phone || '').toString().replace(/\D/g, '');
+        const phoneWithPlus = cleanPhone ? `+${cleanPhone}` : '';
+        if (!name || typeof name !== 'string') return phoneWithPlus || 'Cliente';
+        const trimmed = name.trim();
+        const lower = trimmed.toLowerCase();
+        if (!trimmed || lower.startsWith('cliente whatsapp') || lower === 'cliente' || lower === 'contacto' || lower === 'cliente wa') {
+            return phoneWithPlus || 'Cliente';
+        }
+        return trimmed;
+    }
+
     // SIMULADOR DOM
     const btnStartTest = document.getElementById('btn-start-test');
     const btnResetTest = document.getElementById('btn-reset-test');
@@ -2328,6 +2341,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = filtered.map(c => {
             const cleanPhone = (c.telefono || '').replace(/\D/g, '');
+            const clientDisplayName = getClientDisplayName(c.nombreCliente, cleanPhone);
             const timeStr = c.ultimoMensajeFecha ? new Date(c.ultimoMensajeFecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
             const isFromClient = c.ultimoEmisor === 'cliente';
             const emisorBadge = isFromClient 
@@ -2337,14 +2351,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
             return `
-                <div class="solicitud-card chat-card-item" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Cliente')}" style="border-left: 4px solid ${isFromClient ? '#22c55e' : '#38bdf8'}; cursor: pointer;">
+                <div class="solicitud-card chat-card-item" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="border-left: 4px solid ${isFromClient ? '#22c55e' : '#38bdf8'}; cursor: pointer;">
                     <div class="solicitud-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div class="card-avatar" style="background: ${isFromClient ? 'rgba(34, 197, 94, 0.15)' : 'rgba(56, 189, 248, 0.15)'}; color: ${isFromClient ? '#22c55e' : '#38bdf8'}; font-size: 1.2rem; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 ${isFromClient ? '👤' : '💬'}
                             </div>
                             <div>
-                                <h3 class="solicitud-client-name" style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">${c.nombreCliente || 'Cliente WhatsApp'}</h3>
+                                <h3 class="solicitud-client-name" style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">${clientDisplayName}</h3>
                                 <div class="solicitud-client-phone" style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">📞 +${cleanPhone}</div>
                             </div>
                         </div>
@@ -2688,7 +2702,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="card-user-info">
                                 <div class="card-avatar">👤</div>
                                 <div class="card-user-text">
-                                    <div class="card-client-name">${sol.nombreCliente || 'Cliente'}</div>
+                                    <div class="card-client-name">${getClientDisplayName(sol.nombreCliente, phoneFormatted)}</div>
                                     <div class="card-client-phone">📞 WhatsApp: +${phoneFormatted}</div>
                                 </div>
                             </div>
@@ -3028,8 +3042,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         replySolicitudId.value = sol.id;
-        replyClientName.textContent = sol.nombreCliente || 'Cliente Casa Julián';
         const cleanPhoneStr = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
+        replyClientName.textContent = getClientDisplayName(sol.nombreCliente, cleanPhoneStr);
         replyClientPhone.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
 
         // Configurar botones de acción directa de llamada y WhatsApp
@@ -3244,11 +3258,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!historyModal || !historyViewport) return;
 
         const cleanPhone = (phone || '').replace(/\D/g, '');
+        const clientDisplayName = getClientDisplayName(name, cleanPhone);
         currentHistoryPhone = cleanPhone;
-        currentHistoryName = name || 'Cliente';
+        currentHistoryName = clientDisplayName;
         lastRenderedSig = '';
 
-        if (historyClientName) historyClientName.textContent = `Historial: ${name || 'Cliente'}`;
+        if (historyClientName) historyClientName.textContent = `Historial: ${clientDisplayName}`;
         if (historyClientPhone) historyClientPhone.textContent = `📞 WhatsApp: +${cleanPhone}`;
         if (historyMsgCount) historyMsgCount.textContent = 'Cargando...';
         historyViewport.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 30px;">⏳ Cargando historial en tiempo real...</div>';
@@ -3353,8 +3368,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
         minimizedSolicitudesMap.forEach((sol, solId) => {
             const isUnread = unreadSolicitudIds.has(solId);
-            const clientName = sol.nombreCliente || 'Cliente WhatsApp';
             const phone = sol.telefonoCliente || sol.telefonoReserva || '';
+            const clientName = getClientDisplayName(sol.nombreCliente, phone);
             html += `
                 <div class="minimized-floating-bar ${isUnread ? 'has-unread' : ''}" data-sol-id="${solId}">
                     <div class="minimized-info">
