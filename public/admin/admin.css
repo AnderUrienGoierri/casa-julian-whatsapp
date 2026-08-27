@@ -685,10 +685,10 @@ body.mode-recepcion .tabs-nav {
     max-width: 100% !important;
     width: 100% !important;
     flex: 1 1 auto !important;
-    height: calc(100vh - 100px) !important;
-    height: calc(100dvh - 100px) !important;
-    max-height: calc(100vh - 100px) !important;
-    max-height: calc(100dvh - 100px) !important;
+    height: calc(100vh - 64px) !important;
+    height: calc(100dvh - 64px) !important;
+    max-height: calc(100vh - 64px) !important;
+    max-height: calc(100dvh - 64px) !important;
     padding: 0 !important;
     margin: 0 !important;
     gap: 0 !important;
@@ -2377,9 +2377,9 @@ body.mode-recepcion .inbox-cards-grid {
 
 /* Formulario de Entrada de Texto */
 .wa-chat-messages-area .whatsapp-input-form {
-    padding: 12px 18px;
-    background: #202c33;
-    border-top: 1px solid rgba(134, 150, 160, 0.15);
+    padding: 12px 18px 24px 18px !important;
+    background: #202c33 !important;
+    border-top: 1px solid rgba(134, 150, 160, 0.15) !important;
     flex-shrink: 0 !important;
     margin: 0 !important;
 }
@@ -2394,7 +2394,7 @@ body.mode-recepcion .inbox-cards-grid {
     flex: 1;
     background: #2a3942;
     border-radius: 12px;
-    padding: 6px 14px;
+    padding: 8px 14px;
     border: 1px solid transparent;
     transition: all 0.2s ease;
     min-height: 64px;
@@ -2416,8 +2416,8 @@ body.mode-recepcion .inbox-cards-grid {
     font-family: inherit;
     resize: none !important;
     padding: 4px 0;
-    min-height: 56px;
-    height: 56px;
+    min-height: 52px;
+    height: 52px;
     max-height: 180px;
     line-height: 1.45;
 }
@@ -2459,8 +2459,8 @@ body.mode-recepcion .inbox-cards-grid {
 @media (max-width: 900px) {
     .main-layout:has(#tab-inbox.active),
     .main-layout.is-inbox-active {
-        height: calc(100dvh - 90px) !important;
-        max-height: calc(100dvh - 90px) !important;
+        height: calc(100dvh - 56px) !important;
+        max-height: calc(100dvh - 56px) !important;
         flex: 1 1 auto !important;
         display: flex !important;
         flex-direction: column !important;
@@ -2684,7 +2684,7 @@ body.mode-recepcion .inbox-cards-grid {
     }
 
     .wa-chat-messages-area .whatsapp-input-form {
-        padding: 8px 12px 14px 12px !important;
+        padding: 10px 12px 24px 12px !important;
         margin: 0 !important;
         flex-shrink: 0 !important;
         background: #202c33 !important;
@@ -2699,10 +2699,10 @@ body.mode-recepcion .inbox-cards-grid {
 
     .wa-chat-messages-area .whatsapp-textarea-wrapper {
         flex: 1 !important;
-        min-height: 52px !important;
+        min-height: 60px !important;
         background: #2a3942 !important;
-        border-radius: 10px !important;
-        padding: 4px 10px !important;
+        border-radius: 12px !important;
+        padding: 6px 12px !important;
         display: flex !important;
         align-items: center !important;
     }
@@ -2711,20 +2711,20 @@ body.mode-recepcion .inbox-cards-grid {
         width: 100% !important;
         font-size: 0.92rem !important;
         padding: 4px 0 !important;
-        min-height: 44px !important;
-        height: 44px !important;
-        max-height: 140px !important;
-        line-height: 1.4 !important;
+        min-height: 50px !important;
+        height: 50px !important;
+        max-height: 150px !important;
+        line-height: 1.45 !important;
         resize: none !important;
         color: #e9edef !important;
     }
 
     .btn-send-whatsapp-icon {
-        width: 44px !important;
-        height: 44px !important;
-        min-width: 44px !important;
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
         border-radius: 50% !important;
-        margin-bottom: 2px !important;
+        margin-bottom: 4px !important;
     }
 }
 
