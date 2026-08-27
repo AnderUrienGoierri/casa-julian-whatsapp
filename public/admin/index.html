@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V401-CHAT-HEADER-TAGS-OPTION">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V402-DELETE-TAG-OPTION-IN-EDIT-MODAL">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -992,9 +992,14 @@
                         </select>
                     </div>
                 </div>
-                <div class="modal-actions" style="margin-top: 20px;">
-                    <button type="button" id="close-silenced-tag-modal-btn" class="btn-secondary">Cancelar</button>
-                    <button type="submit" id="silenced-tag-submit-btn" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1);">💾 Guardar Etiqueta</button>
+                <div class="modal-actions" style="margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <button type="button" id="btn-delete-current-tag" class="btn-secondary" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); display: none; margin-right: auto; padding: 8px 12px; font-size: 0.82rem;">
+                        🗑️ Eliminar
+                    </button>
+                    <div style="display: flex; gap: 8px; margin-left: auto;">
+                        <button type="button" id="close-silenced-tag-modal-btn" class="btn-secondary">Cancelar</button>
+                        <button type="submit" id="silenced-tag-submit-btn" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1);">💾 Guardar Etiqueta</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -1049,6 +1054,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V401-CHAT-HEADER-TAGS-OPTION"></script>
+    <script src="/admin/admin.js?v=20260827-V402-DELETE-TAG-OPTION-IN-EDIT-MODAL"></script>
 </body>
 </html>

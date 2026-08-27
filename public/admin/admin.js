@@ -442,6 +442,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const DEFAULT_SILENCED_TAGS = DEFAULT_SYSTEM_TAGS;
 
+    function getDeletedTags() {
+        try {
+            return JSON.parse(localStorage.getItem('casa_julian_deleted_tags') || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    function addDeletedTag(tagId) {
+        const deleted = getDeletedTags();
+        if (!deleted.includes(tagId)) {
+            deleted.push(tagId);
+            localStorage.setItem('casa_julian_deleted_tags', JSON.stringify(deleted));
+        }
+        const custom = getCustomSilencedTags().filter(t => t.id !== tagId);
+        localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(custom));
+    }
+
     function getCustomSilencedTags() {
         try {
             const raw = localStorage.getItem('casa_julian_custom_silenced_tags');
@@ -456,6 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!cleanName) return null;
         const custom = getCustomSilencedTags();
         const id = editId || cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+        // Si estaba en deleted, quitarlo para restaurarlo
+        const deleted = getDeletedTags().filter(d => d !== id);
+        localStorage.setItem('casa_julian_deleted_tags', JSON.stringify(deleted));
 
         const colors = [
             { color: '#f472b6', bg: 'rgba(244, 114, 182, 0.2)' },
@@ -496,11 +518,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getAllAvailableSilencedTags() {
-        const tags = DEFAULT_SYSTEM_TAGS.map(t => ({ ...t }));
+        const deleted = getDeletedTags();
+        const tags = DEFAULT_SYSTEM_TAGS.filter(t => !deleted.includes(t.id)).map(t => ({ ...t }));
         const custom = getCustomSilencedTags();
 
         // Integrar o sobrescribir etiquetas personalizadas / editadas
         custom.forEach(ct => {
+            if (deleted.includes(ct.id)) return;
             const idx = tags.findIndex(t => t.id === ct.id);
             if (idx > -1) {
                 tags[idx] = { ...tags[idx], ...ct };
@@ -832,6 +856,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (silencedModal) silencedModal.style.display = 'none';
     }
 
+    const btnDeleteCurrentTag = document.getElementById('btn-delete-current-tag');
+
     function openSilencedTagModal(editTag = null) {
         if (!silencedTagModal) return;
         
@@ -845,6 +871,11 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedTagEmoji = editTag.emoji || '🏷️';
             if (tagEmojiSelect) tagEmojiSelect.value = selectedTagEmoji;
             if (selectedEmojiPreview) selectedEmojiPreview.textContent = selectedTagEmoji;
+            if (btnDeleteCurrentTag) {
+                btnDeleteCurrentTag.style.display = 'inline-flex';
+                btnDeleteCurrentTag.setAttribute('data-tag-id', editTag.id);
+                btnDeleteCurrentTag.setAttribute('data-tag-name', editTag.name || '');
+            }
         } else {
             currentEditingTagId = null;
             if (silencedTagModalTitle) silencedTagModalTitle.textContent = '🏷️ Crear Nueva Etiqueta';
@@ -855,6 +886,11 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedTagEmoji = '🏷️';
             if (tagEmojiSelect) tagEmojiSelect.value = '🏷️';
             if (selectedEmojiPreview) selectedEmojiPreview.textContent = '🏷️';
+            if (btnDeleteCurrentTag) {
+                btnDeleteCurrentTag.style.display = 'none';
+                btnDeleteCurrentTag.removeAttribute('data-tag-id');
+                btnDeleteCurrentTag.removeAttribute('data-tag-name');
+            }
         }
 
         silencedTagModal.style.display = 'flex';
@@ -871,6 +907,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addSilencedTagBtn) addSilencedTagBtn.addEventListener('click', () => openSilencedTagModal());
     if (btnQuickNewTag) btnQuickNewTag.addEventListener('click', () => openSilencedTagModal());
     if (closeSilencedTagModalBtn) closeSilencedTagModalBtn.addEventListener('click', closeSilencedTagModal);
+
+    // Botón para eliminar la etiqueta desde el modal de edición
+    if (btnDeleteCurrentTag) {
+        btnDeleteCurrentTag.addEventListener('click', () => {
+            const tagId = btnDeleteCurrentTag.getAttribute('data-tag-id');
+            const tagName = btnDeleteCurrentTag.getAttribute('data-tag-name') || '';
+            if (!tagId) return;
+
+            if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR la etiqueta "${tagName}"?`)) return;
+
+            addDeletedTag(tagId);
+
+            // Desasignar de los chats guardados
+            const map = getChatTagsMap();
+            let changed = false;
+            Object.keys(map).forEach(phone => {
+                if (Array.isArray(map[phone])) {
+                    const filtered = map[phone].filter(t => t.toLowerCase() !== tagId.toLowerCase() && t.toLowerCase() !== tagName.toLowerCase());
+                    if (filtered.length !== map[phone].length) {
+                        map[phone] = filtered;
+                        changed = true;
+                    }
+                }
+            });
+            if (changed) localStorage.setItem(CHAT_TAGS_STORAGE_KEY, JSON.stringify(map));
+
+            selectedChatTagsList = selectedChatTagsList.filter(t => t.toLowerCase() !== tagId.toLowerCase() && t.toLowerCase() !== tagName.toLowerCase());
+
+            closeSilencedTagModal();
+            renderSilencedFilters();
+            if (typeof renderInboxTagsManagerList === 'function') renderInboxTagsManagerList();
+            if (typeof renderChatTagsModalGrid === 'function') renderChatTagsModalGrid();
+            syncUnifiedConversations();
+            renderInboxCards();
+
+            showToast(`🗑️ Etiqueta "${tagName}" eliminada correctamente.`);
+        });
+    }
 
     // Dropdown de Emoticonos Listener
     if (tagEmojiSelect) {
