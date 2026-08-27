@@ -2322,8 +2322,9 @@ body.mode-recepcion .inbox-cards-grid {
 
 .wa-chat-messages-area .whatsapp-chat-viewport {
     flex: 1 1 0% !important;
-    height: 100% !important;
+    height: auto !important;
     min-height: 0 !important;
+    max-height: none !important;
     overflow-y: auto !important;
     padding: 16px 20px;
     display: flex;
@@ -2662,8 +2663,9 @@ body.mode-recepcion .inbox-cards-grid {
 
     .wa-chat-messages-area .whatsapp-chat-viewport {
         flex: 1 1 0% !important;
-        height: 100% !important;
+        height: auto !important;
         min-height: 0 !important;
+        max-height: none !important;
         overflow-y: auto !important;
         padding: 12px 14px !important;
         display: flex !important;
@@ -4018,6 +4020,9 @@ div.inbox-toolbar-header,
 
 .whatsapp-chat-viewport {
     flex: 1 1 0% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     padding: 16px 20px;
     overflow-y: auto;
     display: flex;
@@ -4027,9 +4032,6 @@ div.inbox-toolbar-header,
     background-image: 
         radial-gradient(circle at 10% 20%, rgba(255,255,255,0.015) 0%, transparent 20%),
         radial-gradient(circle at 80% 80%, rgba(255,255,255,0.015) 0%, transparent 20%);
-    min-height: 0 !important;
-    max-height: none !important;
-    height: 100% !important;
 }
 
 .whatsapp-templates-bar {
