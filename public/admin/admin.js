@@ -3541,6 +3541,17 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('mouseleave', () => { btn.style.background = 'none'; });
         });
 
+        // Acción: Etiquetas del chat
+        const tagsBtn = document.getElementById('pane-action-tags');
+        if (tagsBtn) {
+            tagsBtn.addEventListener('click', () => {
+                paneMoreDropdown.style.display = 'none';
+                if (!activeConversationPhone) return;
+                const name = activeReplySolicitud ? getClientDisplayName(activeReplySolicitud.nombreCliente, activeConversationPhone) : activeConversationPhone;
+                openChatTagsModal(activeConversationPhone, name);
+            });
+        }
+
         // Acción: Fijar arriba
         const pinBtn = document.getElementById('pane-action-pin');
         if (pinBtn) {
