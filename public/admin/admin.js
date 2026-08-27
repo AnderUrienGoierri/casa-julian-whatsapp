@@ -2868,16 +2868,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Botón interactivo para alternar desplegable de más opciones
+        // Botón interactivo para alternar desplegable de más opciones (no se cierra solo, solo al clic fuera)
         container.querySelectorAll('.btn-card-more-actions').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const phone = btn.getAttribute('data-phone');
                 const menu = document.getElementById(`dropdown-actions-${phone}`);
-                if (menu) {
-                    const isVisible = menu.style.display === 'flex';
-                    menu.style.display = isVisible ? 'none' : 'flex';
-                }
+                if (!menu) return;
+                const isVisible = menu.style.display === 'flex';
+                // Cerrar todos los otros dropdowns abiertos
+                document.querySelectorAll('.card-actions-dropdown-menu').forEach(m => { m.style.display = 'none'; });
+                // Abrir/cerrar el actual
+                menu.style.display = isVisible ? 'none' : 'flex';
             });
         });
 
@@ -2967,6 +2969,148 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // ── Cierre Global de Dropdowns de Tarjetas al Clic Fuera ─────────────────
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.btn-card-more-actions') && !e.target.closest('.card-actions-dropdown-menu')) {
+            document.querySelectorAll('.card-actions-dropdown-menu').forEach(m => { m.style.display = 'none'; });
+        }
+    });
+
+    // ── Lógica del Dropdown ⋮ del Panel de Chat Activo ─────────────────────────
+    (function setupPaneMoreActions() {
+        const paneMoreBtn = document.getElementById('pane-more-actions-btn');
+        const paneMoreDropdown = document.getElementById('pane-more-actions-dropdown');
+        if (!paneMoreBtn || !paneMoreDropdown) return;
+
+        // Toggle al pulsar el botón ⋮
+        paneMoreBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = paneMoreDropdown.style.display === 'block';
+            paneMoreDropdown.style.display = isOpen ? 'none' : 'block';
+        });
+
+        // Cerrar al clic fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.pane-more-actions-wrapper')) {
+                paneMoreDropdown.style.display = 'none';
+            }
+        });
+
+        // Hover styles para los items
+        paneMoreDropdown.querySelectorAll('.pane-dropdown-action-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', () => { btn.style.background = 'rgba(255,255,255,0.07)'; });
+            btn.addEventListener('mouseleave', () => { btn.style.background = 'none'; });
+        });
+
+        // Acción: Fijar arriba
+        const pinBtn = document.getElementById('pane-action-pin');
+        if (pinBtn) {
+            pinBtn.addEventListener('click', () => {
+                paneMoreDropdown.style.display = 'none';
+                if (!activeConversationPhone) return;
+                const isNowPinned = toggleChatPinned(activeConversationPhone);
+                const pinLabel = document.getElementById('pane-action-pin-label');
+                if (pinLabel) pinLabel.textContent = isNowPinned ? 'Desfijar' : 'Fijar arriba';
+                showToast(isNowPinned ? '📌 Conversación fijada arriba' : 'Conversación desfijada');
+                syncUnifiedConversations();
+                renderInboxCards();
+            });
+        }
+
+        // Acción: Marcar No Leído / Leído
+        const toggleReadBtn = document.getElementById('pane-action-toggle-read');
+        if (toggleReadBtn) {
+            toggleReadBtn.addEventListener('click', async () => {
+                paneMoreDropdown.style.display = 'none';
+                if (!activeConversationPhone) return;
+                const readLabel = document.getElementById('pane-action-read-label');
+                const conv = allUnifiedConversations.find(c => c.telefono === activeConversationPhone);
+                const manualMap = getManualChatStatusMap();
+                const currentStatus = manualMap[activeConversationPhone] || 'leido';
+                const targetStatus = (currentStatus === 'leido') ? 'pendiente' : 'leido';
+                setManualChatStatus(activeConversationPhone, targetStatus);
+                if (readLabel) readLabel.textContent = targetStatus === 'leido' ? 'Marcar No Leído' : 'Marcar Leído';
+                if (conv && conv.solicitudId) {
+                    try {
+                        await fetch(`/api/admin/solicitudes/${conv.solicitudId}/estado`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                            body: JSON.stringify({ estado: targetStatus === 'leido' ? 'RESUELTA' : 'PENDIENTE' })
+                        });
+                    } catch (err) { console.warn('No se pudo sincronizar estado:', err.message); }
+                }
+                showToast(targetStatus === 'leido' ? '✅ Marcado como Leído' : '⏳ Marcado como No Leído');
+                renderInboxCards();
+            });
+        }
+
+        // Acción: Cancelar Bot (Silenciar)
+        const silenceBtn = document.getElementById('pane-action-silence');
+        if (silenceBtn) {
+            silenceBtn.addEventListener('click', () => {
+                paneMoreDropdown.style.display = 'none';
+                if (!activeConversationPhone) return;
+                const name = activeReplySolicitud ? getClientDisplayName(activeReplySolicitud.nombreCliente, activeConversationPhone) : activeConversationPhone;
+                openSilencedModal(activeConversationPhone, name);
+            });
+        }
+
+        // Acción: Archivar
+        const archiveBtn = document.getElementById('pane-action-archive');
+        if (archiveBtn) {
+            archiveBtn.addEventListener('click', async () => {
+                paneMoreDropdown.style.display = 'none';
+                if (!activeConversationPhone) return;
+                if (!confirm(`¿Deseas archivar la conversación de +${activeConversationPhone}?`)) return;
+                try {
+                    const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    const res = await fetch(`/api/admin/chats/${activeConversationPhone}/archive`, {
+                        method: 'POST',
+                        headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('📦 Conversación archivada.');
+                        await fetchWhatsAppChats();
+                    } else {
+                        alert('Error al archivar: ' + (data.error || 'Desconocido'));
+                    }
+                } catch (err) { alert('Error al archivar: ' + err.message); }
+            });
+        }
+
+        // Acción: Eliminar chat
+        const deleteBtn = document.getElementById('pane-action-delete');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', async () => {
+                paneMoreDropdown.style.display = 'none';
+                if (!activeConversationPhone) return;
+                if (!confirm(`⚠️ ¿Eliminar DEFINITIVAMENTE todo el historial del chat +${activeConversationPhone}? Esta acción no se puede deshacer.`)) return;
+                try {
+                    const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    const res = await fetch(`/api/admin/chats/${activeConversationPhone}`, {
+                        method: 'DELETE',
+                        headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('🗑️ Conversación eliminada definitivamente.');
+                        // Cerrar panel activo y volver a la lista
+                        const activePanel = document.getElementById('wa-active-chat-panel');
+                        const emptyState = document.getElementById('wa-empty-state');
+                        if (activePanel) activePanel.style.display = 'none';
+                        if (emptyState) emptyState.style.display = 'flex';
+                        activeConversationPhone = '';
+                        activeReplySolicitud = null;
+                        await fetchWhatsAppChats();
+                    } else {
+                        alert('Error al eliminar: ' + (data.error || 'Desconocido'));
+                    }
+                } catch (err) { alert('Error al eliminar: ' + err.message); }
+            });
+        }
+    })();
 
     // ── Filtros por categoría de Buzón Recepción (Píldoras estilo WhatsApp) ───
     document.querySelectorAll('[data-inbox-cat]').forEach(chip => {
