@@ -2773,6 +2773,106 @@ div.inbox-toolbar-header,
     color: #ffffff;
 }
 
+.whatsapp-header-top-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+}
+
+.whatsapp-header-user-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.whatsapp-header-top-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.whatsapp-top-icon-btn {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    min-height: 26px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.whatsapp-top-icon-btn.btn-mini-chat {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #cbd5e1;
+}
+
+.whatsapp-top-icon-btn.btn-mini-chat:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+}
+
+.whatsapp-top-icon-btn.btn-close-chat {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+}
+
+.whatsapp-top-icon-btn.btn-close-chat:hover {
+    background: rgba(239, 68, 68, 0.4);
+    color: #ffffff;
+}
+
+.btn-send-whatsapp-icon {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    flex-shrink: 0;
+}
+
+.btn-send-whatsapp-icon:hover {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 8px rgba(37, 211, 102, 0.6));
+}
+
+.btn-send-whatsapp-icon:active {
+    transform: scale(0.95);
+}
+
+.btn-send-whatsapp-icon:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    filter: grayscale(0.7);
+}
+
+.btn-send-whatsapp-icon .send-icon-img {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    display: block;
+}
+
 .btn-send-whatsapp {
     background: linear-gradient(135deg, #0284c7, #0369a1);
     color: #ffffff;
@@ -3054,19 +3154,22 @@ div.inbox-toolbar-header,
         box-sizing: border-box !important;
     }
 
-    /* Fila 1: Nombre completo con 100% del ancho */
+    /* Fila 1: Nombre completo a la izquierda y botones [—] y [✕] a la derecha */
     .whatsapp-header-top-row {
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
+        justify-content: space-between !important;
         width: 100% !important;
+        gap: 8px !important;
     }
 
     .whatsapp-header-user-title {
         display: flex !important;
         align-items: center !important;
-        gap: 10px !important;
-        width: 100% !important;
+        gap: 8px !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
     }
 
     .whatsapp-avatar,
@@ -3091,10 +3194,31 @@ div.inbox-toolbar-header,
         margin: 0 !important;
         line-height: 1.25 !important;
         word-break: break-word !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
         flex: 1 1 auto !important;
     }
 
-    /* Fila 2: Botones de control [📋 Resumen] [📜 Historial] [✕] */
+    .whatsapp-header-top-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .whatsapp-top-icon-btn {
+        width: 26px !important;
+        height: 26px !important;
+        min-width: 26px !important;
+        min-height: 26px !important;
+        border-radius: 6px !important;
+        font-size: 0.85rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    /* Fila 2: Botones de control [📋 Resumen] [📜 Historial] */
     .whatsapp-header-controls-row {
         display: flex !important;
         align-items: center !important;
@@ -3110,7 +3234,7 @@ div.inbox-toolbar-header,
 
     .whatsapp-control-btn.btn-toggle-summary,
     .whatsapp-control-btn.btn-toggle-history {
-        flex: 1 1 auto !important;
+        flex: 1 1 50% !important;
         height: 32px !important;
         padding: 0 10px !important;
         font-size: 0.78rem !important;
@@ -3128,21 +3252,6 @@ div.inbox-toolbar-header,
     .whatsapp-control-btn.btn-toggle-summary span,
     .whatsapp-control-btn.btn-toggle-history span {
         display: inline !important;
-    }
-
-    .whatsapp-control-btn.close-btn {
-        width: 34px !important;
-        height: 32px !important;
-        min-width: 34px !important;
-        font-size: 1rem !important;
-        background: rgba(239, 68, 68, 0.25) !important;
-        border-color: rgba(239, 68, 68, 0.5) !important;
-        color: #fff !important;
-        border-radius: 8px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        flex-shrink: 0 !important;
     }
 
     /* Fila 3: Píldoras de categoría y bot (En la MISMA fila) */
@@ -3197,8 +3306,7 @@ div.inbox-toolbar-header,
         white-space: nowrap !important;
     }
 
-    /* Ocultar botones de minimizar / maximizar en móvil (ya ocupa toda la pantalla) */
-    #minimize-reply-modal-btn,
+    /* Ocultar botones de maximizar en móvil (ya ocupa toda la pantalla) */
     #maximize-reply-modal-btn,
     #maximize-history-modal-btn {
         display: none !important;

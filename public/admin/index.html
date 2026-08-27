@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V331-CLEAN-HEADER-NO-BUZON-H2">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V340-CHAT-HEADER-MINI-CLOSE-AND-SEND-ICON">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -95,22 +95,23 @@
         <div class="whatsapp-modal-container">
             <!-- Header con estilo WhatsApp Web -->
             <div class="whatsapp-modal-header">
-                <!-- Fila 1: Avatar + Nombre Completo del Cliente (100% ancho) -->
+                <!-- Fila 1: Avatar + Nombre Completo del Cliente a la izquierda, y [—] Minimizar y [✕] Cerrar a la derecha -->
                 <div class="whatsapp-header-top-row">
                     <div class="whatsapp-header-user-title">
                         <div class="whatsapp-avatar">👤</div>
                         <h3 id="reply-client-name">Juan Pérez</h3>
                     </div>
+                    <div class="whatsapp-header-top-actions">
+                        <button type="button" id="minimize-reply-modal-btn" class="whatsapp-top-icon-btn btn-mini-chat" title="Minimizar chat">—</button>
+                        <button type="button" id="close-reply-modal-btn" class="whatsapp-top-icon-btn btn-close-chat" title="Cerrar modal">✕</button>
+                    </div>
                 </div>
 
-                <!-- Fila 2: Botones de Control (Resumen, Historial, Cerrar) -->
+                <!-- Fila 2: Botones de Control (Resumen, Historial) -->
                 <div class="whatsapp-header-controls-row">
                     <div class="whatsapp-window-controls">
                         <button type="button" id="toggle-sidebar-btn" class="whatsapp-control-btn btn-toggle-summary" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
                         <button type="button" id="reply-modal-history-btn" class="whatsapp-control-btn btn-toggle-history" title="Ver Historial Completo de este Cliente">📜 <span>Historial</span></button>
-                        <button type="button" id="minimize-reply-modal-btn" class="whatsapp-control-btn" title="Minimizar ventana (ver panel detrás)">—</button>
-                        <button type="button" id="maximize-reply-modal-btn" class="whatsapp-control-btn" title="Maximizar / Pantalla Completa">🗖</button>
-                        <button type="button" id="close-reply-modal-btn" class="whatsapp-control-btn close-btn" title="Cerrar modal">✕</button>
                     </div>
                 </div>
 
@@ -195,10 +196,9 @@
                                     ✅ Concluir Gestión & Reactivar Bot
                                 </button>
                             </div>
-                            <div style="display: flex; gap: 8px;">
-                                <button type="button" id="cancel-reply-btn" class="btn-secondary-simple">Cerrar</button>
-                                <button type="submit" id="send-reply-submit-btn" class="btn-send-whatsapp">
-                                    <span>📲 ENVIAR WHATSAPP</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <button type="submit" id="send-reply-submit-btn" class="btn-send-whatsapp-icon" title="Enviar WhatsApp">
+                                    <img src="/admin/icono_enviar_whatsapp.png" alt="Enviar WhatsApp" class="send-icon-img">
                                 </button>
                             </div>
                         </div>
@@ -923,6 +923,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V336-DISPLAY-REAL-NAME-OR-PHONE"></script>
+    <script src="/admin/admin.js?v=20260827-V340-CHAT-HEADER-MINI-CLOSE-AND-SEND-ICON"></script>
 </body>
 </html>
