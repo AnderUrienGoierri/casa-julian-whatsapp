@@ -119,6 +119,32 @@ function getInvalidEmailMsg(lang) {
 }
 
 function formatModificationDetail(nombreCliente, telefonoReserva, senderPhone, reservaActual, labelCampo, nuevoValor, lang = 'es') {
+    let localizedLabelCampo = labelCampo;
+    if (lang === 'eu') {
+        if (labelCampo === 'NÚMERO DE COMENSALES' || labelCampo === 'NUMERO DE COMENSALES') {
+            localizedLabelCampo = 'MAHAIKIDE KOPURUA';
+        } else if (labelCampo === 'FECHA(S) DE PREFERENCIA' || labelCampo.includes('FECHA')) {
+            localizedLabelCampo = 'AUKERATUTAKO DATA(K)';
+        } else if (labelCampo === 'HORA DE PREFERENCIA / TURNO' || labelCampo.includes('HORA') || labelCampo.includes('TURNO')) {
+            localizedLabelCampo = 'AUKERATUTAKO ORDUTEGIA / TXANDA';
+        }
+    } else if (lang === 'en') {
+        if (labelCampo === 'NÚMERO DE COMENSALES' || labelCampo === 'NUMERO DE COMENSALES') {
+            localizedLabelCampo = 'NUMBER OF GUESTS';
+        } else if (labelCampo === 'FECHA(S) DE PREFERENCIA' || labelCampo.includes('FECHA')) {
+            localizedLabelCampo = 'PREFERRED DATE(S)';
+        } else if (labelCampo === 'HORA DE PREFERENCIA / TURNO' || labelCampo.includes('HORA') || labelCampo.includes('TURNO')) {
+            localizedLabelCampo = 'PREFERRED TIME / SHIFT';
+        }
+    }
+
+    let localizedNuevoValor = nuevoValor;
+    if (lang === 'eu' && typeof nuevoValor === 'string') {
+        localizedNuevoValor = nuevoValor.replace(/\bpersonas\b/gi, 'pertsona');
+    } else if (lang === 'en' && typeof nuevoValor === 'string') {
+        localizedNuevoValor = nuevoValor.replace(/\bpersonas\b/gi, 'guests');
+    }
+
     const titleLabel = lang === 'eu' ? 'RESERBA ALDATZEKO ESKAERA' : (lang === 'en' ? 'RESERVATION MODIFICATION REQUEST' : 'SOLICITUD MODIFICACIÓN DE RESERVA');
     const holderLabel = lang === 'eu' ? 'Titularraren izena:' : (lang === 'en' ? 'Holder Name:' : 'Nombre del Titular:');
     const phoneLabel = lang === 'eu' ? 'Telefonoa:' : (lang === 'en' ? 'Phone:' : 'Teléfono Reserva:');
@@ -127,14 +153,15 @@ function formatModificationDetail(nombreCliente, telefonoReserva, senderPhone, r
     const modLabel = lang === 'eu' ? 'Aldatu nahi den eremua:' : (lang === 'en' ? 'Field to modify:' : 'Campo a Modificar:');
     const valLabel = lang === 'eu' ? 'Balio berria:' : (lang === 'en' ? 'New value:' : 'Nuevo Valor:');
     const requestTypeLabel = lang === 'eu' ? 'Eskaera:' : (lang === 'en' ? 'Request:' : 'Solicitud:');
+    const notSpecified = lang === 'eu' ? 'Zehaztu gabe' : (lang === 'en' ? 'Not specified' : 'No especificado');
 
     return (
-        `👤 *${holderLabel}* ${nombreCliente || 'No especificado'}\n` +
-        `📞 *${phoneLabel}* ${telefonoReserva || 'No especificado'}\n` +
+        `👤 *${holderLabel}* ${nombreCliente || notSpecified}\n` +
+        `📞 *${phoneLabel}* ${telefonoReserva || notSpecified}\n` +
         `📱 *${senderLabel}* ${senderPhone}\n` +
         `📌 *${currentResLabel}* ${reservaActual}\n` +
-        `✏️ *${modLabel}* ${labelCampo}\n` +
-        `🆕 *${valLabel}* ${nuevoValor}\n` +
+        `✏️ *${modLabel}* ${localizedLabelCampo}\n` +
+        `🆕 *${valLabel}* ${localizedNuevoValor}\n` +
         `📋 *${requestTypeLabel}* ${titleLabel}`
     );
 }
