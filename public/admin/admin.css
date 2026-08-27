@@ -2545,84 +2545,150 @@ body.mode-recepcion .inbox-cards-grid {
     }
 
     .wa-chat-header {
-        padding: 6px 8px;
-        gap: 4px;
-        min-height: 48px;
+        padding: 6px 10px !important;
+        gap: 6px !important;
+        min-height: 54px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .wa-chat-header-left {
+        gap: 6px !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+        overflow: hidden !important;
     }
 
     .wa-header-contact-name {
-        font-size: 0.88rem;
-        max-width: 110px;
-        line-height: 1.2;
+        font-size: 0.94rem !important;
+        font-weight: 700 !important;
+        max-width: none !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 
     .wa-header-sub-status {
-        display: flex;
-        align-items: center;
-        gap: 3px;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
     }
 
     .status-pill-small {
-        font-size: 0.60rem;
-        padding: 1px 4px;
+        font-size: 0.64rem !important;
+        padding: 1px 5px !important;
     }
 
     .wa-avatar-container,
     #pane-chat-avatar {
-        width: 32px !important;
-        height: 32px !important;
-        min-width: 32px !important;
-        font-size: 0.85rem !important;
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+        font-size: 0.88rem !important;
     }
 
+    /* Botones de acción en columna vertical a la derecha: Modo Humano arriba, Resumen abajo */
     .wa-chat-header-actions {
-        gap: 4px;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 3px !important;
+        align-items: flex-end !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
     }
 
     .wa-header-action-btn {
-        padding: 4px 6px;
-        font-size: 0.70rem;
-        border-radius: 5px;
-        gap: 2px;
+        padding: 3px 8px !important;
+        font-size: 0.72rem !important;
+        border-radius: 5px !important;
+        gap: 3px !important;
+        white-space: nowrap !important;
+        line-height: 1.2 !important;
     }
 
     /* Expansión del área de mensajes y formulario hasta el final absoluto */
     .wa-chat-body-wrapper {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        min-height: 0;
-        height: calc(100% - 48px);
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        position: relative !important;
+        overflow: hidden !important;
     }
 
     .wa-chat-messages-area {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        min-height: 0;
-        height: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        width: 100% !important;
+        background: #0b141a !important;
+        position: relative !important;
+        overflow: hidden !important;
     }
 
     .wa-chat-messages-area .whatsapp-chat-viewport {
-        padding: 10px 12px;
+        flex: 1 1 0% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        padding: 12px 14px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
     }
 
     .wa-chat-messages-area .whatsapp-templates-bar {
-        padding: 6px 8px;
-        flex-shrink: 0;
+        padding: 6px 10px !important;
+        flex-shrink: 0 !important;
+        background: #111b21 !important;
+        border-top: 1px solid rgba(134, 150, 160, 0.1) !important;
     }
 
     .wa-chat-messages-area .whatsapp-input-form {
-        padding: 6px 8px;
-        margin-bottom: 0;
-        flex-shrink: 0;
-        background: #202c33;
+        padding: 8px 12px !important;
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+        background: #202c33 !important;
+        border-top: 1px solid rgba(134, 150, 160, 0.15) !important;
+    }
+
+    .wa-chat-messages-area .whatsapp-input-row {
+        display: flex !important;
+        align-items: flex-end !important;
+        gap: 8px !important;
+    }
+
+    .wa-chat-messages-area .whatsapp-textarea-wrapper {
+        flex: 1 !important;
+        min-height: 48px !important;
+        background: #2a3942 !important;
+        border-radius: 10px !important;
+        padding: 4px 10px !important;
+        display: flex !important;
+        align-items: center !important;
     }
 
     .wa-chat-messages-area textarea {
-        font-size: 0.88rem;
-        padding: 6px 0;
+        width: 100% !important;
+        font-size: 0.90rem !important;
+        padding: 4px 0 !important;
+        min-height: 42px !important;
+        height: 42px !important;
+        max-height: 140px !important;
+        line-height: 1.4 !important;
         resize: none !important;
+        color: #e9edef !important;
+    }
+
+    .btn-send-whatsapp-icon {
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        border-radius: 50% !important;
+        margin-bottom: 3px !important;
     }
 }
 
