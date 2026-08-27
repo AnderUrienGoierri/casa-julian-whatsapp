@@ -442,9 +442,9 @@ async function logUserChatHistory(telefono, { emisor, tipo = 'text', texto = '',
         metadata: metadata || {},
         created_at: timestamp
     });
-    // Limitar tamaño en db.json si supera 5000
-    if (db.bot_chat_history.length > 5000) {
-        db.bot_chat_history = db.bot_chat_history.slice(-4000);
+    // Limitar tamaño en db.json si supera 50000 (amplio para soportar todo el histórico de WhatsApp)
+    if (db.bot_chat_history.length > 50000) {
+        db.bot_chat_history = db.bot_chat_history.slice(-40000);
     }
     saveDb(db);
 }
@@ -480,7 +480,7 @@ async function getUserChatHistory(telefono) {
 
     const db = loadDb();
     const list = db.bot_chat_history || [];
-    return list.filter(h => h.telefono === cleanTel);
+    return list.filter(h => h.telefono === cleanTel || (h.telefono || '').replace(/\D/g, '') === cleanTel);
 }
 
 /**
@@ -501,7 +501,7 @@ async function deleteUserChatHistory(telefono) {
 
     const db = loadDb();
     if (db.bot_chat_history) {
-        db.bot_chat_history = db.bot_chat_history.filter(h => h.telefono !== cleanTel);
+        db.bot_chat_history = db.bot_chat_history.filter(h => h.telefono !== cleanTel && (h.telefono || '').replace(/\D/g, '') !== cleanTel);
     }
     if (db.solicitudes) {
         db.solicitudes = db.solicitudes.filter(s => (s.telefonoCliente || '').replace(/\D/g, '') !== cleanTel);
@@ -539,7 +539,7 @@ async function archiveUserChatHistory(telefono) {
 
 /**
  * Obtiene el listado de todas las conversaciones de WhatsApp activas/previas
- * agrupadas por teléfono, con el último mensaje, emisor, fecha y nombre de cliente si existe.
+ * agrupadas por teléfono, con el último mensaje, emisor, fecha, categoría y nombre de cliente.
  */
 async function getAllWhatsAppConversations() {
     if (pool) {
@@ -560,7 +560,7 @@ async function getAllWhatsAppConversations() {
                 GROUP BY b.telefono
                 ORDER BY MAX(b.created_at) DESC`
             );
-            if (res.rows) {
+            if (res.rows && res.rows.length > 0) {
                 return res.rows.map(r => ({
                     telefono: r.telefono,
                     ultimoMensajeFecha: r.ultimo_mensaje_fecha,
@@ -568,7 +568,7 @@ async function getAllWhatsAppConversations() {
                     ultimoTexto: r.ultimo_texto || '',
                     ultimoEmisor: r.ultimo_emisor || 'bot',
                     ultimoTipo: r.ultimo_tipo || 'text',
-                    nombreCliente: r.nombre_cliente || 'Cliente WhatsApp',
+                    nombreCliente: r.nombre_cliente || (r.telefono.startsWith('34') || r.telefono.length > 9 ? `+${r.telefono}` : r.telefono),
                     solicitudId: r.solicitud_id || null,
                     tipoSolicitud: r.tipo_solicitud || null,
                     solicitudEstado: r.solicitud_estado || null
@@ -581,10 +581,49 @@ async function getAllWhatsAppConversations() {
 
     const db = loadDb();
     const historyList = db.bot_chat_history || [];
+    const silencedList = db.bot_silenced_numbers || [];
+    const solicitudesList = db.solicitudes || [];
+    const reservasList = db.reservas || [];
+    const clientesList = db.clientes || [];
+    
+    // Mapeo rápido de nombres y categorías
+    const nameMap = new Map();
+    const catMap = new Map();
+    
+    silencedList.forEach(s => {
+        const cleanTel = (s.telefono || '').replace(/\D/g, '');
+        if (cleanTel) {
+            if (s.nombre) nameMap.set(cleanTel, s.nombre);
+            if (s.categoria) catMap.set(cleanTel, s.categoria);
+        }
+    });
+    solicitudesList.forEach(s => {
+        const cleanTel = (s.telefonoCliente || '').replace(/\D/g, '');
+        if (cleanTel && s.nombreCliente && !nameMap.has(cleanTel)) {
+            nameMap.set(cleanTel, s.nombreCliente);
+        }
+    });
+    reservasList.forEach(r => {
+        const cleanTel = (r.telefono || '').replace(/\D/g, '');
+        if (cleanTel && r.nombre && !nameMap.has(cleanTel)) {
+            nameMap.set(cleanTel, r.nombre);
+        }
+    });
+    clientesList.forEach(c => {
+        const cleanTel = (c.telefono || '').replace(/\D/g, '');
+        if (cleanTel && c.nombre && !nameMap.has(cleanTel)) {
+            nameMap.set(cleanTel, c.nombre);
+        }
+    });
+
     const grouped = new Map();
 
     historyList.forEach(h => {
-        const tel = h.telefono;
+        const tel = h.telefono || '';
+        const meta = h.metadata || {};
+        const clientName = meta.nombreCliente || nameMap.get(tel) || (tel.startsWith('34') || tel.length > 9 ? `+${tel}` : tel) || 'Cliente WhatsApp';
+        const category = meta.categoria || catMap.get(tel) || 'cliente';
+
         if (!grouped.has(tel)) {
             grouped.set(tel, {
                 telefono: tel,
@@ -593,11 +632,19 @@ async function getAllWhatsAppConversations() {
                 ultimoTexto: h.texto || '',
                 ultimoEmisor: h.emisor || 'bot',
                 ultimoTipo: h.tipo || 'text',
-                nombreCliente: 'Cliente WhatsApp'
+                nombreCliente: clientName,
+                categoria: category,
+                origen: meta.origen || 'CHAT_EN_VIVO'
             });
         } else {
             const item = grouped.get(tel);
             item.totalInteracciones += 1;
+            if (meta.nombreCliente && (!item.nombreCliente || item.nombreCliente.startsWith('+') || item.nombreCliente === 'Cliente WhatsApp')) {
+                item.nombreCliente = meta.nombreCliente;
+            }
+            if (meta.categoria && meta.categoria !== 'cliente') {
+                item.categoria = meta.categoria;
+            }
             if (new Date(h.created_at) > new Date(item.ultimoMensajeFecha)) {
                 item.ultimoMensajeFecha = h.created_at;
                 item.ultimoTexto = h.texto || '';

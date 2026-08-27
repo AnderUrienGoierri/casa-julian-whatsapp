@@ -1,9 +1,10 @@
 # Guía de Migración e Importación de Chats Históricos
+
 ## De WhatsApp Business App (+34 943 67 14 17) a Meta Cloud API & Panel Web CMS
 
-**Proyecto:** Casa Julián de Tolosa — WhatsApp Bot & Panel de Administración Web  
-**Fecha de Documentación:** 26 de Agosto de 2026  
-**Estado:** Guía de Procedimiento para la Puesta en Marcha Oficial  
+**Proyecto:** Casa Julián de Tolosa — WhatsApp Bot & Panel de Administración Web
+**Fecha de Documentación:** 26 de Agosto de 2026
+**Estado:** Guía de Procedimiento para la Puesta en Marcha Oficial
 
 ---
 
@@ -11,9 +12,10 @@
 
 Cuando se realiza la transición desde la aplicación móvil **WhatsApp Business** (en el teléfono del restaurante) hacia la **Meta WhatsApp Cloud API** utilizando el número oficial (**+34 943 67 14 17**), Meta activa la entrega en tiempo real de todos los mensajes futuros mediante Webhooks HTTP hacia el servidor Node.js.
 
-Sin embargo, Meta **no migra automáticamente los chats pasados** que residen en la memoria o copia de seguridad local del dispositivo móvil. 
+Sin embargo, Meta **no migra automáticamente los chats pasados** que residen en la memoria o copia de seguridad local del dispositivo móvil.
 
 Para evitar la pérdida de contexto y conservar el historial de interacciones con los clientes de los últimos 6 meses, este documento detalla el procedimiento técnico para **exportar las conversaciones del teléfono e importarlas masivamente en la base de datos de la aplicación web (`db.json` / `chats.json`)**, haciendo que aparezcan inmediatamente en:
+
 1. La pestaña **💬 Chats WhatsApp**.
 2. El modal **📜 Historial Completo del Cliente**.
 3. La tarjeta del **📥 Buzón de Recepción**.
@@ -60,6 +62,7 @@ Para evitar la pérdida de contexto y conservar el historial de interacciones co
 ## 📱 3. Paso 1: Exportación de Conversaciones desde el Móvil
 
 ### Opción A: Exportar Chats Individuales desde WhatsApp Business (Recomendada para clientes clave)
+
 1. Abrir la app **WhatsApp Business** en el teléfono.
 2. Entrar en el chat del cliente.
 3. Pulsar en el menú de los 3 puntos (arriba a la derecha) $\rightarrow$ **Más** $\rightarrow$ **Exportar chat**.
@@ -67,6 +70,7 @@ Para evitar la pérdida de contexto y conservar el historial de interacciones co
 5. Guardar o enviar el archivo `.txt` (ejemplo: `Chat de WhatsApp con +34664037707.txt`).
 
 ### Opción B: Copia de Seguridad Completa de la Base de Datos Local (Android)
+
 1. En Android, la base de datos local de WhatsApp se almacena en `/sdcard/WhatsApp/Databases/msgstore.db.crypt14` (o `.crypt15`).
 2. Utilizando herramientas abiertas como *WhatsApp Backup Decrypter* o extractores de texto en lote, se genera un archivo JSON unificado con todas las conversaciones pasadas de los últimos 6 meses.
 
@@ -77,6 +81,7 @@ Para evitar la pérdida de contexto y conservar el historial de interacciones co
 Se creará un script dedicado en el servidor (`scripts/importar-historico-whatsapp.js`) que procesará los archivos exportados.
 
 ### Formato Típico de Exportación de WhatsApp (.txt):
+
 ```text
 26/02/26, 14:15 - Los mensajes y las llamadas están cifrados al extremo.
 26/02/26, 14:16 - +34 664 03 77 07: Hola, me gustaría reservar mesa para 4 personas este viernes a las 14:30.
@@ -94,7 +99,7 @@ const db = require('../database'); // Conector a db.json / Postgres
 async function importarChatArchivo(filePath, telefonoCliente, nombreCliente) {
     const rawContent = fs.readFileSync(filePath, 'utf8');
     const lineas = rawContent.split('\n');
-    
+  
     const regexMensaje = /^(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s+(\d{1,2}:\d{2})\s*-\s*([^:]+):\s*(.*)$/;
     const mensajesEstructurados = [];
 
@@ -102,10 +107,10 @@ async function importarChatArchivo(filePath, telefonoCliente, nombreCliente) {
         const match = linea.match(regexMensaje);
         if (match) {
             const [_, fechaStr, horaStr, emisorRaw, texto] = match;
-            
+          
             // Determinar emisor
             const esCliente = emisorRaw.includes(telefonoCliente) || !emisorRaw.toLowerCase().includes('julian');
-            
+          
             // Construir fecha ISO
             const partesFecha = fechaStr.split('/');
             const isoDate = new Date(`20${partesFecha[2]}-${partesFecha[1].padStart(2,'0')}-${partesFecha[0].padStart(2,'0')}T${horaStr}:00`).toISOString();
@@ -174,10 +179,11 @@ Una vez ejecutado el proceso de importación, el registro en la base de datos de
 
 ---
 
-## 📝 7. Checklist de Ejecución el Día del Cambio de Número Oficial
+## 📝 7. Checklist de Ejecución
 
-- [ ] Realizar la copia de seguridad / exportación de chats en el teléfono móvil de WhatsApp Business.
-- [ ] Vincular el número oficial **+34 943 67 14 17** en el panel de Meta Developer (WhatsApp Cloud API).
-- [ ] Copiar los archivos `.txt` exportados a la carpeta `import_data/` del servidor.
-- [ ] Ejecutar `node scripts/importar-historico-whatsapp.js`.
+- [x] Realizar la copia de seguridad / exportación masiva de chats en WhatsApp Business (+34 943 67 14 17) -> 952 chats exportados en `copia_chats_whatsapp_business/`.
+- [x] Ejecutar script de procesamiento e inserción masiva (`scripts/importar-historico-whatsapp.py`).
+- [x] Sincronizar historial con PostgreSQL (`scripts/sync-historico-postgres.js`).
+- [x] Habilitar la pestaña **💬 Chats WhatsApp** con filtros por categoría (Clientes, Proveedores, Alba, Hoteles, Taxis) y buscador en tiempo real en el Panel Web CMS.
+- [ ] Vincular el número oficial **+34 943 67 14 17** en el panel de Meta Developer (WhatsApp Cloud API) cuando comience la atención en producción.
 - [ ] Entrar en `https://casa-julian-whatsapp-bot.onrender.com/admin/` y verificar en **💬 Chats WhatsApp** que los historiales pasados se visualizan correctamente.

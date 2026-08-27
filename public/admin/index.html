@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V344-MONOCHROME-DARK-THEME">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V345-MIGRACION-CHATS-HISTORICOS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -321,6 +321,8 @@
         <!-- Navegación por Pestañas -->
         <nav class="tabs-nav">
             <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón Recepción &amp; Solicitudes <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
+            <button class="tab-btn" data-tab="tab-chats">💬 Chats WhatsApp <span id="chats-count-badge" class="draft-badge" style="background:#10b981; color:#fff; display:inline-block;">0</span></button>
+            <button class="tab-btn" data-tab="tab-silenced">🔇 Números Silenciados <span id="silenced-count-badge" class="draft-badge" style="background:#a855f7; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-flow">🌳 Estructura &amp; Árbol de Flujos</button>
             <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes &amp; Textos</button>
             <button class="tab-btn" data-tab="tab-rules">⚙️ Flujo &amp; Respuestas por Palabras Clave</button>
@@ -343,70 +345,73 @@
                         <div id="inbox-filters-toggle" class="inbox-toolbar-header">
                             <div class="inbox-toolbar-title-group">
                                 <span class="inbox-toolbar-icon">⚙️</span>
-                                <span class="inbox-toolbar-title">Filtros &amp; Ordenación</span>
-                                <span id="inbox-active-filters-summary" class="inbox-filters-summary-badge"></span>
+                                <span class="inbox-toolbar-title">Filtros &amp; Opciones de Visualización</span>
                             </div>
-                            <span id="inbox-filters-toggle-icon" class="inbox-toggle-arrow">▼</span>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="inbox-filters-toggle-badge" class="inbox-toggle-badge">Mostrar</span>
+                                <span id="inbox-filters-arrow" class="inbox-toggle-arrow">▼</span>
+                            </div>
                         </div>
 
-                        <!-- Contenido colapsable (cerrado por defecto) -->
-                        <div id="inbox-filters-body" class="inbox-toolbar-body is-collapsed" style="display: none;">
-                            <!-- Fila 1: Buscador + Ordenación + Selector de Vista Unificada -->
-                            <div class="inbox-top-controls">
-                                <div class="search-box inbox-search">
-                                    <span class="search-icon">🔍</span>
-                                    <input type="text" id="search-inbox-input" placeholder="Buscar por cliente, teléfono o contenido del resumen...">
-                                </div>
-
-                                <div class="inbox-sort-wrapper">
-                                    <label for="inbox-sort-select" class="inbox-sort-label">↕️ Ordenar:</label>
-                                    <select id="inbox-sort-select" class="inbox-sort-select">
-                                        <option value="date_desc">⏰ Más reciente primero</option>
-                                        <option value="date_asc">🕛 Más antiguo primero</option>
-                                        <option value="alpha_asc">🔤 A → Z (nombre)</option>
-                                        <option value="alpha_desc">🔡 Z → A (nombre)</option>
-                                        <option value="estado">📌 Por estado</option>
-                                    </select>
-                                </div>
-
-                                <div class="inbox-view-group">
-                                    <button class="filter-chip active" data-inbox-view="active" id="view-chip-active">📥 Activas</button>
-                                    <button class="filter-chip" data-inbox-view="ARCHIVADA" id="view-chip-archived">📦 Archivadas</button>
-                                </div>
+                        <!-- Cuerpo del Toolbar (desplegable) -->
+                        <div id="inbox-filters-body" class="inbox-toolbar-body" style="display: none;">
+                            
+                            <!-- Buscador en tiempo real -->
+                            <div class="search-box" style="margin-bottom: 12px; width: 100%;">
+                                <span class="search-icon">🔍</span>
+                                <input type="text" id="search-inbox-input" placeholder="Buscar por cliente, teléfono, datos de reserva...">
                             </div>
 
-                            <!-- Fila 2: Filtros por Categoría de Solicitud -->
-                            <div class="inbox-filter-row">
-                                <span class="inbox-row-label">🏷️ Tipo:</span>
+                            <!-- Fila 1: Filtro por Categorías -->
+                            <div class="inbox-filter-group">
+                                <span class="inbox-filter-label">Categoría:</span>
                                 <div class="category-filters" id="inbox-category-filters">
                                     <button class="filter-chip active" data-inbox-cat="all">Todas</button>
-                                    <button class="filter-chip" data-inbox-cat="reservas_menu_tradicion">🎁 Menú Tradición</button>
-                                    <button class="filter-chip" data-inbox-cat="modificaciones">🔄 Modificaciones</button>
+                                    <button class="filter-chip" data-inbox-cat="reserva_humana">🍽️ Reservas Especiales</button>
+                                    <button class="filter-chip" data-inbox-cat="modificacion">✏️ Modificaciones</button>
                                     <button class="filter-chip" data-inbox-cat="cancelacion">❌ Cancelaciones</button>
-                                    <button class="filter-chip" data-inbox-cat="faqs">❓ Preguntas Frecuentes</button>
+                                    <button class="filter-chip" data-inbox-cat="grupo_evento">👥 Grupos / Eventos</button>
+                                    <button class="filter-chip" data-inbox-cat="tarjeta_regalo">🎁 Tarjetas Regalo</button>
                                     <button class="filter-chip" data-inbox-cat="consulta_abierta">💬 Consultas Abiertas</button>
                                 </div>
                             </div>
 
-                            <!-- Fila 3: Filtros por Estado de la Solicitud -->
-                            <div class="inbox-filter-row">
-                                <span class="inbox-row-label">📌 Estado:</span>
+                            <!-- Fila 2: Filtro por Estados -->
+                            <div class="inbox-filter-group" style="margin-top: 10px;">
+                                <span class="inbox-filter-label">Estado:</span>
                                 <div class="category-filters" id="inbox-status-filters">
-                                    <button class="filter-chip active" data-inbox-status="all">Todos los Estados</button>
+                                    <button class="filter-chip active" data-inbox-status="all">Todos</button>
                                     <button class="filter-chip" data-inbox-status="PENDIENTE">⏳ Pendientes</button>
-                                    <button class="filter-chip" data-inbox-status="RESPONDIDA">💬 Respondidas</button>
+                                    <button class="filter-chip" data-inbox-status="EN_ATENCION">👤 En Atención Humana</button>
                                     <button class="filter-chip" data-inbox-status="CONFIRMADA">✅ Confirmadas</button>
                                     <button class="filter-chip" data-inbox-status="RECHAZADA">🚫 Rechazadas</button>
+                                    <button class="filter-chip" data-inbox-status="RESUELTA">✨ Resueltas</button>
+                                    <button class="filter-chip" data-inbox-status="ARCHIVADA">📦 Archivadas</button>
                                 </div>
                             </div>
+
+                            <!-- Fila 3: Ordenación -->
+                            <div class="inbox-filter-group" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="inbox-filter-label">Ordenar:</span>
+                                    <select id="inbox-sort-select" class="custom-select" style="padding: 4px 8px; font-size: 0.8rem; background: var(--bg-surface); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px;">
+                                        <option value="date_desc">📅 Más recientes primero</option>
+                                        <option value="date_asc">📅 Más antiguas primero</option>
+                                        <option value="alpha_asc">🔤 Nombre (A - Z)</option>
+                                        <option value="alpha_desc">🔤 Nombre (Z - A)</option>
+                                        <option value="estado">📊 Por Estado</option>
+                                    </select>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
-                    <!-- Barra de Acciones Masivas y Selección Múltiple -->
-                    <div id="inbox-bulk-bar" class="inbox-bulk-bar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; width: 100%; box-sizing: border-box;">
-                        <div style="display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 180px;">
-                            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: #cbd5e1; font-size: 0.84rem; font-weight: 600; user-select: none;">
-                                <input type="checkbox" id="inbox-select-all-cb" style="width: 17px; height: 17px; cursor: pointer; accent-color: #ef4444; flex-shrink: 0;">
+                    <!-- Barra de Acciones Masivas (Seleccionar todo, Archivar, Eliminar) -->
+                    <div id="inbox-bulk-bar" class="inbox-bulk-bar" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 14px; background: rgba(30, 41, 59, 0.6); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem; color: #cbd5e1; user-select: none;">
+                                <input type="checkbox" id="inbox-select-all-checkbox" style="cursor: pointer; width: 15px; height: 15px; accent-color: var(--primary);">
                                 <span>Seleccionar todo (<span id="inbox-selected-count">0</span>)</span>
                             </label>
                         </div>
@@ -439,14 +444,24 @@
                         </button>
                     </div>
 
-                    <!-- Buscador de Chats -->
+                    <!-- Toolbar y Filtros de Chats -->
                     <div class="inbox-toolbar-card" style="margin-bottom: 18px; padding: 14px 18px;">
-                        <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap; margin-bottom: 10px;">
                             <div class="search-box" style="flex: 1; min-width: 220px; margin: 0;">
                                 <span class="search-icon">🔍</span>
-                                <input type="text" id="search-chats-input" placeholder="Buscar por teléfono o nombre de cliente...">
+                                <input type="text" id="search-chats-input" placeholder="Buscar por teléfono o nombre de cliente/contacto...">
                             </div>
                             <span id="chats-total-summary" style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">0 conversaciones</span>
+                        </div>
+                        
+                        <!-- Chips de filtro por categoría de chat -->
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <button class="filter-chip active" data-chat-filter="all">Todos (<span id="count-chat-all">0</span>)</button>
+                            <button class="filter-chip" data-chat-filter="cliente">👥 Clientes (<span id="count-chat-cli">0</span>)</button>
+                            <button class="filter-chip" data-chat-filter="proveedor">🟢 Proveedores (<span id="count-chat-prov">0</span>)</button>
+                            <button class="filter-chip" data-chat-filter="alba">🌸 Alba (<span id="count-chat-alba">0</span>)</button>
+                            <button class="filter-chip" data-chat-filter="hoteles">🟡 Hoteles (<span id="count-chat-hoteles">0</span>)</button>
+                            <button class="filter-chip" data-chat-filter="taxi">🚕 Taxis (<span id="count-chat-taxi">0</span>)</button>
                         </div>
                     </div>
 
@@ -919,6 +934,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V344-MONOCHROME-DARK-THEME"></script>
+    <script src="/admin/admin.js?v=20260827-V345-MIGRACION-CHATS-HISTORICOS"></script>
 </body>
 </html>
