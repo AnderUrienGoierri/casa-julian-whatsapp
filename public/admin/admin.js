@@ -418,15 +418,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeSilencedTagModalBtn = document.getElementById('close-silenced-tag-modal-btn');
     const tagEmojiSelect = document.getElementById('tag-emoji-select');
     const selectedEmojiPreview = document.getElementById('selected-emoji-preview');
+    const silencedTagModalTitle = document.getElementById('silenced-tag-modal-title');
+    const silencedTagModalDesc = document.getElementById('silenced-tag-modal-desc');
+    const editingTagIdInput = document.getElementById('editing-tag-id-input');
+    const silencedTagSubmitBtn = document.getElementById('silenced-tag-submit-btn');
 
     let selectedTagEmoji = '🏷️';
     let selectedSilencedModalTags = ['proveedor'];
+    let currentEditingTagId = null;
 
-    const DEFAULT_SILENCED_TAGS = [
-        { id: 'proveedor', name: 'Proveedor', label: '🚚 Proveedores', emoji: '🚚', color: '#c084fc', bg: 'rgba(168, 85, 247, 0.2)' },
-        { id: 'empleado', name: 'Personal / Empleado', label: '👷 Personal / Empleados', emoji: '👷', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' },
-        { id: 'otro', name: 'Otros', label: '📌 Otros', emoji: '📌', color: '#fde047', bg: 'rgba(234, 179, 8, 0.2)' }
+    const DEFAULT_SYSTEM_TAGS = [
+        { id: 'proveedor', name: 'Proveedores', label: '🚚 Proveedores', emoji: '🚚', color: '#a3e635', bg: 'rgba(132, 204, 22, 0.2)' },
+        { id: 'hoteles', name: 'Hoteles', label: '🏨 Hoteles', emoji: '🏨', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' },
+        { id: 'empleado', name: 'Empleados / Personal', label: '👷 Empleados', emoji: '👷', color: '#c084fc', bg: 'rgba(168, 85, 247, 0.2)' },
+        { id: 'cliente', name: 'Clientes', label: '👤 Clientes', emoji: '👤', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.2)' },
+        { id: 'menu_tradicion', name: 'Menú Tradición', label: '🎁 Menú Tradición', emoji: '🎁', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.2)' },
+        { id: 'modificacion', name: 'Modificaciones', label: '🔄 Modificaciones', emoji: '🔄', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.2)' },
+        { id: 'cancelacion', name: 'Cancelaciones', label: '❌ Cancelaciones', emoji: '❌', color: '#f87171', bg: 'rgba(239, 68, 68, 0.2)' },
+        { id: 'faq', name: 'Preguntas Frecuentes', label: '❓ Preguntas Frecuentes', emoji: '❓', color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.2)' },
+        { id: 'otras_cuestiones', name: 'Otras Cuestiones', label: '💬 Otras Cuestiones', emoji: '💬', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.2)' },
+        { id: 'otro', name: 'Otros / Taxis', label: '📌 Otros / Taxis', emoji: '📌', color: '#fde047', bg: 'rgba(234, 179, 8, 0.2)' }
     ];
+
+    const DEFAULT_SILENCED_TAGS = DEFAULT_SYSTEM_TAGS;
 
     function getCustomSilencedTags() {
         try {
@@ -437,40 +451,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function saveCustomSilencedTag(name, emoji = '🏷️') {
+    function saveCustomSilencedTag(name, emoji = '🏷️', editId = null) {
         const cleanName = (name || '').trim();
         if (!cleanName) return null;
-        const id = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_');
         const custom = getCustomSilencedTags();
-        const existing = custom.find(t => t.id === id || t.name.toLowerCase() === cleanName.toLowerCase());
-        if (existing) return existing;
+        const id = editId || cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_');
 
         const colors = [
             { color: '#f472b6', bg: 'rgba(244, 114, 182, 0.2)' },
             { color: '#34d399', bg: 'rgba(52, 211, 153, 0.2)' },
             { color: '#fb923c', bg: 'rgba(251, 146, 60, 0.2)' },
             { color: '#818cf8', bg: 'rgba(129, 140, 248, 0.2)' },
-            { color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.2)' }
+            { color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.2)' },
+            { color: '#a3e635', bg: 'rgba(163, 230, 53, 0.2)' },
+            { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' }
         ];
-        const chosen = colors[custom.length % colors.length];
-        const newTag = {
-            id,
-            name: cleanName,
-            label: `${emoji} ${cleanName}`,
-            emoji,
-            color: chosen.color,
-            bg: chosen.bg
-        };
-        custom.push(newTag);
+
+        const existingIdx = custom.findIndex(t => t.id === id);
+        let tagObj;
+        if (existingIdx > -1) {
+            tagObj = {
+                ...custom[existingIdx],
+                name: cleanName,
+                label: `${emoji} ${cleanName}`,
+                emoji
+            };
+            custom[existingIdx] = tagObj;
+        } else {
+            const systemTag = DEFAULT_SYSTEM_TAGS.find(t => t.id === id);
+            const colorObj = systemTag || colors[custom.length % colors.length];
+            tagObj = {
+                id,
+                name: cleanName,
+                label: `${emoji} ${cleanName}`,
+                emoji,
+                color: colorObj.color || '#38bdf8',
+                bg: colorObj.bg || 'rgba(56, 189, 248, 0.2)'
+            };
+            custom.push(tagObj);
+        }
+
         localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(custom));
-        return newTag;
+        return tagObj;
     }
 
     function getAllAvailableSilencedTags() {
-        const tags = [...DEFAULT_SILENCED_TAGS];
+        const tags = DEFAULT_SYSTEM_TAGS.map(t => ({ ...t }));
         const custom = getCustomSilencedTags();
+
+        // Integrar o sobrescribir etiquetas personalizadas / editadas
         custom.forEach(ct => {
-            if (!tags.some(t => t.id === ct.id)) tags.push(ct);
+            const idx = tags.findIndex(t => t.id === ct.id);
+            if (idx > -1) {
+                tags[idx] = { ...tags[idx], ...ct };
+            } else {
+                tags.push(ct);
+            }
         });
 
         // Detectar etiquetas adicionales en los contactos existentes
@@ -796,24 +832,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if (silencedModal) silencedModal.style.display = 'none';
     }
 
-    function openSilencedTagModal() {
+    function openSilencedTagModal(editTag = null) {
         if (!silencedTagModal) return;
-        if (newTagNameInput) newTagNameInput.value = '';
-        selectedTagEmoji = '🏷️';
-        if (tagEmojiSelect) tagEmojiSelect.value = '🏷️';
-        if (selectedEmojiPreview) selectedEmojiPreview.textContent = '🏷️';
+        
+        if (editTag) {
+            currentEditingTagId = editTag.id;
+            if (silencedTagModalTitle) silencedTagModalTitle.textContent = '✏️ Editar Etiqueta';
+            if (silencedTagModalDesc) silencedTagModalDesc.textContent = `Modifica el nombre o icono de la etiqueta "${editTag.name}".`;
+            if (silencedTagSubmitBtn) silencedTagSubmitBtn.textContent = '💾 Guardar Cambios';
+            if (editingTagIdInput) editingTagIdInput.value = editTag.id;
+            if (newTagNameInput) newTagNameInput.value = editTag.name || '';
+            selectedTagEmoji = editTag.emoji || '🏷️';
+            if (tagEmojiSelect) tagEmojiSelect.value = selectedTagEmoji;
+            if (selectedEmojiPreview) selectedEmojiPreview.textContent = selectedTagEmoji;
+        } else {
+            currentEditingTagId = null;
+            if (silencedTagModalTitle) silencedTagModalTitle.textContent = '🏷️ Crear Nueva Etiqueta';
+            if (silencedTagModalDesc) silencedTagModalDesc.textContent = 'Crea una etiqueta personalizada para clasificar tus chats y contactos.';
+            if (silencedTagSubmitBtn) silencedTagSubmitBtn.textContent = '💾 Guardar Etiqueta';
+            if (editingTagIdInput) editingTagIdInput.value = '';
+            if (newTagNameInput) newTagNameInput.value = '';
+            selectedTagEmoji = '🏷️';
+            if (tagEmojiSelect) tagEmojiSelect.value = '🏷️';
+            if (selectedEmojiPreview) selectedEmojiPreview.textContent = '🏷️';
+        }
+
         silencedTagModal.style.display = 'flex';
         setTimeout(() => { if (newTagNameInput) newTagNameInput.focus(); }, 50);
     }
 
     function closeSilencedTagModal() {
         if (silencedTagModal) silencedTagModal.style.display = 'none';
+        currentEditingTagId = null;
     }
 
     if (closeSilencedModalBtn) closeSilencedModalBtn.addEventListener('click', closeSilencedModal);
     if (addSilencedNumberBtn) addSilencedNumberBtn.addEventListener('click', () => openSilencedModal());
-    if (addSilencedTagBtn) addSilencedTagBtn.addEventListener('click', openSilencedTagModal);
-    if (btnQuickNewTag) btnQuickNewTag.addEventListener('click', openSilencedTagModal);
+    if (addSilencedTagBtn) addSilencedTagBtn.addEventListener('click', () => openSilencedTagModal());
+    if (btnQuickNewTag) btnQuickNewTag.addEventListener('click', () => openSilencedTagModal());
     if (closeSilencedTagModalBtn) closeSilencedTagModalBtn.addEventListener('click', closeSilencedTagModal);
 
     // Dropdown de Emoticonos Listener
@@ -824,23 +880,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Formulario para guardar nueva etiqueta
+    // Formulario para guardar / editar etiqueta
     if (silencedTagForm) {
         silencedTagForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const name = newTagNameInput ? newTagNameInput.value.trim() : '';
             if (!name) return;
+            const editId = editingTagIdInput ? editingTagIdInput.value.trim() : null;
 
-            const createdTag = saveCustomSilencedTag(name, selectedTagEmoji);
-            if (createdTag) {
+            const savedTag = saveCustomSilencedTag(name, selectedTagEmoji, editId);
+            if (savedTag) {
+                // Si el modal de contacto silenciado está abierto, seleccionarla
                 if (silencedModal && silencedModal.style.display !== 'none') {
-                    if (!selectedSilencedModalTags.includes(createdTag.id)) {
-                        selectedSilencedModalTags.push(createdTag.id);
+                    if (!selectedSilencedModalTags.includes(savedTag.id)) {
+                        selectedSilencedModalTags.push(savedTag.id);
                     }
                     renderSilencedModalTags();
                 }
+
+                // Si el modal de etiquetas de chat está abierto, seleccionarla
+                if (chatTagsModal && chatTagsModal.style.display !== 'none') {
+                    if (!selectedChatTagsList.some(t => t.toLowerCase() === savedTag.id || t.toLowerCase() === savedTag.name.toLowerCase())) {
+                        selectedChatTagsList.push(savedTag.name);
+                    }
+                    renderChatTagsModalGrid();
+                }
+
+                // Refrescar todos los gestores, filtros y tarjetas
                 renderSilencedFilters();
+                if (typeof renderInboxTagsManagerList === 'function') renderInboxTagsManagerList();
+                if (typeof renderChatTagsModalGrid === 'function') renderChatTagsModalGrid();
+                syncUnifiedConversations();
+                renderInboxCards();
+
                 closeSilencedTagModal();
+                showToast(editId ? `✅ Etiqueta "${savedTag.name}" actualizada con éxito` : `✅ Etiqueta "${savedTag.name}" creada con éxito`);
             }
         });
     }
@@ -2943,6 +3017,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryEl = document.getElementById('inbox-total-summary');
         if (!container) return;
 
+        // Calcular contadores Fila 1: Contactos y Estado
+        const total = allUnifiedConversations.length;
+        const countPend = allUnifiedConversations.filter(c => getConversationStatus(c) === 'pendiente').length;
+        const countProv = allUnifiedConversations.filter(c => getConversationCategory(c) === 'proveedor').length;
+        const countHoteles = allUnifiedConversations.filter(c => getConversationCategory(c) === 'hoteles').length;
+        const countEmpleados = allUnifiedConversations.filter(c => getConversationCategory(c) === 'empleado').length;
+        const countCli = allUnifiedConversations.filter(c => getConversationCategory(c) === 'cliente').length;
+        const countOtros = allUnifiedConversations.filter(c => getConversationCategory(c) === 'otro').length;
+
+        const cAll = document.getElementById('count-cat-all');
+        const cStatPend = document.getElementById('count-status-pend');
+        const cProv = document.getElementById('count-cat-prov');
+        const cHoteles = document.getElementById('count-cat-hoteles');
+        const cEmpleados = document.getElementById('count-cat-empleados');
+        const cCli = document.getElementById('count-cat-cli');
+        const cOtros = document.getElementById('count-cat-otros');
+
+        if (cAll) cAll.textContent = total;
+        if (cStatPend) cStatPend.textContent = countPend;
+        if (cProv) cProv.textContent = countProv;
+        if (cHoteles) cHoteles.textContent = countHoteles;
+        if (cEmpleados) cEmpleados.textContent = countEmpleados;
+        if (cCli) cCli.textContent = countCli;
+        if (cOtros) cOtros.textContent = countOtros;
+
+        // Calcular contadores Fila 2: Tipos de Solicitud y Temáticas
+        const countTopicMenu = allUnifiedConversations.filter(c => getConversationTopic(c) === 'menu_tradicion').length;
+        const countTopicMod = allUnifiedConversations.filter(c => getConversationTopic(c) === 'modificacion').length;
+        const countTopicCancel = allUnifiedConversations.filter(c => getConversationTopic(c) === 'cancelacion').length;
+        const countTopicOtras = allUnifiedConversations.filter(c => getConversationTopic(c) === 'otras_cuestiones').length;
+        const countTopicFaq = allUnifiedConversations.filter(c => getConversationTopic(c) === 'faq').length;
+
+        const cTopicMenu = document.getElementById('count-topic-menu');
+        const cTopicMod = document.getElementById('count-topic-mod');
+        const cTopicCancel = document.getElementById('count-topic-cancel');
+        const cTopicOtras = document.getElementById('count-topic-otras');
+        const cTopicFaq = document.getElementById('count-topic-faq');
+
+        if (cTopicMenu) cTopicMenu.textContent = countTopicMenu;
+        if (cTopicMod) cTopicMod.textContent = countTopicMod;
+        if (cTopicCancel) cTopicCancel.textContent = countTopicCancel;
+        if (cTopicOtras) cTopicOtras.textContent = countTopicOtras;
+        if (cTopicFaq) cTopicFaq.textContent = countTopicFaq;
+
         updateHeaderAndMenuBadges();
 
         let filtered = [...allUnifiedConversations];
@@ -2986,7 +3104,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        const total = allUnifiedConversations.length;
         if (summaryEl) {
             summaryEl.textContent = `${filtered.length} de ${total} conversaciones`;
         }
@@ -3263,10 +3380,12 @@ document.addEventListener('DOMContentLoaded', () => {
         inboxTagsManagerList.innerHTML = tags.map(tag => {
             const count = allUnifiedConversations.filter(c => {
                 const cTags = getChatTags(c.telefono, c).map(t => t.toLowerCase());
-                return cTags.includes(tag.id) || cTags.includes(tag.name.toLowerCase());
+                const cat = getConversationCategory(c);
+                const top = getConversationTopic(c);
+                return cTags.includes(tag.id) || cTags.includes(tag.name.toLowerCase()) || cat === tag.id || top === tag.id;
             }).length;
 
-            const isCustom = !DEFAULT_SILENCED_TAGS.some(d => d.id === tag.id);
+            const isCustom = !DEFAULT_SYSTEM_TAGS.some(d => d.id === tag.id);
 
             return `
                 <div class="tag-manager-row-item">
@@ -3276,16 +3395,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         </span>
                         <span style="font-size: 0.78rem; color: #94a3b8;">${count} ${count === 1 ? 'chat' : 'chats'}</span>
                     </div>
-                    <div style="display: flex; gap: 6px;">
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <button class="btn-edit-tag-item" data-tag-id="${tag.id}" data-tag-name="${encodeURIComponent(tag.name)}" data-tag-emoji="${tag.emoji || '🏷️'}" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 6px; padding: 4px 8px; font-size: 0.74rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Editar etiqueta">
+                            ✏️ Editar
+                        </button>
                         ${isCustom ? `
                             <button class="btn-delete-tag-item" data-tag-id="${tag.id}" data-tag-name="${encodeURIComponent(tag.name)}" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 4px 8px; font-size: 0.74rem; cursor: pointer;" title="Eliminar etiqueta">
                                 🗑️
                             </button>
-                        ` : '<span style="font-size: 0.72rem; color: #64748b; font-style: italic;">Sistema</span>'}
+                        ` : ''}
                     </div>
                 </div>
             `;
         }).join('');
+
+        inboxTagsManagerList.querySelectorAll('.btn-edit-tag-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tagId = btn.getAttribute('data-tag-id');
+                const tagName = decodeURIComponent(btn.getAttribute('data-tag-name') || '');
+                const tagEmoji = btn.getAttribute('data-tag-emoji') || '🏷️';
+                const tagObj = tags.find(t => t.id === tagId) || { id: tagId, name: tagName, emoji: tagEmoji };
+                openSilencedTagModal(tagObj);
+            });
+        });
 
         inboxTagsManagerList.querySelectorAll('.btn-delete-tag-item').forEach(btn => {
             btn.addEventListener('click', () => {

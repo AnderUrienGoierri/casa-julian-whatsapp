@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V399-INBOX-TAGS-MULTI-FILTER">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V400-ALL-TAGS-AND-COUNTERS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -920,13 +920,14 @@
         </div>
     </div>
 
-    <!-- Modal para Crear Nueva Etiqueta de Números Bot Cancelados -->
-    <div id="silenced-tag-modal" class="modal-overlay" style="display: none; z-index: 1000000;">
-        <div class="modal-content" style="max-width: 420px;">
-            <h3>🏷️ Crear Nueva Etiqueta</h3>
-            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: -6px; margin-bottom: 16px;">Crea una etiqueta personalizada para clasificar tus contactos (ej: Bodega, Carnes, Mantenimiento, etc.).</p>
+    <!-- Modal para Crear / Editar Etiqueta -->
+    <div id="silenced-tag-modal" class="modal-overlay" style="display: none; z-index: 10000010; background: rgba(0, 0, 0, 0.75);">
+        <div class="modal-content" style="max-width: 440px;">
+            <h3 id="silenced-tag-modal-title">🏷️ Crear Nueva Etiqueta</h3>
+            <p id="silenced-tag-modal-desc" style="font-size: 0.85rem; color: #94a3b8; margin-top: -6px; margin-bottom: 16px;">Crea o modifica una etiqueta para clasificar tus chats y contactos.</p>
             
             <form id="silenced-tag-form">
+                <input type="hidden" id="editing-tag-id-input" value="">
                 <div class="form-group">
                     <label>Nombre de la Etiqueta *</label>
                     <input type="text" id="new-tag-name-input" placeholder="ej: Bodega / Carnicería / Pescados" required autocomplete="off">
@@ -992,7 +993,7 @@
                 </div>
                 <div class="modal-actions" style="margin-top: 20px;">
                     <button type="button" id="close-silenced-tag-modal-btn" class="btn-secondary">Cancelar</button>
-                    <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1);">💾 Guardar Etiqueta</button>
+                    <button type="submit" id="silenced-tag-submit-btn" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1);">💾 Guardar Etiqueta</button>
                 </div>
             </form>
         </div>
@@ -1047,6 +1048,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V399-INBOX-TAGS-MULTI-FILTER"></script>
+    <script src="/admin/admin.js?v=20260827-V400-ALL-TAGS-AND-COUNTERS"></script>
 </body>
 </html>
