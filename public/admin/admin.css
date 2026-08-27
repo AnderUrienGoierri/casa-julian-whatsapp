@@ -1956,7 +1956,8 @@ body.mode-recepcion .inbox-cards-grid {
    ESTILO NATIVO WHATSAPP WEB - INTERFAZ 2 COLUMNAS (FULL WIDTH EDGE-TO-EDGE)
    ========================================================================= */
 
-.wa-web-tab {
+.tab-content.active.wa-web-tab,
+#tab-inbox.active {
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
@@ -1967,6 +1968,10 @@ body.mode-recepcion .inbox-cards-grid {
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+}
+
+.wa-web-tab:not(.active) {
+    display: none !important;
 }
 
 .wa-web-container {
@@ -2499,15 +2504,8 @@ body.mode-recepcion .inbox-cards-grid {
         overflow: hidden !important;
     }
 
-    .wa-web-tab {
-        height: 100% !important;
-        flex: 1 1 0% !important;
-        min-height: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: hidden !important;
+    .wa-web-tab:not(.active) {
+        display: none !important;
     }
 
     .wa-web-container {

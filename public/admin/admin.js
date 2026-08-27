@@ -264,25 +264,45 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Función centralizada para cambio de pestaña
+        function switchToTab(targetTab) {
+            tabBtns.forEach(b => {
+                b.classList.toggle('active', b.getAttribute('data-tab') === targetTab);
+            });
+            tabContents.forEach(c => {
+                c.classList.toggle('active', c.id === targetTab);
+            });
+            
+            const targetEl = document.getElementById(targetTab);
+            if (targetEl) {
+                targetEl.classList.add('active');
+            }
+
+            if (typeof updateHeaderActiveTab === 'function') {
+                updateHeaderActiveTab(targetTab);
+            }
+
+            if (targetTab === 'tab-inbox') {
+                fetchSolicitudes();
+                fetchWhatsAppChats();
+            }
+            if (targetTab === 'tab-silenced') {
+                fetchSilencedNumbers();
+            }
+            if (targetTab === 'tab-flow') renderUseCasesFlow();
+            if (targetTab === 'tab-texts') renderTextsGrid();
+            if (targetTab === 'tab-menu') renderMenuTable();
+            if (targetTab === 'tab-faqs') renderFaqsList();
+            if (targetTab === 'tab-rules') renderCustomRulesTable();
+            if (targetTab === 'tab-publish') renderDraftChangesTable();
+            if (targetTab === 'tab-settings') loadSystemSettingsAndStatus();
+        }
+
         // Navegación a pestañas desde el menú desplegable
         headerMenuDropdown.querySelectorAll('[data-tab-target]').forEach(item => {
             item.addEventListener('click', () => {
                 const targetTab = item.getAttribute('data-tab-target');
-                const matchingTabBtn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
-                if (matchingTabBtn) {
-                    matchingTabBtn.click();
-                } else {
-                    tabBtns.forEach(b => b.classList.remove('active'));
-                    tabContents.forEach(c => c.classList.remove('active'));
-                    const targetEl = document.getElementById(targetTab);
-                    if (targetEl) targetEl.classList.add('active');
-                    updateHeaderActiveTab(targetTab);
-                    if (targetTab === 'tab-inbox') {
-                        fetchSolicitudes();
-                        fetchWhatsAppChats();
-                    }
-                    if (targetTab === 'tab-silenced') fetchSilencedNumbers();
-                }
+                switchToTab(targetTab);
                 headerMenuDropdown.classList.remove('show');
                 headerMenuBtn.classList.remove('active');
                 headerMenuBtn.setAttribute('aria-expanded', 'false');
@@ -327,30 +347,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // PESTAÑAS
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-            
-            btn.classList.add('active');
             const tabId = btn.getAttribute('data-tab');
-            const targetEl = document.getElementById(tabId);
-            if (targetEl) targetEl.classList.add('active');
-
-            if (typeof updateHeaderActiveTab === 'function') {
-                updateHeaderActiveTab(tabId);
+            if (typeof switchToTab === 'function') {
+                switchToTab(tabId);
             }
-
-            if (tabId === 'tab-inbox') {
-                fetchSolicitudes();
-                fetchWhatsAppChats();
-            }
-            if (tabId === 'tab-silenced') fetchSilencedNumbers();
-            if (tabId === 'tab-flow') renderUseCasesFlow();
-            if (tabId === 'tab-texts') renderTextsGrid();
-            if (tabId === 'tab-menu') renderMenuTable();
-            if (tabId === 'tab-faqs') renderFaqsList();
-            if (tabId === 'tab-rules') renderCustomRulesTable();
-            if (tabId === 'tab-publish') renderDraftChangesTable();
-            if (tabId === 'tab-settings') loadSystemSettingsAndStatus();
         });
     });
 
