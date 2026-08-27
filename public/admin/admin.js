@@ -2272,7 +2272,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Estado de Chats WhatsApp ──────────────────────────────────────────
     let allWhatsAppChats = [];
+    let currentChatCategoryFilter = 'all';
     let searchChatsFilter = '';
+
+    function getCategoryBadgeHtml(cat) {
+        const c = (cat || 'cliente').toLowerCase();
+        if (c === 'proveedor' || c === 'proveedores') {
+            return `<span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Proveedor</span>`;
+        }
+        if (c === 'alba') {
+            return `<span style="background: rgba(244, 114, 182, 0.15); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🌸 Alba</span>`;
+        }
+        if (c === 'hoteles' || c === 'hotel') {
+            return `<span style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟡 Hotel</span>`;
+        }
+        if (c === 'taxi' || c === 'taxis') {
+            return `<span style="background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🚕 Taxi</span>`;
+        }
+        return `<span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">👥 Cliente</span>`;
+    }
 
     async function fetchWhatsAppChats() {
         try {
@@ -2314,7 +2332,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryEl = document.getElementById('chats-total-summary');
         if (!container) return;
 
-        let filtered = allWhatsAppChats;
+        // Actualizar contadores por categoría
+        const total = allWhatsAppChats.length;
+        const countCli = allWhatsAppChats.filter(c => !c.categoria || c.categoria === 'cliente').length;
+        const countProv = allWhatsAppChats.filter(c => c.categoria === 'proveedor').length;
+        const countAlba = allWhatsAppChats.filter(c => c.categoria === 'alba').length;
+        const countHoteles = allWhatsAppChats.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel').length;
+        const countTaxi = allWhatsAppChats.filter(c => c.categoria === 'taxi').length;
+
+        const cAll = document.getElementById('count-chat-all');
+        const cCli = document.getElementById('count-chat-cli');
+        const cProv = document.getElementById('count-chat-prov');
+        const cAlba = document.getElementById('count-chat-alba');
+        const cHoteles = document.getElementById('count-chat-hoteles');
+        const cTaxi = document.getElementById('count-chat-taxi');
+        if (cAll) cAll.textContent = total;
+        if (cCli) cCli.textContent = countCli;
+        if (cProv) cProv.textContent = countProv;
+        if (cAlba) cAlba.textContent = countAlba;
+        if (cHoteles) cHoteles.textContent = countHoteles;
+        if (cTaxi) cTaxi.textContent = countTaxi;
+
+        let filtered = [...allWhatsAppChats];
+
+        // Filtro por categoría
+        if (currentChatCategoryFilter !== 'all') {
+            if (currentChatCategoryFilter === 'cliente') {
+                filtered = filtered.filter(c => !c.categoria || c.categoria === 'cliente');
+            } else if (currentChatCategoryFilter === 'hoteles') {
+                filtered = filtered.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel');
+            } else {
+                filtered = filtered.filter(c => c.categoria === currentChatCategoryFilter);
+            }
+        }
+
+        // Filtro por búsqueda
         if (searchChatsFilter.trim()) {
             const q = searchChatsFilter.toLowerCase().trim();
             filtered = filtered.filter(c => 
@@ -2342,6 +2394,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = filtered.map(c => {
             const cleanPhone = (c.telefono || '').replace(/\D/g, '');
             const clientDisplayName = getClientDisplayName(c.nombreCliente, cleanPhone);
+            const catBadge = getCategoryBadgeHtml(c.categoria);
             const timeStr = c.ultimoMensajeFecha ? new Date(c.ultimoMensajeFecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
             const isFromClient = c.ultimoEmisor === 'cliente';
             const emisorBadge = isFromClient 
@@ -2493,6 +2546,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Si es un chat general, abrir el historial de chat interactivo
                 openHistoryModal(phone, name);
             });
+        });
+    }
+
+    // ── Filtros por categoría de Chats WhatsApp ──────────────────────────────
+    document.querySelectorAll('[data-chat-filter]').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('[data-chat-filter]').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentChatCategoryFilter = chip.getAttribute('data-chat-filter') || 'all';
+            renderWhatsAppChats();
+        });
+    });
+
+    // ── Buscador y Refresco de Chats WhatsApp ─────────────────────────────────
+    const searchChatsInput = document.getElementById('search-chats-input');
+    if (searchChatsInput) {
+        searchChatsInput.addEventListener('input', (e) => {
+            searchChatsFilter = e.target.value;
+            renderWhatsAppChats();
+        });
+    }
+
+    const refreshChatsBtn = document.getElementById('refresh-chats-btn');
+    if (refreshChatsBtn) {
+        refreshChatsBtn.addEventListener('click', async () => {
+            refreshChatsBtn.disabled = true;
+            refreshChatsBtn.textContent = '⏳ Cargando...';
+            await fetchWhatsAppChats();
+            refreshChatsBtn.disabled = false;
+            refreshChatsBtn.innerHTML = '🔄 Actualizar Chats';
         });
     }
 
@@ -3566,327 +3649,6 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInboxInput.addEventListener('input', (e) => {
             currentInboxSearch = e.target.value;
             renderInboxCards();
-        });
-    }
-
-    // ==========================================
-    // SECCIÓN: CHATS WHATSAPP (HISTÓRICO Y EN VIVO)
-    // ==========================================
-    let allWhatsAppChats = [];
-    let currentChatCategoryFilter = 'all';
-    let searchChatsFilter = '';
-
-    async function fetchWhatsAppChats() {
-        try {
-            const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-            const res = await fetch('/api/admin/chats', {
-                headers: { 'x-admin-token': tokenToUse }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.success && Array.isArray(data.chats)) {
-                    allWhatsAppChats = data.chats;
-                    renderWhatsAppChats();
-                }
-            }
-        } catch (err) {
-            console.error("⚠️ Error cargando chats de WhatsApp:", err.message);
-        }
-    }
-
-    function getCategoryBadgeHtml(cat) {
-        const c = (cat || 'cliente').toLowerCase();
-        if (c === 'proveedor' || c === 'proveedores') {
-            return `<span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Proveedor</span>`;
-        }
-        if (c === 'alba') {
-            return `<span style="background: rgba(244, 114, 182, 0.15); color: #f472b6; border: 1px solid rgba(244, 114, 182, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🌸 Alba</span>`;
-        }
-        if (c === 'hoteles' || c === 'hotel') {
-            return `<span style="background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟡 Hotel</span>`;
-        }
-        if (c === 'taxi' || c === 'taxis') {
-            return `<span style="background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🚕 Taxi</span>`;
-        }
-        return `<span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">👥 Cliente</span>`;
-    }
-
-    function formatChatDate(dateStr) {
-        if (!dateStr) return '';
-        try {
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return dateStr;
-            const now = new Date();
-            const isToday = d.toDateString() === now.toDateString();
-            const timeStr = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-            if (isToday) return `Hoy ${timeStr}`;
-            const day = d.getDate();
-            const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-            const month = months[d.getMonth()];
-            const year = d.getFullYear() !== now.getFullYear() ? ` ${d.getFullYear()}` : '';
-            return `${day} ${month}${year}, ${timeStr}`;
-        } catch (e) {
-            return dateStr;
-        }
-    }
-
-    function renderWhatsAppChats() {
-        const container = document.getElementById('whatsapp-chats-container');
-        if (!container) return;
-
-        // Actualizar contadores globales
-        const total = allWhatsAppChats.length;
-        const countCli = allWhatsAppChats.filter(c => !c.categoria || c.categoria === 'cliente').length;
-        const countProv = allWhatsAppChats.filter(c => c.categoria === 'proveedor').length;
-        const countAlba = allWhatsAppChats.filter(c => c.categoria === 'alba').length;
-        const countHoteles = allWhatsAppChats.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel').length;
-        const countTaxi = allWhatsAppChats.filter(c => c.categoria === 'taxi').length;
-
-        const badgeNav = document.getElementById('chats-count-badge');
-        if (badgeNav) {
-            badgeNav.textContent = total;
-            badgeNav.style.display = total > 0 ? 'inline-block' : 'none';
-        }
-        const badgeDropdown = document.getElementById('dropdown-chats-badge');
-        if (badgeDropdown) {
-            badgeDropdown.textContent = total;
-            badgeDropdown.style.display = total > 0 ? 'inline-block' : 'none';
-        }
-        const totalSummary = document.getElementById('chats-total-summary');
-        if (totalSummary) {
-            totalSummary.textContent = `${total} conversaciones registradas`;
-        }
-
-        const cAll = document.getElementById('count-chat-all');
-        const cCli = document.getElementById('count-chat-cli');
-        const cProv = document.getElementById('count-chat-prov');
-        const cAlba = document.getElementById('count-chat-alba');
-        const cHoteles = document.getElementById('count-chat-hoteles');
-        const cTaxi = document.getElementById('count-chat-taxi');
-        if (cAll) cAll.textContent = total;
-        if (cCli) cCli.textContent = countCli;
-        if (cProv) cProv.textContent = countProv;
-        if (cAlba) cAlba.textContent = countAlba;
-        if (cHoteles) cHoteles.textContent = countHoteles;
-        if (cTaxi) cTaxi.textContent = countTaxi;
-
-        let filtered = [...allWhatsAppChats];
-
-        // Filtro por categoría
-        if (currentChatCategoryFilter !== 'all') {
-            if (currentChatCategoryFilter === 'cliente') {
-                filtered = filtered.filter(c => !c.categoria || c.categoria === 'cliente');
-            } else if (currentChatCategoryFilter === 'hoteles') {
-                filtered = filtered.filter(c => c.categoria === 'hoteles' || c.categoria === 'hotel');
-            } else {
-                filtered = filtered.filter(c => c.categoria === currentChatCategoryFilter);
-            }
-        }
-
-        // Filtro por búsqueda
-        if (searchChatsFilter.trim()) {
-            const q = searchChatsFilter.toLowerCase().trim();
-            filtered = filtered.filter(c => 
-                (c.nombreCliente || '').toLowerCase().includes(q) ||
-                (c.telefono || '').toLowerCase().includes(q) ||
-                (c.ultimoTexto || '').toLowerCase().includes(q)
-            );
-        }
-
-        if (filtered.length === 0) {
-            container.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 20px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);">
-                    <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
-                    <div style="font-size: 1.05rem; font-weight: 600; color: #cbd5e1;">No se encontraron conversaciones</div>
-                    <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">Prueba a cambiar el término de búsqueda o el filtro de categoría.</div>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = filtered.map(chat => {
-            const cleanTel = (chat.telefono || '').replace(/\D/g, '');
-            const displayTel = cleanTel.startsWith('34') || cleanTel.length > 9 ? `+${cleanTel}` : cleanTel;
-            const displayName = chat.nombreCliente || displayTel || 'Cliente WhatsApp';
-            const catBadge = getCategoryBadgeHtml(chat.categoria);
-            const dateStr = formatChatDate(chat.ultimoMensajeFecha);
-            const lastMsgText = chat.ultimoTexto || '(Sin mensajes previos)';
-            const isFromClient = chat.ultimoEmisor === 'cliente';
-            const emisorPrefix = isFromClient ? '👤 <em>Cliente:</em> ' : '💬 <em>Recepción:</em> ';
-
-            return `
-                <div class="solicitud-card chat-card" data-phone="${cleanTel}" style="cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;">
-                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                            <div class="whatsapp-avatar" style="width: 38px; height: 38px; font-size: 1.1rem; flex-shrink: 0; background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                👤
-                            </div>
-                            <div style="min-width: 0;">
-                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    ${displayName}
-                                </h4>
-                                <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">
-                                    📞 ${displayTel}
-                                </div>
-                            </div>
-                        </div>
-                        <div style="flex-shrink: 0;">
-                            ${catBadge}
-                        </div>
-                    </div>
-
-                    <div class="card-body" style="margin: 12px 0 10px 0; background: rgba(15, 23, 42, 0.5); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); font-size: 0.83rem; color: #cbd5e1; line-height: 1.4; max-height: 70px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                        ${emisorPrefix}${lastMsgText}
-                    </div>
-
-                    <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
-                        <div style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #94a3b8;">
-                            <span>🕒 ${dateStr}</span>
-                            <span>•</span>
-                            <span class="chat-count-badge" style="background: rgba(100, 116, 139, 0.25); color: #cbd5e1; padding: 2px 6px; border-radius: 6px; font-size: 0.72rem; font-weight: 600;">
-                                ${chat.totalInteracciones || 1} msgs
-                            </span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            ${cleanTel.length >= 7 ? `
-                                <a href="https://wa.me/${cleanTel}" target="_blank" class="badge-wa" style="text-decoration: none; padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.35);" title="Abrir en WhatsApp Web">
-                                    📲
-                                </a>
-                            ` : ''}
-                            <button type="button" class="btn-primary btn-open-chat" data-phone="${cleanTel}" data-name="${displayName}" style="padding: 4px 10px; font-size: 0.78rem; background: linear-gradient(135deg, #10b981, #059669); border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
-                                💬 Ver Chat
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        // Event listeners para abrir chat
-        container.querySelectorAll('.btn-open-chat, .chat-card').forEach(el => {
-            el.addEventListener('click', (e) => {
-                if (e.target.tagName === 'A' || e.target.closest('a')) return;
-                const card = el.classList.contains('chat-card') ? el : el.closest('.chat-card');
-                if (!card) return;
-                const phone = card.getAttribute('data-phone');
-                const name = card.querySelector('h4') ? card.querySelector('h4').textContent.trim() : phone;
-                openClientChatHistoryModal(phone, name);
-            });
-        });
-    }
-
-    // Modal de Historial Completo del Cliente
-    async function openClientChatHistoryModal(telefono, nombre) {
-        const modal = document.getElementById('history-modal');
-        const nameEl = document.getElementById('history-client-name');
-        const phoneEl = document.getElementById('history-client-phone');
-        const viewport = document.getElementById('history-chat-viewport');
-        const msgCountEl = document.getElementById('history-msg-count');
-        if (!modal || !viewport) return;
-
-        const cleanTel = (telefono || '').replace(/\D/g, '');
-        const displayTel = cleanTel.startsWith('34') || cleanTel.length > 9 ? `+${cleanTel}` : cleanTel;
-        
-        if (nameEl) nameEl.textContent = `Historial: ${nombre || displayTel}`;
-        if (phoneEl) phoneEl.textContent = `📞 WhatsApp: ${displayTel}`;
-        if (msgCountEl) msgCountEl.textContent = 'Cargando...';
-
-        viewport.innerHTML = `
-            <div style="text-align: center; color: #94a3b8; padding: 40px;">
-                <div style="font-size: 1.8rem; margin-bottom: 8px;">⏳</div>
-                Cargando historial de mensajes...
-            </div>
-        `;
-        modal.style.display = 'flex';
-
-        try {
-            const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-            const res = await fetch(`/api/admin/solicitudes/history/${cleanTel}`, {
-                headers: { 'x-admin-token': tokenToUse }
-            });
-            const data = await res.json();
-
-            if (data.success && Array.isArray(data.history) && data.history.length > 0) {
-                if (msgCountEl) msgCountEl.textContent = `${data.history.length} mensajes`;
-
-                viewport.innerHTML = data.history.map(msg => {
-                    const isClient = msg.emisor === 'cliente';
-                    const emisorName = isClient ? (nombre || 'Cliente') : 'Recepción Casa Julián';
-                    const timeFormatted = formatChatDate(msg.created_at);
-                    const textHtml = (msg.texto || '').replace(/\n/g, '<br>');
-
-                    return `
-                        <div class="chat-bubble-row ${isClient ? 'from-client' : 'from-bot'}" style="margin-bottom: 12px; display: flex; flex-direction: column; align-items: ${isClient ? 'flex-start' : 'flex-end'};">
-                            <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 2px; padding: 0 4px;">
-                                ${emisorName}
-                            </div>
-                            <div class="chat-bubble ${isClient ? 'bubble-client' : 'bubble-bot'}" style="max-width: 80%; padding: 10px 14px; border-radius: 12px; background: ${isClient ? 'rgba(30, 41, 59, 0.9)' : 'linear-gradient(135deg, #065f46, #047857)'}; color: #f8fafc; font-size: 0.88rem; line-height: 1.4; border: 1px solid ${isClient ? 'rgba(255,255,255,0.1)' : 'rgba(16, 185, 129, 0.3)'};">
-                                <div>${textHtml}</div>
-                                <div style="text-align: right; font-size: 0.68rem; color: rgba(255,255,255,0.6); margin-top: 4px;">
-                                    ${timeFormatted} ${!isClient ? '✓✓' : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
-                setTimeout(() => {
-                    viewport.scrollTop = viewport.scrollHeight;
-                }, 50);
-            } else {
-                if (msgCountEl) msgCountEl.textContent = '0 mensajes';
-                viewport.innerHTML = `
-                    <div style="text-align: center; color: #94a3b8; padding: 40px;">
-                        No hay mensajes registrados para este cliente.
-                    </div>
-                `;
-            }
-        } catch (err) {
-            console.error("Error cargando historial de chat:", err);
-            viewport.innerHTML = `
-                <div style="text-align: center; color: #f87171; padding: 40px;">
-                    Error al cargar el historial: ${err.message}
-                </div>
-            `;
-        }
-    }
-
-    // Cerrar modal de historial
-    const closeHistoryModalBtn = document.getElementById('close-history-modal-btn');
-    if (closeHistoryModalBtn) {
-        closeHistoryModalBtn.addEventListener('click', () => {
-            const modal = document.getElementById('history-modal');
-            if (modal) modal.style.display = 'none';
-        });
-    }
-
-    // Filtros por chips en pestaña de chats
-    document.querySelectorAll('[data-chat-filter]').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('[data-chat-filter]').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            currentChatCategoryFilter = chip.getAttribute('data-chat-filter');
-            renderWhatsAppChats();
-        });
-    });
-
-    // ── Buscador y Refresco de Chats WhatsApp ─────────────────────────────────
-    const searchChatsInput = document.getElementById('search-chats-input');
-    if (searchChatsInput) {
-        searchChatsInput.addEventListener('input', (e) => {
-            searchChatsFilter = e.target.value;
-            renderWhatsAppChats();
-        });
-    }
-
-    const refreshChatsBtn = document.getElementById('refresh-chats-btn');
-    if (refreshChatsBtn) {
-        refreshChatsBtn.addEventListener('click', async () => {
-            refreshChatsBtn.disabled = true;
-            refreshChatsBtn.textContent = '⏳ Cargando...';
-            await fetchWhatsAppChats();
-            refreshChatsBtn.disabled = false;
-            refreshChatsBtn.innerHTML = '🔄 Actualizar Chats';
         });
     }
 
