@@ -675,10 +675,16 @@ body.mode-recepcion .tabs-nav {
     max-width: 1600px;
     margin: 0 auto;
     width: 100%;
-    flex: 1 1 auto;
+    flex: 1 1 0%;
     min-height: 0;
+    height: 100%;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+.editor-section {
+    min-height: 0;
+    width: 100%;
 }
 
 /* Modo Pantalla Completa para el Buzón Recepción (Sin márgenes ni huecos laterales ni inferiores) */
@@ -4972,16 +4978,25 @@ div.inbox-toolbar-header,
     }
 
     .main-layout {
-        padding: 12px 10px !important;
+        display: block !important;
+        padding: 12px 10px 80px 10px !important;
         grid-template-columns: 1fr !important;
-        flex: 1 1 auto !important;
+        flex: 1 1 0% !important;
         min-height: 0 !important;
+        height: calc(100dvh - 56px) !important;
+        max-height: calc(100dvh - 56px) !important;
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch !important;
+        box-sizing: border-box !important;
     }
 
     #tab-silenced {
-        padding-bottom: 50px !important;
+        padding-bottom: 90px !important;
+        overflow: visible !important;
+    }
+
+    #tab-silenced .table-container {
+        overflow: visible !important;
     }
 
     .simulator-panel {
