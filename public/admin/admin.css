@@ -2505,34 +2505,34 @@ body.mode-recepcion .inbox-cards-grid {
     }
 
     .wa-right-pane {
-        display: none;
+        display: none !important;
         width: 100%;
         height: 100% !important;
         flex: 1 1 0% !important;
         min-height: 0 !important;
     }
 
-    /* Cuando hay chat activo en móvil */
+    /* Cuando hay chat activo en móvil: ocultar lista de chats por completo y mostrar chat a pantalla completa */
     .wa-web-container.mobile-chat-open .wa-left-pane {
-        display: none;
+        display: none !important;
     }
 
     .wa-web-container.mobile-chat-open .wa-right-pane {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        width: 100%;
-        flex: 1;
-        min-height: 0;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        width: 100% !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
     }
 
     .wa-active-chat-panel {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        width: 100%;
-        flex: 1;
-        min-height: 0;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        width: 100% !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
     }
 
     .wa-back-btn {
