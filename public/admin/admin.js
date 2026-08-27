@@ -3311,7 +3311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (labelLower.includes('hora')) {
                 valHtml = `<span style="color: #ffffff; font-weight: 600;">${r.val}</span>`;
             } else if (labelLower.includes('whatsapp') || labelLower.includes('teléfono') || labelLower.includes('telefono')) {
-                valHtml = `<span style="font-family: monospace; color: #f1f5f9; font-weight: 600;">+${r.val}</span>`;
+                valHtml = `<span style="font-family: monospace; color: #f1f5f9; font-weight: 600; white-space: nowrap; display: inline-block;">+${r.val}</span>`;
             }
 
             html += `
