@@ -15,7 +15,7 @@ async function sendLanguageMenu(from, userLanguages, userStates) {
 
     let welcomeMsgText = getTranslation('es', 'welcomeMessage', from);
     if (!welcomeMsgText || welcomeMsgText.includes('FR:') || welcomeMsgText.includes('🇫🇷') || welcomeMsgText.includes('Bienvenue')) {
-        welcomeMsgText = "CASA JULIAN TOLOSA";
+        welcomeMsgText = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0CASA JULIAN TOLOSA";
     }
     const bodyText = welcomeMsgText;
     
