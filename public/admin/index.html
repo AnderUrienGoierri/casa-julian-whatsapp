@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V391-FIX-HEADER-BACK-BTN">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V392-COMPACT-CHAT-HEADER">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -369,31 +369,30 @@
                                 </div>
                             </div>
                         <div class="wa-right-pane" id="wa-active-chat-panel" style="display: none;">
-                            <!-- Header de la conversación activa -->
+                            <!-- Header de la conversación activa (Estrecho y Compacto) -->
                             <div class="wa-chat-header">
                                 <div class="wa-chat-header-left">
                                     <button type="button" class="wa-back-btn btn-back-to-inbox" id="wa-back-to-list-btn" title="Volver a la lista de chats">←</button>
                                     <div class="wa-avatar-container" id="pane-chat-avatar">👤</div>
                                     <div class="wa-chat-header-info">
-                                        <div class="wa-contact-name-row">
-                                            <span class="wa-header-contact-name" id="pane-chat-client-name">+34 000 00 00 00</span>
-                                            <span class="wa-category-badge" id="pane-chat-category-badge"></span>
-                                        </div>
-                                        <div class="wa-contact-subtext">
-                                            <span class="wa-phone-number" id="pane-chat-phone">📞 WhatsApp</span>
-                                            <span class="wa-handover-status-badge" id="pane-chat-handover-status">⚪ Bot Activo</span>
-                                        </div>
+                                        <span class="wa-header-contact-name" id="pane-chat-client-name">+34 000 00 00 00</span>
+                                        <span class="wa-category-badge" id="pane-chat-category-badge" style="display: none;"></span>
                                     </div>
                                 </div>
-                                <div class="wa-chat-header-actions" style="position: relative;">
-                                    <button type="button" id="pane-btn-toggle-human" class="wa-header-action-btn btn-human-mode" title="Activar Atención Humana">👤 Modo Humano</button>
-                                    <button type="button" id="pane-btn-conclude" class="wa-header-action-btn btn-conclude-mode" style="display: none;" title="Concluir Gestión y Reactivar Bot">✅ Concluir</button>
-                                    <!-- Fila inferior: Resumen + ⋮ siempre en la misma línea -->
-                                    <div style="display: flex; flex-direction: row; align-items: center; gap: 4px;">
+                                
+                                <div class="wa-chat-header-right">
+                                    <!-- Estado informativo del Bot en la esquina superior derecha -->
+                                    <div class="wa-handover-status-row">
+                                        <span class="wa-handover-status-badge status-pill-small" id="pane-chat-handover-status">⚪ Bot Activo</span>
+                                    </div>
+                                    <!-- Botones de Acción -->
+                                    <div class="wa-chat-header-actions" style="position: relative;">
+                                        <button type="button" id="pane-btn-toggle-human" class="wa-header-action-btn btn-human-mode" title="Activar Atención Humana">👤 Modo Humano</button>
+                                        <button type="button" id="pane-btn-conclude" class="wa-header-action-btn btn-conclude-mode" style="display: none;" title="Concluir Gestión y Reactivar Bot">✅ Concluir</button>
                                         <button type="button" id="pane-toggle-summary-btn" class="wa-header-action-btn btn-summary" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
                                         <!-- Botón ⋮ de acciones rápidas del chat activo -->
                                         <div class="pane-more-actions-wrapper" style="position: relative;">
-                                            <button type="button" id="pane-more-actions-btn" class="wa-header-action-btn pane-more-actions-trigger" title="Más opciones" style="font-size: 1.1rem; font-weight: bold; padding: 4px 8px; letter-spacing: 0.5px;">⋮</button>
+                                            <button type="button" id="pane-more-actions-btn" class="wa-header-action-btn pane-more-actions-trigger" title="Más opciones" style="font-size: 1.05rem; font-weight: bold; padding: 3px 6px; letter-spacing: 0.5px;">⋮</button>
                                             <div id="pane-more-actions-dropdown" class="pane-more-actions-dropdown" style="display: none; position: absolute; top: calc(100% + 6px); right: 0; background: #233138; border: 1px solid rgba(134,150,160,0.25); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.45); z-index: 9999; min-width: 200px; padding: 6px 0; overflow: hidden;">
                                                 <button type="button" id="pane-action-pin" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">📌 <span id="pane-action-pin-label">Fijar arriba</span></button>
                                                 <button type="button" id="pane-action-toggle-read" class="pane-dropdown-action-btn" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 16px; background: none; border: none; color: #e9edef; font-size: 0.84rem; cursor: pointer; text-align: left; transition: background 0.12s;">⏳ <span id="pane-action-read-label">Marcar No Leído</span></button>
@@ -908,6 +907,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V391-FIX-HEADER-BACK-BTN"></script>
+    <script src="/admin/admin.js?v=20260827-V392-COMPACT-CHAT-HEADER"></script>
 </body>
 </html>
