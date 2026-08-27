@@ -395,21 +395,130 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSilencedFilter = 'all';
     let currentSilencedSearch = '';
 
-    const searchSilencedInput = document.getElementById('search-silenced-input');
-    const refreshSilencedBtn = document.getElementById('refresh-silenced-btn');
-    const addSilencedNumberBtn = document.getElementById('add-silenced-number-btn');
+    // ── GESTIÓN DE NÚMEROS BOT CANCELADOS Y ETIQUETAS DINÁMICAS ─────────────
     const silencedModal = document.getElementById('silenced-modal');
     const silencedModalTitle = document.getElementById('silenced-modal-title');
-    const silencedNumberForm = document.getElementById('silenced-number-form');
     const silencedPhoneInput = document.getElementById('silenced-phone-input');
     const silencedNameInput = document.getElementById('silenced-name-input');
-    const silencedCatSelect = document.getElementById('silenced-cat-select');
     const silencedNotesInput = document.getElementById('silenced-notes-input');
+    const silencedModalTagsContainer = document.getElementById('silenced-modal-tags-container');
     const closeSilencedModalBtn = document.getElementById('close-silenced-modal-btn');
+    const silencedNumberForm = document.getElementById('silenced-number-form');
+    const addSilencedNumberBtn = document.getElementById('add-silenced-number-btn');
+    const addSilencedTagBtn = document.getElementById('add-silenced-tag-btn');
+    const btnQuickNewTag = document.getElementById('btn-quick-new-tag');
+    const refreshSilencedBtn = document.getElementById('refresh-silenced-btn');
+    const searchSilencedInput = document.getElementById('search-silenced-input');
+    const silencedFiltersContainer = document.getElementById('silenced-filters-container');
+
+    // Modal de Nueva Etiqueta
+    const silencedTagModal = document.getElementById('silenced-tag-modal');
+    const silencedTagForm = document.getElementById('silenced-tag-form');
+    const newTagNameInput = document.getElementById('new-tag-name-input');
+    const closeSilencedTagModalBtn = document.getElementById('close-silenced-tag-modal-btn');
+    const tagEmojiPicker = document.getElementById('tag-emoji-picker');
+
+    let selectedTagEmoji = '🏷️';
+    let selectedSilencedModalTags = ['proveedor'];
+
+    const DEFAULT_SILENCED_TAGS = [
+        { id: 'proveedor', name: 'Proveedor', label: '🚚 Proveedores', emoji: '🚚', color: '#c084fc', bg: 'rgba(168, 85, 247, 0.2)' },
+        { id: 'empleado', name: 'Personal / Empleado', label: '👷 Personal / Empleados', emoji: '👷', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' },
+        { id: 'otro', name: 'Otros', label: '📌 Otros', emoji: '📌', color: '#fde047', bg: 'rgba(234, 179, 8, 0.2)' }
+    ];
+
+    function getCustomSilencedTags() {
+        try {
+            const raw = localStorage.getItem('casa_julian_custom_silenced_tags');
+            return raw ? JSON.parse(raw) : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveCustomSilencedTag(name, emoji = '🏷️') {
+        const cleanName = (name || '').trim();
+        if (!cleanName) return null;
+        const id = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const custom = getCustomSilencedTags();
+        const existing = custom.find(t => t.id === id || t.name.toLowerCase() === cleanName.toLowerCase());
+        if (existing) return existing;
+
+        const colors = [
+            { color: '#f472b6', bg: 'rgba(244, 114, 182, 0.2)' },
+            { color: '#34d399', bg: 'rgba(52, 211, 153, 0.2)' },
+            { color: '#fb923c', bg: 'rgba(251, 146, 60, 0.2)' },
+            { color: '#818cf8', bg: 'rgba(129, 140, 248, 0.2)' },
+            { color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.2)' }
+        ];
+        const chosen = colors[custom.length % colors.length];
+        const newTag = {
+            id,
+            name: cleanName,
+            label: `${emoji} ${cleanName}`,
+            emoji,
+            color: chosen.color,
+            bg: chosen.bg
+        };
+        custom.push(newTag);
+        localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(custom));
+        return newTag;
+    }
+
+    function getAllAvailableSilencedTags() {
+        const tags = [...DEFAULT_SILENCED_TAGS];
+        const custom = getCustomSilencedTags();
+        custom.forEach(ct => {
+            if (!tags.some(t => t.id === ct.id)) tags.push(ct);
+        });
+
+        // Detectar etiquetas adicionales en los contactos existentes
+        if (Array.isArray(allSilencedNumbers)) {
+            allSilencedNumbers.forEach(n => {
+                if (n.categoria) {
+                    const parts = n.categoria.split(',').map(p => p.trim()).filter(Boolean);
+                    parts.forEach(p => {
+                        const pid = p.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                        if (pid && !tags.some(t => t.id === pid || t.name.toLowerCase() === p.toLowerCase())) {
+                            tags.push({
+                                id: pid,
+                                name: p,
+                                label: `🏷️ ${p}`,
+                                emoji: '🏷️',
+                                color: '#e2e8f0',
+                                bg: 'rgba(255, 255, 255, 0.12)'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        return tags;
+    }
+
+    function getSilencedItemTags(item) {
+        const raw = (item.categoria || 'proveedor').trim();
+        const parts = raw.split(',').map(p => p.trim()).filter(Boolean);
+        const available = getAllAvailableSilencedTags();
+        
+        return parts.map(p => {
+            const pLower = p.toLowerCase();
+            const found = available.find(t => t.id === pLower || t.name.toLowerCase() === pLower || (pLower === 'alba' && t.id === 'empleado'));
+            if (found) return found;
+            return {
+                id: pLower.replace(/[^a-z0-9]/g, '_'),
+                name: p,
+                label: `🏷️ ${p}`,
+                emoji: '🏷️',
+                color: '#e2e8f0',
+                bg: 'rgba(255, 255, 255, 0.12)'
+            };
+        });
+    }
 
     async function fetchSilencedNumbers() {
-        // Pintar de inmediato los datos locales
         renderSilencedNumbersTable();
+        renderSilencedFilters();
         try {
             const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
             const res = await fetch('/api/admin/silenced-numbers', {
@@ -417,9 +526,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (res.ok) {
                 const data = await res.json();
-                if (data.success && Array.isArray(data.numbers) && data.numbers.length > 0) {
+                if (data.success && Array.isArray(data.numbers)) {
                     allSilencedNumbers = data.numbers;
                     renderSilencedNumbersTable();
+                    renderSilencedFilters();
                 }
             }
         } catch (err) {
@@ -427,17 +537,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function renderSilencedFilters() {
+        if (!silencedFiltersContainer) return;
+        const tags = getAllAvailableSilencedTags();
+        const total = allSilencedNumbers.length;
+
+        let html = `
+            <button class="filter-chip ${currentSilencedFilter === 'all' ? 'active' : ''}" data-silenced-cat="all">
+                Todos (<span id="count-silenced-all">${total}</span>)
+            </button>
+        `;
+
+        tags.forEach(tag => {
+            const count = allSilencedNumbers.filter(n => {
+                const itemTags = getSilencedItemTags(n);
+                return itemTags.some(t => t.id === tag.id || t.name.toLowerCase() === tag.name.toLowerCase());
+            }).length;
+
+            html += `
+                <button class="filter-chip ${currentSilencedFilter === tag.id ? 'active' : ''}" data-silenced-cat="${tag.id}">
+                    ${tag.label || tag.name} (<span>${count}</span>)
+                </button>
+            `;
+        });
+
+        silencedFiltersContainer.innerHTML = html;
+
+        silencedFiltersContainer.querySelectorAll('[data-silenced-cat]').forEach(chip => {
+            chip.addEventListener('click', () => {
+                silencedFiltersContainer.querySelectorAll('[data-silenced-cat]').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                currentSilencedFilter = chip.getAttribute('data-silenced-cat');
+                renderSilencedNumbersTable();
+            });
+        });
+    }
+
     function renderSilencedNumbersTable() {
         const tbody = document.getElementById('silenced-numbers-table-body');
         const badge = document.getElementById('silenced-count-badge');
         if (!tbody) return;
 
-        // Actualizar contadores
         const total = allSilencedNumbers.length;
-        const countProv = allSilencedNumbers.filter(n => n.categoria === 'proveedor').length;
-        const countEmp = allSilencedNumbers.filter(n => n.categoria === 'empleado' || n.categoria === 'alba').length;
-        const countOtro = allSilencedNumbers.filter(n => n.categoria !== 'proveedor' && n.categoria !== 'empleado' && n.categoria !== 'alba').length;
-
         if (badge) {
             badge.textContent = total;
             badge.style.display = total > 0 ? 'inline-block' : 'none';
@@ -447,26 +588,15 @@ document.addEventListener('DOMContentLoaded', () => {
             dropdownSilencedBadge.textContent = total;
             dropdownSilencedBadge.style.display = total > 0 ? 'inline-block' : 'none';
         }
-        const cAll = document.getElementById('count-silenced-all');
-        const cProv = document.getElementById('count-silenced-prov');
-        const cEmp = document.getElementById('count-silenced-emp');
-        const cOtro = document.getElementById('count-silenced-otro');
-        if (cAll) cAll.textContent = total;
-        if (cProv) cProv.textContent = countProv;
-        if (cEmp) cEmp.textContent = countEmp;
-        if (cOtro) cOtro.textContent = countOtro;
 
         let filtered = [...allSilencedNumbers];
 
-        // Filtrar por categoría
+        // Filtrar por etiqueta seleccionada
         if (currentSilencedFilter !== 'all') {
-            if (currentSilencedFilter === 'empleado') {
-                filtered = filtered.filter(n => n.categoria === 'empleado' || n.categoria === 'alba');
-            } else if (currentSilencedFilter === 'otro') {
-                filtered = filtered.filter(n => n.categoria !== 'proveedor' && n.categoria !== 'empleado' && n.categoria !== 'alba');
-            } else {
-                filtered = filtered.filter(n => n.categoria === currentSilencedFilter);
-            }
+            filtered = filtered.filter(n => {
+                const itemTags = getSilencedItemTags(n);
+                return itemTags.some(t => t.id === currentSilencedFilter || t.name.toLowerCase() === currentSilencedFilter.toLowerCase());
+            });
         }
 
         // Filtrar por búsqueda
@@ -475,7 +605,8 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(n => 
                 (n.nombre || '').toLowerCase().includes(q) ||
                 (n.telefono || '').toLowerCase().includes(q) ||
-                (n.notas || '').toLowerCase().includes(q)
+                (n.notas || '').toLowerCase().includes(q) ||
+                (n.categoria || '').toLowerCase().includes(q)
             );
         }
 
@@ -483,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">
-                        No se encontraron números silenciados con los filtros actuales.
+                        No se encontraron números con bot cancelado con los filtros actuales.
                     </td>
                 </tr>
             `;
@@ -491,12 +622,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         tbody.innerHTML = filtered.map(item => {
-            let catBadge = `<span style="background: rgba(168, 85, 247, 0.2); color: #c084fc; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">🚚 Proveedor</span>`;
-            if (item.categoria === 'empleado' || item.categoria === 'alba') {
-                catBadge = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">👷 Empleado / Personal</span>`;
-            } else if (item.categoria !== 'proveedor') {
-                catBadge = `<span style="background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 700;">📌 ${item.categoria}</span>`;
-            }
+            const itemTags = getSilencedItemTags(item);
+            const badgesHtml = `
+                <div class="silenced-tags-list-badges">
+                    ${itemTags.map(t => `
+                        <span class="silenced-tag-badge" style="background: ${t.bg || 'rgba(255,255,255,0.1)'}; color: ${t.color || '#e2e8f0'}; border: 1px solid ${t.color ? t.color + '44' : 'rgba(255,255,255,0.2)'};">
+                            ${t.emoji || '🏷️'} ${t.name || t.id}
+                        </span>
+                    `).join('')}
+                </div>
+            `;
 
             const cleanPhone = (item.telefono || '').toString().replace(/\D/g, '');
             const isSilencedActive = item.activo !== false;
@@ -509,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="col-name" style="padding: 12px 16px; font-weight: 600; color: #f8fafc;">
                         <div class="silenced-mobile-header">
                             <span class="silenced-contact-name">${item.nombre || 'Contacto'}</span>
-                            <span class="silenced-cat-badge mobile-only-cat">${catBadge}</span>
+                            <div class="mobile-only-cat">${badgesHtml}</div>
                         </div>
                     </td>
                     <td class="col-phone" style="padding: 12px 16px; color: #38bdf8; font-family: monospace;">
@@ -518,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </a>
                     </td>
                     <td class="col-cat desktop-only-cell" style="padding: 12px 16px;">
-                        ${catBadge}
+                        ${badgesHtml}
                     </td>
                     <td class="col-notes" style="padding: 12px 16px; color: #94a3b8; font-size: 0.84rem;">
                         <span class="silenced-notes-text">${item.notas ? '📝 ' + item.notas : '-'}</span>
@@ -528,6 +663,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td class="col-actions" style="padding: 12px 16px; text-align: right; white-space: nowrap;">
                         <div class="silenced-actions-group">
+                            <button class="btn-edit-silence" data-id="${item.id}" data-phone="${item.telefono}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="Editar contacto y etiquetas">
+                                ✏️ Editar
+                            </button>
                             <button class="btn-toggle-silence" data-id="${item.id}" data-active="${isSilencedActive}" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="${isSilencedActive ? 'Reactivar chatbot para este número' : 'Cancelar respuestas automáticas del bot'}">
                                 ${isSilencedActive ? '🔔 Activar Bot' : '🔇 Cancelar Bot'}
                             </button>
@@ -541,6 +679,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         // Listeners para acciones de la tabla
+        tbody.querySelectorAll('.btn-edit-silence').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const phone = btn.getAttribute('data-phone') || '';
+                const name = decodeURIComponent(btn.getAttribute('data-name') || '');
+                const cat = decodeURIComponent(btn.getAttribute('data-cat') || '');
+                const notes = decodeURIComponent(btn.getAttribute('data-notes') || '');
+                openSilencedModal(phone, name, cat, notes);
+            });
+        });
+
         tbody.querySelectorAll('.btn-toggle-silence').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
@@ -576,12 +724,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function openSilencedModal(prefillPhone = '', prefillName = '') {
+    function renderSilencedModalTags() {
+        if (!silencedModalTagsContainer) return;
+        const available = getAllAvailableSilencedTags();
+
+        silencedModalTagsContainer.innerHTML = available.map(tag => {
+            const isSelected = selectedSilencedModalTags.includes(tag.id) || selectedSilencedModalTags.includes(tag.name.toLowerCase());
+            return `
+                <div class="silenced-tag-selectable-chip ${isSelected ? 'selected' : ''}" data-tag-id="${tag.id}" data-tag-name="${tag.name}">
+                    <span class="tag-check-icon">${isSelected ? '✓' : '+'}</span>
+                    <span>${tag.label || tag.name}</span>
+                </div>
+            `;
+        }).join('');
+
+        silencedModalTagsContainer.querySelectorAll('.silenced-tag-selectable-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const tagId = chip.getAttribute('data-tag-id');
+                const tagName = chip.getAttribute('data-tag-name');
+                const idx = selectedSilencedModalTags.findIndex(t => t === tagId || t === tagName || t.toLowerCase() === tagId.toLowerCase());
+                if (idx > -1) {
+                    if (selectedSilencedModalTags.length > 1) {
+                        selectedSilencedModalTags.splice(idx, 1);
+                    } else {
+                        // Mantener al menos una seleccionada
+                        selectedSilencedModalTags.splice(idx, 1);
+                    }
+                } else {
+                    selectedSilencedModalTags.push(tagId);
+                }
+                renderSilencedModalTags();
+            });
+        });
+    }
+
+    function openSilencedModal(prefillPhone = '', prefillName = '', prefillCat = 'proveedor', prefillNotes = '') {
         if (!silencedModal) return;
         if (silencedPhoneInput) silencedPhoneInput.value = prefillPhone;
         if (silencedNameInput) silencedNameInput.value = prefillName;
-        if (silencedCatSelect) silencedCatSelect.value = 'proveedor';
-        if (silencedNotesInput) silencedNotesInput.value = '';
+        if (silencedNotesInput) silencedNotesInput.value = prefillNotes;
+
+        if (prefillCat) {
+            selectedSilencedModalTags = prefillCat.split(',').map(c => c.trim().toLowerCase()).filter(Boolean);
+            if (selectedSilencedModalTags.length === 0) selectedSilencedModalTags = ['proveedor'];
+        } else {
+            selectedSilencedModalTags = ['proveedor'];
+        }
+
+        renderSilencedModalTags();
         silencedModal.style.display = 'flex';
     }
 
@@ -589,8 +779,61 @@ document.addEventListener('DOMContentLoaded', () => {
         if (silencedModal) silencedModal.style.display = 'none';
     }
 
+    function openSilencedTagModal() {
+        if (!silencedTagModal) return;
+        if (newTagNameInput) newTagNameInput.value = '';
+        selectedTagEmoji = '🏷️';
+        if (tagEmojiPicker) {
+            tagEmojiPicker.querySelectorAll('.tag-emoji-btn').forEach(b => b.classList.remove('active'));
+            const defBtn = tagEmojiPicker.querySelector('[data-emoji="🏷️"]');
+            if (defBtn) defBtn.classList.add('active');
+        }
+        silencedTagModal.style.display = 'flex';
+        setTimeout(() => { if (newTagNameInput) newTagNameInput.focus(); }, 50);
+    }
+
+    function closeSilencedTagModal() {
+        if (silencedTagModal) silencedTagModal.style.display = 'none';
+    }
+
     if (closeSilencedModalBtn) closeSilencedModalBtn.addEventListener('click', closeSilencedModal);
     if (addSilencedNumberBtn) addSilencedNumberBtn.addEventListener('click', () => openSilencedModal());
+    if (addSilencedTagBtn) addSilencedTagBtn.addEventListener('click', openSilencedTagModal);
+    if (btnQuickNewTag) btnQuickNewTag.addEventListener('click', openSilencedTagModal);
+    if (closeSilencedTagModalBtn) closeSilencedTagModalBtn.addEventListener('click', closeSilencedTagModal);
+
+    // Emoji picker listener
+    if (tagEmojiPicker) {
+        tagEmojiPicker.querySelectorAll('.tag-emoji-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                tagEmojiPicker.querySelectorAll('.tag-emoji-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedTagEmoji = btn.getAttribute('data-emoji') || '🏷️';
+            });
+        });
+    }
+
+    // Formulario para guardar nueva etiqueta
+    if (silencedTagForm) {
+        silencedTagForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = newTagNameInput ? newTagNameInput.value.trim() : '';
+            if (!name) return;
+
+            const createdTag = saveCustomSilencedTag(name, selectedTagEmoji);
+            if (createdTag) {
+                if (silencedModal && silencedModal.style.display !== 'none') {
+                    if (!selectedSilencedModalTags.includes(createdTag.id)) {
+                        selectedSilencedModalTags.push(createdTag.id);
+                    }
+                    renderSilencedModalTags();
+                }
+                renderSilencedFilters();
+                closeSilencedTagModal();
+            }
+        });
+    }
+
     if (refreshSilencedBtn) refreshSilencedBtn.addEventListener('click', fetchSilencedNumbers);
 
     if (searchSilencedInput) {
@@ -600,21 +843,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    document.querySelectorAll('[data-silenced-cat]').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('[data-silenced-cat]').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            currentSilencedFilter = chip.getAttribute('data-silenced-cat');
-            renderSilencedNumbersTable();
-        });
-    });
-
     if (silencedNumberForm) {
         silencedNumberForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const phone = silencedPhoneInput ? silencedPhoneInput.value.trim() : '';
             const name = silencedNameInput ? silencedNameInput.value.trim() : '';
-            const cat = silencedCatSelect ? silencedCatSelect.value : 'proveedor';
+            const tagsToSave = selectedSilencedModalTags.length > 0 ? selectedSilencedModalTags.join(', ') : 'proveedor';
             const notes = silencedNotesInput ? silencedNotesInput.value.trim() : '';
 
             if (!phone || !name) {
@@ -626,13 +860,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch('/api/admin/silenced-numbers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-                    body: JSON.stringify({ telefono: phone, nombre: name, categoria: cat, notas })
+                    body: JSON.stringify({ telefono: phone, nombre: name, categoria: tagsToSave, notas: notes })
                 });
                 const data = await res.json();
                 if (data.success) {
                     closeSilencedModal();
                     await fetchSilencedNumbers();
-                    alert(`✅ Número ${phone} (${name}) guardado exitosamente en la lista de Números Bot Cancelados.`);
                 } else {
                     alert('Error guardando contacto: ' + (data.error || 'Error desconocido'));
                 }

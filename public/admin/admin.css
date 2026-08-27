@@ -4508,6 +4508,108 @@ div.inbox-toolbar-header,
         z-index: 999999 !important;
     }
 
+/* Selector de Etiquetas Múltiples para Contactos Silenciados */
+.silenced-tags-selector-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    min-height: 48px;
+    align-items: center;
+}
+
+.silenced-tag-selectable-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.80rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #94a3b8;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.silenced-tag-selectable-chip:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+}
+
+.silenced-tag-selectable-chip.selected {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #10b981;
+    color: #34d399;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.silenced-tag-selectable-chip .tag-check-icon {
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* Selector de Emojis para Nuevas Etiquetas */
+.tag-emoji-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tag-emoji-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    font-size: 1.15rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.tag-emoji-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+.tag-emoji-btn.active {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: #38bdf8;
+    transform: scale(1.15);
+}
+
+/* Badges múltiples de etiquetas en tarjetas/tabla */
+.silenced-tags-list-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+.silenced-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
     /* Transformación de tabla de números silenciados a Tarjetas Móviles */
     #tab-silenced .table-container {
         border: none !important;
