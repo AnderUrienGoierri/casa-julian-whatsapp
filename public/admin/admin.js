@@ -199,6 +199,75 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Título de la pestaña activa en el Header
+        let currentActiveTabId = 'tab-inbox';
+
+        function updateHeaderActiveTab(tabId) {
+            currentActiveTabId = tabId;
+            const iconEl = document.getElementById('header-active-tab-icon');
+            const nameEl = document.getElementById('header-active-tab-name');
+            const badgeEl = document.getElementById('header-active-tab-badge');
+            if (!nameEl) return;
+
+            if (tabId === 'tab-inbox') {
+                if (iconEl) iconEl.textContent = '📥';
+                nameEl.textContent = 'Buzón Recepción & Solicitudes';
+                if (badgeEl) {
+                    const count = (typeof allSolicitudes !== 'undefined' && Array.isArray(allSolicitudes)) 
+                        ? allSolicitudes.filter(s => s.estado !== 'ARCHIVADA' && s.estado !== 'ELIMINADA').length 
+                        : 0;
+                    badgeEl.textContent = count;
+                    badgeEl.style.background = '#ef4444';
+                    badgeEl.style.color = '#fff';
+                    badgeEl.style.display = 'inline-block';
+                }
+            } else if (tabId === 'tab-chats') {
+                if (iconEl) iconEl.textContent = '💬';
+                nameEl.textContent = 'Chats WhatsApp';
+                if (badgeEl) {
+                    const count = (typeof allWhatsAppChats !== 'undefined' && Array.isArray(allWhatsAppChats)) 
+                        ? allWhatsAppChats.length 
+                        : 0;
+                    badgeEl.textContent = count;
+                    badgeEl.style.background = '#10b981';
+                    badgeEl.style.color = '#fff';
+                    badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+            } else if (tabId === 'tab-silenced') {
+                if (iconEl) iconEl.textContent = '🔇';
+                nameEl.textContent = 'Números Silenciados';
+                if (badgeEl) {
+                    const count = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) 
+                        ? allSilencedNumbers.length 
+                        : 0;
+                    badgeEl.textContent = count;
+                    badgeEl.style.background = '#a855f7';
+                    badgeEl.style.color = '#fff';
+                    badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
+                }
+            } else if (tabId === 'tab-flow') {
+                if (iconEl) iconEl.textContent = '🌳';
+                nameEl.textContent = 'Estructura & Árbol de Flujos';
+                if (badgeEl) badgeEl.style.display = 'none';
+            } else if (tabId === 'tab-texts') {
+                if (iconEl) iconEl.textContent = '📝';
+                nameEl.textContent = 'Editor de Mensajes & Textos';
+                if (badgeEl) badgeEl.style.display = 'none';
+            } else if (tabId === 'tab-rules') {
+                if (iconEl) iconEl.textContent = '⚙️';
+                nameEl.textContent = 'Flujo & Respuestas Clave';
+                if (badgeEl) badgeEl.style.display = 'none';
+            } else if (tabId === 'tab-publish') {
+                if (iconEl) iconEl.textContent = '🚀';
+                nameEl.textContent = 'Comprobar y Subir';
+                if (badgeEl) badgeEl.style.display = 'none';
+            } else if (tabId === 'tab-settings') {
+                if (iconEl) iconEl.textContent = '⚙️';
+                nameEl.textContent = 'Diagnóstico & Ajustes';
+                if (badgeEl) badgeEl.style.display = 'none';
+            }
+        }
+
         // Navegación a pestañas desde el menú desplegable
         headerMenuDropdown.querySelectorAll('[data-tab-target]').forEach(item => {
             item.addEventListener('click', () => {
@@ -211,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     tabContents.forEach(c => c.classList.remove('active'));
                     const targetEl = document.getElementById(targetTab);
                     if (targetEl) targetEl.classList.add('active');
+                    updateHeaderActiveTab(targetTab);
                     if (targetTab === 'tab-inbox') fetchSolicitudes();
                     if (targetTab === 'tab-chats') fetchWhatsAppChats();
                     if (targetTab === 'tab-silenced') fetchSilencedNumbers();
@@ -266,6 +336,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const tabId = btn.getAttribute('data-tab');
             const targetEl = document.getElementById(tabId);
             if (targetEl) targetEl.classList.add('active');
+
+            if (typeof updateHeaderActiveTab === 'function') {
+                updateHeaderActiveTab(tabId);
+            }
 
             if (tabId === 'tab-inbox') fetchSolicitudes();
             if (tabId === 'tab-chats') fetchWhatsAppChats();
@@ -586,6 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const inboxContent = document.getElementById('tab-inbox');
             if (inboxContent) inboxContent.classList.add('active');
+            if (typeof updateHeaderActiveTab === 'function') updateHeaderActiveTab('tab-inbox');
             // Cargar solicitudes, chats y números silenciados y empezar polling en tiempo real cada 3.5s
             await fetchSolicitudes();
             await fetchWhatsAppChats();
@@ -611,6 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (flowContent) flowContent.classList.add('active');
         const flowTabBtn = document.querySelector('.tabs-nav .tab-btn[data-tab="tab-flow"]');
         if (flowTabBtn) { flowTabBtn.classList.add('active'); }
+        if (typeof updateHeaderActiveTab === 'function') updateHeaderActiveTab('tab-flow');
 
         // Iniciar polling continuo en tiempo real (cada 3.5s) tanto para solicitudes como para chats
         await fetchSolicitudes();
