@@ -597,7 +597,7 @@ router.get('/solicitudes', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 15. Responder manualmente a una solicitud enviando WhatsApp directo al cliente (mantiene atención humana)
+// 15. Responder manualmente a una solicitud o chat enviando WhatsApp directo al cliente (mantiene atención humana)
 router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -606,13 +606,19 @@ router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => 
             return res.status(400).json({ error: 'El mensaje de respuesta no puede estar vacío.' });
         }
 
-        const list = await getAllSolicitudes();
-        const sol = list.find(s => s.id === id);
-        if (!sol) {
-            return res.status(404).json({ error: 'Solicitud no encontrada.' });
+        let targetPhone = null;
+        let sol = null;
+
+        if (id.startsWith('chat_') || /^\d{6,16}$/.test(id)) {
+            targetPhone = id.replace('chat_', '').replace(/\D/g, '');
+        } else {
+            const list = await getAllSolicitudes();
+            sol = list.find(s => s.id === id);
+            if (sol) {
+                targetPhone = sol.telefonoCliente || sol.telefonoReserva;
+            }
         }
 
-        const targetPhone = sol.telefonoCliente || sol.telefonoReserva;
         if (!targetPhone) {
             return res.status(400).json({ error: 'No se encontró un teléfono de cliente válido para enviar el WhatsApp.' });
         }
@@ -620,9 +626,19 @@ router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => 
         // Envío directo de WhatsApp vía WhatsApp Cloud API
         await sendMessage(targetPhone, respuestaText.trim());
 
-        const statusToSet = (nuevoEstado || 'EN_GESTION').trim().toUpperCase();
-        // Mantiene enAtencionHumana = true mientras se está chateando
-        const updated = await updateSolicitudStatus(id, statusToSet, respuestaText.trim(), true);
+        // Guardar mensaje en el historial del chat
+        try {
+            const { logChatMessage } = require('./db/solicitudes');
+            await logChatMessage(targetPhone, 'recepcion', 'text', respuestaText.trim(), { emisor: 'recepcion', source: 'admin_panel' });
+        } catch (logErr) {
+            console.warn("⚠️ No se pudo registrar en bot_chat_history:", logErr.message);
+        }
+
+        let updated = sol;
+        if (sol) {
+            const statusToSet = (nuevoEstado || 'EN_GESTION').trim().toUpperCase();
+            updated = await updateSolicitudStatus(id, statusToSet, respuestaText.trim(), true);
+        }
 
         return res.json({
             success: true,
@@ -630,7 +646,7 @@ router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => 
             solicitud: updated
         });
     } catch (e) {
-        console.error("⚠️ Error respondiendo solicitud por WhatsApp:", e.message);
+        console.error("⚠️ Error respondiendo por WhatsApp:", e.message);
         return res.status(500).json({ error: `Error enviando mensaje de WhatsApp: ${e.message}` });
     }
 });
@@ -641,51 +657,69 @@ router.post('/solicitudes/:id/concluir', requireAdminAuth, async (req, res) => {
         const { id } = req.params;
         const { estadoFinal, mensajeCierre } = req.body || {};
 
-        const list = await getAllSolicitudes();
-        const sol = list.find(s => s.id === id);
-        if (!sol) {
-            return res.status(404).json({ error: 'Solicitud no encontrada.' });
-        }
+        let targetPhone = null;
+        let sol = null;
 
-        const targetPhone = sol.telefonoCliente || sol.telefonoReserva;
+        if (id.startsWith('chat_') || /^\d{6,16}$/.test(id)) {
+            targetPhone = id.replace('chat_', '').replace(/\D/g, '');
+        } else {
+            const list = await getAllSolicitudes();
+            sol = list.find(s => s.id === id);
+            if (sol) {
+                targetPhone = sol.telefonoCliente || sol.telefonoReserva;
+            }
+        }
 
         // Si se redactó un mensaje final de despedida/confirmación, enviarlo por WhatsApp
         if (mensajeCierre && mensajeCierre.trim() && targetPhone) {
             await sendMessage(targetPhone, mensajeCierre.trim());
+            try {
+                const { logChatMessage } = require('./db/solicitudes');
+                await logChatMessage(targetPhone, 'recepcion', 'text', mensajeCierre.trim(), { emisor: 'recepcion', source: 'admin_panel_cierre' });
+            } catch (logErr) {
+                console.warn("⚠️ No se pudo registrar en bot_chat_history:", logErr.message);
+            }
         }
 
         const finalStatus = (estadoFinal || 'CONFIRMADA').trim().toUpperCase();
         
         // Transición de ciclo de vida de Tarjetas Regalo (si aplica)
-        const cardCode = extractGiftCardCodeFromText(sol.datosDetallados);
-        if (cardCode) {
-            if (finalStatus === 'CONFIRMADA' || finalStatus === 'RESUELTA') {
-                console.log(`🎁 Solicitud ${id} confirmada: Tarjeta regalo ${cardCode} pasa a 'RESERVADA'.`);
-                await updateGiftCardStatus(cardCode, 'RESERVADA');
-            } else if (finalStatus === 'CANCELADA' || finalStatus === 'RECHAZADA') {
-                const card = await getGiftCard(cardCode);
-                if (card && isCardExpired(card.fecha_caducidad)) {
-                    console.log(`🎁 Solicitud ${id} cancelada: Tarjeta regalo ${cardCode} está caducada -> 'CADUCADA'.`);
-                    await updateGiftCardStatus(cardCode, 'CADUCADA');
-                } else {
-                    console.log(`🎁 Solicitud ${id} cancelada: Tarjeta regalo ${cardCode} vuelve a 'DISPONIBLE'.`);
-                    await updateGiftCardStatus(cardCode, 'DISPONIBLE');
+        if (sol) {
+            const cardCode = extractGiftCardCodeFromText(sol.datosDetallados);
+            if (cardCode) {
+                if (finalStatus === 'CONFIRMADA' || finalStatus === 'RESUELTA') {
+                    console.log(`🎁 Solicitud ${id} confirmada: Tarjeta regalo ${cardCode} pasa a 'RESERVADA'.`);
+                    await updateGiftCardStatus(cardCode, 'RESERVADA');
+                } else if (finalStatus === 'CANCELADA' || finalStatus === 'RECHAZADA') {
+                    const card = await getGiftCard(cardCode);
+                    if (card && isCardExpired(card.fecha_caducidad)) {
+                        console.log(`🎁 Solicitud ${id} cancelada: Tarjeta regalo ${cardCode} está caducada -> 'CADUCADA'.`);
+                        await updateGiftCardStatus(cardCode, 'CADUCADA');
+                    } else {
+                        console.log(`🎁 Solicitud ${id} cancelada: Tarjeta regalo ${cardCode} vuelve a 'DISPONIBLE'.`);
+                        await updateGiftCardStatus(cardCode, 'DISPONIBLE');
+                    }
                 }
             }
-        }
 
-        // Reactiva el bot (enAtencionHumana = false)
-        const updated = await updateSolicitudStatus(
-            id, 
-            finalStatus, 
-            mensajeCierre && mensajeCierre.trim() ? mensajeCierre.trim() : null, 
-            false
-        );
+            // Reactiva el bot (enAtencionHumana = false)
+            const updated = await updateSolicitudStatus(
+                id, 
+                finalStatus, 
+                mensajeCierre && mensajeCierre.trim() ? mensajeCierre.trim() : null, 
+                false
+            );
+
+            return res.json({
+                success: true,
+                message: `✅ Gestión concluida. El bot automático ha sido reactivado para el cliente (+${targetPhone}).`,
+                solicitud: updated
+            });
+        }
 
         return res.json({
             success: true,
-            message: `✅ Gestión concluida. El bot automático ha sido reactivado para el cliente (+${targetPhone}).`,
-            solicitud: updated
+            message: `✅ Gestión concluida para el cliente (+${targetPhone}).`
         });
     } catch (e) {
         console.error("⚠️ Error concluyendo gestión:", e.message);
@@ -699,14 +733,17 @@ router.post('/solicitudes/:id/atencion-humana', requireAdminAuth, async (req, re
         const { id } = req.params;
         const { enAtencionHumana } = req.body || {};
 
-        const list = await getAllSolicitudes();
-        const sol = list.find(s => s.id === id);
-        if (!sol) {
-            return res.status(404).json({ error: 'Solicitud no encontrada.' });
+        let sol = null;
+        if (!id.startsWith('chat_') && !/^\d{6,16}$/.test(id)) {
+            const list = await getAllSolicitudes();
+            sol = list.find(s => s.id === id);
         }
 
         const isHuman = enAtencionHumana === true;
-        const updated = await updateSolicitudStatus(id, sol.estado, null, isHuman);
+        let updated = null;
+        if (sol) {
+            updated = await updateSolicitudStatus(id, sol.estado, null, isHuman);
+        }
 
         return res.json({
             success: true,

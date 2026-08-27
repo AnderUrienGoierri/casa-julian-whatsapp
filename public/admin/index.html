@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V360-TWO-ROWS-OF-TAGS">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V361-UNIFIED-CHAT-MODAL">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -102,7 +102,7 @@
                 <!-- Fila 1: Avatar + Nombre Completo del Cliente a la izquierda, y [—] Minimizar y [✕] Cerrar a la derecha -->
                 <div class="whatsapp-header-top-row">
                     <div class="whatsapp-header-user-title">
-                        <div class="whatsapp-avatar">👤</div>
+                        <div class="whatsapp-avatar" id="reply-modal-avatar">👤</div>
                         <h3 id="reply-client-name">Juan Pérez</h3>
                     </div>
                     <div class="whatsapp-header-top-actions">
@@ -111,11 +111,10 @@
                     </div>
                 </div>
 
-                <!-- Fila 2: Botones de Control (Resumen, Historial) -->
+                <!-- Fila 2: Botón de Control (Resumen) -->
                 <div class="whatsapp-header-controls-row">
                     <div class="whatsapp-window-controls">
-                        <button type="button" id="toggle-sidebar-btn" class="whatsapp-control-btn btn-toggle-summary" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
-                        <button type="button" id="reply-modal-history-btn" class="whatsapp-control-btn btn-toggle-history" title="Ver Historial Completo de este Cliente">📜 <span>Historial</span></button>
+                        <button type="button" id="toggle-sidebar-btn" class="whatsapp-control-btn btn-toggle-summary active" title="Ver / Ocultar Resumen de Solicitud">📋 <span>Resumen</span></button>
                     </div>
                 </div>
 
@@ -206,43 +205,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para Ver Historial Completo del Chatbot con el Cliente -->
-    <div id="history-modal" class="modal-overlay" style="display: none;">
-        <div class="whatsapp-modal-container">
-            <div class="whatsapp-modal-header" style="background: #1e293b;">
-                <div class="whatsapp-client-info">
-                    <div class="whatsapp-client-avatar">📜</div>
-                    <div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="whatsapp-client-title" id="history-client-name">Historial Completo: Cliente & Chatbot</span>
-                        </div>
-                        <div class="whatsapp-client-sub" id="history-client-phone">📞 WhatsApp: +34...</div>
-                    </div>
-                </div>
-                <div class="whatsapp-window-controls">
-                    <button type="button" id="maximize-history-modal-btn" class="whatsapp-control-btn" title="Maximizar / Pantalla Completa">🗖</button>
-                    <button type="button" id="close-history-modal-btn" class="whatsapp-control-btn close-btn" title="Cerrar Historial">✕</button>
-                </div>
-            </div>
-            <div class="whatsapp-modal-body">
-                <div class="whatsapp-chat-main">
-                    <div class="chat-thread-header" style="background: rgba(15, 23, 42, 0.85); padding: 12px 18px;">
-                        <span style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">💬 Conversación Cronológica Completa (Cliente &amp; Chatbot)</span>
-                        <div style="display: inline-flex; align-items: center; gap: 8px;">
-                            <span id="history-live-badge" style="display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; color: #34d399; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 2px 8px; border-radius: 12px; font-weight: 600;">
-                                <span style="width: 6px; height: 6px; border-radius: 50%; background: #34d399; display: inline-block;"></span> En vivo 100%
-                            </span>
-                            <span id="history-msg-count" class="chat-count-badge">0 interacciones</span>
-                        </div>
-                    </div>
-                    <div id="history-chat-viewport" class="whatsapp-chat-viewport">
-                        <!-- Burbujas insertadas dinámicamente -->
-                    </div>
                 </div>
             </div>
         </div>
@@ -846,6 +808,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V360-TWO-ROWS-OF-TAGS"></script>
+    <script src="/admin/admin.js?v=20260827-V361-UNIFIED-CHAT-MODAL"></script>
 </body>
 </html>

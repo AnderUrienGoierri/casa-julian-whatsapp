@@ -2837,21 +2837,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Event listeners para las filas de conversación (click para abrir chat)
+        // Event listeners para las filas de conversación (click para abrir chat unificado)
         container.querySelectorAll('.chat-card-item').forEach(card => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu')) return;
                 const phone = card.getAttribute('data-phone');
                 const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
-                const conv = allUnifiedConversations.find(c => c.telefono === phone);
-                if (conv && conv.solicitudId) {
-                    const sol = allSolicitudes.find(s => s.id === conv.solicitudId);
-                    if (sol) {
-                        openReplyModal(sol);
-                        return;
-                    }
-                }
-                openHistoryModal(phone, name);
+                openReplyModal(phone, name);
             });
         });
 
@@ -3173,17 +3165,81 @@ document.addEventListener('DOMContentLoaded', () => {
         return html;
     }
 
-    // Helper: Renderizar Hilo de Chat en el Modal de Recepción
-    function renderChatThreadInModal(sol) {
+    // Variables de control de polling en tiempo real para el modal de chat
+    let activeReplyChatPollInterval = null;
+    let currentChatPhone = null;
+    let lastChatRenderedSig = '';
+
+    function stopChatPolling() {
+        if (activeReplyChatPollInterval) {
+            clearInterval(activeReplyChatPollInterval);
+            activeReplyChatPollInterval = null;
+        }
+        currentChatPhone = null;
+        lastChatRenderedSig = '';
+    }
+
+    // Helper: Obtener y renderizar historial de mensajes en tiempo real en el hilo del modal
+    async function fetchAndRenderChatThread(cleanPhoneStr, sol, forceRender = false) {
         const threadContainer = document.getElementById('reply-chat-thread');
         const msgCountEl = document.getElementById('thread-msg-count');
-        const msgList = Array.isArray(sol.mensajes) && sol.mensajes.length > 0 
-            ? sol.mensajes 
-            : [{ emisor: 'cliente', texto: sol.datosDetallados || 'Solicitud inicial.', fecha: sol.created_at }];
+        if (!threadContainer || !cleanPhoneStr) return;
 
-        if (msgCountEl) msgCountEl.textContent = `${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}`;
+        try {
+            const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+            const res = await fetch(`/api/admin/solicitudes/history/${cleanPhoneStr}?_t=${Date.now()}`, {
+                headers: { 
+                    'x-admin-token': currentToken,
+                    'Authorization': `Bearer ${currentToken}`,
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            let msgList = [];
+            if (res.ok) {
+                const data = await res.json();
+                const history = data.history || [];
+                if (history.length > 0) {
+                    msgList = history.map(h => ({
+                        id: h.id,
+                        emisor: (h.emisor === 'cliente' || h.emisor === 'user') ? 'cliente' : 'admin',
+                        tipo: h.tipo || 'text',
+                        texto: h.texto || h.mensaje || '',
+                        fecha: h.created_at || h.fecha
+                    }));
+                }
+            }
 
-        if (threadContainer) {
+            if (msgList.length === 0 && sol && Array.isArray(sol.mensajes) && sol.mensajes.length > 0) {
+                msgList = sol.mensajes;
+            } else if (msgList.length === 0 && sol && sol.datosDetallados) {
+                msgList = [{ emisor: 'cliente', texto: sol.datosDetallados, fecha: sol.created_at }];
+            }
+
+            const lastMsg = msgList[msgList.length - 1];
+            const currentSig = `${msgList.length}_${lastMsg ? (lastMsg.id || lastMsg.fecha || lastMsg.texto) : ''}`;
+
+            if (!forceRender && currentSig === lastChatRenderedSig) {
+                return;
+            }
+            lastChatRenderedSig = currentSig;
+
+            if (msgCountEl) {
+                msgCountEl.textContent = `${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}`;
+            }
+
+            if (msgList.length === 0) {
+                threadContainer.innerHTML = `
+                    <div style="text-align: center; color: #8696a0; padding: 40px 20px; font-size: 0.88rem;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">💬</div>
+                        <strong style="color: #e9edef; display: block; margin-bottom: 4px;">Conversación iniciada</strong>
+                        <span>Escribe un mensaje de WhatsApp a continuación para chatear con el cliente.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            const isNearBottom = (threadContainer.scrollHeight - threadContainer.scrollTop - threadContainer.clientHeight) < 180;
+
             threadContainer.innerHTML = '';
             msgList.forEach(m => {
                 const isClient = m.emisor === 'cliente';
@@ -3194,32 +3250,78 @@ document.addEventListener('DOMContentLoaded', () => {
                 bubble.style.cssText = `
                     max-width: 80%;
                     align-self: ${isClient ? 'flex-start' : 'flex-end'};
-                    background: ${isClient ? '#005c4b' : '#025144'};
+                    background: ${isClient ? '#202c33' : '#005c4b'};
                     color: #e9edef;
-                    padding: 10px 14px;
+                    padding: 9px 13px;
                     border-radius: ${isClient ? '0 12px 12px 12px' : '12px 0 12px 12px'};
                     font-size: 0.88rem;
                     line-height: 1.45;
                     box-shadow: 0 2px 5px rgba(0,0,0,0.25);
                     word-break: break-word;
-                    border: 1px solid rgba(255,255,255,0.05);
+                    border: 1px solid ${isClient ? 'rgba(255,255,255,0.06)' : 'rgba(37, 211, 102, 0.2)'};
+                    margin-bottom: 4px;
                 `;
+
+                let metaBadge = '';
+                if (m.tipo === 'interactive' || m.tipo === 'button' || m.tipo === 'list') {
+                    metaBadge = `<span style="background: rgba(139, 92, 246, 0.25); color: #c4b5fd; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">👆 Opción seleccionada</span>`;
+                }
+
                 bubble.innerHTML = `
-                    <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px; display: flex; align-items: center; gap: 5px;">
-                        ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(217, 119, 6, 0.7); vertical-align: middle; display: inline-block;"> Recepción Casa Julián'}
+                    <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <span style="display: flex; align-items: center; gap: 5px;">
+                            ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(217, 119, 6, 0.7); vertical-align: middle; display: inline-block;"> Recepción Casa Julián'}
+                        </span>
+                        ${metaBadge}
                     </div>
                     <div>${formattedBody}</div>
-                    <div style="text-align: right; font-size: 0.68rem; color: #8696a0; margin-top: 4px;">${timeStr}</div>
+                    <div style="text-align: right; font-size: 0.68rem; color: #8696a0; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                        <span>${timeStr}</span>
+                        ${!isClient ? '<span style="color: #53bdeb; font-size: 0.75rem; font-weight: bold;">✓✓</span>' : ''}
+                    </div>
                 `;
                 threadContainer.appendChild(bubble);
             });
 
-            setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 60);
+            if (forceRender || isNearBottom) {
+                threadContainer.scrollTop = threadContainer.scrollHeight;
+                setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 60);
+                setTimeout(() => { threadContainer.scrollTop = threadContainer.scrollHeight; }, 200);
+            }
+        } catch (e) {
+            console.warn("⚠️ Error obteniendo historial del chat:", e);
         }
     }
 
-    // Abrir Modal de Respuesta Manual y Chat
-    function openReplyModal(sol, prefilledText = '', targetStatus = 'EN_GESTION') {
+    // Abrir Modal de Chat Unificado e Interactivo con Resumen de Solicitud
+    async function openReplyModal(solOrPhone, name = '', prefilledText = '', targetStatus = 'EN_GESTION') {
+        let sol = null;
+        let cleanPhoneStr = '';
+
+        if (solOrPhone && typeof solOrPhone === 'object' && solOrPhone.id) {
+            sol = solOrPhone;
+            cleanPhoneStr = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
+        } else {
+            cleanPhoneStr = (solOrPhone || '').toString().replace(/\D/g, '');
+            sol = allSolicitudes.find(s => (s.telefonoCliente || s.telefonoReserva || '').replace(/\D/g, '') === cleanPhoneStr);
+            if (!sol) {
+                const conv = allUnifiedConversations.find(c => c.telefono === cleanPhoneStr);
+                const contactName = name || (conv ? conv.nombreCliente : getClientDisplayName('', cleanPhoneStr));
+                sol = {
+                    id: `chat_${cleanPhoneStr}`,
+                    telefonoCliente: cleanPhoneStr,
+                    nombreCliente: contactName,
+                    categoria: conv ? conv.categoria : 'cliente',
+                    categoriaLabel: '💬 Chat WhatsApp',
+                    etiquetas: conv ? conv.etiquetas : [],
+                    datosDetallados: null,
+                    enAtencionHumana: false,
+                    estado: 'PENDIENTE',
+                    mensajes: []
+                };
+            }
+        }
+
         // Si hay un chat activo diferente, minimizarlo antes de abrir el nuevo
         if (activeReplySolicitud && activeReplySolicitud.id !== sol.id) {
             minimizedSolicitudesMap.set(activeReplySolicitud.id, activeReplySolicitud);
@@ -3237,18 +3339,52 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sidebar) sidebar.style.removeProperty('display');
         if (toggleBtn) toggleBtn.classList.add('active');
         
-        // Limpiar estado de no leído para esta solicitud
-        unreadSolicitudIds.delete(sol.id);
+        // Limpiar estado de no leído para esta conversación
+        if (sol.id) unreadSolicitudIds.delete(sol.id);
+        if (cleanPhoneStr) setManualChatStatus(cleanPhoneStr, 'leido');
         if (unreadSolicitudIds.size === 0) {
             stopTitleFlash();
         }
 
-        replySolicitudId.value = sol.id;
-        const cleanPhoneStr = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
-        replyClientName.textContent = getClientDisplayName(sol.nombreCliente, cleanPhoneStr);
+        replySolicitudId.value = sol.id || `chat_${cleanPhoneStr}`;
+        const clientDisplayName = getClientDisplayName(sol.nombreCliente, cleanPhoneStr);
+        replyClientName.textContent = clientDisplayName;
         replyClientPhone.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
 
-        // Configurar botones de acción directa de llamada y WhatsApp
+        // Generador de Avatar dinámico
+        const avatarEl = document.getElementById('reply-modal-avatar');
+        if (avatarEl) {
+            const lower = clientDisplayName.toLowerCase();
+            if (lower.includes('entretiempo') || lower.includes('ricardo')) {
+                avatarEl.textContent = 'E';
+                avatarEl.style.background = '#0284c7';
+                avatarEl.style.color = '#fff';
+            } else if (lower.includes('xabi') || lower.includes('gorrotxategi')) {
+                avatarEl.textContent = 'XG';
+                avatarEl.style.background = '#1e3a8a';
+                avatarEl.style.color = '#93c5fd';
+            } else if (cleanPhoneStr === '41795958760') {
+                avatarEl.textContent = '+41';
+                avatarEl.style.background = '#065f46';
+                avatarEl.style.color = '#6ee7b7';
+            } else if (cleanPhoneStr === '923218428609') {
+                avatarEl.textContent = 'SA';
+                avatarEl.style.background = '#701a75';
+                avatarEl.style.color = '#f5d0fe';
+            } else if (clientDisplayName && !clientDisplayName.startsWith('+')) {
+                const words = clientDisplayName.trim().split(/\s+/);
+                const initials = words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].slice(0, 2).toUpperCase();
+                avatarEl.textContent = initials;
+                avatarEl.style.background = '#2a3942';
+                avatarEl.style.color = '#e9edef';
+            } else {
+                avatarEl.textContent = '👤';
+                avatarEl.style.background = '#202c33';
+                avatarEl.style.color = '#8696a0';
+            }
+        }
+
+        // Botones de acción directa (Llamada telefónica & abrir en WhatsApp)
         const btnCallModal = document.getElementById('btn-call-phone-modal');
         const btnWaModal = document.getElementById('btn-open-wa-modal');
         if (btnCallModal) {
@@ -3261,7 +3397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Badge de Categoría en Modal
         const catBadgeEl = document.getElementById('reply-category-badge');
         if (catBadgeEl) {
-            catBadgeEl.textContent = sol.categoriaLabel || sol.tipoAccion || '📌 Solicitud';
+            catBadgeEl.textContent = sol.categoriaLabel || sol.tipoAccion || '📌 Conversación';
             if (sol.categoria === 'reservas_menu_tradicion') {
                 catBadgeEl.textContent = '🎁 Reservas Menú Tradición';
                 catBadgeEl.style.color = '#34d399';
@@ -3270,6 +3406,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 catBadgeEl.textContent = '❌ Cancelación';
                 catBadgeEl.style.color = '#f87171';
                 catBadgeEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            } else {
+                catBadgeEl.textContent = '💬 WhatsApp';
+                catBadgeEl.style.color = '#38bdf8';
+                catBadgeEl.style.borderColor = 'rgba(56, 189, 248, 0.4)';
             }
         }
 
@@ -3300,14 +3440,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryEl = document.getElementById('reply-solicitud-summary');
         const dateEl = document.getElementById('reply-solicitud-date');
         if (summaryEl) {
-            summaryEl.innerHTML = renderSummaryTable(sol.datosDetallados);
+            if (sol.datosDetallados) {
+                summaryEl.innerHTML = renderSummaryTable(sol.datosDetallados);
+            } else {
+                summaryEl.innerHTML = `
+                    <div style="color: #94a3b8; font-size: 0.84rem; padding: 18px 12px; text-align: center;">
+                        <div style="font-size: 1.8rem; margin-bottom: 8px;">💬</div>
+                        <strong style="color: #e2e8f0; display: block; margin-bottom: 4px;">Conversación WhatsApp</strong>
+                        <span style="font-size: 0.78rem; color: #8696a0; line-height: 1.4; display: block;">Los resúmenes estructurados (fecha, comensales, peticiones) se generarán automáticamente en nuevas reservas e interacciones con el chatbot.</span>
+                    </div>
+                `;
+            }
         }
         if (dateEl) {
             dateEl.textContent = sol.created_at ? new Date(sol.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
         }
 
-        // Renderizar Hilo de Mensajes con estilo WhatsApp
-        renderChatThreadInModal(sol);
+        // Cargar mensajes y renderizar en el hilo
+        stopChatPolling();
+        currentChatPhone = cleanPhoneStr;
+        lastChatRenderedSig = '';
+        await fetchAndRenderChatThread(cleanPhoneStr, sol, true);
+
+        // Iniciar polling en tiempo real cada 1.5s
+        activeReplyChatPollInterval = setInterval(() => {
+            if (replyModal.style.display !== 'none' && currentChatPhone) {
+                fetchAndRenderChatThread(currentChatPhone, activeReplySolicitud, false);
+            } else {
+                stopChatPolling();
+            }
+        }, 1500);
 
         replyMessageText.value = prefilledText || '';
         replyErrorMsg.style.display = 'none';
@@ -3326,192 +3488,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderInboxCards();
     }
 
-    // Variables de control de polling en tiempo real para el modal de Historial
-    let activeHistoryPollInterval = null;
-    let currentHistoryPhone = null;
-    let currentHistoryName = 'Cliente';
-    let lastRenderedSig = '';
-
-    // Función de renderizado y refresco automático continuo (cada 1s)
-    async function fetchAndRenderHistory(isInitial = false) {
-        const historyModal = document.getElementById('history-modal');
-        const historyMsgCount = document.getElementById('history-msg-count');
-        const historyViewport = document.getElementById('history-chat-viewport');
-
-        if (!historyModal || !historyViewport || historyModal.style.display === 'none' || !currentHistoryPhone) {
-            stopHistoryPolling();
-            return;
-        }
-
-        try {
-            const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-            const res = await fetch(`/api/admin/solicitudes/history/${currentHistoryPhone}?_t=${Date.now()}`, {
-                headers: { 
-                    'x-admin-token': currentToken,
-                    'Authorization': `Bearer ${currentToken}`,
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            const data = await res.json();
-            const history = data.history || [];
-
-            // Signature única para detectar cambios reales en cantidad o en último ID
-            const lastMsg = history[history.length - 1];
-            const currentSig = `${history.length}_${lastMsg ? (lastMsg.id || lastMsg.created_at) : ''}`;
-
-            if (!isInitial && currentSig === lastRenderedSig) {
-                return;
-            }
-
-            lastRenderedSig = currentSig;
-
-            if (historyMsgCount) {
-                historyMsgCount.textContent = `${history.length} ${history.length === 1 ? 'interacción' : 'interacciones'}`;
-            }
-
-            if (history.length === 0) {
-                historyViewport.innerHTML = `
-                    <div style="text-align: center; color: #94a3b8; padding: 40px 20px;">
-                        <div style="font-size: 2rem; margin-bottom: 8px;">🤖</div>
-                        <div style="font-size: 0.95rem; font-weight: 600; color: #fff;">Sin historial registrado previo</div>
-                        <p style="font-size: 0.8rem; margin-top: 4px;">Las nuevas interacciones de este cliente con el chatbot aparecerán aquí en tiempo real.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Comprobar si el usuario estaba abajo para hacer auto-scroll inteligente
-            const isNearBottom = (historyViewport.scrollHeight - historyViewport.scrollTop - historyViewport.clientHeight) < 200;
-
-            historyViewport.innerHTML = '';
-            history.forEach(item => {
-                const isClient = item.emisor !== 'bot';
-                const timeStr = item.created_at ? new Date(item.created_at).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : '';
-                const bubble = document.createElement('div');
-                bubble.style.cssText = `
-                    max-width: 82%;
-                    align-self: ${isClient ? 'flex-end' : 'flex-start'};
-                    background: ${isClient ? '#005c4b' : '#1e293b'};
-                    color: #e9edef;
-                    padding: 10px 14px;
-                    border-radius: ${isClient ? '12px 0 12px 12px' : '0 12px 12px 12px'};
-                    font-size: 0.86rem;
-                    line-height: 1.45;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-                    word-break: break-word;
-                    border: 1px solid ${isClient ? 'rgba(37, 211, 102, 0.2)' : 'rgba(255,255,255,0.08)'};
-                `;
-
-                const formattedText = formatWhatsAppText(item.texto);
-                let metaBadge = '';
-                if (item.tipo === 'interactive' || item.tipo === 'button' || item.tipo === 'list') {
-                    metaBadge = `<span style="background: rgba(139, 92, 246, 0.25); color: #c4b5fd; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">👆 Opción seleccionada</span>`;
-                } else if (item.tipo === 'interactive_buttons') {
-                    metaBadge = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">🔘 Menú de Botones</span>`;
-                } else if (item.tipo === 'interactive_list') {
-                    metaBadge = `<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">📋 Menú Desplegable</span>`;
-                }
-
-                bubble.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: ${isClient ? '#4ade80' : '#38bdf8'}; display: flex; align-items: center; gap: 5px;">
-                            ${isClient ? '👤 ' + (currentHistoryName || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(217, 119, 6, 0.7); vertical-align: middle; display: inline-block;"> Chatbot Casa Julián'}
-                        </span>
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            ${metaBadge}
-                            <span style="font-size: 0.68rem; color: #94a3b8;">${timeStr}</span>
-                        </div>
-                    </div>
-                    <div style="color: #f1f5f9; font-size: 0.85rem; line-height: 1.45;">${formattedText}</div>
-                `;
-                historyViewport.appendChild(bubble);
-            });
-
-            // Auto-scroll al final en carga inicial o cuando el scroll esté abajo
-            if (isInitial || isNearBottom) {
-                historyViewport.scrollTop = historyViewport.scrollHeight;
-                setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 60);
-                setTimeout(() => { historyViewport.scrollTop = historyViewport.scrollHeight; }, 200);
-            }
-        } catch (err) {
-            if (isInitial) {
-                historyViewport.innerHTML = `<div style="color: #ef4444; padding: 20px; text-align: center;">Error al cargar historial: ${err.message}</div>`;
-            }
-        }
-    }
-
-    function stopHistoryPolling() {
-        if (activeHistoryPollInterval) {
-            clearInterval(activeHistoryPollInterval);
-            activeHistoryPollInterval = null;
-        }
-        currentHistoryPhone = null;
-        lastRenderedSig = '';
-    }
-
-    // Abrir Modal de Historial Completo del Chatbot con un Cliente
-    async function openHistoryModal(phone, name = 'Cliente') {
-        const historyModal = document.getElementById('history-modal');
-        const historyClientName = document.getElementById('history-client-name');
-        const historyClientPhone = document.getElementById('history-client-phone');
-        const historyMsgCount = document.getElementById('history-msg-count');
-        const historyViewport = document.getElementById('history-chat-viewport');
-
-        if (!historyModal || !historyViewport) return;
-
-        const cleanPhone = (phone || '').replace(/\D/g, '');
-        const clientDisplayName = getClientDisplayName(name, cleanPhone);
-        currentHistoryPhone = cleanPhone;
-        currentHistoryName = clientDisplayName;
-        lastRenderedSig = '';
-
-        if (historyClientName) historyClientName.textContent = `Historial: ${clientDisplayName}`;
-        if (historyClientPhone) historyClientPhone.textContent = `📞 WhatsApp: +${cleanPhone}`;
-        if (historyMsgCount) historyMsgCount.textContent = 'Cargando...';
-        historyViewport.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 30px;">⏳ Cargando historial en tiempo real...</div>';
-
-        historyModal.style.display = 'flex';
-
-        // Detener cualquier polling previo
-        stopHistoryPolling();
-        currentHistoryPhone = cleanPhone;
-        currentHistoryName = name || 'Cliente';
-
-        // Carga inicial inmediata
-        await fetchAndRenderHistory(true);
-
-        // Iniciar refresco automático cada 1 segundo exacto mientras el modal esté abierto
-        activeHistoryPollInterval = setInterval(() => {
-            fetchAndRenderHistory(false);
-        }, 1000);
-    }
-
-    // Listener cerrar modal de historial
-    const closeHistoryBtn = document.getElementById('close-history-modal-btn');
-    if (closeHistoryBtn) {
-        closeHistoryBtn.addEventListener('click', () => {
-            stopHistoryPolling();
-            const historyModal = document.getElementById('history-modal');
-            if (historyModal) historyModal.style.display = 'none';
-        });
-    }
-
-    // Listener maximizar / restaurar modal de historial
-    const maxHistoryBtn = document.getElementById('maximize-history-modal-btn');
-    if (maxHistoryBtn) {
-        maxHistoryBtn.addEventListener('click', () => {
-            const historyModal = document.getElementById('history-modal');
-            if (!historyModal) return;
-            const container = historyModal.querySelector('.whatsapp-modal-container');
-            if (!container) return;
-            const isMax = container.classList.toggle('fullscreen');
-            maxHistoryBtn.textContent = isMax ? '🗗' : '🗖';
-            maxHistoryBtn.title = isMax ? 'Restaurar tamaño normal' : 'Maximizar pantalla completa';
-            setTimeout(() => {
-                const vp = historyModal.querySelector('#history-chat-viewport');
-                if (vp) vp.scrollTop = vp.scrollHeight;
-            }, 100);
-        });
+    // Compatibilidad para abrir chat por historial
+    function openHistoryModal(phone, name = 'Cliente') {
+        openReplyModal(phone, name);
     }
 
     function closeSidebarDrawer() {
@@ -3628,6 +3607,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function closeReplyModal() {
+        stopChatPolling();
         replyModal.style.display = 'none';
         if (activeReplySolicitud) {
             minimizedSolicitudesMap.delete(activeReplySolicitud.id);
@@ -3639,6 +3619,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function minimizeReplyModal() {
         if (!activeReplySolicitud) return;
+        stopChatPolling();
         minimizedSolicitudesMap.set(activeReplySolicitud.id, activeReplySolicitud);
         replyModal.style.display = 'none';
         activeReplySolicitud = null;
@@ -3878,11 +3859,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await res.json();
                 if (data.success) {
-                    await fetchSolicitudes();
-                    const updatedSol = allSolicitudes.find(s => s.id === solId);
-                    if (updatedSol) {
-                        openReplyModal(updatedSol);
+                    activeReplySolicitud.enAtencionHumana = true;
+                    const handoverStatusEl = document.getElementById('reply-handover-status');
+                    if (handoverStatusEl) {
+                        handoverStatusEl.textContent = '🟢 Modo Humano (Bot Pausado)';
+                        handoverStatusEl.style.background = 'rgba(16, 185, 129, 0.2)';
+                        handoverStatusEl.style.color = '#34d399';
+                        handoverStatusEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
                     }
+                    const btnToggleHuman = document.getElementById('btn-toggle-human-mode');
+                    const btnConcluir = document.getElementById('btn-concluir-gestion');
+                    if (btnToggleHuman) btnToggleHuman.style.display = 'none';
+                    if (btnConcluir) btnConcluir.style.display = 'inline-flex';
+
+                    await fetchSolicitudes();
+                    syncUnifiedConversations();
                 } else {
                     replyErrorMsg.textContent = data.error || "Error al activar atención humana.";
                     replyErrorMsg.style.display = 'block';
@@ -3922,8 +3913,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (data.success) {
                         closeReplyModal();
-                        alert(data.message || "✅ Gestión concluida y bot reactivado.");
+                        showToast(data.message || "✅ Gestión concluida y bot reactivado.");
                         await fetchSolicitudes();
+                        await fetchWhatsAppChats();
+                        syncUnifiedConversations();
                     } else {
                         replyErrorMsg.textContent = data.error || "Error al concluir gestión.";
                         replyErrorMsg.style.display = 'block';
@@ -3970,14 +3963,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
                 if (data.success) {
                     replyMessageText.value = '';
-                    await fetchSolicitudes();
-                    // Actualizar el hilo en el modal abierto
-                    const updatedSol = allSolicitudes.find(s => s.id === solId);
-                    if (updatedSol) {
-                        openReplyModal(updatedSol);
-                    } else {
-                        closeReplyModal();
+                    replyErrorMsg.style.display = 'none';
+                    if (activeReplySolicitud) {
+                        const cleanPhoneStr = (activeReplySolicitud.telefonoCliente || activeReplySolicitud.telefonoReserva || '').toString().replace(/\D/g, '');
+                        await fetchAndRenderChatThread(cleanPhoneStr, activeReplySolicitud, true);
                     }
+                    await fetchSolicitudes();
+                    await fetchWhatsAppChats();
+                    syncUnifiedConversations();
                 } else {
                     replyErrorMsg.textContent = data.error || "Error al enviar WhatsApp al cliente.";
                     replyErrorMsg.style.display = 'block';
