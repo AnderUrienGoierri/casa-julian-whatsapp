@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V350-HEADER-CENTER-PERFECTO">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V351-LIMPIEZA-TEXTO-SILENCIADOS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -470,35 +470,23 @@
 
                 <!-- Pestaña 0C: Números Silenciados (Modo Silencioso / Bypass Automático del Bot) -->
                 <div id="tab-silenced" class="tab-content">
-                    <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                        <div>
-                            <h2>🔇 Números Silenciados & Bypass del Chatbot</h2>
-                            <p>Los mensajes de estos números (proveedores, trabajadores, etc.) entran directamente a recepción sin que el chatbot automático les envíe menús.</p>
-                        </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <button id="refresh-silenced-btn" class="btn-secondary" style="display: flex; align-items: center; gap: 6px;">
-                                🔄 Actualizar
-                            </button>
-                            <button id="add-silenced-number-btn" class="btn-primary" style="display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #9333ea, #7e22ce);">
-                                ➕ Añadir Número Silenciado
-                            </button>
-                        </div>
-                    </div>
-
                     <!-- Toolbar de Filtros y Búsqueda de Números Silenciados -->
                     <div class="inbox-toolbar-card" style="margin-bottom: 18px; padding: 14px 18px;">
-                        <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap; margin-bottom: 10px;">
                             <div class="search-box" style="flex: 1; min-width: 220px; margin: 0;">
                                 <span class="search-icon">🔍</span>
                                 <input type="text" id="search-silenced-input" placeholder="Buscar por teléfono, nombre o notas...">
                             </div>
-                            <!-- Filtros de Categoría -->
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                                <button class="filter-chip active" data-silenced-cat="all">Todos (<span id="count-silenced-all">0</span>)</button>
-                                <button class="filter-chip" data-silenced-cat="proveedor">🚚 Proveedores (<span id="count-silenced-prov">0</span>)</button>
-                                <button class="filter-chip" data-silenced-cat="empleado">👷 Personal / Empleados (<span id="count-silenced-emp">0</span>)</button>
-                                <button class="filter-chip" data-silenced-cat="otro">📌 Otros (<span id="count-silenced-otro">0</span>)</button>
-                            </div>
+                            <button id="add-silenced-number-btn" class="btn-primary" style="display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #9333ea, #7e22ce); padding: 8px 14px; border-radius: 8px; font-size: 0.84rem;">
+                                ➕ Añadir Contacto
+                            </button>
+                        </div>
+                        <!-- Filtros de Categoría -->
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <button class="filter-chip active" data-silenced-cat="all">Todos (<span id="count-silenced-all">0</span>)</button>
+                            <button class="filter-chip" data-silenced-cat="proveedor">🚚 Proveedores (<span id="count-silenced-prov">0</span>)</button>
+                            <button class="filter-chip" data-silenced-cat="empleado">👷 Personal / Empleados (<span id="count-silenced-emp">0</span>)</button>
+                            <button class="filter-chip" data-silenced-cat="otro">📌 Otros (<span id="count-silenced-otro">0</span>)</button>
                         </div>
                     </div>
 
@@ -931,6 +919,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V350-HEADER-CENTER-PERFECTO"></script>
+    <script src="/admin/admin.js?v=20260827-V351-LIMPIEZA-TEXTO-SILENCIADOS"></script>
 </body>
 </html>
