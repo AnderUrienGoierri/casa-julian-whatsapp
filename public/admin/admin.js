@@ -2366,8 +2366,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <div class="solicitud-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <div style="display: flex; gap: 6px; align-items: center;">
+                    <div class="solicitud-footer" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                        <div style="display: flex; gap: 6px; align-items: center; width: 100%; flex-wrap: wrap;">
                             <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35);" title="Llamar directamente">
                                 📞 Llamar
                             </a>
@@ -2377,16 +2377,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);" title="Silenciar respuestas automáticas del bot para este contacto">
                                 🔇 Silenciar
                             </button>
-                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.35);" title="Archivar esta conversación">
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
+                            <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Cliente')}" data-solid="${c.solicitudId || ''}" style="flex: 1; padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: linear-gradient(135deg, #0284c7, #0369a1); cursor: pointer;">
+                                💬 Abrir Chat &amp; Responder
+                            </button>
+                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 6px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.35); white-space: nowrap;" title="Archivar esta conversación">
                                 📦 Archivar
                             </button>
-                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35);" title="Eliminar conversación e historial definitivamente">
+                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 6px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); white-space: nowrap;" title="Eliminar conversación e historial definitivamente">
                                 🗑️ Eliminar
                             </button>
                         </div>
-                        <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Cliente')}" data-solid="${c.solicitudId || ''}" style="padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1);">
-                            💬 Abrir Chat &amp; Responder
-                        </button>
                     </div>
                 </div>
             `;
