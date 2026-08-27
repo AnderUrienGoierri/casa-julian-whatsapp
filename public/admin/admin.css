@@ -2373,7 +2373,7 @@ body.mode-recepcion .inbox-cards-grid {
 
 /* Formulario de Entrada de Texto */
 .wa-chat-messages-area .whatsapp-input-form {
-    padding: 10px 16px;
+    padding: 12px 18px;
     background: #202c33;
     border-top: 1px solid rgba(134, 150, 160, 0.15);
     flex-shrink: 0 !important;
@@ -2383,7 +2383,7 @@ body.mode-recepcion .inbox-cards-grid {
 .wa-chat-messages-area .whatsapp-input-row {
     display: flex;
     align-items: flex-end;
-    gap: 10px;
+    gap: 12px;
 }
 
 .wa-chat-messages-area .whatsapp-textarea-wrapper {
@@ -2393,7 +2393,7 @@ body.mode-recepcion .inbox-cards-grid {
     padding: 6px 14px;
     border: 1px solid transparent;
     transition: all 0.2s ease;
-    min-height: 52px;
+    min-height: 64px;
     display: flex;
     align-items: center;
 }
@@ -2408,12 +2408,12 @@ body.mode-recepcion .inbox-cards-grid {
     border: none;
     outline: none;
     color: #e9edef;
-    font-size: 0.94rem;
+    font-size: 0.95rem;
     font-family: inherit;
     resize: none !important;
     padding: 4px 0;
-    min-height: 48px;
-    height: 48px;
+    min-height: 56px;
+    height: 56px;
     max-height: 180px;
     line-height: 1.45;
 }
@@ -2423,9 +2423,9 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .btn-send-whatsapp-icon {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
     border-radius: 50%;
     background: #00a884;
     border: none;
@@ -2449,17 +2449,6 @@ body.mode-recepcion .inbox-cards-grid {
     object-fit: contain;
 }
 
-.btn-send-whatsapp-icon:hover {
-    background: #06cf9c;
-    transform: scale(1.05);
-}
-
-.btn-send-whatsapp-icon .send-icon-img {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-}
-
 /* =========================================================================
    RESPONSIVE: MÓVIL Y TABLET (< 900px)
    ========================================================================= */
@@ -2471,6 +2460,36 @@ body.mode-recepcion .inbox-cards-grid {
         flex: 1 1 0% !important;
         display: flex !important;
         flex-direction: column !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .main-layout:has(#tab-inbox.active) .editor-section,
+    .main-layout.is-inbox-active .editor-section {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .tab-content.active.wa-web-tab,
+    #tab-inbox.active {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 0% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
     }
 
     .wa-web-tab {
@@ -2479,22 +2498,32 @@ body.mode-recepcion .inbox-cards-grid {
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
     }
 
     .wa-web-container {
-        grid-template-columns: 1fr;
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
         height: 100% !important;
         flex: 1 1 0% !important;
         min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        border: none !important;
     }
 
     .wa-left-pane {
-        width: 100%;
+        width: 100% !important;
         height: 100% !important;
         flex: 1 1 0% !important;
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
+        overflow: hidden !important;
     }
 
     .wa-left-pane .whatsapp-chats-list {
@@ -2506,7 +2535,7 @@ body.mode-recepcion .inbox-cards-grid {
 
     .wa-right-pane {
         display: none !important;
-        width: 100%;
+        width: 100% !important;
         height: 100% !important;
         flex: 1 1 0% !important;
         min-height: 0 !important;
@@ -2524,6 +2553,7 @@ body.mode-recepcion .inbox-cards-grid {
         width: 100% !important;
         flex: 1 1 0% !important;
         min-height: 0 !important;
+        overflow: hidden !important;
     }
 
     .wa-active-chat-panel {
@@ -2533,6 +2563,7 @@ body.mode-recepcion .inbox-cards-grid {
         width: 100% !important;
         flex: 1 1 0% !important;
         min-height: 0 !important;
+        overflow: hidden !important;
     }
 
     .wa-back-btn {
@@ -2663,32 +2694,32 @@ body.mode-recepcion .inbox-cards-grid {
 
     .wa-chat-messages-area .whatsapp-textarea-wrapper {
         flex: 1 !important;
-        min-height: 48px !important;
+        min-height: 64px !important;
         background: #2a3942 !important;
-        border-radius: 10px !important;
-        padding: 4px 10px !important;
+        border-radius: 12px !important;
+        padding: 6px 12px !important;
         display: flex !important;
         align-items: center !important;
     }
 
     .wa-chat-messages-area textarea {
         width: 100% !important;
-        font-size: 0.90rem !important;
+        font-size: 0.92rem !important;
         padding: 4px 0 !important;
-        min-height: 42px !important;
-        height: 42px !important;
-        max-height: 140px !important;
-        line-height: 1.4 !important;
+        min-height: 56px !important;
+        height: 56px !important;
+        max-height: 160px !important;
+        line-height: 1.45 !important;
         resize: none !important;
         color: #e9edef !important;
     }
 
     .btn-send-whatsapp-icon {
-        width: 42px !important;
-        height: 42px !important;
-        min-width: 42px !important;
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
         border-radius: 50% !important;
-        margin-bottom: 3px !important;
+        margin-bottom: 4px !important;
     }
 }
 
