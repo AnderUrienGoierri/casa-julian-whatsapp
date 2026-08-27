@@ -2466,15 +2466,16 @@ body.mode-recepcion .inbox-cards-grid {
 @media (max-width: 900px) {
     .main-layout:has(#tab-inbox.active),
     .main-layout.is-inbox-active {
-        height: calc(100dvh - 88px) !important;
-        min-height: calc(100dvh - 88px) !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        flex: 1 1 0% !important;
         display: flex !important;
         flex-direction: column !important;
     }
 
     .wa-web-tab {
         height: 100% !important;
-        flex: 1 !important;
+        flex: 1 1 0% !important;
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
@@ -2483,23 +2484,32 @@ body.mode-recepcion .inbox-cards-grid {
     .wa-web-container {
         grid-template-columns: 1fr;
         height: 100% !important;
-        flex: 1 !important;
+        flex: 1 1 0% !important;
         min-height: 0 !important;
     }
 
     .wa-left-pane {
         width: 100%;
-        height: 100%;
-        flex: 1;
-        min-height: 0;
+        height: 100% !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .wa-left-pane .whatsapp-chats-list {
+        flex: 1 1 0% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
     }
 
     .wa-right-pane {
         display: none;
         width: 100%;
-        height: 100%;
-        flex: 1;
-        min-height: 0;
+        height: 100% !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
     }
 
     /* Cuando hay chat activo en móvil */
