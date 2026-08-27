@@ -1,17 +1,18 @@
 /* CSS RESET & VARIABLES - CASA JULIÁN ADMIN CMS */
 :root {
-    --bg-dark: #121316;
-    --bg-card: #1c1e24;
-    --bg-card-hover: #262932;
-    --border-color: #2e323e;
-    --accent-gold: #d97706;
-    --accent-gold-hover: #b45309;
+    --bg-dark: #0a0b0e;
+    --bg-card: #121418;
+    --bg-card-hover: #181b22;
+    --border-color: #222630;
+    --border-light: rgba(255, 255, 255, 0.1);
+    --accent-gold: #c29547;
+    --accent-gold-hover: #a67c33;
     --accent-green: #10b981;
     --accent-blue: #3b82f6;
     --danger-red: #ef4444;
-    --text-primary: #f3f4f6;
-    --text-secondary: #9ca3af;
-    --text-muted: #6b7280;
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
     --whatsapp-bg: #0b141a;
     --whatsapp-bubble: #005c4b;
     --font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -289,8 +290,8 @@ button {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-    color: #f8fafc;
+    background: #14171e;
+    color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.15);
     padding: 8px 16px;
     border-radius: 10px;
@@ -303,9 +304,9 @@ button {
 
 .header-menu-btn:hover,
 .header-menu-btn.active {
-    background: linear-gradient(135deg, #0284c7, #0369a1);
-    border-color: rgba(56, 189, 248, 0.5);
-    box-shadow: 0 0 12px rgba(2, 132, 199, 0.4);
+    background: #202530;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
     color: #ffffff;
 }
 
@@ -394,9 +395,9 @@ button {
 }
 
 .dropdown-menu-item.active {
-    background: rgba(2, 132, 199, 0.2);
-    color: #38bdf8;
-    border: 1px solid rgba(2, 132, 199, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .dropdown-item-icon {
@@ -460,10 +461,10 @@ button {
 }
 
 .dropdown-lang-btn.active {
-    background: linear-gradient(135deg, #0284c7, #0369a1);
-    border-color: #38bdf8;
+    background: #202530;
+    border-color: rgba(255, 255, 255, 0.3);
     color: #ffffff;
-    box-shadow: 0 0 8px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
 }
 
 .dropdown-item-danger {
@@ -513,21 +514,27 @@ button {
     background: transparent;
     color: var(--text-secondary);
     border-radius: 8px 8px 0 0;
-    padding: 10px 14px;
-    font-size: 0.84rem;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
     white-space: nowrap;
-    border-bottom: 2px solid transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
     flex-shrink: 0;
+    transition: all 0.15s ease;
 }
 
 .tab-btn:hover {
-    color: var(--text-primary);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .tab-btn.active {
-    color: var(--accent-gold);
-    border-bottom-color: var(--accent-gold);
+    color: #ffffff;
+    font-weight: 700;
+    border-color: var(--border-color);
     background: var(--bg-card);
+    border-bottom: 1px solid var(--bg-card);
 }
 
 /* Reglas Responsive Específicas para Encabezado en Móviles */
@@ -1349,18 +1356,18 @@ body.mode-recepcion .inbox-cards-grid {
     padding: 14px 18px;
     margin-bottom: 12px;
     border-radius: 12px;
-    background: rgba(30, 41, 59, 0.45);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
 }
 
 .whatsapp-inbox-card:hover {
-    background: rgba(30, 41, 59, 0.8);
-    border-color: rgba(56, 189, 248, 0.4);
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.22);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .card-top-header {
@@ -1409,7 +1416,7 @@ body.mode-recepcion .inbox-cards-grid {
 
 .card-client-phone {
     font-size: 0.84rem;
-    color: #eab308;
+    color: #cbd5e1;
     font-family: monospace;
     margin-top: 3px;
 }
@@ -1423,9 +1430,9 @@ body.mode-recepcion .inbox-cards-grid {
 .msg-count-chip {
     font-size: 0.76rem;
     font-weight: 600;
-    color: #f59e0b;
-    background: rgba(245, 158, 11, 0.15);
-    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     padding: 3px 10px;
     border-radius: 20px;
 }
@@ -1846,17 +1853,17 @@ div.inbox-toolbar-card,
     box-sizing: border-box !important;
     grid-template-columns: none !important;
     grid-template-rows: none !important;
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
-    border: 1px solid rgba(56, 189, 248, 0.28) !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
     border-radius: 14px;
     margin-bottom: 20px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 20px rgba(15, 23, 42, 0.8) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
     transition: all 0.2s ease;
 }
 
 .inbox-toolbar-card:hover {
-    border-color: rgba(56, 189, 248, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
 }
 
 #tab-inbox #inbox-filters-toggle,
@@ -1876,15 +1883,15 @@ div.inbox-toolbar-header,
     padding: 14px 18px !important;
     cursor: pointer;
     user-select: none;
-    background: rgba(30, 41, 59, 0.6) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #16181f !important;
+    border-bottom: 1px solid var(--border-color);
     transition: background 0.2s ease;
     flex-shrink: 0 !important;
     clear: both !important;
 }
 
 .inbox-toolbar-header:hover {
-    background: rgba(51, 65, 85, 0.7) !important;
+    background: #1c1f28 !important;
 }
 
 .inbox-toolbar-title-group {
@@ -1900,7 +1907,7 @@ div.inbox-toolbar-header,
 .inbox-toolbar-title {
     font-size: 0.92rem;
     font-weight: 800;
-    color: #38bdf8 !important;
+    color: #ffffff !important;
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
@@ -1908,7 +1915,8 @@ div.inbox-toolbar-header,
 .inbox-filters-summary-badge {
     font-size: 0.78rem;
     color: #cbd5e1;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     padding: 2px 8px;
     border-radius: 12px;
     font-weight: 600;
@@ -1930,8 +1938,8 @@ div.inbox-toolbar-header,
 }
 
 .solicitud-card.is-selected {
-    border-color: rgba(239, 68, 68, 0.6) !important;
-    background: rgba(239, 68, 68, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
 }
 
 #inbox-filters-body.inbox-toolbar-body,
@@ -2026,14 +2034,16 @@ div.inbox-toolbar-header,
     padding: 5px 12px;
     font-size: 0.78rem;
     border-radius: 8px;
-    border: none;
+    border: 1px solid transparent;
     background: transparent;
+    color: #94a3b8;
 }
 
 .inbox-view-group .filter-chip.active {
-    background: linear-gradient(135deg, #0284c7, #0369a1);
+    background: #222630;
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .inbox-filter-row {
@@ -2048,7 +2058,7 @@ div.inbox-toolbar-header,
 .inbox-row-label {
     font-size: 0.78rem;
     font-weight: 700;
-    color: var(--accent-gold);
+    color: #cbd5e1;
     width: 70px;
     flex-shrink: 0;
     text-transform: uppercase;
@@ -2737,13 +2747,13 @@ div.inbox-toolbar-header,
 }
 
 .btn-human-toggle {
-    background: rgba(245, 158, 11, 0.18);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.45);
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     font-size: 0.82rem;
     padding: 8px 14px;
     border-radius: 8px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     display: inline-flex;
@@ -2752,19 +2762,18 @@ div.inbox-toolbar-header,
 }
 
 .btn-human-toggle:hover {
-    background: rgba(245, 158, 11, 0.35);
+    background: rgba(255, 255, 255, 0.16);
     color: #ffffff;
-    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
 }
 
 .btn-conclude-action {
     background: rgba(16, 185, 129, 0.15);
     color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.4);
+    border: 1px solid rgba(16, 185, 129, 0.35);
     font-size: 0.82rem;
     padding: 8px 14px;
     border-radius: 8px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     display: inline-flex;
@@ -2773,7 +2782,7 @@ div.inbox-toolbar-header,
 }
 
 .btn-conclude-action:hover {
-    background: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.25);
     color: #ffffff;
 }
 

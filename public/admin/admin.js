@@ -2345,32 +2345,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const timeStr = c.ultimoMensajeFecha ? new Date(c.ultimoMensajeFecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) : 'Reciente';
             const isFromClient = c.ultimoEmisor === 'cliente';
             const emisorBadge = isFromClient 
-                ? `<span style="background: rgba(34, 197, 94, 0.2); color: #4ade80; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 700;">👤 Cliente</span>`
-                : `<span style="background: rgba(217, 119, 6, 0.2); color: #fbbf24; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 13px; height: 13px; border-radius: 50%; object-fit: cover;"> Bot</span>`;
+                ? `<span style="background: rgba(255, 255, 255, 0.1); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 600;">👤 Cliente</span>`
+                : `<span style="background: rgba(255, 255, 255, 0.06); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.12); font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 13px; height: 13px; border-radius: 50%; object-fit: cover;"> Bot</span>`;
 
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
             return `
-                <div class="solicitud-card chat-card-item" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="border-left: 4px solid ${isFromClient ? '#22c55e' : '#38bdf8'}; cursor: pointer;">
+                <div class="solicitud-card chat-card-item" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="border-left: 3px solid rgba(255, 255, 255, 0.25); cursor: pointer;">
                     <div class="solicitud-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div class="card-avatar" style="background: ${isFromClient ? 'rgba(34, 197, 94, 0.15)' : 'rgba(56, 189, 248, 0.15)'}; color: ${isFromClient ? '#22c55e' : '#38bdf8'}; font-size: 1.2rem; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <div class="card-avatar" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; font-size: 1.2rem; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1);">
                                 ${isFromClient ? '👤' : '💬'}
                             </div>
                             <div>
                                 <h3 class="solicitud-client-name" style="font-size: 1rem; font-weight: 700; color: #fff; margin: 0;">${clientDisplayName}</h3>
-                                <div class="solicitud-client-phone" style="font-size: 0.8rem; color: #38bdf8; font-family: monospace;">📞 +${cleanPhone}</div>
+                                <div class="solicitud-client-phone" style="font-size: 0.8rem; color: #cbd5e1; font-family: monospace;">📞 +${cleanPhone}</div>
                             </div>
                         </div>
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 700;">
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.12); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px; font-weight: 600;">
                                 ${c.totalInteracciones} ${c.totalInteracciones === 1 ? 'mensaje' : 'mensajes'}
                             </span>
                             <span style="font-size: 0.7rem; color: #94a3b8;">${timeStr}</span>
                         </div>
                     </div>
 
-                    <div class="solicitud-body" style="margin: 12px 0 14px 0; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="solicitud-body" style="margin: 12px 0 14px 0; background: rgba(0,0,0,0.3); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 5px;">
                             <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Última interacción:</span>
                             ${emisorBadge}
@@ -2382,24 +2382,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div class="solicitud-footer" style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
                         <div style="display: flex; gap: 6px; align-items: center; width: 100%; flex-wrap: wrap;">
-                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35);" title="Llamar directamente">
+                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Llamar directamente">
                                 📞 Llamar
                             </a>
-                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.35);" title="Abrir en WhatsApp">
+                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Abrir en WhatsApp">
                                 📲 WhatsApp
                             </a>
-                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35);" title="Silenciar respuestas automáticas del bot para este contacto">
+                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Contacto')}" style="padding: 6px 10px; font-size: 0.75rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14);" title="Silenciar respuestas automáticas del bot para este contacto">
                                 🔇 Silenciar
                             </button>
                         </div>
                         <div style="display: flex; gap: 6px; align-items: center; width: 100%;">
-                            <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(c.nombreCliente || 'Cliente')}" data-solid="${c.solicitudId || ''}" style="flex: 1; padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: linear-gradient(135deg, #0284c7, #0369a1); cursor: pointer;">
+                            <button class="btn-open-chat-modal btn-primary" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" data-solid="${c.solicitudId || ''}" style="flex: 1; padding: 6px 10px; font-size: 0.78rem; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; background: #1f232b; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); cursor: pointer;">
                                 💬 Abrir Chat &amp; Responder
                             </button>
-                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 6px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.35); white-space: nowrap;" title="Archivar esta conversación">
+                            <button class="btn-archive-chat-card" data-phone="${cleanPhone}" style="padding: 6px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); white-space: nowrap;" title="Archivar esta conversación">
                                 📦 Archivar
                             </button>
-                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 6px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); white-space: nowrap;" title="Eliminar conversación e historial definitivamente">
+                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 6px 8px; font-size: 0.72rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); white-space: nowrap;" title="Eliminar conversación e historial definitivamente">
                                 🗑️ Eliminar
                             </button>
                         </div>
@@ -2597,41 +2597,41 @@ document.addEventListener('DOMContentLoaded', () => {
             const isUnread = unreadSolicitudIds.has(sol.id);
             const isSelected = selectedSolicitudIds.has(sol.id);
 
-            // Badge de Categoría
-            let catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
+            // Badge de Categoría sobrio y elegante
+            let catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">📌 ${sol.categoriaLabel || sol.tipoAccion || 'Solicitud'}</span>`;
             if (sol.categoria === 'reservas_menu_tradicion') {
-                catTagHtml = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">🎁 Menú Tradición</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">🎁 Menú Tradición</span>`;
             } else if (sol.categoria === 'modificaciones' || sol.categoria === 'mod_comensales' || sol.categoria === 'mod_dia' || sol.categoria === 'mod_hora' || sol.categoria === 'mod_general') {
-                catTagHtml = `<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #38bdf8; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">🔄 Modificaciones</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">🔄 Modificaciones</span>`;
             } else if (sol.categoria === 'cancelacion') {
-                catTagHtml = `<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">❌ Cancelaciones</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">❌ Cancelaciones</span>`;
             } else if (sol.categoria === 'faqs') {
-                catTagHtml = `<span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">❓ Preguntas Frecuentes</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">❓ Preguntas Frecuentes</span>`;
             } else if (sol.categoria === 'consulta_abierta') {
-                catTagHtml = `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; padding: 3px 10px; border-radius: 16px; font-size: 0.78rem;">💬 Consultas Abiertas</span>`;
+                catTagHtml = `<span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); font-weight: 600; padding: 3px 10px; border-radius: 16px; font-size: 0.76rem;">💬 Consultas Abiertas</span>`;
             }
 
             // Badge de Estado
-            let statusBadgeHtml = `<span style="background: rgba(234, 179, 8, 0.2); color: #fde047; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">⏳ PENDIENTE</span>`;
+            let statusBadgeHtml = `<span style="background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">⏳ PENDIENTE</span>`;
             if (sol.estado === 'RESPONDIDA') {
-                statusBadgeHtml = `<span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">💬 RESPONDIDA</span>`;
+                statusBadgeHtml = `<span style="background: rgba(255, 255, 255, 0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">💬 RESPONDIDA</span>`;
             } else if (sol.estado === 'CONFIRMADA') {
-                statusBadgeHtml = `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">✅ CONFIRMADA</span>`;
+                statusBadgeHtml = `<span style="background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">✅ CONFIRMADA</span>`;
             } else if (sol.estado === 'RECHAZADA') {
-                statusBadgeHtml = `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">🚫 RECHAZADA</span>`;
+                statusBadgeHtml = `<span style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">🚫 RECHAZADA</span>`;
             } else if (sol.estado === 'ARCHIVADA') {
-                statusBadgeHtml = `<span style="background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 700;">📦 ARCHIVADA</span>`;
+                statusBadgeHtml = `<span style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.1); padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600;">📦 ARCHIVADA</span>`;
             }
 
             const phoneFormatted = sol.telefonoCliente || sol.telefonoReserva || 'Desconocido';
             const isHandoverActive = sol.enAtencionHumana === true && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
             const handoverBadgeHtml = isHandoverActive
-                ? `<span style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">🟢 Modo Humano</span>`
-                : `<span style="background: rgba(100, 116, 139, 0.18); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600;">⚪ Bot Activo</span>`;
+                ? `<span style="background: rgba(16, 185, 129, 0.14); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600;">🟢 Modo Humano</span>`
+                : `<span style="background: rgba(255, 255, 255, 0.06); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 500;">⚪ Bot Activo</span>`;
 
             const msgList = Array.isArray(sol.mensajes) ? sol.mensajes : [];
             const msgCountStr = msgList.length > 0 ? `💬 ${msgList.length} ${msgList.length === 1 ? 'mensaje' : 'mensajes'}` : '💬 1 mensaje';
-            const unreadPillHtml = isUnread ? `<span class="card-unread-pill">🔴 ¡Nuevo mensaje!</span>` : '';
+            const unreadPillHtml = isUnread ? `<span class="card-unread-pill" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35);">🔴 ¡Nuevo mensaje!</span>` : '';
 
             const cleanPhoneNum = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
             const callHref = cleanPhoneNum ? `tel:+${cleanPhoneNum}` : '#';
@@ -2639,24 +2639,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Botones de llamada y WhatsApp rápido
             const quickContactBtnsHtml = cleanPhoneNum ? `
-                <a href="${callHref}" class="btn-quick-call" title="Llamar por teléfono tradicional al cliente" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); text-decoration: none; font-size: 0.76rem; padding: 4px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation();">
+                <a href="${callHref}" class="btn-quick-call" title="Llamar por teléfono tradicional al cliente" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); text-decoration: none; font-size: 0.76rem; padding: 4px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation();">
                     📞
                 </a>
-                <a href="${waHref}" target="_blank" class="btn-quick-wa" title="Abrir chat en la aplicación de WhatsApp" style="background: rgba(37, 211, 102, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.35); text-decoration: none; font-size: 0.76rem; padding: 4px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation();">
+                <a href="${waHref}" target="_blank" class="btn-quick-wa" title="Abrir chat en la aplicación de WhatsApp" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); text-decoration: none; font-size: 0.76rem; padding: 4px 7px; border-radius: 6px; display: inline-flex; align-items: center; gap: 3px;" onclick="event.stopPropagation();">
                     📲
                 </a>
             ` : '';
 
             // Botón Historial Chatbot
             const historyBtnHtml = `
-                <button class="btn-view-chat-history" data-phone="${phoneFormatted}" data-name="${sol.nombreCliente || 'Cliente'}" style="background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.35); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Ver historial completo de interacción con el chatbot">
+                <button class="btn-view-chat-history" data-phone="${phoneFormatted}" data-name="${sol.nombreCliente || 'Cliente'}" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Ver historial completo de interacción con el chatbot">
                     📜 Historial Bot
                 </button>
             `;
 
             // Botón Silenciar Chatbot (Bypass)
             const silenceBtnHtml = `
-                <button class="btn-silence-contact-quick" data-phone="${cleanPhoneNum}" data-name="${encodeURIComponent(sol.nombreCliente || 'Contacto')}" style="background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.35); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Silenciar respuestas automáticas del bot para este contacto (Proveedores, Empleados...)">
+                <button class="btn-silence-contact-quick" data-phone="${cleanPhoneNum}" data-name="${encodeURIComponent(sol.nombreCliente || 'Contacto')}" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); font-size: 0.76rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Silenciar respuestas automáticas del bot para este contacto (Proveedores, Empleados...)">
                     🔇 Silenciar
                 </button>
             `;
@@ -2665,13 +2665,13 @@ document.addEventListener('DOMContentLoaded', () => {
             let topActionBtnsHtml = '';
             if (isArchiveView) {
                 topActionBtnsHtml = `
-                    <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.78rem; padding: 4px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;" title="Restaurar a Activas">↩️ Restaurar</button>
-                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar definitivamente este mensaje">🗑️</button>
+                    <button class="btn-restore-solicitud" data-id="${sol.id}" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.18); font-size: 0.78rem; padding: 4px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;" title="Restaurar a Activas">↩️ Restaurar</button>
+                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar definitivamente este mensaje">🗑️</button>
                 `;
             } else {
                 topActionBtnsHtml = `
-                    <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.78rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Archivar solicitud">📦</button>
-                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar definitivamente este mensaje">🗑️</button>
+                    <button class="btn-archive-solicitud" data-id="${sol.id}" style="background: rgba(255, 255, 255, 0.06); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.14); font-size: 0.78rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Archivar solicitud">📦</button>
+                    <button class="btn-delete-solicitud" data-id="${sol.id}" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar definitivamente este mensaje">🗑️</button>
                 `;
             }
 
@@ -2934,27 +2934,27 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = `<div class="request-summary-table">`;
         rows.forEach(r => {
             const labelLower = r.label.toLowerCase();
-            let valHtml = `<span>${r.val}</span>`;
+            let valHtml = `<span style="color: #ffffff; font-weight: 500;">${r.val}</span>`;
 
             if (labelLower.includes('tarjeta') || labelLower.includes('regalo') || labelLower.includes('código') || labelLower.includes('codigo')) {
-                valHtml = `<span class="badge-card-code">🎁 ${r.val}</span>`;
+                valHtml = `<span class="badge-card-code" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.15);">🎁 ${r.val}</span>`;
             } else if (labelLower.includes('alergia') || labelLower.includes('restricci')) {
                 const isAllergy = r.val && !['ninguna', 'no', 'ninguno', '-', 'sin alergias'].includes(r.val.toLowerCase().trim());
                 valHtml = isAllergy 
-                    ? `<span class="badge-allergy">⚠️ ${r.val}</span>` 
+                    ? `<span class="badge-allergy" style="background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);">⚠️ ${r.val}</span>` 
                     : `<span style="color: #94a3b8;">${r.val || 'Ninguna'}</span>`;
             } else if (labelLower.includes('estado')) {
-                valHtml = `<span class="badge-status-pill">${r.val}</span>`;
+                valHtml = `<span class="badge-status-pill" style="background: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.15);">${r.val}</span>`;
             } else if (labelLower.includes('comensal') || labelLower.includes('personas') || labelLower.includes('adultos') || labelLower.includes('niños') || labelLower.includes('ninos')) {
-                valHtml = `<span style="font-weight: 700; color: #38bdf8;">${r.val}</span>`;
+                valHtml = `<span style="font-weight: 700; color: #ffffff;">${r.val}</span>`;
             } else if (labelLower.includes('servicio')) {
-                valHtml = `<span style="color: #34d399; font-weight: 700;">${r.val}</span>`;
+                valHtml = `<span style="color: #ffffff; font-weight: 600;">${r.val}</span>`;
             } else if (labelLower.includes('fecha')) {
-                valHtml = `<span style="color: #fbbf24; font-weight: 700;">${r.val}</span>`;
+                valHtml = `<span style="color: #ffffff; font-weight: 600;">${r.val}</span>`;
             } else if (labelLower.includes('hora')) {
-                valHtml = `<span style="color: #f472b6; font-weight: 700;">${r.val}</span>`;
+                valHtml = `<span style="color: #ffffff; font-weight: 600;">${r.val}</span>`;
             } else if (labelLower.includes('whatsapp') || labelLower.includes('teléfono') || labelLower.includes('telefono')) {
-                valHtml = `<span style="font-family: monospace; color: #00a884; font-weight: 600;">+${r.val}</span>`;
+                valHtml = `<span style="font-family: monospace; color: #f1f5f9; font-weight: 600;">+${r.val}</span>`;
             }
 
             html += `
