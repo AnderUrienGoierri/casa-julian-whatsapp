@@ -2984,16 +2984,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!paneMoreBtn || !paneMoreDropdown) return;
 
         // Toggle al pulsar el botón ⋮
+        let _paneCloseHandler = null;
+
+        function closePaneDropdown() {
+            paneMoreDropdown.style.display = 'none';
+            if (_paneCloseHandler) {
+                document.removeEventListener('click', _paneCloseHandler);
+                _paneCloseHandler = null;
+            }
+        }
+
+        function openPaneDropdown() {
+            paneMoreDropdown.style.display = 'block';
+            // Añadir listener de cierre de forma DIFERIDA (evita dispararse en el mismo tick)
+            // y auto-eliminable tras el primer clic fuera
+            if (_paneCloseHandler) {
+                document.removeEventListener('click', _paneCloseHandler);
+                _paneCloseHandler = null;
+            }
+            setTimeout(() => {
+                _paneCloseHandler = (ev) => {
+                    if (!ev.target.closest('.pane-more-actions-wrapper')) {
+                        closePaneDropdown();
+                    }
+                };
+                document.addEventListener('click', _paneCloseHandler);
+            }, 150);
+        }
+
         paneMoreBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             const isOpen = paneMoreDropdown.style.display === 'block';
-            paneMoreDropdown.style.display = isOpen ? 'none' : 'block';
-        });
-
-        // Cerrar al clic fuera
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.pane-more-actions-wrapper')) {
-                paneMoreDropdown.style.display = 'none';
+            if (isOpen) {
+                closePaneDropdown();
+            } else {
+                openPaneDropdown();
             }
         });
 
