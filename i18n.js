@@ -258,7 +258,7 @@ const translations = {
         "selectedAllergiesHeader": "📌 *Aukeratutako alergiak:* {allergies}",
         "btnNoAllergies": "❌ Ez dugu alergiarik",
         "descNoAllergies": "Alergiarik ez dugu",
-        "modCancelDataPrompt": "📝 *Erreserba Egiaztatzea Aldatzeko*\n\nMesedez, idatzi erreserbaren *Izen-abizenak* eta *Telefono zenbakia* (mezu berean idatz ditzakezu, adib: *Ander Urien 612345678*):",
+        "modCancelDataPrompt": "📝 *Erreserba Datuak Aldaketarako*\n\nMesedez, idatzi erreserbaren titularraren *Izen-abizenak* (adibidez: *Anton Garmendia*):",
         "modReservationNotFoundMsg": "⚠️ *Ez dugu erreserba berretsirik aurkitu \"{query}\" izenean.*\n\nMesedez, egiaztatu sartutako izena eta telefonoa.",
         "modReservationVerifyPrompt": "📌 *{id}* erreserba aurkitu dugu.\n\nZure nortasuna egiaztatzeko eta aldaketa bideratzeko, mesedez adierazi erreserbarekin lotutako *telefono zenbakia* edo *izen-abizenak*:",
         "modReservationVerifyWithDetailsPrompt": "📌 Zurea izan daitekeen erreserba bat aurkitu dugu:\n\n🆔 *Kodea:* {id}\n👤 *Titularra:* {nombre}\n📅 *Data:* {fecha}\n🕐 *Ordua:* {hora}\n👥 *Mahaikideak:* {comensales}\n\nZure nortasuna egiaztatzeko, mesedez adierazi *erreserba kodea*, *telefono zenbakia*, *NANa* edo *posta elektronikoa*:",
