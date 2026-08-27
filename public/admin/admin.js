@@ -416,7 +416,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const silencedTagForm = document.getElementById('silenced-tag-form');
     const newTagNameInput = document.getElementById('new-tag-name-input');
     const closeSilencedTagModalBtn = document.getElementById('close-silenced-tag-modal-btn');
-    const tagEmojiPicker = document.getElementById('tag-emoji-picker');
+    const tagEmojiSelect = document.getElementById('tag-emoji-select');
+    const selectedEmojiPreview = document.getElementById('selected-emoji-preview');
 
     let selectedTagEmoji = '🏷️';
     let selectedSilencedModalTags = ['proveedor'];
@@ -799,11 +800,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!silencedTagModal) return;
         if (newTagNameInput) newTagNameInput.value = '';
         selectedTagEmoji = '🏷️';
-        if (tagEmojiPicker) {
-            tagEmojiPicker.querySelectorAll('.tag-emoji-btn').forEach(b => b.classList.remove('active'));
-            const defBtn = tagEmojiPicker.querySelector('[data-emoji="🏷️"]');
-            if (defBtn) defBtn.classList.add('active');
-        }
+        if (tagEmojiSelect) tagEmojiSelect.value = '🏷️';
+        if (selectedEmojiPreview) selectedEmojiPreview.textContent = '🏷️';
         silencedTagModal.style.display = 'flex';
         setTimeout(() => { if (newTagNameInput) newTagNameInput.focus(); }, 50);
     }
@@ -818,14 +816,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnQuickNewTag) btnQuickNewTag.addEventListener('click', openSilencedTagModal);
     if (closeSilencedTagModalBtn) closeSilencedTagModalBtn.addEventListener('click', closeSilencedTagModal);
 
-    // Emoji picker listener
-    if (tagEmojiPicker) {
-        tagEmojiPicker.querySelectorAll('.tag-emoji-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                tagEmojiPicker.querySelectorAll('.tag-emoji-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                selectedTagEmoji = btn.getAttribute('data-emoji') || '🏷️';
-            });
+    // Dropdown de Emoticonos Listener
+    if (tagEmojiSelect) {
+        tagEmojiSelect.addEventListener('change', () => {
+            selectedTagEmoji = tagEmojiSelect.value || '🏷️';
+            if (selectedEmojiPreview) selectedEmojiPreview.textContent = selectedTagEmoji;
         });
     }
 
