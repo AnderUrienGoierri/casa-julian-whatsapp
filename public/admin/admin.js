@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (tabId === 'tab-silenced') {
             if (iconEl) iconEl.textContent = '🔇';
-            nameEl.textContent = 'Números Bot Cancelado';
+            nameEl.textContent = 'Números Bot Cancelados';
             if (badgeEl) {
                 const count = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) 
                     ? allSilencedNumbers.length 
@@ -632,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success) {
                     closeSilencedModal();
                     await fetchSilencedNumbers();
-                    alert(`✅ Número ${phone} (${name}) guardado exitosamente en la lista de Números Bot Cancelado.`);
+                    alert(`✅ Número ${phone} (${name}) guardado exitosamente en la lista de Números Bot Cancelados.`);
                 } else {
                     alert('Error guardando contacto: ' + (data.error || 'Error desconocido'));
                 }

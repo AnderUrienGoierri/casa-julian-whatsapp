@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V388-REMOVE-ARCHIVED">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V389-FIX-SCROLL-SILENCED">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -249,7 +249,7 @@
                         </button>
                         <button type="button" class="dropdown-menu-item" id="dropdown-tab-silenced" data-tab-target="tab-silenced">
                             <span class="dropdown-item-icon">🔇</span>
-                            <span class="dropdown-item-text">Números Bot Cancelado</span>
+                            <span class="dropdown-item-text">Números Bot Cancelados</span>
                             <span id="dropdown-silenced-badge" class="dropdown-badge" style="background:#a855f7; color:#fff;">0</span>
                         </button>
 
@@ -289,7 +289,7 @@
         <!-- Navegación por Pestañas -->
         <nav class="tabs-nav">
             <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón Recepción <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
-            <button class="tab-btn" data-tab="tab-silenced">🔇 Números Bot Cancelado <span id="silenced-count-badge" class="draft-badge" style="background:#a855f7; color:#fff; display:inline-block;">0</span></button>
+            <button class="tab-btn" data-tab="tab-silenced">🔇 Números Bot Cancelados <span id="silenced-count-badge" class="draft-badge" style="background:#a855f7; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-flow">🌳 Estructura &amp; Árbol de Flujos</button>
             <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes &amp; Textos</button>
             <button class="tab-btn" data-tab="tab-rules">⚙️ Flujo &amp; Respuestas por Palabras Clave</button>
@@ -454,7 +454,7 @@
                     </div>
                 </div>
 
-                <!-- Pestaña 0C: Números Bot Cancelado (Bypass Automático del Bot) -->
+                <!-- Pestaña 0C: Números Bot Cancelados (Bypass Automático del Bot) -->
                 <div id="tab-silenced" class="tab-content">
                     <!-- Toolbar de Filtros y Búsqueda de Números Silenciados -->
                     <div class="inbox-toolbar-card" style="margin-bottom: 18px; padding: 14px 18px;">
@@ -905,6 +905,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V388-REMOVE-ARCHIVED"></script>
+    <script src="/admin/admin.js?v=20260827-V389-FIX-SCROLL-SILENCED"></script>
 </body>
 </html>
