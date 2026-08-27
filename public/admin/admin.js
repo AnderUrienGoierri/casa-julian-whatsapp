@@ -758,11 +758,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const silencedSubmitBtn = document.getElementById('silenced-submit-btn');
+
     function openSilencedModal(prefillPhone = '', prefillName = '', prefillCat = 'proveedor', prefillNotes = '') {
         if (!silencedModal) return;
         if (silencedPhoneInput) silencedPhoneInput.value = prefillPhone;
         if (silencedNameInput) silencedNameInput.value = prefillName;
         if (silencedNotesInput) silencedNotesInput.value = prefillNotes;
+
+        if (silencedModalTitle) {
+            silencedModalTitle.textContent = prefillPhone ? '✏️ Editar Contacto con Bot Cancelado' : '➕ Añadir Contacto con Bot Cancelado';
+        }
+        if (silencedSubmitBtn) {
+            silencedSubmitBtn.textContent = prefillPhone ? '💾 Guardar Cambios' : '💾 Guardar Contacto';
+        }
 
         if (prefillCat) {
             selectedSilencedModalTags = prefillCat.split(',').map(c => c.trim().toLowerCase()).filter(Boolean);
@@ -773,6 +782,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderSilencedModalTags();
         silencedModal.style.display = 'flex';
+        setTimeout(() => {
+            if (prefillPhone && silencedNameInput) {
+                silencedNameInput.focus();
+            } else if (silencedPhoneInput) {
+                silencedPhoneInput.focus();
+            }
+        }, 50);
     }
 
     function closeSilencedModal() {
