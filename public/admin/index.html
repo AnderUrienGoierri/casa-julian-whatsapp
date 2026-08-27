@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V389-FIX-SCROLL-SILENCED">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260827-V390-BUZON-SEARCH-TOGGLE">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -227,7 +227,7 @@
             <!-- Título Centrado de la Pestaña Activa -->
             <div class="header-center" id="header-active-tab-title">
                 <span id="header-active-tab-icon" class="header-active-icon">📥</span>
-                <span id="header-active-tab-name" class="header-active-name">Buzón Recepción</span>
+                <span id="header-active-tab-name" class="header-active-name">Buzón</span>
                 <span id="header-active-tab-badge" class="header-active-badge" style="background:#ef4444; color:#fff;">0</span>
             </div>
 
@@ -244,7 +244,7 @@
                         <div class="dropdown-section-label">📌 Pestañas de Gestión</div>
                         <button type="button" class="dropdown-menu-item" id="dropdown-tab-inbox" data-tab-target="tab-inbox">
                             <span class="dropdown-item-icon">📥</span>
-                            <span class="dropdown-item-text">Buzón Recepción</span>
+                            <span class="dropdown-item-text">Buzón</span>
                             <span id="dropdown-inbox-badge" class="dropdown-badge" style="background:#ef4444; color:#fff;">0</span>
                         </button>
                         <button type="button" class="dropdown-menu-item" id="dropdown-tab-silenced" data-tab-target="tab-silenced">
@@ -288,7 +288,7 @@
 
         <!-- Navegación por Pestañas -->
         <nav class="tabs-nav">
-            <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón Recepción <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
+            <button class="tab-btn active" data-tab="tab-inbox" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-bottom: 3px solid #38bdf8;">📥 Buzón <span id="inbox-count-badge" class="draft-badge" style="background:#ef4444; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-silenced">🔇 Números Bot Cancelados <span id="silenced-count-badge" class="draft-badge" style="background:#a855f7; color:#fff; display:inline-block;">0</span></button>
             <button class="tab-btn" data-tab="tab-flow">🌳 Estructura &amp; Árbol de Flujos</button>
             <button class="tab-btn" data-tab="tab-texts">📝 Editor de Mensajes &amp; Textos</button>
@@ -310,16 +310,19 @@
                         <div class="wa-left-pane" id="wa-left-pane">
                             <!-- Cabecera y Barra de Filtros Nativa WhatsApp Business -->
                             <div class="whatsapp-business-header-container">
-                                <!-- Título Grande Chats -->
+                                <!-- Cabecera con Botón de Búsqueda 🔍 y Total de Conversaciones -->
                                 <div class="wa-header-top-row">
-                                    <h2 class="wa-screen-title">Chats</h2>
+                                    <button type="button" id="btn-toggle-inbox-search" class="wa-search-toggle-btn" title="Buscar chat">
+                                        <span class="wa-search-btn-icon">🔍</span>
+                                    </button>
                                     <span id="inbox-total-summary" class="wa-screen-subtitle">0 conversaciones</span>
                                 </div>
 
-                                <!-- Buscador Nativo WhatsApp -->
-                                <div class="wa-search-container">
+                                <!-- Buscador Desplegable WhatsApp -->
+                                <div class="wa-search-container" id="wa-search-container" style="display: none;">
                                     <span class="wa-search-icon">🔍</span>
                                     <input type="text" id="search-inbox-input" class="wa-search-input" placeholder="Buscar un chat o iniciar uno nuevo...">
+                                    <button type="button" id="btn-clear-inbox-search" class="wa-search-clear-btn" title="Cerrar búsqueda" style="display: none;">✕</button>
                                 </div>
 
                                 <!-- Píldoras Horizontales de Filtro estilo WhatsApp (2 Filas) -->
@@ -905,6 +908,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260827-V389-FIX-SCROLL-SILENCED"></script>
+    <script src="/admin/admin.js?v=20260827-V390-BUZON-SEARCH-TOGGLE"></script>
 </body>
 </html>

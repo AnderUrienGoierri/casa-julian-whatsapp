@@ -1536,23 +1536,59 @@ body.mode-recepcion .inbox-cards-grid {
 .wa-header-top-row {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
     margin-bottom: 12px;
 }
 
-.wa-screen-title {
-    font-size: 1.75rem;
-    font-weight: 700;
+.wa-search-toggle-btn {
+    background: #202c33;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: #e9edef;
-    margin: 0;
-    letter-spacing: -0.02em;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 1.05rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.wa-search-toggle-btn:hover,
+.wa-search-toggle-btn.active {
+    background: #00a884;
+    color: #ffffff;
+    border-color: #00a884;
+    box-shadow: 0 2px 8px rgba(0, 168, 132, 0.35);
+}
+
+.wa-search-btn-icon {
+    line-height: 1;
 }
 
 .wa-screen-subtitle {
     font-size: 0.82rem;
     color: #8696a0;
     font-weight: 500;
+}
+
+.wa-search-clear-btn {
+    background: none;
+    border: none;
+    color: #8696a0;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.wa-search-clear-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .wa-search-container {

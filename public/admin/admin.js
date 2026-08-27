@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (tabId === 'tab-inbox') {
             if (iconEl) iconEl.textContent = '📥';
-            nameEl.textContent = 'Buzón Recepción';
+            nameEl.textContent = 'Buzón';
             if (badgeEl) {
                 const count = getPendingConversationsCount();
                 badgeEl.textContent = count;
@@ -3127,8 +3127,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ── Buscador de Buzón Recepción estilo WhatsApp Business ───────────────
-    const searchContainer = document.querySelector('.wa-search-container');
+    // ── Buscador de Buzón estilo WhatsApp Business (Toggle con botón Lupa 🔍) ───
+    const searchContainer = document.getElementById('wa-search-container');
+    const toggleSearchBtn = document.getElementById('btn-toggle-inbox-search');
+    const clearSearchBtn = document.getElementById('btn-clear-inbox-search');
+
+    if (toggleSearchBtn && searchContainer && searchInboxInput) {
+        toggleSearchBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = (searchContainer.style.display !== 'none');
+            if (isVisible) {
+                if (!searchInboxInput.value.trim()) {
+                    searchContainer.style.display = 'none';
+                    toggleSearchBtn.classList.remove('active');
+                } else {
+                    searchInboxInput.focus();
+                }
+            } else {
+                searchContainer.style.display = 'flex';
+                toggleSearchBtn.classList.add('active');
+                searchInboxInput.focus();
+            }
+        });
+    }
+
+    if (clearSearchBtn && searchInboxInput && searchContainer && toggleSearchBtn) {
+        clearSearchBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            searchInboxInput.value = '';
+            currentInboxSearch = '';
+            clearSearchBtn.style.display = 'none';
+            searchContainer.style.display = 'none';
+            toggleSearchBtn.classList.remove('active');
+            renderInboxCards();
+        });
+    }
 
     if (searchContainer && searchInboxInput) {
         searchContainer.addEventListener('click', () => {
@@ -3137,18 +3170,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (searchInboxInput) {
-        searchInboxInput.addEventListener('input', (e) => {
+        const handleSearchInput = (e) => {
             currentInboxSearch = e.target.value;
+            if (clearSearchBtn) {
+                clearSearchBtn.style.display = currentInboxSearch.length > 0 ? 'inline-flex' : 'none';
+            }
+            if (toggleSearchBtn) {
+                if (currentInboxSearch.length > 0) {
+                    toggleSearchBtn.classList.add('active');
+                }
+            }
             renderInboxCards();
-        });
-        searchInboxInput.addEventListener('keyup', (e) => {
-            currentInboxSearch = e.target.value;
-            renderInboxCards();
-        });
-        searchInboxInput.addEventListener('change', (e) => {
-            currentInboxSearch = e.target.value;
-            renderInboxCards();
-        });
+        };
+
+        searchInboxInput.addEventListener('input', handleSearchInput);
+        searchInboxInput.addEventListener('keyup', handleSearchInput);
+        searchInboxInput.addEventListener('change', handleSearchInput);
     }
 
     // Formateador de texto estilo WhatsApp (*negrita*, _cursiva_, ~tachado~, etc.)
