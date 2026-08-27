@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (tabId === 'tab-inbox') {
                 if (iconEl) iconEl.textContent = '📥';
-                nameEl.textContent = 'Buzón Recepción & Solicitudes';
+                nameEl.textContent = 'Buzón Recepción';
                 if (badgeEl) {
                     const count = (typeof allSolicitudes !== 'undefined' && Array.isArray(allSolicitudes)) 
                         ? allSolicitudes.filter(s => s.estado !== 'ARCHIVADA' && s.estado !== 'ELIMINADA').length 
