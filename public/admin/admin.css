@@ -2393,13 +2393,14 @@ body.mode-recepcion .inbox-cards-grid {
 .wa-chat-messages-area .whatsapp-textarea-wrapper {
     flex: 1;
     background: #2a3942;
-    border-radius: 14px;
-    padding: 10px 16px;
+    border-radius: 12px;
+    padding: 8px 12px !important;
     border: 1px solid transparent;
     transition: all 0.2s ease;
     min-height: 84px;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    box-sizing: border-box;
 }
 
 .wa-chat-messages-area .whatsapp-textarea-wrapper:focus-within {
@@ -2407,19 +2408,21 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .wa-chat-messages-area textarea {
-    width: 100%;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: #e9edef;
-    font-size: 0.95rem;
-    font-family: inherit;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 70px !important;
+    flex: 1 1 auto !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: #e9edef !important;
+    font-size: 0.95rem !important;
+    font-family: inherit !important;
     resize: none !important;
-    padding: 4px 0;
-    min-height: 72px;
-    height: 72px;
-    max-height: 200px;
-    line-height: 1.5;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1.45 !important;
+    box-sizing: border-box !important;
 }
 
 .wa-chat-messages-area textarea::placeholder {
@@ -2699,24 +2702,30 @@ body.mode-recepcion .inbox-cards-grid {
 
     .wa-chat-messages-area .whatsapp-textarea-wrapper {
         flex: 1 !important;
-        min-height: 80px !important;
+        min-height: 82px !important;
         background: #2a3942 !important;
         border-radius: 12px !important;
-        padding: 8px 14px !important;
+        padding: 8px 12px !important;
         display: flex !important;
-        align-items: center !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
     }
 
     .wa-chat-messages-area textarea {
         width: 100% !important;
-        font-size: 0.94rem !important;
-        padding: 4px 0 !important;
+        height: 100% !important;
         min-height: 68px !important;
-        height: 68px !important;
-        max-height: 180px !important;
-        line-height: 1.5 !important;
+        flex: 1 1 auto !important;
+        font-size: 0.94rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        line-height: 1.45 !important;
         resize: none !important;
         color: #e9edef !important;
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-sizing: border-box !important;
     }
 
     .btn-send-whatsapp-icon {
