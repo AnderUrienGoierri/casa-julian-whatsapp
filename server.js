@@ -37,6 +37,11 @@ app.use('/admin', (req, res, next) => {
 const adminApiRouter = require('./adminApi');
 app.use('/api/admin', adminApiRouter);
 
+// Servir favicon.ico utilizando el logo oficial de Casa Julián
+app.get('/favicon.ico', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'casa_julian_logo_CJ.jpeg'));
+});
+
 // Endpoint de salud raíz para Render.com
 app.get('/', (req, res) => {
     res.send('🔥 Asador Casa Julian - Servidor de WhatsApp Bot 24/7 Activo');
