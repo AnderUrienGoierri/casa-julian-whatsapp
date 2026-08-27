@@ -352,7 +352,7 @@ const translations = {
         "faq10Title": "10. Maskotak",
         "faq10Desc": "Maskotak onartzea.",
         "faq10Msg": "Ez dugu maskotarik onartzen.",
-        "thanksClosingMsg": "Eskerrik asko gurekin harremanetan jartzeagatik! Zure galdera erantzun izana espero dugu. Beste ezer behar baduzu, pozik lagunduko dizugu. Casa Julianen zai gaude!",
+        "thanksClosingMsg": "Eskerrik asko gurekin harremanetan jartzeagatik! Zure galdera erantzun izana espero dugu. Beste ezer behar baduzu, pozik lagunduko dizugu!",
         "requestSummaryHeader": "📋 *ZURE ESKAERAREN LABURPENA:*",
         "confirmPrompt": "❓ *Eskaera hau jatetxera bidaltzea berretsi nahi duzu?*",
         "confirmYesBtn": "Bai, bidali",
