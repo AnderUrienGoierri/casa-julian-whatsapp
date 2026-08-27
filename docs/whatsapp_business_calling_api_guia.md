@@ -47,7 +47,27 @@ Para evitar el spam telefónico de las empresas, Meta aplica una política estri
    * **Límite por usuario:** Máximo **5 llamadas conectadas al día** por cliente.
    * **Límite por empresa:** Máximo **100 llamadas salientes al día** por número de teléfono.
    * **Llamadas no atendidas:** Si se realizan 4 intentos seguidos sin respuesta, Meta revoca automáticamente el permiso.
-3. **Coste:** Las llamadas salientes de empresa tienen una tarificación por minuto según las tarifas oficiales de Meta.
+3. **Estructura Detallada de Costes en Euros (€):**
+   Meta aplica un modelo de facturación diferenciado según el sentido de la llamada y el país del cliente:
+   * **📥 Llamadas Entrantes (Cliente $\rightarrow$ Restaurante):** **0,00 € / minuto (Totalmente Gratuitas)**. Meta no cobra ningún coste por recibir llamadas ilimitadas de clientes de cualquier país a través de Internet.
+   * **📤 Llamadas Salientes (Restaurante $\rightarrow$ Cliente):** Se facturan **por minuto de conversación conectada** (fraccionado) en base al país del número de teléfono del cliente:
+     * **🇪🇸 España (+34):** Aprox. **0,025 € – 0,035 € / minuto**.
+     * **🇫🇷 Francia (+33), 🇩🇪 Alemania (+49), 🇮🇹 Italia (+39):** Aprox. **0,028 € – 0,040 € / minuto**.
+     * **🇬🇧 Reino Unido (+44):** Aprox. **0,030 € – 0,045 € / minuto**.
+     * **🇺🇸 Estados Unidos / 🇨🇦 Canadá (+1):** Aprox. **0,015 € – 0,025 € / minuto**.
+     * **🌎 Resto del Mundo / Latinoamérica:** Aprox. **0,040 € – 0,080 € / minuto**.
+   * **Condiciones de cobro de Meta:**
+     * **Solo llamadas conectadas:** Si el cliente no descuelga, rechaza la llamada o el teléfono está apagado, el coste es **0,00 €**.
+     * **Mensaje de solicitud de permiso (*Permission Template*):** El envío del mensaje interactivo para pedir permiso de llamada computa como plantilla de utilidad (*Utility Template*), con un coste de **~0,032 €** (solo si se envía fuera de una ventana de servicio de 24h ya abierta por el cliente).
+   
+   #### 📊 Ejemplo Práctico de Estimación de Gasto Mensual para Casa Julián:
+   | Concepto | Volumen Estimado | Tarifa Media (€) | Coste Total Estimado |
+   | :--- | :--- | :--- | :--- |
+   | **Llamadas entrantes recibidas (Nacionales e Internacionales)** | 150 llamadas (300 min) | 0,00 € / min | **0,00 €** |
+   | **Llamadas salientes a clientes de España (+34)** | 40 llamadas (~2 min c/u = 80 min) | ~0,030 € / min | **~2,40 €** |
+   | **Llamadas salientes internacionales (Francia, UK, etc.)** | 15 llamadas (~2 min c/u = 30 min) | ~0,035 € / min | **~1,05 €** |
+   | **Plantillas de solicitud de permiso de llamada** | 55 envíos | ~0,032 € / mensaje | **~1,76 €** |
+   | **GASTO TOTAL MENSUAL ESTIMADO EN VOIP META** | **205 llamadas gestionadas** | — | **~5,21 € / mes** |
 
 ---
 
