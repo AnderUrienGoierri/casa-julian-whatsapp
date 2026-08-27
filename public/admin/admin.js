@@ -2648,15 +2648,26 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(c => getConversationStatus(c) === currentInboxStatusFilter);
         }
 
-        // 3. Filtrar por buscador
+        // 3. Filtrar por buscador (Soporta números con o sin espacios, ej: +44 7879 488933 y +447879488933)
         if (currentInboxSearch.trim()) {
             const q = currentInboxSearch.toLowerCase().trim();
-            filtered = filtered.filter(c =>
-                (c.telefono && c.telefono.toLowerCase().includes(q)) ||
-                (c.nombreCliente && c.nombreCliente.toLowerCase().includes(q)) ||
-                (c.ultimoTexto && c.ultimoTexto.toLowerCase().includes(q)) ||
-                (c.tipoSolicitud && c.tipoSolicitud.toLowerCase().includes(q))
-            );
+            const qDigits = q.replace(/\D/g, '');
+            filtered = filtered.filter(c => {
+                const rawTel = (c.telefono || '').toLowerCase();
+                const telDigits = rawTel.replace(/\D/g, '');
+                const rawName = (c.nombreCliente || '').toLowerCase();
+                const nameDigits = rawName.replace(/\D/g, '');
+                const rawText = (c.ultimoTexto || '').toLowerCase();
+                const rawTipo = (c.tipoSolicitud || '').toLowerCase();
+
+                // Coincidencia por dígitos del teléfono (permite "+44 7879 488933", "+447879488933", etc.)
+                const digitsMatch = qDigits.length >= 3 && (telDigits.includes(qDigits) || nameDigits.includes(qDigits));
+                
+                // Coincidencia por texto literal (nombre, mensaje, teléfono, tipo)
+                const textMatch = rawTel.includes(q) || rawName.includes(q) || rawText.includes(q) || rawTipo.includes(q);
+
+                return digitsMatch || textMatch;
+            });
         }
 
         if (summaryEl) {
@@ -2943,9 +2954,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ── Buscador de Buzón Recepción ──────────────────────────────────────────
+    // ── Buscador de Buzón Recepción estilo WhatsApp Business ───────────────
+    const searchContainer = document.querySelector('.wa-search-container');
+
+    if (searchContainer && searchInboxInput) {
+        searchContainer.addEventListener('click', () => {
+            searchInboxInput.focus();
+        });
+    }
+
     if (searchInboxInput) {
         searchInboxInput.addEventListener('input', (e) => {
+            currentInboxSearch = e.target.value;
+            renderInboxCards();
+        });
+        searchInboxInput.addEventListener('keyup', (e) => {
+            currentInboxSearch = e.target.value;
+            renderInboxCards();
+        });
+        searchInboxInput.addEventListener('change', (e) => {
             currentInboxSearch = e.target.value;
             renderInboxCards();
         });

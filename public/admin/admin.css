@@ -1502,6 +1502,9 @@ body.mode-recepcion .inbox-cards-grid {
     gap: 8px;
     border: 1px solid transparent;
     transition: all 0.2s ease;
+    cursor: text !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
 }
 
 .wa-search-container:focus-within {
@@ -1512,6 +1515,8 @@ body.mode-recepcion .inbox-cards-grid {
 .wa-search-icon {
     font-size: 0.95rem;
     color: #8696a0;
+    pointer-events: none;
+    user-select: none;
 }
 
 .wa-search-input {
@@ -1522,10 +1527,15 @@ body.mode-recepcion .inbox-cards-grid {
     font-size: 0.92rem;
     width: 100%;
     font-family: inherit;
+    cursor: text !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    pointer-events: auto !important;
 }
 
 .wa-search-input::placeholder {
     color: #8696a0;
+    user-select: none;
 }
 
 .wa-filter-pills-row {
