@@ -678,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (filtered.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">
+                    <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px;">
                         No se encontraron números con bot cancelado con los filtros actuales.
                     </td>
                 </tr>
@@ -707,21 +707,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <tr class="silenced-row-item" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                     <td class="col-name" style="padding: 12px 16px; font-weight: 600; color: #f8fafc;">
-                        <div class="silenced-mobile-header">
-                            <span class="silenced-contact-name">${item.nombre || 'Contacto'}</span>
-                            <div class="mobile-only-cat">${badgesHtml}</div>
-                        </div>
+                        <span class="silenced-contact-name">${item.nombre || 'Contacto'}</span>
                     </td>
                     <td class="col-phone" style="padding: 12px 16px; color: #38bdf8; font-family: monospace;">
                         <a href="https://wa.me/${cleanPhone}" target="_blank" class="silenced-phone-link" style="color: #38bdf8; text-decoration: none;">
                             📞 +${item.telefono}
                         </a>
                     </td>
-                    <td class="col-cat desktop-only-cell" style="padding: 12px 16px;">
+                    <td class="col-cat" style="padding: 12px 16px;">
                         ${badgesHtml}
-                    </td>
-                    <td class="col-notes" style="padding: 12px 16px; color: #94a3b8; font-size: 0.84rem;">
-                        <span class="silenced-notes-text">${item.notas ? '📝 ' + item.notas : '-'}</span>
                     </td>
                     <td class="col-status" style="padding: 12px 16px; text-align: center;">
                         ${statusHtml}

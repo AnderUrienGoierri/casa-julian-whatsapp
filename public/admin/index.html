@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V412-MOBILE-INLINE-CLEAN-ICONS">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V413-PURPLE-FILTERS-NO-NOTES-CLEAN-TABLE">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -459,7 +459,7 @@
                         <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap; margin-bottom: 12px;">
                             <div class="search-box" style="flex: 1; min-width: 220px; margin: 0;">
                                 <span class="search-icon">🔍</span>
-                                <input type="text" id="search-silenced-input" placeholder="Buscar por teléfono, nombre o notas...">
+                                <input type="text" id="search-silenced-input" placeholder="Buscar por teléfono o nombre...">
                             </div>
                             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                                 <button type="button" id="add-silenced-tag-btn" class="btn-secondary" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-size: 0.84rem; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); color: #e2e8f0; cursor: pointer;">
@@ -487,14 +487,13 @@
                                     <th style="padding: 12px 16px; text-align: left; font-size: 0.82rem; color: #94a3b8;">Contacto / Nombre</th>
                                     <th style="padding: 12px 16px; text-align: left; font-size: 0.82rem; color: #94a3b8;">Teléfono WhatsApp</th>
                                     <th style="padding: 12px 16px; text-align: left; font-size: 0.82rem; color: #94a3b8;">Categoría</th>
-                                    <th style="padding: 12px 16px; text-align: left; font-size: 0.82rem; color: #94a3b8;">Notas</th>
                                     <th style="padding: 12px 16px; text-align: center; font-size: 0.82rem; color: #94a3b8;">Estado</th>
                                     <th style="padding: 12px 16px; text-align: right; font-size: 0.82rem; color: #94a3b8;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="silenced-numbers-table-body">
                                 <tr>
-                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando lista de números con bot cancelado...</td>
+                                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando lista de números con bot cancelado...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -897,10 +896,7 @@
                     <div id="silenced-modal-tags-container" class="silenced-tags-selector-grid">
                         <!-- Chips seleccionables generados dinámicamente -->
                     </div>
-                </div>
-                <div class="form-group" style="margin-top: 14px;">
-                    <label>Notas adicionales (opcional)</label>
-                    <input type="text" id="silenced-notes-input" placeholder="ej: Proveedor de pan / Repartidor mañanas">
+                    <input type="hidden" id="silenced-notes-input" value="">
                 </div>
                 <div class="modal-actions" style="margin-top: 22px;">
                     <button type="button" id="close-silenced-modal-btn" class="btn-secondary">Cancelar</button>
@@ -1043,6 +1039,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260828-V412-MOBILE-INLINE-CLEAN-ICONS"></script>
+    <script src="/admin/admin.js?v=20260828-V413-PURPLE-FILTERS-NO-NOTES-CLEAN-TABLE"></script>
 </body>
 </html>

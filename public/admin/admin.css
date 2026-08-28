@@ -5253,3 +5253,35 @@ div.inbox-toolbar-header,
     flex-shrink: 0 !important;
 }
 
+/* ── Filtros Morados en Pestaña Números Bot Cancelados ── */
+#tab-silenced .filter-chip {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#tab-silenced .filter-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+#tab-silenced .filter-chip.active {
+    background: linear-gradient(135deg, #9333ea, #7e22ce) !important;
+    background-color: #9333ea !important;
+    color: #ffffff !important;
+    border-color: #a855f7 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 12px rgba(147, 51, 234, 0.45) !important;
+}
+
+
