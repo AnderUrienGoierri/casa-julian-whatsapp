@@ -61,6 +61,22 @@ async function handleUserMessage(from, body, type = 'text', interactiveData = nu
         console.error("⚠️ Error guardando historial de chat de cliente:", histErr.message);
     }
 
+    // Auto-registrar contacto en la tabla de Contactos si es nuevo (por defecto Bot Activo y categoría 'cliente')
+    try {
+        const cleanFrom = (from || '').toString().replace(/\D/g, '');
+        if (cleanFrom && cleanFrom.length >= 7) {
+            const contactName = (interactiveData && interactiveData.profileName) ? interactiveData.profileName : `+${cleanFrom}`;
+            const pool = require('../db/postgresPool');
+            await pool.query(`
+                INSERT INTO bot_silenced_numbers (telefono, nombre, categoria, notas, activo, created_at, updated_at)
+                VALUES ($1, $2, 'cliente', 'Contacto registrado por WhatsApp', false, (NOW() AT TIME ZONE 'Europe/Madrid'), (NOW() AT TIME ZONE 'Europe/Madrid'))
+                ON CONFLICT (telefono) DO NOTHING
+            `, [cleanFrom, contactName]);
+        }
+    } catch (contactErr) {
+        console.error("⚠️ Error auto-creando contacto entrante:", contactErr.message);
+    }
+
     // 0. VERIFICAR SI EL NÚMERO ESTÁ EN LA LISTA DE NÚMEROS SILENCIADOS (PROVEEDORES / EMPLEADOS / ALBA)
     try {
         const silenced = await db.isPhoneSilenced(from);

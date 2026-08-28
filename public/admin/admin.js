@@ -811,8 +811,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="col-name" style="padding: 12px 16px; font-weight: 600; color: #f8fafc;">
                         <span class="silenced-contact-name">${item.nombre || 'Contacto'}</span>
                     </td>
-                    <td class="col-phone" style="padding: 12px 16px; color: #38bdf8; font-family: monospace;">
-                        <a href="https://wa.me/${cleanPhone}" target="_blank" class="silenced-phone-link" style="color: #38bdf8; text-decoration: none;">
+                    <td class="col-phone" style="padding: 12px 16px; color: #ffffff; font-family: monospace;">
+                        <a href="https://wa.me/${cleanPhone}" target="_blank" class="silenced-phone-link" style="color: #ffffff; text-decoration: none;">
                             📞 +${item.telefono}
                         </a>
                     </td>
@@ -825,11 +825,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </td>
                     <td class="col-actions" style="padding: 12px 16px; text-align: right; white-space: nowrap;">
-                        <div class="silenced-actions-group" style="display: inline-flex; gap: 6px; align-items: center;">
-                            <button type="button" class="btn-edit-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.95rem; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease;" title="Editar contacto y etiquetas">
+                        <div class="silenced-actions-group" style="display: inline-flex; gap: 8px; align-items: center; justify-content: flex-end;">
+                            <button type="button" class="btn-edit-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: none; border: none; box-shadow: none; font-size: 1.15rem; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Editar contacto y etiquetas">
                                 ✏️
                             </button>
-                            <button type="button" class="btn-delete-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); font-size: 0.95rem; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease;" title="Eliminar contacto">
+                            <button type="button" class="btn-delete-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: none; border: none; box-shadow: none; font-size: 1.15rem; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Eliminar contacto">
                                 🗑️
                             </button>
                         </div>

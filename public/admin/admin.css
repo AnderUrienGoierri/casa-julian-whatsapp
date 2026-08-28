@@ -5290,19 +5290,30 @@ div.inbox-toolbar-header,
     filter: brightness(1.15);
 }
 
-.btn-edit-silence:hover {
-    background: rgba(255, 255, 255, 0.18) !important;
-    border-color: rgba(255, 255, 255, 0.35) !important;
-    color: #ffffff !important;
-    transform: translateY(-1px);
+.btn-edit-silence,
+.btn-delete-silence {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 4px !important;
+    cursor: pointer !important;
+    transition: transform 0.15s ease, opacity 0.15s ease !important;
 }
 
+.btn-edit-silence:hover,
 .btn-delete-silence:hover {
-    background: rgba(239, 68, 68, 0.28) !important;
-    border-color: rgba(239, 68, 68, 0.5) !important;
-    color: #ffffff !important;
-    transform: translateY(-1px);
+    transform: scale(1.25) !important;
+    opacity: 0.8 !important;
 }
+
+#tab-silenced .col-phone,
+#tab-silenced .col-phone a,
+#tab-silenced .silenced-phone-link {
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
 
 
 
