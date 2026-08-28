@@ -1546,35 +1546,45 @@ body.mode-recepcion .inbox-cards-grid {
     margin-bottom: 12px;
 }
 
-.wa-search-toggle-btn {
-    background: transparent;
-    border: none;
-    outline: none;
-    box-shadow: none;
-    color: #e9edef;
-    font-size: 1.22rem;
-    padding: 4px 6px;
-    border-radius: 6px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.85;
-    transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+.wa-search-toggle-btn,
+.wa-manage-tags-btn,
+#btn-toggle-inbox-search,
+#btn-manage-inbox-tags {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: #e9edef !important;
+    font-size: 1.22rem !important;
+    padding: 4px 6px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0.85 !important;
+    transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease !important;
 }
 
-.wa-search-toggle-btn:hover {
-    opacity: 1;
-    transform: scale(1.12);
-    background: rgba(255, 255, 255, 0.06);
-    border: none;
-    box-shadow: none;
+.wa-search-toggle-btn:hover,
+.wa-manage-tags-btn:hover,
+#btn-toggle-inbox-search:hover,
+#btn-manage-inbox-tags:hover {
+    opacity: 1 !important;
+    transform: scale(1.12) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-.wa-search-toggle-btn.active {
-    opacity: 1;
-    background: rgba(0, 168, 132, 0.2);
-    border-radius: 6px;
+.wa-search-toggle-btn.active,
+.wa-manage-tags-btn.active,
+#btn-toggle-inbox-search.active,
+#btn-manage-inbox-tags.active {
+    opacity: 1 !important;
+    background: rgba(0, 168, 132, 0.2) !important;
+    border-radius: 6px !important;
 }
 
 .wa-search-btn-icon {
