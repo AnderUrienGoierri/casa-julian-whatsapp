@@ -3317,6 +3317,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${day}/${month}/${yearShort}`;
     }
 
+    function getCleanPhoneKey(phone) {
+        if (!phone) return '';
+        const str = phone.toString().trim();
+        if (str.startsWith('group_')) return str;
+        return str.replace(/\D/g, '');
+    }
+
     // ── Chats Fijados con Chincheta ──────────────────────────────────────────
     let activeCardDropdownPhone = null;
 
@@ -3329,6 +3336,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let map = saved ? JSON.parse(saved) : null;
             if (!map || typeof map !== 'object' || Object.keys(map).length === 0) {
                 map = {
+                    "group_taxi_casa_julian": true, // 🚕 Grupo Taxi Casa Julián
                     "34645747754": true, // Xabi Gorrotxategi
                     "34623476521": true, // Ricardo Entretiempo Studio
                     "41795958760": true  // +41 79 595 87 60
@@ -3338,6 +3346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return map;
         } catch (e) {
             return {
+                "group_taxi_casa_julian": true,
                 "34645747754": true,
                 "34623476521": true,
                 "41795958760": true
@@ -3346,7 +3355,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleChatPinned(phone) {
-        const clean = (phone || '').replace(/\D/g, '');
+        const clean = getCleanPhoneKey(phone);
         if (!clean) return false;
         const map = { ...getPinnedChatsMap() };
         let isNowPinned = false;
@@ -3376,7 +3385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isChatPinned(phone) {
-        const clean = (phone || '').replace(/\D/g, '');
+        const clean = getCleanPhoneKey(phone);
         const map = getPinnedChatsMap();
         return !!map[clean];
     }
@@ -3396,7 +3405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setManualChatStatus(phone, status) {
-        const clean = (phone || '').replace(/\D/g, '');
+        const clean = getCleanPhoneKey(phone);
         if (!clean) return;
         const map = { ...getManualChatStatusMap() };
         map[clean] = status; // 'pendiente' o 'leido'
@@ -3417,7 +3426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getConversationStatus(c) {
-        const cleanPhone = (c.telefono || '').replace(/\D/g, '');
+        const cleanPhone = getCleanPhoneKey(c.telefono);
         const manualMap = getManualChatStatusMap();
         if (manualMap[cleanPhone]) {
             return manualMap[cleanPhone]; // 'pendiente' o 'leido'
@@ -3567,30 +3576,34 @@ document.addEventListener('DOMContentLoaded', () => {
     function syncUnifiedConversations() {
         const map = new Map();
 
-        // 1. Agregar todas las conversaciones de WhatsApp
+        // 1. Agregar todas las conversaciones de WhatsApp (incluyendo grupos como group_taxi_casa_julian)
         allWhatsAppChats.forEach(c => {
-            const phoneClean = (c.telefono || '').replace(/\D/g, '');
-            if (!phoneClean) return;
-            map.set(phoneClean, {
-                telefono: phoneClean,
-                nombreCliente: c.nombreCliente || `+${phoneClean}`,
-                categoria: c.categoria || 'cliente',
+            const phoneKey = getCleanPhoneKey(c.telefono);
+            if (!phoneKey) return;
+            const isGroup = phoneKey.startsWith('group_') || c.isGroup;
+            map.set(phoneKey, {
+                telefono: phoneKey,
+                nombreCliente: isGroup ? 'Taxi Casa Julián' : (c.nombreCliente || `+${phoneKey}`),
+                categoria: isGroup ? 'taxi' : (c.categoria || 'cliente'),
                 ultimoMensajeFecha: c.ultimoMensajeFecha || new Date().toISOString(),
-                ultimoTexto: c.ultimoTexto || '',
+                ultimoTexto: c.ultimoTexto || (isGroup ? '🚕 Grupo Taxi Casa Julián (3 Taxis + Restaurante)' : ''),
                 ultimoEmisor: c.ultimoEmisor || 'cliente',
                 totalInteracciones: c.totalInteracciones || 1,
                 solicitudId: c.solicitudId || null,
                 solicitudEstado: c.solicitudEstado || null,
-                tipoSolicitud: c.tipoSolicitud || null
+                tipoSolicitud: c.tipoSolicitud || null,
+                isGroup: isGroup,
+                participants: c.participants
             });
         });
 
         // 2. Vincular o insertar solicitudes activas
         allSolicitudes.forEach(sol => {
-            const phoneClean = (sol.telefonoCliente || sol.telefonoReserva || '').replace(/\D/g, '');
-            if (!phoneClean) return;
-            if (map.has(phoneClean)) {
-                const item = map.get(phoneClean);
+            const rawPhone = sol.telefonoCliente || sol.telefonoReserva || '';
+            const phoneKey = getCleanPhoneKey(rawPhone);
+            if (!phoneKey) return;
+            if (map.has(phoneKey)) {
+                const item = map.get(phoneKey);
                 item.solicitudId = sol.id;
                 item.solicitudEstado = sol.estado;
                 item.tipoSolicitud = sol.tipoAccion || sol.categoria;
@@ -3601,9 +3614,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.ultimoMensajeFecha = sol.created_at;
                 }
             } else {
-                map.set(phoneClean, {
-                    telefono: phoneClean,
-                    nombreCliente: sol.nombreCliente || `+${phoneClean}`,
+                map.set(phoneKey, {
+                    telefono: phoneKey,
+                    nombreCliente: sol.nombreCliente || (phoneKey.startsWith('group_') ? 'Taxi Casa Julián' : `+${phoneKey}`),
                     categoria: sol.categoria || 'cliente',
                     ultimoMensajeFecha: sol.created_at || new Date().toISOString(),
                     ultimoTexto: sol.datosDetallados || 'Nueva solicitud',
@@ -3619,10 +3632,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. Ordenar: Primero los chats fijados con chincheta (📌), luego los más recientes
         const pinnedMap = getPinnedChatsMap();
         allUnifiedConversations = Array.from(map.values()).sort((a, b) => {
-            const cleanA = (a.telefono || '').replace(/\D/g, '');
-            const cleanB = (b.telefono || '').replace(/\D/g, '');
-            const pinA = !!pinnedMap[cleanA];
-            const pinB = !!pinnedMap[cleanB];
+            const keyA = getCleanPhoneKey(a.telefono);
+            const keyB = getCleanPhoneKey(b.telefono);
+            const pinA = !!pinnedMap[keyA];
+            const pinB = !!pinnedMap[keyB];
             if (pinA && !pinB) return -1;
             if (!pinA && pinB) return 1;
             const tA = new Date(a.ultimoMensajeFecha || 0).getTime();
@@ -3654,7 +3667,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getChatTags(phone, conv = null) {
-        const cleanPhone = (phone || '').replace(/\D/g, '');
+        const cleanPhone = getCleanPhoneKey(phone);
+        if (cleanPhone === 'group_taxi_casa_julian') {
+            return ['TAXIS', 'GRUPO'];
+        }
         const map = getChatTagsMap();
         if (Array.isArray(map[cleanPhone]) && map[cleanPhone].length > 0) {
             return map[cleanPhone];
@@ -3662,7 +3678,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Si no tiene asignación explícita, inferir de contactos silenciados o categoría
         const tags = [];
-        const silenced = Array.isArray(allSilencedNumbers) ? allSilencedNumbers.find(s => (s.telefono || '').replace(/\D/g, '') === cleanPhone) : null;
+        const silenced = Array.isArray(allSilencedNumbers) ? allSilencedNumbers.find(s => getCleanPhoneKey(s.telefono) === cleanPhone) : null;
         if (silenced && silenced.categoria) {
             const parts = silenced.categoria.split(',').map(p => p.trim()).filter(Boolean);
             tags.push(...parts);
@@ -3677,13 +3693,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 tags.push('HOTELES');
             } else if (cat === 'empleado' || cat === 'empleados' || cat === 'alba') {
                 tags.push('EMPLEADOS');
+            } else if (cat === 'taxi' || cat === 'taxis') {
+                tags.push('TAXIS');
             }
         }
         return [...new Set(tags)];
     }
 
     function setChatTags(phone, tagsArray) {
-        const cleanPhone = (phone || '').replace(/\D/g, '');
+        const cleanPhone = getCleanPhoneKey(phone);
         if (!cleanPhone) return;
         const map = { ...getChatTagsMap() };
         map[cleanPhone] = Array.isArray(tagsArray) ? tagsArray : [];
@@ -3870,8 +3888,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardsHtml = [];
 
         filtered.forEach(c => {
-            const cleanPhone = (c.telefono || '').replace(/\D/g, '');
-            const clientDisplayName = getClientDisplayName(c.nombreCliente, cleanPhone);
+            const cleanPhone = getCleanPhoneKey(c.telefono);
+            const isGroup = cleanPhone === 'group_taxi_casa_julian' || c.isGroup;
+            const clientDisplayName = isGroup ? 'Taxi Casa Julián' : getClientDisplayName(c.nombreCliente, cleanPhone);
             const smartTime = formatSmartDateTime(c.ultimoMensajeFecha);
             const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
             const status = getConversationStatus(c);
