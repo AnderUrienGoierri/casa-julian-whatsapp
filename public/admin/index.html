@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V410-TAGS-NAMES-AND-PENCIL-CLEAN">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V411-SINGLE-ROW-FILTERS-AND-CLEAN-ICONS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -308,13 +308,12 @@
                             <div class="whatsapp-business-header-container">
                                 <!-- Cabecera con Botón de Búsqueda 🔍, Botón Etiquetas 🏷️ y Total de Conversaciones -->
                                 <div class="wa-header-top-row">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
                                         <button type="button" id="btn-toggle-inbox-search" class="wa-search-toggle-btn" title="Buscar chat">
-                                            <span class="wa-search-btn-icon">🔍</span>
+                                            🔍
                                         </button>
                                         <button type="button" id="btn-manage-inbox-tags" class="wa-search-toggle-btn wa-manage-tags-btn" title="Gestionar etiquetas">
-                                            <span style="font-size: 0.95rem;">🏷️</span>
-                                            <span class="wa-tags-btn-label">Etiquetas</span>
+                                            🏷️
                                         </button>
                                     </div>
                                     <span id="inbox-total-summary" class="wa-screen-subtitle">0 conversaciones</span>
@@ -327,26 +326,20 @@
                                     <button type="button" id="btn-clear-inbox-search" class="wa-search-clear-btn" title="Cerrar búsqueda" style="display: none;">✕</button>
                                 </div>
 
-                                <!-- Píldoras Horizontales de Filtro estilo WhatsApp (2 Filas) -->
+                                <!-- Píldoras Horizontales de Filtro estilo WhatsApp (1 Fila Unificada) -->
                                 <div class="wa-filter-rows-container">
-                                    <!-- Fila 1: Contactos y Estado -->
                                     <div class="wa-filter-pills-row">
                                         <button class="filter-chip wa-pill active" data-inbox-status="all" data-inbox-cat="all" data-inbox-topic="all">Todos</button>
                                         <button class="filter-chip wa-pill" data-inbox-status="pendiente">No leídos <span id="count-status-pend">0</span></button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="menu_tradicion">OT (<span id="count-topic-menu">0</span>)</button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="modificacion">MODIF (<span id="count-topic-mod">0</span>)</button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="cancelacion">CANCEL (<span id="count-topic-cancel">0</span>)</button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="faq">FAQs (<span id="count-topic-faq">0</span>)</button>
+                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="otras_cuestiones">OTRAS (<span id="count-topic-otras">0</span>)</button>
                                         <button class="filter-chip wa-pill" data-inbox-cat="proveedor">Proveedores (<span id="count-cat-prov">0</span>)</button>
                                         <button class="filter-chip wa-pill" data-inbox-cat="hoteles">Hoteles (<span id="count-cat-hoteles">0</span>)</button>
                                         <button class="filter-chip wa-pill" data-inbox-cat="empleado">Personal (<span id="count-cat-empleados">0</span>)</button>
                                         <button class="filter-chip wa-pill" data-inbox-cat="cliente">Clientes (<span id="count-cat-cli">0</span>)</button>
-                                        <button class="filter-chip wa-pill" data-inbox-cat="otro">Otros (<span id="count-cat-otros">0</span>)</button>
-                                    </div>
-
-                                    <!-- Fila 2: Tipos de Solicitud y Temática -->
-                                    <div class="wa-filter-pills-row wa-filter-row-secondary">
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="menu_tradicion">OT (<span id="count-topic-menu">0</span>)</button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="modificacion">MODIF (<span id="count-topic-mod">0</span>)</button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="cancelacion">CANCEL (<span id="count-topic-cancel">0</span>)</button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="otras_cuestiones">OTRAS (<span id="count-topic-otras">0</span>)</button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="faq">FAQs (<span id="count-topic-faq">0</span>)</button>
                                     </div>
                                 </div>
                             </div>
@@ -1050,6 +1043,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260828-V410-TAGS-NAMES-AND-PENCIL-CLEAN"></script>
+    <script src="/admin/admin.js?v=20260828-V411-SINGLE-ROW-FILTERS-AND-CLEAN-ICONS"></script>
 </body>
 </html>

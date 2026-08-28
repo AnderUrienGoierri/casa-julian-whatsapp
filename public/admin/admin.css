@@ -1547,25 +1547,34 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .wa-search-toggle-btn {
-    background: #202c33;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
     color: #e9edef;
-    font-size: 1.05rem;
-    padding: 6px 12px;
-    border-radius: 8px;
+    font-size: 1.22rem;
+    padding: 4px 6px;
+    border-radius: 6px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    opacity: 0.85;
+    transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
 }
 
-.wa-search-toggle-btn:hover,
+.wa-search-toggle-btn:hover {
+    opacity: 1;
+    transform: scale(1.12);
+    background: rgba(255, 255, 255, 0.06);
+    border: none;
+    box-shadow: none;
+}
+
 .wa-search-toggle-btn.active {
-    background: #00a884;
-    color: #ffffff;
-    border-color: #00a884;
-    box-shadow: 0 2px 8px rgba(0, 168, 132, 0.35);
+    opacity: 1;
+    background: rgba(0, 168, 132, 0.2);
+    border-radius: 6px;
 }
 
 .wa-search-btn-icon {
