@@ -636,9 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Paginación de contactos (50 contactos por página)
-    const CONTACTS_PER_PAGE = 50;
-    let currentContactsPage = 1;
+    // Set para selección múltiple de contactos
     let selectedSilencedPhones = new Set();
 
     function getCombinedContactsList() {
