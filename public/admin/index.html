@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V418-NO-LANG-DROPDOWN">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V419-HEADER-SEARCH-TAGS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -222,6 +222,15 @@
                     <img src="/admin/casa_julian_logo_CJ.jpeg" alt="Casa Julián Tolosa" class="header-logo-img">
                 </div>
                 <span class="status-pill online"><span class="dot"></span> Bot Activo 24/7</span>
+                <!-- Acciones de Buzón en Header (Lupa y Etiquetas) -->
+                <div id="header-inbox-actions" class="header-inbox-actions" style="display: inline-flex; align-items: center; gap: 4px; margin-left: 8px;">
+                    <button type="button" id="header-btn-toggle-inbox-search" class="header-action-icon-btn" title="Buscar conversación" style="background: none !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.15rem; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;">
+                        🔎
+                    </button>
+                    <button type="button" id="header-btn-manage-inbox-tags" class="header-action-icon-btn" title="Gestionar etiquetas" style="background: none !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.15rem; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;">
+                        🏷️
+                    </button>
+                </div>
             </div>
 
             <!-- Título Centrado de la Pestaña Activa -->
@@ -291,19 +300,6 @@
                         <div class="wa-left-pane" id="wa-left-pane">
                             <!-- Cabecera y Barra de Filtros Nativa WhatsApp Business -->
                             <div class="whatsapp-business-header-container">
-                                <!-- Cabecera con Botón de Búsqueda 🔍, Botón Etiquetas 🏷️ y Total de Conversaciones -->
-                                <div class="wa-header-top-row">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        <button type="button" id="btn-toggle-inbox-search" class="wa-search-toggle-btn" title="Buscar chat" style="background: none !important; background-color: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.22rem; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center;">
-                                            🔍
-                                        </button>
-                                        <button type="button" id="btn-manage-inbox-tags" class="wa-search-toggle-btn wa-manage-tags-btn" title="Gestionar etiquetas" style="background: none !important; background-color: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.22rem; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center;">
-                                            🏷️
-                                        </button>
-                                    </div>
-                                    <span id="inbox-total-summary" class="wa-screen-subtitle">0 conversaciones</span>
-                                </div>
-
                                 <!-- Buscador Desplegable WhatsApp -->
                                 <div class="wa-search-container" id="wa-search-container" style="display: none;">
                                     <span class="wa-search-icon">🔍</span>
@@ -1084,6 +1080,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260828-V418-NO-LANG-DROPDOWN"></script>
+    <script src="/admin/admin.js?v=20260828-V419-HEADER-SEARCH-TAGS"></script>
 </body>
 </html>

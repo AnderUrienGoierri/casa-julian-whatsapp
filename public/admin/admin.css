@@ -279,6 +279,39 @@ button {
     background: var(--accent-green);
 }
 
+.header-inbox-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+}
+
+.header-action-icon-btn {
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    font-size: 1.15rem !important;
+    cursor: pointer !important;
+    padding: 3px 5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    opacity: 0.9;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.header-action-icon-btn:hover {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+.header-action-icon-btn.active {
+    transform: scale(1.2);
+    opacity: 1;
+}
+
 /* TÍTULO CENTRADO MATEMÁTICAMENTE EN EL HEADER */
 .header-center {
     position: absolute;

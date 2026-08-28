@@ -199,6 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
             mainLayout.classList.toggle('is-inbox-active', tabId === 'tab-inbox');
         }
 
+        const headerInboxActions = document.getElementById('header-inbox-actions');
+        if (headerInboxActions) {
+            headerInboxActions.style.display = (tabId === 'tab-inbox') ? 'inline-flex' : 'none';
+        }
+
         const iconEl = document.getElementById('header-active-tab-icon');
         const nameEl = document.getElementById('header-active-tab-name');
         const badgeEl = document.getElementById('header-active-tab-badge');
@@ -3968,6 +3973,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const headerBtnManageTags = document.getElementById('header-btn-manage-inbox-tags');
+    if (headerBtnManageTags) headerBtnManageTags.addEventListener('click', openInboxTagsManager);
     if (btnManageInboxTags) btnManageInboxTags.addEventListener('click', openInboxTagsManager);
     if (closeInboxTagsManagerBtn) closeInboxTagsManagerBtn.addEventListener('click', closeInboxTagsManager);
     if (btnCreateTagFromManager) btnCreateTagFromManager.addEventListener('click', () => {
@@ -4189,38 +4196,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ── Buscador de Buzón estilo WhatsApp Business (Toggle con botón Lupa 🔍) ───
+    // ── Buscador de Buzón estilo WhatsApp Business (Toggle con botón Lupa 🔎) ───
     const searchContainer = document.getElementById('wa-search-container');
     const toggleSearchBtn = document.getElementById('btn-toggle-inbox-search');
+    const headerToggleSearchBtn = document.getElementById('header-btn-toggle-inbox-search');
     const clearSearchBtn = document.getElementById('btn-clear-inbox-search');
 
-    if (toggleSearchBtn && searchContainer && searchInboxInput) {
-        toggleSearchBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isVisible = (searchContainer.style.display !== 'none');
-            if (isVisible) {
-                if (!searchInboxInput.value.trim()) {
-                    searchContainer.style.display = 'none';
-                    toggleSearchBtn.classList.remove('active');
-                } else {
-                    searchInboxInput.focus();
-                }
+    function toggleInboxSearch(e) {
+        if (e) e.stopPropagation();
+        if (!searchContainer || !searchInboxInput) return;
+        const isVisible = (searchContainer.style.display !== 'none');
+        if (isVisible) {
+            if (!searchInboxInput.value.trim()) {
+                searchContainer.style.display = 'none';
+                if (toggleSearchBtn) toggleSearchBtn.classList.remove('active');
+                if (headerToggleSearchBtn) headerToggleSearchBtn.classList.remove('active');
             } else {
-                searchContainer.style.display = 'flex';
-                toggleSearchBtn.classList.add('active');
                 searchInboxInput.focus();
             }
-        });
+        } else {
+            searchContainer.style.display = 'flex';
+            if (toggleSearchBtn) toggleSearchBtn.classList.add('active');
+            if (headerToggleSearchBtn) headerToggleSearchBtn.classList.add('active');
+            searchInboxInput.focus();
+        }
     }
 
-    if (clearSearchBtn && searchInboxInput && searchContainer && toggleSearchBtn) {
+    if (headerToggleSearchBtn) headerToggleSearchBtn.addEventListener('click', toggleInboxSearch);
+    if (toggleSearchBtn) toggleSearchBtn.addEventListener('click', toggleInboxSearch);
+
+    if (clearSearchBtn && searchInboxInput && searchContainer) {
         clearSearchBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             searchInboxInput.value = '';
             currentInboxSearch = '';
             clearSearchBtn.style.display = 'none';
             searchContainer.style.display = 'none';
-            toggleSearchBtn.classList.remove('active');
+            if (toggleSearchBtn) toggleSearchBtn.classList.remove('active');
+            if (headerToggleSearchBtn) headerToggleSearchBtn.classList.remove('active');
             renderInboxCards();
         });
     }
@@ -4237,10 +4250,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (clearSearchBtn) {
                 clearSearchBtn.style.display = currentInboxSearch.length > 0 ? 'inline-flex' : 'none';
             }
-            if (toggleSearchBtn) {
-                if (currentInboxSearch.length > 0) {
-                    toggleSearchBtn.classList.add('active');
-                }
+            if (currentInboxSearch.length > 0) {
+                if (toggleSearchBtn) toggleSearchBtn.classList.add('active');
+                if (headerToggleSearchBtn) headerToggleSearchBtn.classList.add('active');
             }
             renderInboxCards();
         };
