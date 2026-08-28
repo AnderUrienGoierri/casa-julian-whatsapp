@@ -636,7 +636,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Set para selección múltiple de contactos
+    // Paginación de contactos (50 contactos por página)
+    const CONTACTS_PER_PAGE = 50;
+    let currentContactsPage = 1;
     let selectedSilencedPhones = new Set();
 
     function getCombinedContactsList() {
@@ -863,6 +865,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages) {
                     currentContactsPage = targetPage;
                     renderSilencedNumbersTable();
+                    const tableContainer = document.querySelector('#tab-silenced .table-container');
+                    if (tableContainer) {
+                        tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
                 }
             });
         });
