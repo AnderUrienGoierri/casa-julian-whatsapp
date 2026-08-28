@@ -986,6 +986,89 @@ router.post('/silenced-numbers/bulk-tag', requireAdminAuth, async (req, res) => 
     }
 });
 
+// 18g. PERSISTENCIA COMPARTIDA DEL BUZÓN (ETIQUETAS, CHATS FIJADOS, ESTADOS DE LECTURA Y ORDEN)
+router.get('/inbox-settings', requireAdminAuth, async (req, res) => {
+    try {
+        const { getInboxSettings } = require('./database');
+        const settings = await getInboxSettings();
+        return res.json({ success: true, settings });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/inbox-settings', requireAdminAuth, async (req, res) => {
+    try {
+        const { saveInboxSettings } = require('./database');
+        const settings = await saveInboxSettings(req.body || {});
+        return res.json({ success: true, settings });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/chat-pin', requireAdminAuth, async (req, res) => {
+    try {
+        const { setChatPin } = require('./database');
+        const { phone, isPinned } = req.body || {};
+        const result = await setChatPin(phone, isPinned);
+        return res.json({ success: true, isPinned: result });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/chat-status', requireAdminAuth, async (req, res) => {
+    try {
+        const { setChatStatus } = require('./database');
+        const { phone, status } = req.body || {};
+        const result = await setChatStatus(phone, status);
+        return res.json({ success: true, status: result });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/chat-tags', requireAdminAuth, async (req, res) => {
+    try {
+        const { setChatTags } = require('./database');
+        const { phone, tags } = req.body || {};
+        const result = await setChatTags(phone, tags);
+        return res.json({ success: true, tags: result });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/custom-tags', requireAdminAuth, async (req, res) => {
+    try {
+        const { saveCustomTag, deleteCustomTag } = require('./database');
+        const { tag, deleteTagId } = req.body || {};
+        if (deleteTagId) {
+            await deleteCustomTag(deleteTagId);
+            return res.json({ success: true, deleted: deleteTagId });
+        }
+        if (tag) {
+            const saved = await saveCustomTag(tag);
+            return res.json({ success: true, tag: saved });
+        }
+        return res.status(400).json({ error: "Faltan parámetros de etiqueta." });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/tags-order', requireAdminAuth, async (req, res) => {
+    try {
+        const { setTagsOrder } = require('./database');
+        const { order } = req.body || {};
+        const result = await setTagsOrder(order || []);
+        return res.json({ success: true, order: result });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 // 19. Obtener lista completa de tarjetas regalo con estados y fecha de caducidad a 6 meses
 router.get('/tarjetas-regalo', requireAdminAuth, async (req, res) => {
     try {

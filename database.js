@@ -191,5 +191,14 @@ module.exports = {
     bulkToggleSilencedNumbers: silencedNumbers.bulkToggleSilencedNumbers,
     bulkDeleteSilencedNumbers: silencedNumbers.bulkDeleteSilencedNumbers,
     bulkUpdateCategory: silencedNumbers.bulkUpdateCategory,
-    seedSilencedNumbersFromTxt: silencedNumbers.seedSilencedNumbersFromTxt
+    seedSilencedNumbersFromTxt: silencedNumbers.seedSilencedNumbersFromTxt,
+    inboxSettings: require('./db/inboxSettings'),
+    getInboxSettings: require('./db/inboxSettings').getInboxSettings,
+    saveInboxSettings: require('./db/inboxSettings').saveInboxSettings,
+    setChatPin: require('./db/inboxSettings').setChatPin,
+    setChatStatus: require('./db/inboxSettings').setChatStatus,
+    setChatTags: require('./db/inboxSettings').setChatTags,
+    setTagsOrder: require('./db/inboxSettings').setTagsOrder,
+    saveCustomTag: require('./db/inboxSettings').saveCustomTag,
+    deleteCustomTag: require('./db/inboxSettings').deleteCustomTag
 };

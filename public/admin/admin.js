@@ -454,7 +454,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const DEFAULT_SILENCED_TAGS = DEFAULT_SYSTEM_TAGS;
 
+    // Estado compartido en servidor PostgreSQL
+    let serverInboxSettings = {
+        customTags: [],
+        tagsOrder: [],
+        deletedTags: [],
+        chatTags: {},
+        pinnedChats: {
+            "34645747754": true,
+            "34623476521": true,
+            "41795958760": true
+        },
+        manualChatStatus: {}
+    };
+
+    async function fetchInboxSettings() {
+        const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+        if (!currentToken) return;
+        try {
+            const res = await fetch('/api/admin/inbox-settings', {
+                headers: {
+                    'x-admin-token': currentToken,
+                    'Authorization': `Bearer ${currentToken}`
+                }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.settings) {
+                    serverInboxSettings = data.settings;
+                    if (Array.isArray(serverInboxSettings.customTags)) {
+                        localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(serverInboxSettings.customTags));
+                    }
+                    if (Array.isArray(serverInboxSettings.tagsOrder)) {
+                        localStorage.setItem('casa_julian_tags_custom_order', JSON.stringify(serverInboxSettings.tagsOrder));
+                    }
+                    if (Array.isArray(serverInboxSettings.deletedTags)) {
+                        localStorage.setItem('casa_julian_deleted_tags', JSON.stringify(serverInboxSettings.deletedTags));
+                    }
+                    if (serverInboxSettings.chatTags && typeof serverInboxSettings.chatTags === 'object') {
+                        localStorage.setItem('casa_julian_chat_tags_map', JSON.stringify(serverInboxSettings.chatTags));
+                    }
+                    if (serverInboxSettings.pinnedChats && typeof serverInboxSettings.pinnedChats === 'object') {
+                        localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(serverInboxSettings.pinnedChats));
+                    }
+                    if (serverInboxSettings.manualChatStatus && typeof serverInboxSettings.manualChatStatus === 'object') {
+                        localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(serverInboxSettings.manualChatStatus));
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn("⚠️ [Inbox Settings] Error sincronizando con el servidor:", err.message);
+        }
+    }
+
     function getCustomTagsOrder() {
+        if (Array.isArray(serverInboxSettings.tagsOrder) && serverInboxSettings.tagsOrder.length > 0) {
+            return serverInboxSettings.tagsOrder;
+        }
         try {
             return JSON.parse(localStorage.getItem('casa_julian_tags_custom_order') || '[]');
         } catch {
@@ -463,10 +519,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setCustomTagsOrder(orderArray) {
+        serverInboxSettings.tagsOrder = orderArray;
         localStorage.setItem('casa_julian_tags_custom_order', JSON.stringify(orderArray));
+        // Persistir en servidor PostgreSQL
+        const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+        fetch('/api/admin/tags-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': currentToken,
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ order: orderArray })
+        }).catch(e => console.warn('Error guardando tagsOrder en servidor:', e));
     }
 
     function getDeletedTags() {
+        if (Array.isArray(serverInboxSettings.deletedTags)) {
+            return serverInboxSettings.deletedTags;
+        }
         try {
             return JSON.parse(localStorage.getItem('casa_julian_deleted_tags') || '[]');
         } catch {
@@ -478,13 +549,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const deleted = getDeletedTags();
         if (!deleted.includes(tagId)) {
             deleted.push(tagId);
-            localStorage.setItem('casa_julian_deleted_tags', JSON.stringify(deleted));
         }
-        const custom = getCustomSilencedTags().filter(t => t.id !== tagId);
-        localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(custom));
+        serverInboxSettings.deletedTags = deleted;
+        serverInboxSettings.customTags = (serverInboxSettings.customTags || []).filter(t => t.id !== tagId);
+        localStorage.setItem('casa_julian_deleted_tags', JSON.stringify(deleted));
+        localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(serverInboxSettings.customTags));
+
+        // Persistir en servidor PostgreSQL
+        const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+        fetch('/api/admin/custom-tags', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': currentToken,
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ deleteTagId: tagId })
+        }).catch(e => console.warn('Error eliminando etiqueta en servidor:', e));
     }
 
     function getCustomSilencedTags() {
+        if (Array.isArray(serverInboxSettings.customTags) && serverInboxSettings.customTags.length > 0) {
+            return serverInboxSettings.customTags;
+        }
         try {
             const raw = localStorage.getItem('casa_julian_custom_silenced_tags');
             return raw ? JSON.parse(raw) : [];
@@ -501,6 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Si estaba en deleted, quitarlo para restaurarlo
         const deleted = getDeletedTags().filter(d => d !== id);
+        serverInboxSettings.deletedTags = deleted;
         localStorage.setItem('casa_julian_deleted_tags', JSON.stringify(deleted));
 
         const colors = [
@@ -538,7 +626,21 @@ document.addEventListener('DOMContentLoaded', () => {
             custom.push(tagObj);
         }
 
+        serverInboxSettings.customTags = custom;
         localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(custom));
+
+        // Persistir en servidor PostgreSQL
+        const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+        fetch('/api/admin/custom-tags', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': currentToken,
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ tag: tagObj })
+        }).catch(e => console.warn('Error guardando etiqueta en servidor:', e));
+
         return tagObj;
     }
 
@@ -1541,13 +1643,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const inboxContent = document.getElementById('tab-inbox');
             if (inboxContent) inboxContent.classList.add('active');
-            if (typeof updateHeaderActiveTab === 'function') updateHeaderActiveTab('tab-inbox');
-            // Cargar solicitudes, chats y números silenciados y empezar polling en tiempo real cada 3.5s
+            // Cargar ajustes compartidos, solicitudes, chats y contactos y empezar polling en tiempo real cada 3.5s
+            await fetchInboxSettings();
             await fetchSolicitudes();
             await fetchWhatsAppChats();
             await fetchSilencedNumbers();
             if (!inboxPollingInterval) {
                 inboxPollingInterval = setInterval(() => {
+                    fetchInboxSettings();
                     fetchSolicitudes();
                     fetchWhatsAppChats();
                     fetchSilencedNumbers();
@@ -1569,14 +1672,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (flowTabBtn) { flowTabBtn.classList.add('active'); }
         if (typeof updateHeaderActiveTab === 'function') updateHeaderActiveTab('tab-flow');
 
-        // Iniciar polling continuo en tiempo real (cada 3.5s) tanto para solicitudes como para chats
+        // Iniciar sincronización compartida y polling continuo en tiempo real (cada 3.5s)
+        await fetchInboxSettings();
         await fetchSolicitudes();
         await fetchWhatsAppChats();
         await fetchSilencedNumbers();
         if (!inboxPollingInterval) {
             inboxPollingInterval = setInterval(() => {
+                fetchInboxSettings();
                 fetchSolicitudes();
                 fetchWhatsAppChats();
+                fetchSilencedNumbers();
             }, 3500);
         }
 
@@ -3185,11 +3291,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeCardDropdownPhone = null;
 
     function getPinnedChatsMap() {
+        if (serverInboxSettings.pinnedChats && typeof serverInboxSettings.pinnedChats === 'object') {
+            return serverInboxSettings.pinnedChats;
+        }
         try {
             const saved = localStorage.getItem('casa_julian_pinned_chats');
             let map = saved ? JSON.parse(saved) : null;
             if (!map || typeof map !== 'object' || Object.keys(map).length === 0) {
-                // Valores por defecto alineados con los chats destacados de WhatsApp Business
                 map = {
                     "34645747754": true, // Xabi Gorrotxategi
                     "34623476521": true, // Ricardo Entretiempo Studio
@@ -3210,16 +3318,31 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleChatPinned(phone) {
         const clean = (phone || '').replace(/\D/g, '');
         if (!clean) return false;
-        const map = getPinnedChatsMap();
+        const map = { ...getPinnedChatsMap() };
+        let isNowPinned = false;
         if (map[clean]) {
             delete map[clean];
-            localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(map));
-            return false;
+            isNowPinned = false;
         } else {
             map[clean] = true;
-            localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(map));
-            return true;
+            isNowPinned = true;
         }
+        serverInboxSettings.pinnedChats = map;
+        localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(map));
+
+        // Persistir en servidor PostgreSQL
+        const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+        fetch('/api/admin/chat-pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': currentToken,
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ phone: clean, isPinned: isNowPinned })
+        }).catch(e => console.warn('Error guardando pin en servidor:', e));
+
+        return isNowPinned;
     }
 
     function isChatPinned(phone) {
@@ -3230,8 +3353,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Estado Unificado del Buzón de Recepción ──────────────────────────────
 
-    // Mapa de estados manuales (persistido en localStorage)
+    // Mapa de estados manuales (persistido en PostgreSQL y localStorage)
     function getManualChatStatusMap() {
+        if (serverInboxSettings.manualChatStatus && typeof serverInboxSettings.manualChatStatus === 'object') {
+            return serverInboxSettings.manualChatStatus;
+        }
         try {
             return JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
         } catch (e) {
@@ -3240,12 +3366,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setManualChatStatus(phone, status) {
-        const map = getManualChatStatusMap();
         const clean = (phone || '').replace(/\D/g, '');
-        if (clean) {
-            map[clean] = status; // 'pendiente' o 'leido'
-            localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(map));
-        }
+        if (!clean) return;
+        const map = { ...getManualChatStatusMap() };
+        map[clean] = status; // 'pendiente' o 'leido'
+        serverInboxSettings.manualChatStatus = map;
+        localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(map));
+
+        // Persistir en servidor PostgreSQL
+        const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+        fetch('/api/admin/chat-status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': currentToken,
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ phone: clean, status })
+        }).catch(e => console.warn('Error guardando chatStatus en servidor:', e));
     }
 
     function getConversationStatus(c) {
@@ -3475,6 +3613,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeInboxTopicFilters = new Set();
 
     function getChatTagsMap() {
+        if (serverInboxSettings.chatTags && typeof serverInboxSettings.chatTags === 'object') {
+            return serverInboxSettings.chatTags;
+        }
         try {
             return JSON.parse(localStorage.getItem(CHAT_TAGS_STORAGE_KEY) || '{}');
         } catch {
@@ -3514,9 +3655,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function setChatTags(phone, tagsArray) {
         const cleanPhone = (phone || '').replace(/\D/g, '');
         if (!cleanPhone) return;
-        const map = getChatTagsMap();
-        map[cleanPhone] = tagsArray;
+        const map = { ...getChatTagsMap() };
+        map[cleanPhone] = Array.isArray(tagsArray) ? tagsArray : [];
+        serverInboxSettings.chatTags = map;
         localStorage.setItem(CHAT_TAGS_STORAGE_KEY, JSON.stringify(map));
+
+        // Persistir en servidor PostgreSQL
+        const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+        fetch('/api/admin/chat-tags', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': currentToken,
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ phone: cleanPhone, tags: tagsArray })
+        }).catch(e => console.warn('Error guardando chatTags en servidor:', e));
     }
 
     function updateHeaderAndMenuBadges() {
