@@ -1,4 +1,5 @@
 # 📖 GUÍA MAESTRA: Despliegue Integral en Synology NAS (Base de Datos + Web + Bot)
+
 ## Asador Casa Julián Tolosa — 100% Autónomo y Sin Dependencias Externas
 
 ---
@@ -8,11 +9,12 @@
 Alojar de forma simultánea e independiente la **Base de Datos PostgreSQL** y el **Servidor Web / Panel de Administración / Bot de WhatsApp** directamente en el servidor **Synology DiskStation DS223j** instalado en el restaurante.
 
 ### 🌟 Principales Beneficios:
+
 - 🚫 **0€ de costes mensuales:** Cero pagos y cero suscripciones a plataformas cloud.
 - ♾️ **Sin límites de cuota de datos:** Más de **6.8 TB libres** en discos duros Seagate IronWolf de uso empresarial.
 - ⚡ **Rendimiento 24/7 instantáneo:** Sin "modo reposo" ni esperas de 50 segundos de arranque en frío.
 - 🔒 **Soberanía y Privacidad RGPD:** Todos los chats, clientes y reservas quedan almacenados físicamente en el restaurante.
-- 📶 **Doble acceso simultáneo:** 
+- 📶 **Doble acceso simultáneo:**
   - **Local (Restaurante):** `http://192.168.110.57:3000/admin/` (Ultra rápido y sin consumir internet).
   - **Remoto (Exterior/Móvil):** `https://casajuliantolosa.synology.me:3443/admin/` (Conexión segura SSL).
 
@@ -20,14 +22,14 @@ Alojar de forma simultánea e independiente la **Base de Datos PostgreSQL** y el
 
 ## 📊 Ficha Técnica del Entorno Casa Julián
 
-| Parámetro | Valor Configurado |
-| :--- | :--- |
-| **Servidor NAS** | Synology DiskStation **DS223j** |
-| **Sistema Operativo** | DSM 7.4.1 / 7.2 |
-| **IP Fija Local Synology** | `192.168.110.57` |
-| **Router del Restaurante** | `192.168.110.1` |
-| **Dominio DDNS Activo** | **`casajuliantolosa.synology.me`** |
-| **Herramienta de Despliegue** | **Container Manager (Docker)** |
+| Parámetro                          | Valor Configurado                          |
+| :---------------------------------- | :----------------------------------------- |
+| **Servidor NAS**              | Synology DiskStation**DS223j**       |
+| **Sistema Operativo**         | DSM 7.4.1 / 7.2                            |
+| **IP Fija Local Synology**    | `192.168.110.57`                         |
+| **Router del Restaurante**    | `192.168.110.1`                          |
+| **Dominio DDNS Activo**       | **`casajuliantolosa.synology.me`** |
+| **Herramienta de Despliegue** | **Container Manager (Docker)**       |
 
 ---
 
@@ -59,14 +61,15 @@ Alojar de forma simultánea e independiente la **Base de Datos PostgreSQL** y el
 
 ---
 
-### FASE 1: Configurar la Base de Datos (PostgreSQL)
+### FASE 1: Configurar la Base de Datos (PostgreSQL). [OK]
 
 1. **Crear la carpeta en File Station:**
+
    - Abre **File Station** en DSM.
    - Entra en la carpeta compartida **`docker`**.
    - Crea una nueva carpeta llamada: `postgres_casa_julian` (Ruta: `/volume1/docker/postgres_casa_julian`).
-
 2. **Crear el contenedor en Container Manager:**
+
    - Abre **Container Manager > Imagen**.
    - Selecciona **`postgres:latest`** (o `postgres:16-alpine`) y pulsa **Ejecutar**.
    - **Configuración General:**
@@ -108,15 +111,9 @@ Alojar de forma simultánea e independiente la **Base de Datos PostgreSQL** y el
 | :--- | :--- |
 | **`PORT`** | `3000` |
 | **`DATABASE_URL`** | `postgresql://casajulian_admin:CasaJulianTolosa2026!@192.168.110.57:5433/casa_julian_db?sslmode=disable` |
-| **`PHONE_NUMBER_ID`** | *(Tu ID de teléfono de WhatsApp en Meta)* |
-| **`WHATSAPP_TOKEN`** | *(Tu Token de acceso permanente de Meta)* |
-| **`WEBHOOK_VERIFY_TOKEN`** | `casa_julian_secure_webhook_token_2026` |
-| **`BREVO_API_KEY`** | *(Clave API de Brevo para envío de emails)* |
-| **`SMTP_HOST`** | `smtp-relay.brevo.com` |
-| **`SMTP_PORT`** | `587` |
-| **`SMTP_USER`** | *(Tu usuario SMTP)* |
-| **`SMTP_PASS`** | *(Tu contraseña SMTP)* |
-| **`STAFF_EMAIL`** | `info@casajulianmg.com` |
+| **`PHONE_NUMBER_ID`** | `1232422906619224` |
+| **`WHATSAPP_TOKEN`** | `EAAPS3Ie3sf4BSAeCbINNQfDUbGF8gl5PGAk2KWiwknBzyCQlYdlHaolBQZBDiSnxTXaP2DItHs7OpQj8w1Ib6MvDQVUlKLVVMtDQdYnYoipgjkLiu6BIeRlFmJQHZAADXpBcDEBslnzeJwNPmpVlMGZAVMGDebTVs5eTJeoBvvPLglTnnPusvWDJUx5vwZDZD` |
+| **`WEBHOOK_VERIFY_TOKEN`** | `casajulian123` |
 
 5. Pulsa **Siguiente** y luego **Finalizado**.
 
@@ -145,6 +142,7 @@ Para poder entrar al panel de administración desde cualquier móvil o lugar fue
 
 1. En Synology DSM, ve a **Panel de Control > Portal de inicio de sesión > Avanzado**.
 2. Pulsa en el botón **Proxy Inverso** y luego en **Crear**:
+
    - **Nombre de la descripción:** `Casa Julian Panel Web`
    - **Origen:**
      - Protocolo: `HTTPS`
@@ -156,8 +154,8 @@ Para poder entrar al panel de administración desde cualquier móvil o lugar fue
      - Nombre de host: `localhost`
      - Puerto: `3000`
 3. Pulsa **Guardar**.
-
 4. **Vincular el Certificado SSL:**
+
    - Ve a **Panel de Control > Seguridad > Certificado**.
    - Haz clic en **Configuración** (arriba).
    - En la línea `Casa Julian Panel Web`, asegúrate de que el certificado seleccionado sea el de **`synology.me` (Let's Encrypt)**.
@@ -169,10 +167,10 @@ Para poder entrar al panel de administración desde cualquier móvil o lugar fue
 
 Accede a la página del router del restaurante (`http://192.168.110.1`) y en **Port Forwarding / NAT** añade las siguientes reglas:
 
-| Servicio | Puerto Externo (WAN) | IP Destino Synology | Puerto Interno (LAN) | Protocolo |
-| :--- | :--- | :--- | :--- | :--- |
-| **Panel Web & Webhook WhatsApp** | `3443` | `192.168.110.57` | `3443` | TCP |
-| **Base de Datos PostgreSQL (Opcional)** | `5433` | `192.168.110.57` | `5433` | TCP |
+| Servicio                                      | Puerto Externo (WAN) | IP Destino Synology | Puerto Interno (LAN) | Protocolo |
+| :-------------------------------------------- | :------------------- | :------------------ | :------------------- | :-------- |
+| **Panel Web & Webhook WhatsApp**        | `3443`             | `192.168.110.57`  | `3443`             | TCP       |
+| **Base de Datos PostgreSQL (Opcional)** | `5433`             | `192.168.110.57`  | `5433`             | TCP       |
 
 ---
 
@@ -211,9 +209,9 @@ Accede a la página del router del restaurante (`http://192.168.110.1`) y en **P
 
 ## ✅ Resumen del Estado del Sistema
 
-| Componente | Antes | Ahora (Synology Autónomo) |
-| :--- | :--- | :--- |
-| **Base de Datos** | Neon Cloud (Límite 5 GB, bloqueos de cuota) | **Synology DS223j (6.8 TB libres, sin cuotas)** |
-| **Servidor Web & Bot** | Render Free (Se duerme tras 15 min de inactividad) | **Synology DS223j (Activo 24/7 instantáneo)** |
-| **Coste Mensual** | Riesgo de cobro por consumo | **0 € para siempre** |
-| **Privacidad de Datos** | Servidores en EE.UU./Nube | **Discos físicos en Casa Julián (Tolosa)** |
+| Componente                    | Antes                                              | Ahora (Synology Autónomo)                            |
+| :---------------------------- | :------------------------------------------------- | :---------------------------------------------------- |
+| **Base de Datos**       | Neon Cloud (Límite 5 GB, bloqueos de cuota)       | **Synology DS223j (6.8 TB libres, sin cuotas)** |
+| **Servidor Web & Bot**  | Render Free (Se duerme tras 15 min de inactividad) | **Synology DS223j (Activo 24/7 instantáneo)**  |
+| **Coste Mensual**       | Riesgo de cobro por consumo                        | **0 € para siempre**                           |
+| **Privacidad de Datos** | Servidores en EE.UU./Nube                          | **Discos físicos en Casa Julián (Tolosa)**    |

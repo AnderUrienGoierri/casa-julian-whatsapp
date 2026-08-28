@@ -6,17 +6,17 @@
 
 ## 📋 Ficha Técnica del Synology (Extraída de tu sistema)
 
-| Parámetro | Valor detectado en Casa Julián |
-| :--- | :--- |
-| **Modelo** | Synology DiskStation **DS223j** |
-| **Procesador / CPU** | Realtek RTD1619B (4 núcleos, 64-bit ARMv8) |
-| **Memoria RAM** | 1024 MB (1 GB) |
-| **Sistema Operativo** | DSM 7.4.1 / 7.2 |
-| **Almacenamiento Libre** | **~6.8 TB libres** (Volumen 1 en RAID/SHR) |
-| **IP Local en el Restaurante** | `192.168.110.57` |
-| **Puerta de Enlace / Router** | `192.168.110.1` |
-| **Dominio DDNS Synology** | **`casajuliantolosa.synology.me`** (Estado: Normal / Conectado) |
-| **Herramienta disponible** | **Container Manager (Docker)** ya instalado y operativo |
+| Parámetro                           | Valor detectado en Casa Julián                                         |
+| :----------------------------------- | :---------------------------------------------------------------------- |
+| **Modelo**                     | Synology DiskStation**DS223j**                                    |
+| **Procesador / CPU**           | Realtek RTD1619B (4 núcleos, 64-bit ARMv8)                             |
+| **Memoria RAM**                | 1024 MB (1 GB)                                                          |
+| **Sistema Operativo**          | DSM 7.4.1 / 7.2                                                         |
+| **Almacenamiento Libre**       | **~6.8 TB libres** (Volumen 1 en RAID/SHR)                        |
+| **IP Local en el Restaurante** | `192.168.110.57`                                                      |
+| **Puerta de Enlace / Router**  | `192.168.110.1`                                                       |
+| **Dominio DDNS Synology**      | **`casajuliantolosa.synology.me`** (Estado: Normal / Conectado) |
+| **Herramienta disponible**     | **Container Manager (Docker)** ya instalado y operativo           |
 
 ---
 
@@ -45,12 +45,14 @@
 6. Configura los siguientes parámetros en el asistente:
 
 #### Configuración General:
+
 - **Nombre del contenedor:** `casa-julian-postgres`
 - **Habilitar reinicio automático:** ✅ **Marcado** *(Si el Synology se reinicia por corte de luz, la base de datos arrancará sola)*.
 
 #### Configuración Avanzada:
+
 - **Configuración de puertos:**
-  - Puerto local: `5432`
+  - Puerto local: `5433`
   - Puerto de contenedor: `5432`
   - Tipo: `TCP`
 - **Configuración de volumen (Almacenamiento):**
@@ -60,10 +62,10 @@
 - **Variables de Entorno (Environment Variables):**
   Pulsa *Agregar* para añadir cada una de estas 3 variables:
 
-| Variable | Valor | Descripción |
-| :--- | :--- | :--- |
-| `POSTGRES_DB` | `casa_julian_db` | Nombre de la base de datos |
-| `POSTGRES_USER` | `casajulian_admin` | Usuario administrador de la BD |
+| Variable              | Valor                     | Descripción                             |
+| :-------------------- | :------------------------ | :--------------------------------------- |
+| `POSTGRES_DB`       | `casa_julian_db`        | Nombre de la base de datos               |
+| `POSTGRES_USER`     | `casajulian_admin`      | Usuario administrador de la BD           |
 | `POSTGRES_PASSWORD` | `CasaJulianTolosa2026!` | *(O la contraseña segura que elijas)* |
 
 7. Haz clic en **Siguiente** y luego en **Listo**. El contenedor se iniciará inmediatamente.
@@ -95,9 +97,11 @@ La nueva URL de conexión PostgreSQL para el proyecto es:
 ```env
 DATABASE_URL=postgresql://casajulian_admin:CasaJulianTolosa2026!@casajuliantolosa.synology.me:5432/casa_julian_db?sslmode=disable
 ```
+
 *(Si usaste un puerto externo diferente en el router, por ejemplo 54320, sustituye `:5432` por `:54320`)*.
 
 #### Dónde se aplica:
+
 1. **En el archivo `.env` local:** Cambiar el valor de `DATABASE_URL`.
 2. **En el panel de Render.com:**
    - Entra en tu servicio en [dashboard.render.com](https://dashboard.render.com/).
@@ -114,6 +118,7 @@ DATABASE_URL=postgresql://casajulian_admin:CasaJulianTolosa2026!@casajuliantolos
 ### PASO 5: Copias de Seguridad Automáticas (Hyper Backup)
 
 Tu Synology ya tiene instalado el paquete **Hyper Backup**:
+
 1. Abre **Hyper Backup** en DSM.
 2. Crea una nueva tarea de copia de seguridad local o a nube (Synology C2 / Google Drive / USB).
 3. Selecciona la carpeta compartida `/docker/postgres_casa_julian`.

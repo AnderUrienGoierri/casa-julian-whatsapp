@@ -43,9 +43,10 @@
 
 ---
 
-### PASO 1: Verificar la Base de Datos PostgreSQL
+### PASO 1: Verificar la Base de Datos PostgreSQL  [OK]
 
 Asegúrate de que el contenedor de base de datos **`casa-julian-postgres`** que configuramos esté encendido en **Container Manager**:
+
 - **Puerto local:** `5433` (o `5432`)
 - **Base de datos:** `casa_julian_db`
 - **Usuario:** `casajulian_admin`
@@ -61,6 +62,7 @@ Asegúrate de que el contenedor de base de datos **`casa-julian-postgres`** que 
 4. Configura los siguientes parámetros en el asistente:
 
 #### 1. Configuración General:
+
 - **Nombre del contenedor:** `casa-julian-web-bot`
 - **Habilitar reinicio automático:** ✅ **Marcado** *(para que arranque siempre solo ante cualquier reinicio)*.
 - Pulsa **Siguiente**.
@@ -68,26 +70,26 @@ Asegúrate de que el contenedor de base de datos **`casa-julian-postgres`** que 
 #### 2. Configuración Avanzada:
 
 - **Configuración de puertos:**
+
   - **Puerto local:** `3000`
   - **Puerto del contenedor:** `3000`
   - **Tipo:** `TCP`
-
 - **Variables de Entorno (Environment Variables):**
   Pulsa **`+ Agregar`** para añadir las variables que necesita el bot y la web:
 
-| Variable | Valor Recomendado / Descripción |
-| :--- | :--- |
-| **`PORT`** | `3000` |
-| **`DATABASE_URL`** | `postgresql://casajulian_admin:CasaJulianTolosa2026!@192.168.110.57:5433/casa_julian_db?sslmode=disable` |
-| **`PHONE_NUMBER_ID`** | *(El ID de teléfono de WhatsApp de Meta)* |
-| **`WHATSAPP_TOKEN`** | *(Tu Token de Meta WhatsApp Cloud API)* |
-| **`WEBHOOK_VERIFY_TOKEN`** | *(Tu token secreto de verificación de webhook)* |
-| **`BREVO_API_KEY`** | *(Tu clave de Brevo para envío de emails de confirmación)* |
-| **`SMTP_HOST`** | *(Host SMTP para emails)* |
-| **`SMTP_PORT`** | `587` |
-| **`SMTP_USER`** | *(Usuario de correo)* |
-| **`SMTP_PASS`** | *(Contraseña de correo)* |
-| **`STAFF_EMAIL`** | `info@casajulianmg.com` |
+| Variable                           | Valor Recomendado / Descripción                                                                           |
+| :--------------------------------- | :--------------------------------------------------------------------------------------------------------- |
+| **`PORT`**                 | `3000`                                                                                                   |
+| **`DATABASE_URL`**         | `postgresql://casajulian_admin:CasaJulianTolosa2026!@192.168.110.57:5433/casa_julian_db?sslmode=disable` |
+| **`PHONE_NUMBER_ID`**      | *(El ID de teléfono de WhatsApp de Meta)*                                                               |
+| **`WHATSAPP_TOKEN`**       | *(Tu Token de Meta WhatsApp Cloud API)*                                                                  |
+| **`WEBHOOK_VERIFY_TOKEN`** | *(Tu token secreto de verificación de webhook)*                                                         |
+| **`BREVO_API_KEY`**        | *(Tu clave de Brevo para envío de emails de confirmación)*                                             |
+| **`SMTP_HOST`**            | *(Host SMTP para emails)*                                                                                |
+| **`SMTP_PORT`**            | `587`                                                                                                    |
+| **`SMTP_USER`**            | *(Usuario de correo)*                                                                                    |
+| **`SMTP_PASS`**            | *(Contraseña de correo)*                                                                                |
+| **`STAFF_EMAIL`**          | `info@casajulianmg.com`                                                                                  |
 
 5. Pulsa **Siguiente** y luego **Finalizado**.
 6. ¡El servidor web y el bot ya estarán corriendo localmente en el restaurante! Puedes comprobarlo abriendo en tu navegador:
@@ -104,15 +106,18 @@ Para que Meta WhatsApp pueda enviar los mensajes al bot y puedas acceder al pane
 3. Pulsa **Crear** y rellena:
 
 #### Descripción General:
+
 - **Nombre de la descripción:** `Casa Julian Web & Bot`
 
 #### Origen (Lo que viene de Internet):
+
 - **Protocolo:** `HTTPS`
 - **Nombre de host:** `casajuliantolosa.synology.me`
 - **Puerto:** `3443` *(o `443` si tu router lo permite)*
 - **Habilitar HSTS:** ✅ Marcado
 
 #### Destino (Hacia dónde lo envía el Synology internamente):
+
 - **Protocolo:** `HTTP`
 - **Nombre de host:** `localhost`
 - **Puerto:** `3000`
@@ -135,10 +140,10 @@ Para que Meta WhatsApp pueda enviar los mensajes al bot y puedas acceder al pane
 
 Accede a la administración del router del restaurante y añade las reglas de redirección:
 
-| Servicio | Puerto Externo (WAN) | IP Interna Synology | Puerto Interno (LAN) | Protocolo |
-| :--- | :--- | :--- | :--- | :--- |
-| **Panel Web & Bot HTTPS** | `3443` | `192.168.110.57` | `3443` | TCP |
-| **Base de Datos PostgreSQL** | `5433` | `192.168.110.57` | `5433` | TCP |
+| Servicio                           | Puerto Externo (WAN) | IP Interna Synology | Puerto Interno (LAN) | Protocolo |
+| :--------------------------------- | :------------------- | :------------------ | :------------------- | :-------- |
+| **Panel Web & Bot HTTPS**    | `3443`             | `192.168.110.57`  | `3443`             | TCP       |
+| **Base de Datos PostgreSQL** | `5433`             | `192.168.110.57`  | `5433`             | TCP       |
 
 ---
 
