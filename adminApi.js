@@ -953,6 +953,39 @@ router.delete('/silenced-numbers/:id', requireAdminAuth, async (req, res) => {
     }
 });
 
+router.post('/silenced-numbers/bulk-toggle', requireAdminAuth, async (req, res) => {
+    try {
+        const { bulkToggleSilencedNumbers } = require('./database');
+        const { ids, phones, activo } = req.body || {};
+        await bulkToggleSilencedNumbers({ ids, phones, activo: !!activo });
+        return res.json({ success: true, message: `Estado del bot actualizado para los contactos seleccionados.` });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/silenced-numbers/bulk-delete', requireAdminAuth, async (req, res) => {
+    try {
+        const { bulkDeleteSilencedNumbers } = require('./database');
+        const { ids, phones } = req.body || {};
+        await bulkDeleteSilencedNumbers({ ids, phones });
+        return res.json({ success: true, message: `Contactos eliminados correctamente.` });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/silenced-numbers/bulk-tag', requireAdminAuth, async (req, res) => {
+    try {
+        const { bulkUpdateCategory } = require('./database');
+        const { ids, phones, categoria } = req.body || {};
+        await bulkUpdateCategory({ ids, phones, categoria });
+        return res.json({ success: true, message: `Etiqueta actualizada correctamente.` });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 // 19. Obtener lista completa de tarjetas regalo con estados y fecha de caducidad a 6 meses
 router.get('/tarjetas-regalo', requireAdminAuth, async (req, res) => {
     try {

@@ -218,11 +218,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
             }
         } else if (tabId === 'tab-silenced') {
-            nameEl.textContent = 'Números Bot Cancelados';
+            nameEl.textContent = 'Contactos';
             if (badgeEl) {
-                const count = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) 
-                    ? allSilencedNumbers.length 
-                    : 0;
+                const count = (typeof getCombinedContactsList === 'function')
+                    ? getCombinedContactsList().length
+                    : ((typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) ? allSilencedNumbers.length : 0);
                 badgeEl.textContent = count;
                 badgeEl.style.background = '#a855f7';
                 badgeEl.style.color = '#fff';
@@ -602,19 +602,87 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Set para selección múltiple de contactos
+    let selectedSilencedPhones = new Set();
+
+    function getCombinedContactsList() {
+        const contactsMap = new Map();
+
+        // 1. Añadir los contactos de PostgreSQL (silenciados / personalizados)
+        if (Array.isArray(allSilencedNumbers)) {
+            allSilencedNumbers.forEach(item => {
+                const cleanPhone = (item.telefono || '').toString().replace(/\D/g, '');
+                if (!cleanPhone) return;
+                contactsMap.set(cleanPhone, {
+                    id: item.id,
+                    telefono: cleanPhone,
+                    nombre: item.nombre || 'Contacto',
+                    categoria: item.categoria || 'proveedor',
+                    notas: item.notas || '',
+                    activo: item.activo !== false, // true = bot cancelado, false = bot activo
+                    isFromDb: true
+                });
+            });
+        }
+
+        // 2. Integrar todos los contactos de los chats unificados de WhatsApp Business
+        if (Array.isArray(allUnifiedConversations)) {
+            allUnifiedConversations.forEach(conv => {
+                const cleanPhone = (conv.telefono || '').toString().replace(/\D/g, '');
+                if (!cleanPhone) return;
+
+                if (contactsMap.has(cleanPhone)) {
+                    const existing = contactsMap.get(cleanPhone);
+                    if ((!existing.nombre || existing.nombre === 'Contacto' || existing.nombre.startsWith('+')) && conv.nombreCliente) {
+                        existing.nombre = conv.nombreCliente;
+                    }
+                } else {
+                    const chatTags = (typeof getChatTags === 'function') ? getChatTags(cleanPhone, conv) : [];
+                    let cat = 'cliente';
+                    if (chatTags.length > 0) {
+                        cat = chatTags.join(', ');
+                    } else if (typeof getConversationCategory === 'function') {
+                        cat = getConversationCategory(conv) || 'cliente';
+                    }
+                    contactsMap.set(cleanPhone, {
+                        id: null,
+                        telefono: cleanPhone,
+                        nombre: conv.nombreCliente || `+${cleanPhone}`,
+                        categoria: cat,
+                        notas: '',
+                        activo: false, // Por defecto en chats: Bot Activo
+                        isFromDb: false
+                    });
+                }
+            });
+        }
+
+        return Array.from(contactsMap.values());
+    }
+
     function renderSilencedFilters() {
         if (!silencedFiltersContainer) return;
+        const allContacts = getCombinedContactsList();
+        const total = allContacts.length;
+        const activeBotCount = allContacts.filter(c => !c.activo).length;
+        const canceledBotCount = allContacts.filter(c => !!c.activo).length;
+
         const tags = getAllAvailableSilencedTags();
-        const total = allSilencedNumbers.length;
 
         let html = `
             <button class="filter-chip ${currentSilencedFilter === 'all' ? 'active' : ''}" data-silenced-cat="all">
                 Todos (<span id="count-silenced-all">${total}</span>)
             </button>
+            <button class="filter-chip ${currentSilencedFilter === 'bot_active' ? 'active' : ''}" data-silenced-cat="bot_active">
+                🔊 Bot Activo (<span id="count-silenced-active-bot">${activeBotCount}</span>)
+            </button>
+            <button class="filter-chip ${currentSilencedFilter === 'bot_canceled' ? 'active' : ''}" data-silenced-cat="bot_canceled">
+                🔇 Bot Cancelado (<span id="count-silenced-silenced-bot">${canceledBotCount}</span>)
+            </button>
         `;
 
         tags.forEach(tag => {
-            const count = allSilencedNumbers.filter(n => {
+            const count = allContacts.filter(n => {
                 const itemTags = getSilencedItemTags(n);
                 return itemTags.some(t => t.id === tag.id || t.name.toLowerCase() === tag.name.toLowerCase());
             }).length;
@@ -638,12 +706,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function updateBulkToolbar() {
+        const toolbar = document.getElementById('contacts-bulk-toolbar');
+        const countBadge = document.getElementById('bulk-selected-count-badge');
+        const selectAllChk = document.getElementById('silenced-select-all-chk');
+        if (!toolbar) return;
+
+        const count = selectedSilencedPhones.size;
+        if (count > 0) {
+            toolbar.style.display = 'flex';
+            if (countBadge) countBadge.textContent = `${count} seleccionado${count > 1 ? 's' : ''}`;
+        } else {
+            toolbar.style.display = 'none';
+            if (selectAllChk) selectAllChk.checked = false;
+        }
+    }
+
     function renderSilencedNumbersTable() {
         const tbody = document.getElementById('silenced-numbers-table-body');
         const badge = document.getElementById('silenced-count-badge');
+        const selectAllChk = document.getElementById('silenced-select-all-chk');
         if (!tbody) return;
 
-        const total = allSilencedNumbers.length;
+        const allContacts = getCombinedContactsList();
+        const total = allContacts.length;
+
         if (badge) {
             badge.textContent = total;
             badge.style.display = total > 0 ? 'inline-block' : 'none';
@@ -654,10 +741,14 @@ document.addEventListener('DOMContentLoaded', () => {
             dropdownSilencedBadge.style.display = total > 0 ? 'inline-block' : 'none';
         }
 
-        let filtered = [...allSilencedNumbers];
+        let filtered = [...allContacts];
 
-        // Filtrar por etiqueta seleccionada
-        if (currentSilencedFilter !== 'all') {
+        // Filtrar por estado del bot o por etiqueta
+        if (currentSilencedFilter === 'bot_active') {
+            filtered = filtered.filter(n => !n.activo);
+        } else if (currentSilencedFilter === 'bot_canceled') {
+            filtered = filtered.filter(n => !!n.activo);
+        } else if (currentSilencedFilter !== 'all') {
             filtered = filtered.filter(n => {
                 const itemTags = getSilencedItemTags(n);
                 return itemTags.some(t => t.id === currentSilencedFilter || t.name.toLowerCase() === currentSilencedFilter.toLowerCase());
@@ -670,16 +761,22 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(n => 
                 (n.nombre || '').toLowerCase().includes(q) ||
                 (n.telefono || '').toLowerCase().includes(q) ||
-                (n.notas || '').toLowerCase().includes(q) ||
                 (n.categoria || '').toLowerCase().includes(q)
             );
         }
 
+        if (selectAllChk) {
+            const allVisibleSelected = filtered.length > 0 && filtered.every(item => selectedSilencedPhones.has(item.telefono));
+            selectAllChk.checked = allVisibleSelected;
+        }
+
+        updateBulkToolbar();
+
         if (filtered.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px;">
-                        No se encontraron números con bot cancelado con los filtros actuales.
+                    <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">
+                        No se encontraron contactos con los filtros actuales.
                     </td>
                 </tr>
             `;
@@ -700,12 +797,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const cleanPhone = (item.telefono || '').toString().replace(/\D/g, '');
             const isSilencedActive = item.activo !== false;
+            const isChecked = selectedSilencedPhones.has(cleanPhone);
+
             const statusHtml = isSilencedActive
-                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700;">🔇 Bot Cancelado</span>`
-                : `<span style="background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700;">🤖 Bot Activo</span>`;
+                ? `<span class="silenced-status-btn" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); padding: 4px 10px; border-radius: 12px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.15s ease;" title="Bot Cancelado. Haz clic para activarlo.">🔇 Bot Cancelado</span>`
+                : `<span class="silenced-status-btn" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 10px; border-radius: 12px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.15s ease;" title="Bot Activo. Haz clic para cancelarlo.">🔊 Bot Activo</span>`;
 
             return `
-                <tr class="silenced-row-item" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                <tr class="silenced-row-item" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); ${isChecked ? 'background: rgba(147, 51, 234, 0.08);' : ''}">
+                    <td style="width: 44px; padding: 12px 14px; text-align: center;">
+                        <input type="checkbox" class="silenced-row-chk" data-phone="${cleanPhone}" data-id="${item.id || ''}" ${isChecked ? 'checked' : ''} style="width: 17px; height: 17px; cursor: pointer; accent-color: #9333ea;">
+                    </td>
                     <td class="col-name" style="padding: 12px 16px; font-weight: 600; color: #f8fafc;">
                         <span class="silenced-contact-name">${item.nombre || 'Contacto'}</span>
                     </td>
@@ -718,18 +820,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${badgesHtml}
                     </td>
                     <td class="col-status" style="padding: 12px 16px; text-align: center;">
-                        ${statusHtml}
+                        <div class="status-toggle-wrapper" data-phone="${cleanPhone}" data-id="${item.id || ''}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" data-active="${isSilencedActive}" style="display: inline-block;">
+                            ${statusHtml}
+                        </div>
                     </td>
                     <td class="col-actions" style="padding: 12px 16px; text-align: right; white-space: nowrap;">
-                        <div class="silenced-actions-group">
-                            <button class="btn-edit-silence" data-id="${item.id}" data-phone="${item.telefono}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="Editar contacto y etiquetas">
-                                ✏️ Editar
+                        <div class="silenced-actions-group" style="display: inline-flex; gap: 6px; align-items: center;">
+                            <button type="button" class="btn-edit-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.2); font-size: 0.95rem; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease;" title="Editar contacto y etiquetas">
+                                ✏️
                             </button>
-                            <button class="btn-toggle-silence" data-id="${item.id}" data-active="${isSilencedActive}" style="background: rgba(255,255,255,0.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="${isSilencedActive ? 'Reactivar chatbot para este número' : 'Cancelar respuestas automáticas del bot'}">
-                                ${isSilencedActive ? '🔔 Activar Bot' : '🔇 Cancelar Bot'}
-                            </button>
-                            <button class="btn-delete-silence" data-id="${item.id}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 0.76rem; padding: 5px 10px; border-radius: 6px; cursor: pointer;" title="Eliminar de la lista">
-                                🗑️ Eliminar
+                            <button type="button" class="btn-delete-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); font-size: 0.95rem; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease;" title="Eliminar contacto">
+                                🗑️
                             </button>
                         </div>
                     </td>
@@ -737,7 +838,62 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Listeners para acciones de la tabla
+        // Listeners de Checkbox individual
+        tbody.querySelectorAll('.silenced-row-chk').forEach(chk => {
+            chk.addEventListener('change', (e) => {
+                const phone = chk.getAttribute('data-phone');
+                if (chk.checked) {
+                    selectedSilencedPhones.add(phone);
+                } else {
+                    selectedSilencedPhones.delete(phone);
+                }
+                renderSilencedNumbersTable();
+            });
+        });
+
+        // Listeners para cambio interactivo de Estado (con confirmación)
+        tbody.querySelectorAll('.status-toggle-wrapper').forEach(wrapper => {
+            wrapper.addEventListener('click', async () => {
+                const id = wrapper.getAttribute('data-id');
+                const phone = wrapper.getAttribute('data-phone');
+                const name = decodeURIComponent(wrapper.getAttribute('data-name') || 'Contacto');
+                const isCanceled = wrapper.getAttribute('data-active') === 'true';
+
+                const promptMsg = isCanceled
+                    ? `¿Deseas activar el bot para "${name}" (+${phone})?\nEl chatbot volverá a responder automáticamente con menús a este contacto.`
+                    : `¿Deseas cancelar el bot para "${name}" (+${phone})?\nEl chatbot dejará de enviar respuestas automáticas a este contacto.`;
+
+                if (!confirm(promptMsg)) return;
+
+                try {
+                    const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    if (id && !id.startsWith('chat_')) {
+                        await fetch(`/api/admin/silenced-numbers/${id}/toggle`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
+                            body: JSON.stringify({ activo: !isCanceled })
+                        });
+                    } else {
+                        // Si el contacto venía de un chat sin registrar en BD, lo registramos con el estado opuesto
+                        await fetch('/api/admin/silenced-numbers', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
+                            body: JSON.stringify({
+                                telefono: phone,
+                                nombre: name,
+                                categoria: 'cliente',
+                                activo: !isCanceled
+                            })
+                        });
+                    }
+                    await fetchSilencedNumbers();
+                } catch (err) {
+                    alert('Error cambiando estado: ' + err.message);
+                }
+            });
+        });
+
+        // Listeners para editar contacto
         tbody.querySelectorAll('.btn-edit-silence').forEach(btn => {
             btn.addEventListener('click', () => {
                 const phone = btn.getAttribute('data-phone') || '';
@@ -748,38 +904,190 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        tbody.querySelectorAll('.btn-toggle-silence').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                const currentActive = btn.getAttribute('data-active') === 'true';
-                try {
-                    await fetch(`/api/admin/silenced-numbers/${id}/toggle`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-                        body: JSON.stringify({ activo: !currentActive })
-                    });
-                    await fetchSilencedNumbers();
-                } catch (err) {
-                    alert('Error cambiando estado: ' + err.message);
-                }
-            });
-        });
-
+        // Listeners para eliminar contacto
         tbody.querySelectorAll('.btn-delete-silence').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
+                const phone = btn.getAttribute('data-phone');
                 const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
-                if (!confirm(`¿Eliminar a "${name}" de la lista de números con bot cancelado? El bot volverá a responderle con menús automáticos.`)) return;
+
+                if (!confirm(`¿Eliminar a "${name}" (+${phone}) de la lista de contactos?`)) return;
+
                 try {
-                    await fetch(`/api/admin/silenced-numbers/${id}`, {
-                        method: 'DELETE',
-                        headers: { 'x-admin-token': adminToken }
-                    });
+                    const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    if (id && !id.startsWith('chat_')) {
+                        await fetch(`/api/admin/silenced-numbers/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'x-admin-token': tokenToUse }
+                        });
+                    } else {
+                        await fetch('/api/admin/silenced-numbers/bulk-delete', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
+                            body: JSON.stringify({ phones: [phone] })
+                        });
+                    }
+                    selectedSilencedPhones.delete(phone);
                     await fetchSilencedNumbers();
                 } catch (err) {
                     alert('Error al eliminar: ' + err.message);
                 }
             });
+        });
+    }
+
+    // Listener para el Checkbox Maestro "Seleccionar todos"
+    const silencedSelectAllChk = document.getElementById('silenced-select-all-chk');
+    if (silencedSelectAllChk) {
+        silencedSelectAllChk.addEventListener('change', (e) => {
+            const allContacts = getCombinedContactsList();
+            let filtered = [...allContacts];
+
+            if (currentSilencedFilter === 'bot_active') {
+                filtered = filtered.filter(n => !n.activo);
+            } else if (currentSilencedFilter === 'bot_canceled') {
+                filtered = filtered.filter(n => !!n.activo);
+            } else if (currentSilencedFilter !== 'all') {
+                filtered = filtered.filter(n => {
+                    const itemTags = getSilencedItemTags(n);
+                    return itemTags.some(t => t.id === currentSilencedFilter || t.name.toLowerCase() === currentSilencedFilter.toLowerCase());
+                });
+            }
+
+            if (currentSilencedSearch.trim()) {
+                const q = currentSilencedSearch.toLowerCase().trim();
+                filtered = filtered.filter(n => 
+                    (n.nombre || '').toLowerCase().includes(q) ||
+                    (n.telefono || '').toLowerCase().includes(q) ||
+                    (n.categoria || '').toLowerCase().includes(q)
+                );
+            }
+
+            if (silencedSelectAllChk.checked) {
+                filtered.forEach(item => selectedSilencedPhones.add(item.telefono));
+            } else {
+                filtered.forEach(item => selectedSilencedPhones.delete(item.telefono));
+            }
+            renderSilencedNumbersTable();
+        });
+    }
+
+    // Listeners para la barra de acciones masivas
+    const btnBulkActivateBot = document.getElementById('btn-bulk-activate-bot');
+    const btnBulkCancelBot = document.getElementById('btn-bulk-cancel-bot');
+    const btnBulkOpenTags = document.getElementById('btn-bulk-open-tags');
+    const btnBulkDeleteContacts = document.getElementById('btn-bulk-delete-contacts');
+    const btnBulkDeselectAll = document.getElementById('btn-bulk-deselect-all');
+
+    if (btnBulkDeselectAll) {
+        btnBulkDeselectAll.addEventListener('click', () => {
+            selectedSilencedPhones.clear();
+            renderSilencedNumbersTable();
+        });
+    }
+
+    if (btnBulkActivateBot) {
+        btnBulkActivateBot.addEventListener('click', async () => {
+            const phones = Array.from(selectedSilencedPhones);
+            if (phones.length === 0) return;
+            if (!confirm(`¿Activar el bot para los ${phones.length} contactos seleccionados?`)) return;
+
+            try {
+                const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                await fetch('/api/admin/silenced-numbers/bulk-toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
+                    body: JSON.stringify({ phones, activo: false })
+                });
+                selectedSilencedPhones.clear();
+                await fetchSilencedNumbers();
+            } catch (err) {
+                alert('Error al activar bot por lotes: ' + err.message);
+            }
+        });
+    }
+
+    if (btnBulkCancelBot) {
+        btnBulkCancelBot.addEventListener('click', async () => {
+            const phones = Array.from(selectedSilencedPhones);
+            if (phones.length === 0) return;
+            if (!confirm(`¿Cancelar el bot para los ${phones.length} contactos seleccionados?`)) return;
+
+            try {
+                const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                await fetch('/api/admin/silenced-numbers/bulk-toggle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
+                    body: JSON.stringify({ phones, activo: true })
+                });
+                selectedSilencedPhones.clear();
+                await fetchSilencedNumbers();
+            } catch (err) {
+                alert('Error al cancelar bot por lotes: ' + err.message);
+            }
+        });
+    }
+
+    if (btnBulkDeleteContacts) {
+        btnBulkDeleteContacts.addEventListener('click', async () => {
+            const phones = Array.from(selectedSilencedPhones);
+            if (phones.length === 0) return;
+            if (!confirm(`¿Eliminar los ${phones.length} contactos seleccionados?`)) return;
+
+            try {
+                const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                await fetch('/api/admin/silenced-numbers/bulk-delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
+                    body: JSON.stringify({ phones })
+                });
+                selectedSilencedPhones.clear();
+                await fetchSilencedNumbers();
+            } catch (err) {
+                alert('Error al eliminar contactos por lotes: ' + err.message);
+            }
+        });
+    }
+
+    // Modal de asignación de etiquetas en lote
+    const bulkTagModal = document.getElementById('bulk-tag-modal');
+    const bulkTagSelect = document.getElementById('bulk-tag-select');
+    const closeBulkTagModalBtn = document.getElementById('close-bulk-tag-modal-btn');
+    const saveBulkTagBtn = document.getElementById('save-bulk-tag-btn');
+
+    if (btnBulkOpenTags && bulkTagModal && bulkTagSelect) {
+        btnBulkOpenTags.addEventListener('click', () => {
+            const tags = getAllAvailableSilencedTags();
+            bulkTagSelect.innerHTML = tags.map(t => `<option value="${t.id}">${t.label || t.name}</option>`).join('');
+            bulkTagModal.style.display = 'flex';
+        });
+    }
+
+    if (closeBulkTagModalBtn && bulkTagModal) {
+        closeBulkTagModalBtn.addEventListener('click', () => {
+            bulkTagModal.style.display = 'none';
+        });
+    }
+
+    if (saveBulkTagBtn && bulkTagModal && bulkTagSelect) {
+        saveBulkTagBtn.addEventListener('click', async () => {
+            const phones = Array.from(selectedSilencedPhones);
+            const selectedCat = bulkTagSelect.value;
+            if (phones.length === 0 || !selectedCat) return;
+
+            try {
+                const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                await fetch('/api/admin/silenced-numbers/bulk-tag', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
+                    body: JSON.stringify({ phones, categoria: selectedCat })
+                });
+                bulkTagModal.style.display = 'none';
+                selectedSilencedPhones.clear();
+                await fetchSilencedNumbers();
+            } catch (err) {
+                alert('Error asignando etiqueta por lotes: ' + err.message);
+            }
         });
     }
 
@@ -826,7 +1134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (silencedNotesInput) silencedNotesInput.value = prefillNotes;
 
         if (silencedModalTitle) {
-            silencedModalTitle.textContent = prefillPhone ? '✏️ Editar Contacto con Bot Cancelado' : '➕ Añadir Contacto con Bot Cancelado';
+            silencedModalTitle.textContent = prefillPhone ? '✏️ Editar Contacto' : '➕ Añadir Contacto';
         }
         if (silencedSubmitBtn) {
             silencedSubmitBtn.textContent = prefillPhone ? '💾 Guardar Cambios' : '💾 Guardar Contacto';

@@ -188,5 +188,8 @@ module.exports = {
     addOrUpdateSilencedNumber: silencedNumbers.addOrUpdateSilencedNumber,
     deleteSilencedNumber: silencedNumbers.deleteSilencedNumber,
     toggleSilencedNumberActive: silencedNumbers.toggleSilencedNumberActive,
+    bulkToggleSilencedNumbers: silencedNumbers.bulkToggleSilencedNumbers,
+    bulkDeleteSilencedNumbers: silencedNumbers.bulkDeleteSilencedNumbers,
+    bulkUpdateCategory: silencedNumbers.bulkUpdateCategory,
     seedSilencedNumbersFromTxt: silencedNumbers.seedSilencedNumbersFromTxt
 };

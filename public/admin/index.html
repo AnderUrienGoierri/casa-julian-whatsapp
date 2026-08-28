@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V413-PURPLE-FILTERS-NO-NOTES-CLEAN-TABLE">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V414-CONTACTS-BULK-ACTIONS-AND-SYNC">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -247,7 +247,7 @@
                             <span id="dropdown-inbox-badge" class="dropdown-badge" style="background:#ef4444; color:#fff;">0</span>
                         </button>
                         <button type="button" class="dropdown-menu-item" id="dropdown-tab-silenced" data-tab-target="tab-silenced">
-                            <span class="dropdown-item-text">Números Bot Cancelados</span>
+                            <span class="dropdown-item-text">Contactos</span>
                             <span id="dropdown-silenced-badge" class="dropdown-badge" style="background:#a855f7; color:#fff;">0</span>
                         </button>
 
@@ -452,9 +452,9 @@
                     </div>
                 </div>
 
-                <!-- Pestaña 0C: Números Bot Cancelados (Bypass Automático del Bot) -->
+                <!-- Pestaña 0C: Contactos y Gestión del Bot -->
                 <div id="tab-silenced" class="tab-content">
-                    <!-- Toolbar de Filtros y Búsqueda de Números Silenciados -->
+                    <!-- Toolbar de Filtros y Búsqueda de Contactos -->
                     <div class="inbox-toolbar-card" style="margin-bottom: 18px; padding: 14px 18px;">
                         <div style="display: flex; gap: 12px; align-items: center; width: 100%; flex-wrap: wrap; margin-bottom: 12px;">
                             <div class="search-box" style="flex: 1; min-width: 220px; margin: 0;">
@@ -470,20 +470,47 @@
                                 </button>
                             </div>
                         </div>
-                        <!-- Filtros Dinámicos de Etiquetas -->
+                        <!-- Filtros Dinámicos de Estado y Etiquetas -->
                         <div id="silenced-filters-container" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                             <button class="filter-chip active" data-silenced-cat="all">Todos (<span id="count-silenced-all">0</span>)</button>
-                            <button class="filter-chip" data-silenced-cat="proveedor">🚚 Proveedores (<span id="count-silenced-prov">0</span>)</button>
-                            <button class="filter-chip" data-silenced-cat="empleado">👷 Personal / Empleados (<span id="count-silenced-emp">0</span>)</button>
-                            <button class="filter-chip" data-silenced-cat="otro">📌 Otros (<span id="count-silenced-otro">0</span>)</button>
+                            <button class="filter-chip" data-silenced-cat="bot_active">🔊 Bot Activo (<span id="count-silenced-active-bot">0</span>)</button>
+                            <button class="filter-chip" data-silenced-cat="bot_canceled">🔇 Bot Cancelado (<span id="count-silenced-silenced-bot">0</span>)</button>
                         </div>
                     </div>
 
-                    <!-- Tabla de Números Silenciados -->
+                    <!-- Barra Flotante de Acciones en Lote (Bulk Actions) -->
+                    <div id="contacts-bulk-toolbar" style="display: none; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; margin-bottom: 14px; background: linear-gradient(135deg, rgba(147, 51, 234, 0.18), rgba(88, 28, 135, 0.28)); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="bulk-selected-count-badge" style="background: #9333ea; color: #fff; font-weight: 700; font-size: 0.82rem; padding: 4px 10px; border-radius: 12px;">0 seleccionados</span>
+                            <span style="font-size: 0.84rem; color: #e2e8f0;">Acciones masivas:</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <button type="button" id="btn-bulk-activate-bot" class="btn-secondary" style="font-size: 0.80rem; padding: 6px 12px; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 6px; cursor: pointer;">
+                                🔊 Activar Bot
+                            </button>
+                            <button type="button" id="btn-bulk-cancel-bot" class="btn-secondary" style="font-size: 0.80rem; padding: 6px 12px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 6px; cursor: pointer;">
+                                🔇 Cancelar Bot
+                            </button>
+                            <button type="button" id="btn-bulk-open-tags" class="btn-secondary" style="font-size: 0.80rem; padding: 6px 12px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; cursor: pointer;">
+                                🏷️ Asignar Etiqueta
+                            </button>
+                            <button type="button" id="btn-bulk-delete-contacts" class="btn-secondary" style="font-size: 0.80rem; padding: 6px 12px; background: rgba(239, 68, 68, 0.25); color: #fff; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 6px; cursor: pointer;">
+                                🗑️ Eliminar
+                            </button>
+                            <button type="button" id="btn-bulk-deselect-all" class="btn-secondary" style="font-size: 0.80rem; padding: 6px 10px; background: rgba(255, 255, 255, 0.08); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; cursor: pointer;" title="Deseleccionar todos">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Números y Contactos -->
                     <div class="table-container" style="background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden;">
                         <table class="data-table" style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: rgba(15, 23, 42, 0.8); border-bottom: 1px solid var(--border-color);">
+                                    <th style="width: 44px; padding: 12px 14px; text-align: center;">
+                                        <input type="checkbox" id="silenced-select-all-chk" style="width: 17px; height: 17px; cursor: pointer; accent-color: #9333ea;" title="Seleccionar todos los contactos">
+                                    </th>
                                     <th style="padding: 12px 16px; text-align: left; font-size: 0.82rem; color: #94a3b8;">Contacto / Nombre</th>
                                     <th style="padding: 12px 16px; text-align: left; font-size: 0.82rem; color: #94a3b8;">Teléfono WhatsApp</th>
                                     <th style="padding: 12px 16px; text-align: left; font-size: 0.82rem; color: #94a3b8;">Categoría</th>
@@ -493,7 +520,7 @@
                             </thead>
                             <tbody id="silenced-numbers-table-body">
                                 <tr>
-                                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando lista de números con bot cancelado...</td>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px;">Cargando lista de contactos...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1039,6 +1066,28 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260828-V413-PURPLE-FILTERS-NO-NOTES-CLEAN-TABLE"></script>
+    <!-- Modal para Asignar Etiquetas en Lote a Múltiples Contactos -->
+    <div id="bulk-tag-modal" class="modal-overlay" style="display: none; z-index: 10000000; background: rgba(0, 0, 0, 0.75);">
+        <div class="modal-content" style="max-width: 440px;">
+            <h3>🏷️ Asignar Etiqueta a Contactos Seleccionados</h3>
+            <p id="bulk-tag-modal-desc" style="font-size: 0.85rem; color: #94a3b8; margin-top: -6px; margin-bottom: 16px;">
+                Elige la etiqueta que deseas asignar a los contactos seleccionados.
+            </p>
+
+            <div class="form-group">
+                <label>Seleccionar Etiqueta *</label>
+                <select id="bulk-tag-select" class="custom-select" style="width: 100%; font-size: 0.92rem; padding: 10px 12px; background: #0f172a; color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px;">
+                    <!-- Opciones generadas dinámicamente -->
+                </select>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 22px;">
+                <button type="button" id="close-bulk-tag-modal-btn" class="btn-secondary">Cancelar</button>
+                <button type="button" id="save-bulk-tag-btn" class="btn-primary" style="background: linear-gradient(135deg, #9333ea, #7e22ce);">💾 Aplicar a Seleccionados</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/admin.js?v=20260828-V414-CONTACTS-BULK-ACTIONS-AND-SYNC"></script>
 </body>
 </html>

@@ -170,11 +170,99 @@ async function seedSilencedNumbersFromTxt(filePath) {
     }
 }
 
+/**
+ * Cambiar estado activo/inactivo por lotes
+ */
+async function bulkToggleSilencedNumbers({ ids = [], phones = [], activo = true }) {
+    try {
+        if (ids.length > 0) {
+            await pool.query(`
+                UPDATE bot_silenced_numbers 
+                SET activo = $1, updated_at = (NOW() AT TIME ZONE 'Europe/Madrid')
+                WHERE id = ANY($2::int[])
+            `, [activo, ids]);
+        }
+        if (phones.length > 0) {
+            for (const p of phones) {
+                const clean = p.replace(/\D/g, '');
+                if (clean) {
+                    await pool.query(`
+                        INSERT INTO bot_silenced_numbers (telefono, nombre, categoria, notas, activo, created_at, updated_at)
+                        VALUES ($1, $2, 'cliente', '', $3, (NOW() AT TIME ZONE 'Europe/Madrid'), (NOW() AT TIME ZONE 'Europe/Madrid'))
+                        ON CONFLICT (telefono) DO UPDATE
+                        SET activo = EXCLUDED.activo, updated_at = (NOW() AT TIME ZONE 'Europe/Madrid')
+                    `, [clean, `+${clean}`, activo]);
+                }
+            }
+        }
+        return { success: true };
+    } catch (err) {
+        console.error("⚠️ Error en bulkToggleSilencedNumbers:", err.message);
+        throw err;
+    }
+}
+
+/**
+ * Eliminar contactos por lotes
+ */
+async function bulkDeleteSilencedNumbers({ ids = [], phones = [] }) {
+    try {
+        if (ids.length > 0) {
+            await pool.query(`DELETE FROM bot_silenced_numbers WHERE id = ANY($1::int[])`, [ids]);
+        }
+        if (phones.length > 0) {
+            const cleanPhones = phones.map(p => p.replace(/\D/g, '')).filter(Boolean);
+            if (cleanPhones.length > 0) {
+                await pool.query(`DELETE FROM bot_silenced_numbers WHERE telefono = ANY($1::varchar[])`, [cleanPhones]);
+            }
+        }
+        return { success: true };
+    } catch (err) {
+        console.error("⚠️ Error en bulkDeleteSilencedNumbers:", err.message);
+        throw err;
+    }
+}
+
+/**
+ * Actualizar categoría por lotes
+ */
+async function bulkUpdateCategory({ ids = [], phones = [], categoria = 'cliente' }) {
+    try {
+        if (ids.length > 0) {
+            await pool.query(`
+                UPDATE bot_silenced_numbers 
+                SET categoria = $1, updated_at = (NOW() AT TIME ZONE 'Europe/Madrid')
+                WHERE id = ANY($2::int[])
+            `, [categoria, ids]);
+        }
+        if (phones.length > 0) {
+            for (const p of phones) {
+                const clean = p.replace(/\D/g, '');
+                if (clean) {
+                    await pool.query(`
+                        INSERT INTO bot_silenced_numbers (telefono, nombre, categoria, notas, activo, created_at, updated_at)
+                        VALUES ($1, $2, $3, '', true, (NOW() AT TIME ZONE 'Europe/Madrid'), (NOW() AT TIME ZONE 'Europe/Madrid'))
+                        ON CONFLICT (telefono) DO UPDATE
+                        SET categoria = EXCLUDED.categoria, updated_at = (NOW() AT TIME ZONE 'Europe/Madrid')
+                    `, [clean, `+${clean}`, categoria]);
+                }
+            }
+        }
+        return { success: true };
+    } catch (err) {
+        console.error("⚠️ Error en bulkUpdateCategory:", err.message);
+        throw err;
+    }
+}
+
 module.exports = {
     getAllSilencedNumbers,
     isPhoneSilenced,
     addOrUpdateSilencedNumber,
     deleteSilencedNumber,
     toggleSilencedNumberActive,
+    bulkToggleSilencedNumbers,
+    bulkDeleteSilencedNumbers,
+    bulkUpdateCategory,
     seedSilencedNumbersFromTxt
 };
