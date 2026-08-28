@@ -437,10 +437,10 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'empleado', name: 'Personal', label: '👷 Personal', emoji: '👷', color: '#c084fc', bg: 'rgba(168, 85, 247, 0.2)' },
         { id: 'cliente', name: 'Clientes', label: '👤 Clientes', emoji: '👤', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.2)' },
         { id: 'menu_tradicion', name: 'OT', label: '🎁 OT', emoji: '🎁', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.2)' },
-        { id: 'modificacion', name: 'Modificaciones', label: '🔄 Modificaciones', emoji: '🔄', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.2)' },
-        { id: 'cancelacion', name: 'Cancelaciones', label: '❌ Cancelaciones', emoji: '❌', color: '#f87171', bg: 'rgba(239, 68, 68, 0.2)' },
-        { id: 'faq', name: 'Preguntas Frecuentes', label: '❓ Preguntas Frecuentes', emoji: '❓', color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.2)' },
-        { id: 'otras_cuestiones', name: 'Otras Cuestiones', label: '💬 Otras Cuestiones', emoji: '💬', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.2)' },
+        { id: 'modificacion', name: 'MODIF', label: '🔄 MODIF', emoji: '🔄', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.2)' },
+        { id: 'cancelacion', name: 'CANCEL', label: '❌ CANCEL', emoji: '❌', color: '#f87171', bg: 'rgba(239, 68, 68, 0.2)' },
+        { id: 'faq', name: 'FAQs', label: '❓ FAQs', emoji: '❓', color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.2)' },
+        { id: 'otras_cuestiones', name: 'OTRAS', label: '💬 OTRAS', emoji: '💬', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.2)' },
         { id: 'otro', name: 'Otros / Taxis', label: '📌 Otros / Taxis', emoji: '📌', color: '#fde047', bg: 'rgba(234, 179, 8, 0.2)' }
     ];
 
@@ -3468,17 +3468,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <div class="tag-manager-row-item" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 8px 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(134, 150, 160, 0.15); border-radius: 8px; box-sizing: border-box;">
                     <div class="tag-manager-row-left" style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
-                        <span class="wa-tag-pill" style="color: ${tag.color || '#38bdf8'}; background: ${tag.bg || 'rgba(56, 189, 248, 0.2)'}; font-size: 0.82rem; padding: 4px 10px; white-space: nowrap;">
+                        <span class="wa-tag-pill" style="color: ${tag.color || '#38bdf8'}; background: ${tag.bg || 'rgba(56, 189, 248, 0.2)'}; font-size: 0.84rem; padding: 5px 12px; white-space: nowrap; font-weight: 600;">
                             ${tag.emoji || '🏷️'} ${tag.name}
                         </span>
-                        <span style="font-size: 0.78rem; color: #94a3b8; white-space: nowrap;">${count} ${count === 1 ? 'chat' : 'chats'}</span>
                     </div>
-                    <div class="tag-manager-row-actions" style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
-                        <button class="btn-edit-tag-item" data-tag-id="${tag.id}" data-tag-name="${encodeURIComponent(tag.name)}" data-tag-emoji="${tag.emoji || '🏷️'}" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 6px; padding: 5px 9px; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-width: 32px;" title="Editar etiqueta">
+                    <div class="tag-manager-row-actions" style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                        <button class="btn-edit-tag-item" data-tag-id="${tag.id}" data-tag-name="${encodeURIComponent(tag.name)}" data-tag-emoji="${tag.emoji || '🏷️'}" style="background: none; border: none; padding: 4px 6px; font-size: 1.15rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; outline: none; box-shadow: none; opacity: 0.85; transition: transform 0.15s, opacity 0.15s;" title="Editar etiqueta">
                             ✏️
                         </button>
                         ${isCustom ? `
-                            <button class="btn-delete-tag-item" data-tag-id="${tag.id}" data-tag-name="${encodeURIComponent(tag.name)}" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 5px 9px; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-width: 32px;" title="Eliminar etiqueta">
+                            <button class="btn-delete-tag-item" data-tag-id="${tag.id}" data-tag-name="${encodeURIComponent(tag.name)}" style="background: none; border: none; padding: 4px 6px; font-size: 1.15rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; outline: none; box-shadow: none; opacity: 0.85; transition: transform 0.15s, opacity 0.15s;" title="Eliminar etiqueta">
                                 🗑️
                             </button>
                         ` : ''}
