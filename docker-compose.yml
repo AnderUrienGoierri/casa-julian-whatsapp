@@ -16,3 +16,14 @@ services:
     volumes:
       - /volume1/docker/casa-julian-whatsapp:/app
       - /app/node_modules
+
+  cloudflare-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: casa-julian-cloudflared
+    restart: always
+    command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - whatsapp-bot-admin
+
