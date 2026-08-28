@@ -1035,14 +1035,38 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Filtrar por búsqueda
+        // Filtrar por búsqueda (insensible a espacios, guiones y símbolos en teléfonos y nombres)
         if (currentSilencedSearch.trim()) {
             const q = currentSilencedSearch.toLowerCase().trim();
-            filtered = filtered.filter(n => 
-                (n.nombre || '').toLowerCase().includes(q) ||
-                (n.telefono || '').toLowerCase().includes(q) ||
-                (n.categoria || '').toLowerCase().includes(q)
-            );
+            const qNoSpaces = q.replace(/\s+/g, '');
+            const qDigits = q.replace(/\D/g, '');
+
+            filtered = filtered.filter(n => {
+                const rawName = (n.nombre || '').toLowerCase();
+                const nameNoSpaces = rawName.replace(/\s+/g, '');
+                const rawPhone = (n.telefono || '').toString().toLowerCase();
+                const phoneDigits = rawPhone.replace(/\D/g, '');
+                const phoneDigitsNo34 = phoneDigits.startsWith('34') ? phoneDigits.slice(2) : phoneDigits;
+                const rawCat = (n.categoria || '').toLowerCase();
+                const rawNotes = (n.notas || '').toLowerCase();
+
+                // 1. Coincidencia por dígitos de teléfono (ej: "6704265 40" -> "670426540")
+                const digitsMatch = qDigits.length >= 2 && (
+                    phoneDigits.includes(qDigits) ||
+                    phoneDigitsNo34.includes(qDigits) ||
+                    (qDigits.length >= 6 && (qDigits.includes(phoneDigits) || qDigits.includes(phoneDigitsNo34)))
+                );
+
+                // 2. Coincidencia de texto (con y sin espacios)
+                const textMatch = 
+                    rawName.includes(q) ||
+                    nameNoSpaces.includes(qNoSpaces) ||
+                    rawPhone.includes(q) ||
+                    rawCat.includes(q) ||
+                    rawNotes.includes(q);
+
+                return digitsMatch || textMatch;
+            });
         }
 
         const totalPages = Math.ceil(filtered.length / CONTACTS_PER_PAGE) || 1;
