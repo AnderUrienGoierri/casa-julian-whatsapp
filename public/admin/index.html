@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V421-UNIFIED-BLACK-FLAT-MENU">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260828-V422-BLACK-HEADER-FIX">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -216,7 +216,7 @@
     <!-- Aplicación Principal -->
     <div id="app-container" style="display: none;">
         <!-- Header Principal -->
-        <header class="main-header">
+        <header class="main-header" style="background: #0a0b0e !important; background-color: #0a0b0e !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;">
             <div class="header-left">
                 <div class="logo-area">
                     <img src="/admin/casa_julian_logo_CJ.jpeg" alt="Casa Julián Tolosa" class="header-logo-img">
@@ -243,8 +243,8 @@
             <div class="header-right">
                 <!-- Dropdown Menú de Gestión y Ajustes -->
                 <div class="header-menu-container">
-                    <button type="button" id="header-menu-btn" class="header-menu-btn" title="Menú de Opciones y Configuración" aria-expanded="false">
-                        <span class="header-menu-icon">☰</span>
+                    <button type="button" id="header-menu-btn" class="header-menu-btn" title="Menú de Opciones y Configuración" aria-expanded="false" style="background: transparent !important; border: none !important; box-shadow: none !important; outline: none !important; font-size: 1.45rem !important; cursor: pointer; color: #ffffff !important; padding: 0 !important; width: 38px !important; height: 38px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important;">
+                        <span class="header-menu-icon" style="font-size: 1.45rem !important; color: #ffffff !important;">☰</span>
                         <span id="header-menu-badge" class="header-menu-badge" style="display: none;">0</span>
                     </button>
 
@@ -297,19 +297,19 @@
                 <div id="tab-inbox" class="tab-content active wa-web-tab">
                     <div class="wa-web-container">
                         <!-- COLUMNA IZQUIERDA: LISTA DE CHATS -->
-                        <div class="wa-left-pane" id="wa-left-pane">
+                        <div class="wa-left-pane" id="wa-left-pane" style="background: #0a0b0e !important; background-color: #0a0b0e !important;">
                             <!-- Cabecera y Barra de Filtros Nativa WhatsApp Business -->
-                            <div class="whatsapp-business-header-container">
+                            <div class="whatsapp-business-header-container" style="background: #0a0b0e !important; background-color: #0a0b0e !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;">
                                 <!-- Buscador Desplegable WhatsApp -->
-                                <div class="wa-search-container" id="wa-search-container" style="display: none;">
+                                <div class="wa-search-container" id="wa-search-container" style="display: none; background: #0a0b0e !important;">
                                     <span class="wa-search-icon">🔍</span>
                                     <input type="text" id="search-inbox-input" class="wa-search-input" placeholder="Buscar un chat o iniciar uno nuevo...">
                                     <button type="button" id="btn-clear-inbox-search" class="wa-search-clear-btn" title="Cerrar búsqueda" style="display: none;">✕</button>
                                 </div>
 
                                 <!-- Píldoras Horizontales de Filtro estilo WhatsApp (1 Fila Unificada) -->
-                                <div class="wa-filter-rows-container">
-                                    <div class="wa-filter-pills-row">
+                                <div class="wa-filter-rows-container" style="background: #0a0b0e !important; background-color: #0a0b0e !important;">
+                                    <div class="wa-filter-pills-row" style="background: #0a0b0e !important; background-color: #0a0b0e !important;">
                                         <button class="filter-chip wa-pill active" data-inbox-status="all" data-inbox-cat="all" data-inbox-topic="all">Todos</button>
                                         <button class="filter-chip wa-pill" data-inbox-status="pendiente">No leídos <span id="count-status-pend">0</span></button>
                                         <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="menu_tradicion">OT (<span id="count-topic-menu">0</span>)</button>
@@ -1080,6 +1080,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260828-V421-UNIFIED-BLACK-FLAT-MENU"></script>
+    <script src="/admin/admin.js?v=20260828-V422-BLACK-HEADER-FIX"></script>
 </body>
 </html>
