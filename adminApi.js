@@ -597,13 +597,49 @@ router.get('/solicitudes', requireAdminAuth, async (req, res) => {
     }
 });
 
-// 15. Responder manualmente a una solicitud o chat enviando WhatsApp directo al cliente (mantiene atención humana)
+// 15. Responder manualmente a una solicitud o chat enviando WhatsApp directo al cliente o difusión a grupo de taxis
 router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         const { respuestaText, nuevoEstado } = req.body || {};
         if (!respuestaText || !respuestaText.trim()) {
             return res.status(400).json({ error: 'El mensaje de respuesta no puede estar vacío.' });
+        }
+
+        // Manejo especial de Chat Grupal: Taxi Casa Julián
+        if (id === 'group_taxi_casa_julian' || id === 'chat_group_taxi_casa_julian') {
+            const TAXI_PHONES = ['34670426540', '34670449858', '34636979092'];
+            const { logChatMessage } = require('./db/solicitudes');
+
+            // 1. Guardar en historial del grupo Taxi Casa Julián
+            await logChatMessage('group_taxi_casa_julian', 'recepcion', 'text', respuestaText.trim(), {
+                emisor: 'recepcion',
+                source: 'admin_panel_group_taxi',
+                nombreCliente: 'Taxi Casa Julián'
+            });
+
+            // 2. Difusión individual por WhatsApp a los 3 taxistas
+            let sentCount = 0;
+            for (const phone of TAXI_PHONES) {
+                try {
+                    await sendMessage(phone, respuestaText.trim());
+                    await logChatMessage(phone, 'recepcion', 'text', respuestaText.trim(), {
+                        emisor: 'recepcion',
+                        source: 'admin_panel_group_taxi',
+                        grupo: 'Taxi Casa Julián'
+                    });
+                    sentCount++;
+                } catch (sendErr) {
+                    console.warn(`⚠️ Error enviando a taxi ${phone}:`, sendErr.message);
+                }
+            }
+
+            return res.json({
+                success: true,
+                message: `✅ Mensaje enviado al grupo Taxi Casa Julián (${sentCount} taxistas notificados).`,
+                isGroup: true,
+                telefono: 'group_taxi_casa_julian'
+            });
         }
 
         let targetPhone = null;

@@ -46,12 +46,14 @@ const DEFAULT_INBOX_SETTINGS = {
         'proveedor',
         'hoteles',
         'empleado',
+        'taxi',
         'cliente',
         'otro'
     ],
     deletedTags: [],
     chatTags: {},
     pinnedChats: {
+        "group_taxi_casa_julian": true, // 🚕 Grupo Taxi Casa Julián
         "34645747754": true, // Xabi Gorrotxategi
         "34623476521": true, // Ricardo Entretiempo Studio
         "41795958760": true  // +41 79 595 87 60

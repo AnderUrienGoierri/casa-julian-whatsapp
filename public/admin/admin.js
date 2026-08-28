@@ -394,7 +394,11 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 27, telefono: "34606758577", nombre: "Aioña Garmendia", categoria: "empleado", notas: "Personal / Empleado", activo: true },
         { id: 28, telefono: "34657731776", nombre: "Personal", categoria: "empleado", notas: "Personal / Empleado", activo: true },
         { id: 29, telefono: "34645731776", nombre: "Personal", categoria: "empleado", notas: "Personal / Empleado", activo: true },
-        { id: 30, telefono: "34658704257", nombre: "Personal", categoria: "empleado", notas: "Personal / Empleado", activo: true }
+        { id: 30, telefono: "34658704257", nombre: "Personal", categoria: "empleado", notas: "Personal / Empleado", activo: true },
+        { id: 63, telefono: "34670426540", nombre: "Taxi Iguaran", categoria: "taxi", notas: "Grupo Taxi Casa Julián (+34 670 42 65 40)", activo: true },
+        { id: 64, telefono: "34670449858", nombre: "Taxi Tolosa", categoria: "taxi", notas: "Grupo Taxi Casa Julián (+34 670 44 98 58)", activo: true },
+        { id: 65, telefono: "34636979092", nombre: "Taxi Lexus", categoria: "taxi", notas: "Grupo Taxi Casa Julián (+34 636 97 90 92)", activo: true },
+        { id: 66, telefono: "34943671417", nombre: "Casa Julián Tolosa", categoria: "empleado", notas: "Teléfono oficial del restaurante (+34 943 67 14 17)", activo: true }
     ];
 
     // ==========================================
@@ -448,8 +452,9 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'proveedor', name: 'Proveedores', label: '🚚 Proveedores', emoji: '🚚', color: '#a3e635', bg: 'rgba(132, 204, 22, 0.2)' },
         { id: 'hoteles', name: 'Hoteles', label: '🏨 Hoteles', emoji: '🏨', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' },
         { id: 'empleado', name: 'Personal', label: '👷 Personal', emoji: '👷', color: '#c084fc', bg: 'rgba(168, 85, 247, 0.2)' },
+        { id: 'taxi', name: 'Taxis', label: '🚕 Taxis', emoji: '🚕', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.2)' },
         { id: 'cliente', name: 'Clientes', label: '👤 Clientes', emoji: '👤', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.2)' },
-        { id: 'otro', name: 'Otros / Taxis', label: '📌 Otros / Taxis', emoji: '📌', color: '#fde047', bg: 'rgba(234, 179, 8, 0.2)' }
+        { id: 'otro', name: 'Otros', label: '📌 Otros', emoji: '📌', color: '#fde047', bg: 'rgba(234, 179, 8, 0.2)' }
     ];
 
     const DEFAULT_SILENCED_TAGS = DEFAULT_SYSTEM_TAGS;
@@ -461,9 +466,10 @@ document.addEventListener('DOMContentLoaded', () => {
         deletedTags: [],
         chatTags: {},
         pinnedChats: {
-            "34645747754": true,
-            "34623476521": true,
-            "41795958760": true
+            "group_taxi_casa_julian": true, // 🚕 Grupo Taxi Casa Julián
+            "34645747754": true, // Xabi Gorrotxategi
+            "34623476521": true, // Ricardo Entretiempo Studio
+            "41795958760": true  // +41 79 595 87 60
         },
         manualChatStatus: {}
     };
@@ -3857,7 +3863,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // Generador de Avatar estilo WhatsApp Business
             let avatarHtml = '';
             const lowerName = (clientDisplayName || '').toLowerCase();
-            if (lowerName.includes('entretiempo') || lowerName.includes('ricardo')) {
+            if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="Grupo Taxi Casa Julián (3 Taxis + Restaurante)"><img src="/admin/avatar_taxi_casa_julian.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🚕</span>'"></div>`;
+            } else if (cleanPhone === '34670426540' || lowerName.includes('iguaran')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_iguaran.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TI</span>'"></div>`;
+            } else if (cleanPhone === '34670449858' || lowerName.includes('taxi tolosa')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_tolosa.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TT</span>'"></div>`;
+            } else if (cleanPhone === '34636979092' || lowerName.includes('lexus')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_lexus.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TL</span>'"></div>`;
+            } else if (cleanPhone === '34943671417' || lowerName.includes('casa julián tolosa') || lowerName.includes('casa julian tolosa')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #a855f7; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/casa_julian_logo_CJ.jpeg" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>CJ</span>'"></div>`;
+            } else if (lowerName.includes('entretiempo') || lowerName.includes('ricardo')) {
                 avatarHtml = `<div class="wa-avatar-container wa-avatar-ricardo" title="${clientDisplayName}"><span>E</span></div>`;
             } else if (lowerName.includes('xabi') || lowerName.includes('gorrotxategi')) {
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e3a8a; color: #93c5fd;" title="${clientDisplayName}"><span>XG</span></div>`;
@@ -4893,10 +4909,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (solOrPhone && typeof solOrPhone === 'object' && solOrPhone.id) {
             sol = solOrPhone;
-            cleanPhoneStr = (sol.telefonoCliente || sol.telefonoReserva || '').toString().replace(/\D/g, '');
+            const raw = (sol.telefonoCliente || sol.telefonoReserva || sol.telefono || '').toString();
+            cleanPhoneStr = raw.startsWith('group_') ? raw : raw.replace(/\D/g, '');
         } else {
-            cleanPhoneStr = (solOrPhone || '').toString().replace(/\D/g, '');
-            sol = allSolicitudes.find(s => (s.telefonoCliente || s.telefonoReserva || '').replace(/\D/g, '') === cleanPhoneStr);
+            const raw = (solOrPhone || '').toString();
+            cleanPhoneStr = raw.startsWith('group_') ? raw : raw.replace(/\D/g, '');
+            sol = allSolicitudes.find(s => {
+                const sTel = (s.telefonoCliente || s.telefonoReserva || '').toString();
+                return (sTel.startsWith('group_') ? sTel : sTel.replace(/\D/g, '')) === cleanPhoneStr;
+            });
             if (!sol) {
                 const conv = allUnifiedConversations.find(c => c.telefono === cleanPhoneStr);
                 const contactName = name || (conv ? conv.nombreCliente : getClientDisplayName('', cleanPhoneStr));
@@ -4904,9 +4925,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: `chat_${cleanPhoneStr}`,
                     telefonoCliente: cleanPhoneStr,
                     nombreCliente: contactName,
-                    categoria: conv ? conv.categoria : 'cliente',
-                    categoriaLabel: '💬 Chat WhatsApp',
-                    etiquetas: conv ? conv.etiquetas : [],
+                    categoria: conv ? conv.categoria : (cleanPhoneStr === 'group_taxi_casa_julian' ? 'taxi' : 'cliente'),
+                    categoriaLabel: cleanPhoneStr === 'group_taxi_casa_julian' ? '🚕 Grupo Taxi Casa Julián' : '💬 Chat WhatsApp',
+                    etiquetas: conv ? conv.etiquetas : (cleanPhoneStr === 'group_taxi_casa_julian' ? ['TAXIS', 'GRUPO'] : []),
                     datosDetallados: null,
                     enAtencionHumana: false,
                     estado: 'PENDIENTE',
@@ -4949,7 +4970,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activePanel) activePanel.style.display = 'flex';
         if (webContainer) webContainer.classList.add('mobile-chat-open');
 
-        const clientDisplayName = getClientDisplayName(sol.nombreCliente, cleanPhoneStr);
+        const isTaxiGroup = cleanPhoneStr === 'group_taxi_casa_julian';
+        const clientDisplayName = isTaxiGroup ? 'Taxi Casa Julián' : getClientDisplayName(sol.nombreCliente, cleanPhoneStr);
 
         // Header del panel derecho
         const nameEl = document.getElementById('pane-chat-client-name');
@@ -4964,40 +4986,79 @@ document.addEventListener('DOMContentLoaded', () => {
         const paneSolIdInput = document.getElementById('pane-reply-solicitud-id');
 
         if (nameEl) nameEl.textContent = clientDisplayName;
-        if (phoneEl) phoneEl.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
-        if (btnCall) btnCall.href = cleanPhoneStr ? `tel:+${cleanPhoneStr}` : '#';
-        if (btnWa) btnWa.href = cleanPhoneStr ? `https://wa.me/${cleanPhoneStr}` : '#';
+        if (phoneEl) {
+            if (isTaxiGroup) {
+                phoneEl.innerHTML = `👥 Grupo (3 Taxis + Restaurante) • 🚕 Iguaran, Tolosa, Lexus`;
+            } else {
+                phoneEl.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
+            }
+        }
+        if (btnCall) {
+            btnCall.style.display = isTaxiGroup ? 'none' : 'inline-flex';
+            btnCall.href = cleanPhoneStr ? `tel:+${cleanPhoneStr}` : '#';
+        }
+        if (btnWa) {
+            btnWa.style.display = isTaxiGroup ? 'none' : 'inline-flex';
+            btnWa.href = cleanPhoneStr ? `https://wa.me/${cleanPhoneStr}` : '#';
+        }
         if (paneSolIdInput) paneSolIdInput.value = sol.id || `chat_${cleanPhoneStr}`;
 
         // Avatar dinámico
         if (avatarEl) {
+            avatarEl.style.overflow = 'hidden';
             const lower = clientDisplayName.toLowerCase();
-            if (lower.includes('entretiempo') || lower.includes('ricardo')) {
+            if (isTaxiGroup || lower.includes('taxi casa juli')) {
+                avatarEl.innerHTML = `<img src="/admin/avatar_taxi_casa_julian.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>🚕</span>'">`;
+                avatarEl.style.border = '2px solid #f59e0b';
+                avatarEl.style.background = '#1e293b';
+            } else if (cleanPhoneStr === '34670426540' || lower.includes('iguaran')) {
+                avatarEl.innerHTML = `<img src="/admin/avatar_taxi_iguaran.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TI</span>'">`;
+                avatarEl.style.border = '2px solid #f59e0b';
+                avatarEl.style.background = '#1e293b';
+            } else if (cleanPhoneStr === '34670449858' || lower.includes('taxi tolosa')) {
+                avatarEl.innerHTML = `<img src="/admin/avatar_taxi_tolosa.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TT</span>'">`;
+                avatarEl.style.border = '2px solid #f59e0b';
+                avatarEl.style.background = '#1e293b';
+            } else if (cleanPhoneStr === '34636979092' || lower.includes('lexus')) {
+                avatarEl.innerHTML = `<img src="/admin/avatar_taxi_lexus.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TL</span>'">`;
+                avatarEl.style.border = '2px solid #f59e0b';
+                avatarEl.style.background = '#1e293b';
+            } else if (cleanPhoneStr === '34943671417' || lower.includes('casa julián tolosa') || lower.includes('casa julian tolosa')) {
+                avatarEl.innerHTML = `<img src="/admin/casa_julian_logo_CJ.jpeg" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>CJ</span>'">`;
+                avatarEl.style.border = '2px solid #a855f7';
+                avatarEl.style.background = '#1e293b';
+            } else if (lower.includes('entretiempo') || lower.includes('ricardo')) {
                 avatarEl.textContent = 'E';
                 avatarEl.style.background = '#0284c7';
                 avatarEl.style.color = '#fff';
+                avatarEl.style.border = 'none';
             } else if (lower.includes('xabi') || lower.includes('gorrotxategi')) {
                 avatarEl.textContent = 'XG';
                 avatarEl.style.background = '#1e3a8a';
                 avatarEl.style.color = '#93c5fd';
+                avatarEl.style.border = 'none';
             } else if (cleanPhoneStr === '41795958760') {
                 avatarEl.textContent = '+41';
                 avatarEl.style.background = '#065f46';
                 avatarEl.style.color = '#6ee7b7';
+                avatarEl.style.border = 'none';
             } else if (cleanPhoneStr === '923218428609') {
                 avatarEl.textContent = 'SA';
                 avatarEl.style.background = '#701a75';
                 avatarEl.style.color = '#f5d0fe';
+                avatarEl.style.border = 'none';
             } else if (clientDisplayName && !clientDisplayName.startsWith('+')) {
                 const words = clientDisplayName.trim().split(/\s+/);
                 const initials = words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].slice(0, 2).toUpperCase();
                 avatarEl.textContent = initials;
                 avatarEl.style.background = '#2a3942';
                 avatarEl.style.color = '#e9edef';
+                avatarEl.style.border = 'none';
             } else {
                 avatarEl.textContent = '👤';
                 avatarEl.style.background = '#202c33';
                 avatarEl.style.color = '#8696a0';
+                avatarEl.style.border = 'none';
             }
         }
 

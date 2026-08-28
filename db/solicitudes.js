@@ -416,7 +416,7 @@ async function deleteSolicitud(id) {
  */
 async function logUserChatHistory(telefono, { emisor, tipo = 'text', texto = '', metadata = {} }) {
     if (!telefono) return;
-    const cleanTel = telefono.toString().replace(/\D/g, '');
+    const cleanTel = telefono.toString().startsWith('group_') ? telefono.toString().trim() : telefono.toString().replace(/\D/g, '');
     const timestamp = getSpainIsoTimestamp();
 
     if (pool) {
@@ -450,11 +450,11 @@ async function logUserChatHistory(telefono, { emisor, tipo = 'text', texto = '',
 }
 
 /**
- * Obtiene el historial completo de mensajes/interacciones del chatbot para un teléfono.
+ * Obtiene el historial completo de mensajes/interacciones del chatbot para un teléfono o grupo.
  */
 async function getUserChatHistory(telefono) {
     if (!telefono) return [];
-    const cleanTel = telefono.toString().replace(/\D/g, '');
+    const cleanTel = telefono.toString().startsWith('group_') ? telefono.toString().trim() : telefono.toString().replace(/\D/g, '');
 
     if (pool) {
         try {
@@ -484,11 +484,11 @@ async function getUserChatHistory(telefono) {
 }
 
 /**
- * Elimina permanentemente el historial de chat y solicitudes de un teléfono.
+ * Elimina permanentemente el historial de chat y solicitudes de un teléfono o grupo.
  */
 async function deleteUserChatHistory(telefono) {
     if (!telefono) return false;
-    const cleanTel = telefono.toString().replace(/\D/g, '');
+    const cleanTel = telefono.toString().startsWith('group_') ? telefono.toString().trim() : telefono.toString().replace(/\D/g, '');
 
     if (pool) {
         try {
@@ -542,6 +542,15 @@ async function archiveUserChatHistory(telefono) {
  * agrupadas por teléfono, con el último mensaje, emisor, fecha, categoría y nombre de cliente.
  */
 async function getAllWhatsAppConversations() {
+    const TAXI_GROUP_PARTICIPANTS = [
+        { telefono: '34670426540', nombre: 'Taxi Iguaran', avatar: '/admin/avatar_taxi_iguaran.png' },
+        { telefono: '34670449858', nombre: 'Taxi Tolosa', avatar: '/admin/avatar_taxi_tolosa.png' },
+        { telefono: '34636979092', nombre: 'Taxi Lexus', avatar: '/admin/avatar_taxi_lexus.png' },
+        { telefono: '34943671417', nombre: 'Casa Julián Tolosa', avatar: '/admin/casa_julian_logo_CJ.jpeg', isOfficial: true }
+    ];
+
+    let resultList = [];
+
     if (pool) {
         try {
             const res = await pool.query(
@@ -564,7 +573,7 @@ async function getAllWhatsAppConversations() {
                 ORDER BY MAX(b.created_at) DESC`
             );
             if (res.rows && res.rows.length > 0) {
-                return res.rows.map(r => {
+                resultList = res.rows.map(r => {
                     let meta = {};
                     try {
                         meta = typeof r.ultimo_metadata === 'object' && r.ultimo_metadata !== null 
@@ -574,9 +583,10 @@ async function getAllWhatsAppConversations() {
                         meta = {};
                     }
 
-                    const nombreFinal = r.silenced_nombre || r.nombre_cliente || meta.nombreCliente || (r.telefono.startsWith('34') || r.telefono.length > 9 ? `+${r.telefono}` : r.telefono);
-                    const categoriaFinal = r.silenced_categoria || meta.categoria || 'cliente';
-                    const etiquetasFinales = Array.isArray(meta.etiquetas) ? meta.etiquetas : [];
+                    const isGroup = r.telefono === 'group_taxi_casa_julian';
+                    const nombreFinal = isGroup ? 'Taxi Casa Julián' : (r.silenced_nombre || r.nombre_cliente || meta.nombreCliente || (r.telefono.startsWith('34') || r.telefono.length > 9 ? `+${r.telefono}` : r.telefono));
+                    const categoriaFinal = isGroup ? 'taxi' : (r.silenced_categoria || meta.categoria || 'cliente');
+                    const etiquetasFinales = isGroup ? ['TAXIS', 'GRUPO'] : (Array.isArray(meta.etiquetas) ? meta.etiquetas : []);
 
                     return {
                         telefono: r.telefono,
@@ -590,7 +600,9 @@ async function getAllWhatsAppConversations() {
                         etiquetas: etiquetasFinales,
                         solicitudId: r.solicitud_id || null,
                         tipoSolicitud: r.tipo_solicitud || null,
-                        solicitudEstado: r.solicitud_estado || null
+                        solicitudEstado: r.solicitud_estado || null,
+                        isGroup: isGroup,
+                        participants: isGroup ? TAXI_GROUP_PARTICIPANTS : undefined
                     };
                 });
             }
@@ -599,86 +611,108 @@ async function getAllWhatsAppConversations() {
         }
     }
 
-    const db = loadDb();
-    const historyList = db.bot_chat_history || [];
-    const silencedList = db.bot_silenced_numbers || [];
-    const solicitudesList = db.solicitudes || [];
-    const reservasList = db.reservas || [];
-    const clientesList = db.clientes || [];
-    
-    // Mapeo rápido de nombres y categorías
-    const nameMap = new Map();
-    const catMap = new Map();
-    
-    silencedList.forEach(s => {
-        const cleanTel = (s.telefono || '').replace(/\D/g, '');
-        if (cleanTel) {
-            if (s.nombre) nameMap.set(cleanTel, s.nombre);
-            if (s.categoria) catMap.set(cleanTel, s.categoria);
-        }
-    });
-    solicitudesList.forEach(s => {
-        const cleanTel = (s.telefonoCliente || '').replace(/\D/g, '');
-        if (cleanTel && s.nombreCliente && !nameMap.has(cleanTel)) {
-            nameMap.set(cleanTel, s.nombreCliente);
-        }
-    });
-    reservasList.forEach(r => {
-        const cleanTel = (r.telefono || '').replace(/\D/g, '');
-        if (cleanTel && r.nombre && !nameMap.has(cleanTel)) {
-            nameMap.set(cleanTel, r.nombre);
-        }
-    });
-    clientesList.forEach(c => {
-        const cleanTel = (c.telefono || '').replace(/\D/g, '');
-        if (cleanTel && c.nombre && !nameMap.has(cleanTel)) {
-            nameMap.set(cleanTel, c.nombre);
-        }
-    });
-
-    const grouped = new Map();
-
-    historyList.forEach(h => {
-        const tel = h.telefono || '';
-        const meta = h.metadata || {};
-        const clientName = meta.nombreCliente || nameMap.get(tel) || (tel.startsWith('34') || tel.length > 9 ? `+${tel}` : tel) || 'Cliente WhatsApp';
-        const category = meta.categoria || catMap.get(tel) || 'cliente';
-
-        if (!grouped.has(tel)) {
-            grouped.set(tel, {
-                telefono: tel,
-                ultimoMensajeFecha: h.created_at,
-                totalInteracciones: 1,
-                ultimoTexto: h.texto || '',
-                ultimoEmisor: h.emisor || 'bot',
-                ultimoTipo: h.tipo || 'text',
-                nombreCliente: clientName,
-                categoria: category,
-                etiquetas: Array.isArray(meta.etiquetas) ? meta.etiquetas : [],
-                origen: meta.origen || 'CHAT_EN_VIVO'
-            });
-        } else {
-            const item = grouped.get(tel);
-            item.totalInteracciones += 1;
-            if (Array.isArray(meta.etiquetas) && meta.etiquetas.length > 0) {
-                item.etiquetas = meta.etiquetas;
+    if (resultList.length === 0) {
+        const db = loadDb();
+        const historyList = db.bot_chat_history || [];
+        const silencedList = db.bot_silenced_numbers || [];
+        const solicitudesList = db.solicitudes || [];
+        const reservasList = db.reservas || [];
+        const clientesList = db.clientes || [];
+        
+        const nameMap = new Map();
+        const catMap = new Map();
+        
+        silencedList.forEach(s => {
+            const cleanTel = (s.telefono || '').replace(/\D/g, '');
+            if (cleanTel) {
+                if (s.nombre) nameMap.set(cleanTel, s.nombre);
+                if (s.categoria) catMap.set(cleanTel, s.categoria);
             }
-            if (meta.nombreCliente && (!item.nombreCliente || item.nombreCliente.startsWith('+') || item.nombreCliente === 'Cliente WhatsApp')) {
-                item.nombreCliente = meta.nombreCliente;
+        });
+        solicitudesList.forEach(s => {
+            const cleanTel = (s.telefonoCliente || '').replace(/\D/g, '');
+            if (cleanTel && s.nombreCliente && !nameMap.has(cleanTel)) {
+                nameMap.set(cleanTel, s.nombreCliente);
             }
-            if (meta.categoria && meta.categoria !== 'cliente') {
-                item.categoria = meta.categoria;
+        });
+        reservasList.forEach(r => {
+            const cleanTel = (r.telefono || '').replace(/\D/g, '');
+            if (cleanTel && r.nombre && !nameMap.has(cleanTel)) {
+                nameMap.set(cleanTel, r.nombre);
             }
-            if (new Date(h.created_at) > new Date(item.ultimoMensajeFecha)) {
-                item.ultimoMensajeFecha = h.created_at;
-                item.ultimoTexto = h.texto || '';
-                item.ultimoEmisor = h.emisor || 'bot';
-                item.ultimoTipo = h.tipo || 'text';
+        });
+        clientesList.forEach(c => {
+            const cleanTel = (c.telefono || '').replace(/\D/g, '');
+            if (cleanTel && c.nombre && !nameMap.has(cleanTel)) {
+                nameMap.set(cleanTel, c.nombre);
             }
-        }
-    });
+        });
 
-    return Array.from(grouped.values()).sort((a, b) => new Date(b.ultimoMensajeFecha) - new Date(a.ultimoMensajeFecha));
+        const grouped = new Map();
+
+        historyList.forEach(h => {
+            const tel = h.telefono || '';
+            const meta = h.metadata || {};
+            const isGroup = tel === 'group_taxi_casa_julian';
+            const clientName = isGroup ? 'Taxi Casa Julián' : (meta.nombreCliente || nameMap.get(tel) || (tel.startsWith('34') || tel.length > 9 ? `+${tel}` : tel) || 'Cliente WhatsApp');
+            const category = isGroup ? 'taxi' : (meta.categoria || catMap.get(tel) || 'cliente');
+
+            if (!grouped.has(tel)) {
+                grouped.set(tel, {
+                    telefono: tel,
+                    ultimoMensajeFecha: h.created_at,
+                    totalInteracciones: 1,
+                    ultimoTexto: h.texto || '',
+                    ultimoEmisor: h.emisor || 'bot',
+                    ultimoTipo: h.tipo || 'text',
+                    nombreCliente: clientName,
+                    categoria: category,
+                    etiquetas: isGroup ? ['TAXIS', 'GRUPO'] : (Array.isArray(meta.etiquetas) ? meta.etiquetas : []),
+                    origen: meta.origen || 'CHAT_EN_VIVO',
+                    isGroup: isGroup,
+                    participants: isGroup ? TAXI_GROUP_PARTICIPANTS : undefined
+                });
+            } else {
+                const item = grouped.get(tel);
+                item.totalInteracciones += 1;
+                if (Array.isArray(meta.etiquetas) && meta.etiquetas.length > 0) {
+                    item.etiquetas = meta.etiquetas;
+                }
+                if (meta.nombreCliente && (!item.nombreCliente || item.nombreCliente.startsWith('+') || item.nombreCliente === 'Cliente WhatsApp')) {
+                    item.nombreCliente = meta.nombreCliente;
+                }
+                if (meta.categoria && meta.categoria !== 'cliente') {
+                    item.categoria = meta.categoria;
+                }
+                if (new Date(h.created_at) > new Date(item.ultimoMensajeFecha)) {
+                    item.ultimoMensajeFecha = h.created_at;
+                    item.ultimoTexto = h.texto || '';
+                    item.ultimoEmisor = h.emisor || 'bot';
+                    item.ultimoTipo = h.tipo || 'text';
+                }
+            }
+        });
+        resultList = Array.from(grouped.values());
+    }
+
+    // Garantizar que el grupo "Taxi Casa Julián" siempre esté presente
+    if (!resultList.some(c => c.telefono === 'group_taxi_casa_julian')) {
+        resultList.unshift({
+            telefono: 'group_taxi_casa_julian',
+            ultimoMensajeFecha: getSpainIsoTimestamp(),
+            totalInteracciones: 1,
+            ultimoTexto: '🚕 Grupo Taxi Casa Julián (Taxi Iguaran, Taxi Tolosa, Taxi Lexus)',
+            ultimoEmisor: 'recepcion',
+            ultimoTipo: 'text',
+            nombreCliente: 'Taxi Casa Julián',
+            categoria: 'taxi',
+            etiquetas: ['TAXIS', 'GRUPO'],
+            isGroup: true,
+            participants: TAXI_GROUP_PARTICIPANTS
+        });
+    }
+
+    return resultList.sort((a, b) => new Date(b.ultimoMensajeFecha) - new Date(a.ultimoMensajeFecha));
 }
 
 module.exports = {
