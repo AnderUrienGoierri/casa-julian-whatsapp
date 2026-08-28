@@ -24,7 +24,9 @@ if (Test-Path $nasPath) {
     # Enviar señal de reinicio automático al servidor Node.js en Synology NAS
     try {
         $restartUrl = "http://192.168.110.57:3000/api/admin/restart"
-        Invoke-RestMethod -Uri $restartUrl -Method Post -TimeoutSec 3 -ErrorAction SilentlyContinue | Out-Null
+        $token = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("admin_casa_julian_julian2026"))
+        $headers = @{ "x-admin-token" = $token }
+        Invoke-RestMethod -Uri $restartUrl -Method Post -Headers $headers -TimeoutSec 3 -ErrorAction SilentlyContinue | Out-Null
         Write-Host "[AUTO-SYNC] 🔄 Contenedor Docker en Synology NAS reiniciado automáticamente." -ForegroundColor Green
     } catch {}
 } else {

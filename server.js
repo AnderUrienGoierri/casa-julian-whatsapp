@@ -53,7 +53,7 @@ app.get('/reserva', (req, res) => {
 });
 
 // Endpoint de versión para verificar qué código está desplegado
-const DEPLOY_VERSION = 'v2026-08-26-CMS-V326-INBOX-FILTERS-COLLAPSED-BY-DEFAULT';
+const DEPLOY_VERSION = 'v2026-08-28-CMS-V430-SHARED-PERSISTENCE-AND-TAXIS';
 app.get('/version', (req, res) => {
     res.json({ version: DEPLOY_VERSION, timestamp: new Date().toISOString() });
 });
