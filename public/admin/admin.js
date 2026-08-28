@@ -432,6 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentEditingTagId = null;
     let currentContactsPage = 1;
     const CONTACTS_PER_PAGE = 50;
+    const selectedSilencedFilters = new Set();
 
     const DEFAULT_SYSTEM_TAGS = [
         { id: 'proveedor', name: 'Proveedores', label: '🚚 Proveedores', emoji: '🚚', color: '#a3e635', bg: 'rgba(132, 204, 22, 0.2)' },
@@ -671,15 +672,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const canceledBotCount = allContacts.filter(c => !!c.activo).length;
 
         const tags = getAllAvailableSilencedTags();
+        const isAllActive = selectedSilencedFilters.size === 0;
 
         let html = `
-            <button class="filter-chip ${currentSilencedFilter === 'all' ? 'active' : ''}" data-silenced-cat="all">
+            <button class="filter-chip ${isAllActive ? 'active' : ''}" data-silenced-cat="all">
                 Todos (<span id="count-silenced-all">${total}</span>)
             </button>
-            <button class="filter-chip ${currentSilencedFilter === 'bot_active' ? 'active' : ''}" data-silenced-cat="bot_active">
+            <button class="filter-chip ${selectedSilencedFilters.has('bot_active') ? 'active' : ''}" data-silenced-cat="bot_active">
                 🔊 Bot Activo (<span id="count-silenced-active-bot">${activeBotCount}</span>)
             </button>
-            <button class="filter-chip ${currentSilencedFilter === 'bot_canceled' ? 'active' : ''}" data-silenced-cat="bot_canceled">
+            <button class="filter-chip ${selectedSilencedFilters.has('bot_canceled') ? 'active' : ''}" data-silenced-cat="bot_canceled">
                 🔇 Bot Cancelado (<span id="count-silenced-silenced-bot">${canceledBotCount}</span>)
             </button>
         `;
@@ -690,8 +692,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return itemTags.some(t => t.id === tag.id || t.name.toLowerCase() === tag.name.toLowerCase());
             }).length;
 
+            const isTagActive = selectedSilencedFilters.has(tag.id) || selectedSilencedFilters.has(tag.name.toLowerCase());
+
             html += `
-                <button class="filter-chip ${currentSilencedFilter === tag.id ? 'active' : ''}" data-silenced-cat="${tag.id}">
+                <button class="filter-chip ${isTagActive ? 'active' : ''}" data-silenced-cat="${tag.id}">
                     ${tag.label || tag.name} (<span>${count}</span>)
                 </button>
             `;
@@ -701,10 +705,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         silencedFiltersContainer.querySelectorAll('[data-silenced-cat]').forEach(chip => {
             chip.addEventListener('click', () => {
-                silencedFiltersContainer.querySelectorAll('[data-silenced-cat]').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                currentSilencedFilter = chip.getAttribute('data-silenced-cat');
+                const cat = chip.getAttribute('data-silenced-cat');
+                if (cat === 'all') {
+                    selectedSilencedFilters.clear();
+                } else {
+                    if (selectedSilencedFilters.has(cat)) {
+                        selectedSilencedFilters.delete(cat);
+                    } else {
+                        selectedSilencedFilters.add(cat);
+                    }
+                }
                 currentContactsPage = 1;
+                renderSilencedFilters();
                 renderSilencedNumbersTable();
             });
         });
@@ -822,15 +834,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let filtered = [...allContacts];
 
-        // Filtrar por estado del bot o por etiqueta
-        if (currentSilencedFilter === 'bot_active') {
-            filtered = filtered.filter(n => !n.activo);
-        } else if (currentSilencedFilter === 'bot_canceled') {
-            filtered = filtered.filter(n => !!n.activo);
-        } else if (currentSilencedFilter !== 'all') {
-            filtered = filtered.filter(n => {
-                const itemTags = getSilencedItemTags(n);
-                return itemTags.some(t => t.id === currentSilencedFilter || t.name.toLowerCase() === currentSilencedFilter.toLowerCase());
+        // Filtrar por múltiples etiquetas y estados (Intersección estricta / AND)
+        if (selectedSilencedFilters.size > 0) {
+            filtered = filtered.filter(item => {
+                for (const filterId of selectedSilencedFilters) {
+                    if (filterId === 'bot_active') {
+                        if (item.activo !== false) return false;
+                    } else if (filterId === 'bot_canceled') {
+                        if (item.activo === false) return false;
+                    } else {
+                        const itemTags = getSilencedItemTags(item);
+                        const hasTag = itemTags.some(t => t.id === filterId || t.name.toLowerCase() === filterId.toLowerCase());
+                        if (!hasTag) return false;
+                    }
+                }
+                return true;
             });
         }
 

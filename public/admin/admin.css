@@ -4732,87 +4732,67 @@ div.inbox-toolbar-header,
         overflow: visible !important;
     }
 
-    #tab-silenced .data-table,
-    #tab-silenced .data-table tbody {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 12px !important;
+    #tab-silenced .table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border-radius: 8px !important;
+    }
+
+    #tab-silenced .data-table {
+        display: table !important;
         width: 100% !important;
+        min-width: 600px !important;
+        border-collapse: collapse !important;
     }
 
     #tab-silenced .data-table thead {
-        display: none !important;
+        display: table-header-group !important;
+    }
+
+    #tab-silenced .data-table tbody {
+        display: table-row-group !important;
     }
 
     #tab-silenced .data-table tbody tr.silenced-row-item {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 3px !important;
-        background: rgba(30, 41, 59, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 8px !important;
-        padding: 7px 10px !important;
-        margin-bottom: 5px !important;
-        box-shadow: none !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    #tab-silenced .data-table td {
-        padding: 0 !important;
+        display: table-row !important;
+        background: transparent !important;
         border: none !important;
-        width: 100% !important;
+        box-shadow: none !important;
+        padding: 0 !important;
     }
 
-    #tab-silenced .mobile-contact-top-row {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        gap: 8px !important;
-        width: 100% !important;
+    #tab-silenced .data-table tbody tr.silenced-row-item:hover {
+        background: rgba(255, 255, 255, 0.04) !important;
     }
 
-    #tab-silenced .mobile-contact-left-group {
-        display: flex !important;
-        align-items: center !important;
-        gap: 8px !important;
-        flex: 1 1 auto !important;
-        min-width: 0 !important;
-    }
-
-    #tab-silenced .mobile-contact-meta-row {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        gap: 6px !important;
-        flex-wrap: wrap !important;
-        width: 100% !important;
-        padding-left: 25px !important;
-        font-size: 0.80rem !important;
+    #tab-silenced .data-table th,
+    #tab-silenced .data-table td {
+        display: table-cell !important;
+        padding: 7px 10px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        vertical-align: middle !important;
+        width: auto !important;
     }
 
     #tab-silenced .silenced-contact-name {
-        font-size: 0.92rem !important;
-        font-weight: 700 !important;
+        font-size: 0.88rem !important;
+        font-weight: 600 !important;
         color: #ffffff !important;
         white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
     }
 
     #tab-silenced .silenced-actions-group {
-        display: flex !important;
-        gap: 4px !important;
+        display: inline-flex !important;
+        gap: 6px !important;
         align-items: center !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
+        justify-content: flex-end !important;
     }
 
     #tab-silenced .btn-edit-silence,
     #tab-silenced .btn-delete-silence {
-        font-size: 1.05rem !important;
+        font-size: 1.1rem !important;
         padding: 2px 4px !important;
+        cursor: pointer !important;
     }
 
     /* Los overlays pasan a ser contenedor fijo a pantalla completa real */
