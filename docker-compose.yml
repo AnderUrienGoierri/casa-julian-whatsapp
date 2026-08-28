@@ -21,9 +21,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: casa-julian-cloudflared
     restart: always
-    command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN:-}
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN:-}
+    command: tunnel --url http://whatsapp-bot-admin:3000
     depends_on:
       - whatsapp-bot-admin
 
