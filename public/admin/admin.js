@@ -150,7 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password })
             });
-            const data = await res.json();
+
+            let data;
+            const resText = await res.text();
+            try {
+                data = JSON.parse(resText);
+            } catch (pErr) {
+                data = { success: false, error: resText || `Error del servidor (${res.status} ${res.statusText})` };
+            }
 
             if (data.success && data.token) {
                 adminToken = data.token;
