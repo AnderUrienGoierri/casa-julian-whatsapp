@@ -440,19 +440,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedSilencedFilters = new Set();
 
     const DEFAULT_SYSTEM_TAGS = [
-        { id: 'proveedor', name: 'Proveedores', label: '🚚 Proveedores', emoji: '🚚', color: '#a3e635', bg: 'rgba(132, 204, 22, 0.2)' },
-        { id: 'hoteles', name: 'Hoteles', label: '🏨 Hoteles', emoji: '🏨', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' },
-        { id: 'empleado', name: 'Personal', label: '👷 Personal', emoji: '👷', color: '#c084fc', bg: 'rgba(168, 85, 247, 0.2)' },
-        { id: 'cliente', name: 'Clientes', label: '👤 Clientes', emoji: '👤', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.2)' },
         { id: 'menu_tradicion', name: 'OT', label: '🎁 OT', emoji: '🎁', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.2)' },
         { id: 'modificacion', name: 'MODIF', label: '🔄 MODIF', emoji: '🔄', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.2)' },
         { id: 'cancelacion', name: 'CANCEL', label: '❌ CANCEL', emoji: '❌', color: '#f87171', bg: 'rgba(239, 68, 68, 0.2)' },
         { id: 'faq', name: 'FAQs', label: '❓ FAQs', emoji: '❓', color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.2)' },
         { id: 'otras_cuestiones', name: 'OTRAS', label: '💬 OTRAS', emoji: '💬', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.2)' },
+        { id: 'proveedor', name: 'Proveedores', label: '🚚 Proveedores', emoji: '🚚', color: '#a3e635', bg: 'rgba(132, 204, 22, 0.2)' },
+        { id: 'hoteles', name: 'Hoteles', label: '🏨 Hoteles', emoji: '🏨', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' },
+        { id: 'empleado', name: 'Personal', label: '👷 Personal', emoji: '👷', color: '#c084fc', bg: 'rgba(168, 85, 247, 0.2)' },
+        { id: 'cliente', name: 'Clientes', label: '👤 Clientes', emoji: '👤', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.2)' },
         { id: 'otro', name: 'Otros / Taxis', label: '📌 Otros / Taxis', emoji: '📌', color: '#fde047', bg: 'rgba(234, 179, 8, 0.2)' }
     ];
 
     const DEFAULT_SILENCED_TAGS = DEFAULT_SYSTEM_TAGS;
+
+    function getCustomTagsOrder() {
+        try {
+            return JSON.parse(localStorage.getItem('casa_julian_tags_custom_order') || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    function setCustomTagsOrder(orderArray) {
+        localStorage.setItem('casa_julian_tags_custom_order', JSON.stringify(orderArray));
+    }
 
     function getDeletedTags() {
         try {
@@ -567,6 +579,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+        // Aplicar orden personalizado si existe
+        const customOrder = getCustomTagsOrder();
+        if (Array.isArray(customOrder) && customOrder.length > 0) {
+            tags.sort((a, b) => {
+                const idxA = customOrder.indexOf(a.id);
+                const idxB = customOrder.indexOf(b.id);
+                if (idxA > -1 && idxB > -1) return idxA - idxB;
+                if (idxA > -1) return -1;
+                if (idxB > -1) return 1;
+                return 0;
+            });
+        }
+
         return tags;
     }
 
@@ -3870,21 +3895,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!inboxTagsManagerList) return;
         const tags = getAllAvailableSilencedTags();
 
-        inboxTagsManagerList.innerHTML = tags.map(tag => {
-            const count = allUnifiedConversations.filter(c => {
-                const cTags = getChatTags(c.telefono, c).map(t => t.toLowerCase());
-                const cat = getConversationCategory(c);
-                const top = getConversationTopic(c);
-                return cTags.includes(tag.id) || cTags.includes(tag.name.toLowerCase()) || cat === tag.id || top === tag.id;
-            }).length;
-
+        inboxTagsManagerList.innerHTML = tags.map((tag, idx) => {
             const isCustom = !DEFAULT_SYSTEM_TAGS.some(d => d.id === tag.id);
 
             return `
-                <div class="tag-manager-row-item" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 8px 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(134, 150, 160, 0.15); border-radius: 8px; box-sizing: border-box;">
-                    <div class="tag-manager-row-left" style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
-                        <span class="wa-tag-pill" style="color: ${tag.color || '#38bdf8'}; background: ${tag.bg || 'rgba(56, 189, 248, 0.2)'}; font-size: 0.84rem; padding: 5px 12px; white-space: nowrap; font-weight: 600;">
-                            ${tag.emoji || '🏷️'} ${tag.name}
+                <div class="tag-manager-row-item" draggable="true" data-tag-id="${tag.id}" data-tag-index="${idx}" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 8px 12px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(134, 150, 160, 0.15); border-radius: 8px; box-sizing: border-box; cursor: grab; user-select: none; transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;">
+                    <div class="tag-manager-row-left" style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                        <span class="tag-drag-handle" style="cursor: grab; color: #64748b; font-size: 1.15rem; padding: 2px 4px; display: inline-flex; align-items: center;" title="Mantén pulsado y arrastra para reordenar">⠿</span>
+                        <span class="wa-tag-pill" style="color: ${tag.color || '#38bdf8'}; background: ${tag.bg || 'rgba(56, 189, 248, 0.2)'}; font-size: 0.84rem; padding: 5px 12px; white-space: nowrap; font-weight: 600; border-radius: 6px;">
+                            ${tag.emoji ? tag.emoji + ' ' : ''}${tag.name}
                         </span>
                     </div>
                     <div class="tag-manager-row-actions" style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
@@ -3901,8 +3920,134 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
+        // ── Drag & Drop Nativo (Desktop) y Táctil (Móvil) ──
+        let draggedItem = null;
+
+        const items = inboxTagsManagerList.querySelectorAll('.tag-manager-row-item');
+
+        items.forEach(item => {
+            // Desktop Drag & Drop
+            item.addEventListener('dragstart', (e) => {
+                draggedItem = item;
+                item.classList.add('is-dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', item.getAttribute('data-tag-id'));
+            });
+
+            item.addEventListener('dragend', () => {
+                if (draggedItem) {
+                    draggedItem.classList.remove('is-dragging');
+                    draggedItem = null;
+                }
+                items.forEach(it => it.classList.remove('drag-over-top', 'drag-over-bottom'));
+                saveAndApplyNewTagsOrder();
+            });
+
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (!draggedItem || draggedItem === item) return;
+
+                const rect = item.getBoundingClientRect();
+                const midY = rect.top + rect.height / 2;
+                if (e.clientY < midY) {
+                    item.classList.add('drag-over-top');
+                    item.classList.remove('drag-over-bottom');
+                    inboxTagsManagerList.insertBefore(draggedItem, item);
+                } else {
+                    item.classList.add('drag-over-bottom');
+                    item.classList.remove('drag-over-top');
+                    inboxTagsManagerList.insertBefore(draggedItem, item.nextSibling);
+                }
+            });
+
+            item.addEventListener('dragleave', () => {
+                item.classList.remove('drag-over-top', 'drag-over-bottom');
+            });
+
+            item.addEventListener('drop', (e) => {
+                e.preventDefault();
+                item.classList.remove('drag-over-top', 'drag-over-bottom');
+                saveAndApplyNewTagsOrder();
+            });
+
+            // Touch Drag & Drop para dispositivos móviles
+            let touchStartY = 0;
+            let isTouchDragging = false;
+            let longPressTimeout = null;
+
+            item.addEventListener('touchstart', (e) => {
+                if (e.target.closest('.btn-edit-tag-item') || e.target.closest('.btn-delete-tag-item')) return;
+                const touch = e.touches[0];
+                touchStartY = touch.clientY;
+
+                longPressTimeout = setTimeout(() => {
+                    isTouchDragging = true;
+                    draggedItem = item;
+                    item.classList.add('is-dragging');
+                    if (navigator.vibrate) navigator.vibrate(40);
+                }, 200);
+            }, { passive: true });
+
+            item.addEventListener('touchmove', (e) => {
+                if (!isTouchDragging || !draggedItem) {
+                    if (Math.abs(e.touches[0].clientY - touchStartY) > 10) {
+                        clearTimeout(longPressTimeout);
+                    }
+                    return;
+                }
+                e.preventDefault();
+                const touch = e.touches[0];
+                const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+                const targetRow = targetEl ? targetEl.closest('.tag-manager-row-item') : null;
+
+                if (targetRow && targetRow !== draggedItem && targetRow.parentElement === inboxTagsManagerList) {
+                    const rect = targetRow.getBoundingClientRect();
+                    const midY = rect.top + rect.height / 2;
+                    if (touch.clientY < midY) {
+                        inboxTagsManagerList.insertBefore(draggedItem, targetRow);
+                    } else {
+                        inboxTagsManagerList.insertBefore(draggedItem, targetRow.nextSibling);
+                    }
+                }
+            }, { passive: false });
+
+            item.addEventListener('touchend', () => {
+                clearTimeout(longPressTimeout);
+                if (isTouchDragging) {
+                    isTouchDragging = false;
+                    if (draggedItem) {
+                        draggedItem.classList.remove('is-dragging');
+                        draggedItem = null;
+                    }
+                    saveAndApplyNewTagsOrder();
+                }
+            });
+
+            item.addEventListener('touchcancel', () => {
+                clearTimeout(longPressTimeout);
+                isTouchDragging = false;
+                if (draggedItem) {
+                    draggedItem.classList.remove('is-dragging');
+                    draggedItem = null;
+                }
+            });
+        });
+
+        function saveAndApplyNewTagsOrder() {
+            const currentOrder = Array.from(inboxTagsManagerList.querySelectorAll('.tag-manager-row-item'))
+                .map(el => el.getAttribute('data-tag-id'))
+                .filter(Boolean);
+
+            setCustomTagsOrder(currentOrder);
+            renderSilencedFilters();
+            renderInboxCards();
+        }
+
+        // Botones de editar y eliminar
         inboxTagsManagerList.querySelectorAll('.btn-edit-tag-item').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const tagId = btn.getAttribute('data-tag-id');
                 const tagName = decodeURIComponent(btn.getAttribute('data-tag-name') || '');
                 const tagEmoji = btn.getAttribute('data-tag-emoji') || '🏷️';
@@ -3912,7 +4057,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         inboxTagsManagerList.querySelectorAll('.btn-delete-tag-item').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const tagId = btn.getAttribute('data-tag-id');
                 const tagName = decodeURIComponent(btn.getAttribute('data-tag-name') || '');
                 if (!confirm(`¿Eliminar la etiqueta "${tagName}"? Se desasignará de los chats correspondientes.`)) return;

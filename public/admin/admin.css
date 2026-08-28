@@ -5210,7 +5210,7 @@ div.inbox-toolbar-header,
     }
 }
 
-/* ── Estilos Fila de Gestión de Etiquetas ── */
+/* ── Estilos Fila de Gestión de Etiquetas (con Drag & Drop) ── */
 .tag-manager-row-item {
     display: flex !important;
     flex-direction: row !important;
@@ -5218,18 +5218,52 @@ div.inbox-toolbar-header,
     justify-content: space-between !important;
     gap: 10px !important;
     width: 100% !important;
-    padding: 8px 12px !important;
+    padding: 10px 14px !important;
     background: rgba(255, 255, 255, 0.03) !important;
     border: 1px solid rgba(134, 150, 160, 0.15) !important;
     border-radius: 8px !important;
     box-sizing: border-box !important;
+    cursor: grab !important;
+    user-select: none !important;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease !important;
+}
+
+.tag-manager-row-item:active {
+    cursor: grabbing !important;
+}
+
+.tag-manager-row-item.is-dragging {
+    opacity: 0.45 !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    border: 1px dashed #3b82f6 !important;
+    transform: scale(0.98) !important;
+}
+
+.tag-manager-row-item.drag-over-top {
+    border-top: 2px solid #3b82f6 !important;
+}
+
+.tag-manager-row-item.drag-over-bottom {
+    border-bottom: 2px solid #3b82f6 !important;
+}
+
+.tag-drag-handle {
+    cursor: grab !important;
+    user-select: none !important;
+    color: #64748b !important;
+    font-size: 1.15rem !important;
+    transition: color 0.15s ease !important;
+}
+
+.tag-drag-handle:hover {
+    color: #cbd5e1 !important;
 }
 
 .tag-manager-row-left {
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 10px !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
 }
@@ -5240,6 +5274,21 @@ div.inbox-toolbar-header,
     align-items: center !important;
     gap: 6px !important;
     flex-shrink: 0 !important;
+}
+
+/* ── Fondo Negro Oscuro Unificado para la Zona de Filtros del Buzón ── */
+.whatsapp-business-header-container,
+.wa-filter-rows-container,
+.wa-filter-pills-row,
+.wa-search-container {
+    background: var(--bg-card) !important; /* Mismo #121418 del header */
+    background-color: var(--bg-card) !important;
+}
+
+.whatsapp-business-header-container {
+    border-bottom: 1px solid var(--border-color) !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
 }
 
 /* ── Filtros Morados en Pestaña Números Bot Cancelados ── */
