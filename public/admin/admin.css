@@ -1,10 +1,10 @@
 /* CSS RESET & VARIABLES - CASA JULIÁN ADMIN CMS */
 :root {
     --bg-dark: #0a0b0e;
-    --bg-card: #121418;
-    --bg-card-hover: #181b22;
-    --border-color: #222630;
-    --border-light: rgba(255, 255, 255, 0.1);
+    --bg-card: #0a0b0e;
+    --bg-card-hover: #121418;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.08);
     --accent-gold: #c29547;
     --accent-gold-hover: #a67c33;
     --accent-green: #10b981;
@@ -217,8 +217,9 @@ button {
 
 /* HEADER PRINCIPAL */
 .main-header {
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border-color);
+    background: #0a0b0e !important;
+    background-color: #0a0b0e !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     padding: 10px 16px;
     display: flex;
     justify-content: space-between;
@@ -376,26 +377,27 @@ button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #14171e;
+    background: transparent !important;
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: none !important;
     width: 38px;
     height: 38px;
     padding: 0;
-    border-radius: 9px;
-    font-size: 1.2rem;
+    font-size: 1.45rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    box-shadow: none !important;
+    outline: none !important;
     flex-shrink: 0;
 }
 
 .header-menu-btn:hover,
 .header-menu-btn.active {
-    background: #202530;
-    border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: scale(1.15);
     color: #ffffff;
 }
 
@@ -5276,17 +5278,22 @@ div.inbox-toolbar-header,
     flex-shrink: 0 !important;
 }
 
-/* ── Fondo Negro Oscuro Unificado para la Zona de Filtros del Buzón ── */
+/* ── Fondo Negro Oscuro Unificado para la Zona de Filtros y Buzón ── */
 .whatsapp-business-header-container,
 .wa-filter-rows-container,
 .wa-filter-pills-row,
-.wa-search-container {
-    background: var(--bg-card) !important; /* Mismo #121418 del header */
-    background-color: var(--bg-card) !important;
+.wa-search-container,
+.wa-web-tab,
+.wa-web-container,
+.wa-left-pane,
+.whatsapp-chats-list,
+#tab-inbox {
+    background: #0a0b0e !important;
+    background-color: #0a0b0e !important;
 }
 
 .whatsapp-business-header-container {
-    border-bottom: 1px solid var(--border-color) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     padding-top: 8px !important;
     padding-bottom: 8px !important;
 }
