@@ -5201,3 +5201,36 @@ div.inbox-toolbar-header,
         display: none !important; /* Ocultar simulador en pantallas pequeñas para dar 100% al editor/buzón */
     }
 }
+
+/* ── Estilos Fila de Gestión de Etiquetas ── */
+.tag-manager-row-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    width: 100% !important;
+    padding: 8px 12px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(134, 150, 160, 0.15) !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+}
+
+.tag-manager-row-left {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+.tag-manager-row-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+}
+
