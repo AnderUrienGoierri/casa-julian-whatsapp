@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Título de la pestaña activa en el Header
+    // Título de la pestaña activa en el Header (Sin Emojis)
     function updateHeaderActiveTab(tabId) {
         currentActiveTabId = tabId;
 
@@ -202,10 +202,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const iconEl = document.getElementById('header-active-tab-icon');
         const nameEl = document.getElementById('header-active-tab-name');
         const badgeEl = document.getElementById('header-active-tab-badge');
+        if (iconEl) {
+            iconEl.textContent = '';
+            iconEl.style.display = 'none';
+        }
         if (!nameEl) return;
 
         if (tabId === 'tab-inbox') {
-            if (iconEl) iconEl.textContent = '📥';
             nameEl.textContent = 'Buzón';
             if (badgeEl) {
                 const count = getPendingConversationsCount();
@@ -215,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
             }
         } else if (tabId === 'tab-silenced') {
-            if (iconEl) iconEl.textContent = '🔇';
             nameEl.textContent = 'Números Bot Cancelados';
             if (badgeEl) {
                 const count = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) 
@@ -227,24 +229,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 badgeEl.style.display = count > 0 ? 'inline-block' : 'none';
             }
         } else if (tabId === 'tab-flow') {
-            if (iconEl) iconEl.textContent = '🌳';
             nameEl.textContent = 'Estructura & Árbol de Flujos';
             if (badgeEl) badgeEl.style.display = 'none';
         } else if (tabId === 'tab-texts') {
-            if (iconEl) iconEl.textContent = '📝';
             nameEl.textContent = 'Editor de Mensajes & Textos';
             if (badgeEl) badgeEl.style.display = 'none';
         } else if (tabId === 'tab-rules') {
-            if (iconEl) iconEl.textContent = '⚙️';
             nameEl.textContent = 'Flujo & Respuestas Clave';
             if (badgeEl) badgeEl.style.display = 'none';
         } else if (tabId === 'tab-publish') {
-            if (iconEl) iconEl.textContent = '🚀';
             nameEl.textContent = 'Comprobar y Subir';
             if (badgeEl) badgeEl.style.display = 'none';
         } else if (tabId === 'tab-settings') {
-            if (iconEl) iconEl.textContent = '⚙️';
-            nameEl.textContent = 'Diagnóstico & Ajustes';
+            nameEl.textContent = 'Ajustes & Diagnóstico';
             if (badgeEl) badgeEl.style.display = 'none';
         }
     }
