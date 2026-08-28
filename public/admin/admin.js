@@ -694,6 +694,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.from(contactsMap.values());
     }
 
+    let isSilencedFiltersExpanded = false;
+
     function renderSilencedFilters() {
         if (!silencedFiltersContainer) return;
         const allContacts = getCombinedContactsList();
@@ -706,32 +708,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = `
             <button class="filter-chip ${isAllActive ? 'active' : ''}" data-silenced-cat="all">
-                Todos (<span id="count-silenced-all">${total}</span>)
+                Todos (${total})
             </button>
             <button class="filter-chip ${selectedSilencedFilters.has('bot_active') ? 'active' : ''}" data-silenced-cat="bot_active">
-                🔊 Bot Activo (<span id="count-silenced-active-bot">${activeBotCount}</span>)
+                🔊 Bot Activo (${activeBotCount})
             </button>
             <button class="filter-chip ${selectedSilencedFilters.has('bot_canceled') ? 'active' : ''}" data-silenced-cat="bot_canceled">
-                🔇 Bot Cancelado (<span id="count-silenced-silenced-bot">${canceledBotCount}</span>)
+                🔇 Bot Cancelado (${canceledBotCount})
             </button>
         `;
 
-        tags.forEach(tag => {
-            const count = allContacts.filter(n => {
-                const itemTags = getSilencedItemTags(n);
-                return itemTags.some(t => t.id === tag.id || t.name.toLowerCase() === tag.name.toLowerCase());
-            }).length;
+        if (isSilencedFiltersExpanded) {
+            tags.forEach(tag => {
+                const count = allContacts.filter(n => {
+                    const itemTags = getSilencedItemTags(n);
+                    return itemTags.some(t => t.id === tag.id || t.name.toLowerCase() === tag.name.toLowerCase());
+                }).length;
 
-            const isTagActive = selectedSilencedFilters.has(tag.id) || selectedSilencedFilters.has(tag.name.toLowerCase());
+                const isTagActive = selectedSilencedFilters.has(tag.id) || selectedSilencedFilters.has(tag.name.toLowerCase());
+
+                html += `
+                    <button class="filter-chip ${isTagActive ? 'active' : ''}" data-silenced-cat="${tag.id}">
+                        ${tag.label || tag.name} (${count})
+                    </button>
+                `;
+            });
 
             html += `
-                <button class="filter-chip ${isTagActive ? 'active' : ''}" data-silenced-cat="${tag.id}">
-                    ${tag.label || tag.name} (<span>${count}</span>)
+                <button type="button" id="btn-toggle-silenced-tags" class="filter-chip" style="background: rgba(147, 51, 234, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; font-weight: 600;">
+                    ▴ Ocultar etiquetas
                 </button>
             `;
-        });
+        } else {
+            // Si está colapsado pero hay alguna etiqueta seleccionada por el usuario, mostrarla para que sepa qué filtro está activo
+            tags.forEach(tag => {
+                const isTagActive = selectedSilencedFilters.has(tag.id) || selectedSilencedFilters.has(tag.name.toLowerCase());
+                if (isTagActive) {
+                    const count = allContacts.filter(n => {
+                        const itemTags = getSilencedItemTags(n);
+                        return itemTags.some(t => t.id === tag.id || t.name.toLowerCase() === tag.name.toLowerCase());
+                    }).length;
+                    html += `
+                        <button class="filter-chip active" data-silenced-cat="${tag.id}">
+                            ${tag.label || tag.name} (${count})
+                        </button>
+                    `;
+                }
+            });
+
+            html += `
+                <button type="button" id="btn-toggle-silenced-tags" class="filter-chip" style="background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(168, 85, 247, 0.5); color: #c084fc; font-weight: 600;">
+                    🏷️ Etiquetas ▾
+                </button>
+            `;
+        }
 
         silencedFiltersContainer.innerHTML = html;
+
+        const toggleBtn = silencedFiltersContainer.querySelector('#btn-toggle-silenced-tags');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                isSilencedFiltersExpanded = !isSilencedFiltersExpanded;
+                renderSilencedFilters();
+            });
+        }
 
         silencedFiltersContainer.querySelectorAll('[data-silenced-cat]').forEach(chip => {
             chip.addEventListener('click', () => {
