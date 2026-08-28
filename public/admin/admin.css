@@ -4747,53 +4747,15 @@ div.inbox-toolbar-header,
     #tab-silenced .data-table tbody tr.silenced-row-item {
         display: flex !important;
         flex-direction: column !important;
-        gap: 8px !important;
-        background: #1e293b !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 12px !important;
-        padding: 14px 16px !important;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+        gap: 3px !important;
+        background: rgba(30, 41, 59, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px !important;
+        padding: 7px 10px !important;
+        margin-bottom: 5px !important;
+        box-shadow: none !important;
         width: 100% !important;
         box-sizing: border-box !important;
-    }
-
-    #tab-silenced .desktop-only-cell {
-        display: none !important;
-    }
-
-    #tab-silenced .mobile-only-cat {
-        display: inline-block !important;
-    }
-
-    #tab-silenced .silenced-mobile-header {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        gap: 8px !important;
-        width: 100% !important;
-    }
-
-    #tab-silenced .silenced-contact-name {
-        font-size: 1.02rem !important;
-        font-weight: 700 !important;
-        color: #ffffff !important;
-    }
-
-    #tab-silenced .silenced-phone-link {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 4px !important;
-        color: #38bdf8 !important;
-        font-family: monospace !important;
-        font-size: 0.92rem !important;
-        font-weight: 600 !important;
-        text-decoration: none !important;
-    }
-
-    #tab-silenced .silenced-notes-text {
-        font-size: 0.82rem !important;
-        color: #94a3b8 !important;
-        display: block !important;
     }
 
     #tab-silenced .data-table td {
@@ -4802,41 +4764,55 @@ div.inbox-toolbar-header,
         width: 100% !important;
     }
 
-    #tab-silenced .col-status {
+    #tab-silenced .mobile-contact-top-row {
         display: flex !important;
         align-items: center !important;
-        margin-top: 2px !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    #tab-silenced .mobile-contact-left-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+    }
+
+    #tab-silenced .mobile-contact-meta-row {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+        padding-left: 25px !important;
+        font-size: 0.80rem !important;
+    }
+
+    #tab-silenced .silenced-contact-name {
+        font-size: 0.92rem !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 
     #tab-silenced .silenced-actions-group {
         display: flex !important;
-        gap: 8px !important;
-        margin-top: 8px !important;
-        padding-top: 10px !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-        width: 100% !important;
+        gap: 4px !important;
+        align-items: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
     }
 
-    #tab-silenced .silenced-actions-group .btn-toggle-silence {
-        flex: 1 1 auto !important;
-        padding: 8px 12px !important;
-        font-size: 0.84rem !important;
-        font-weight: 600 !important;
-        text-align: center !important;
-        border-radius: 8px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    #tab-silenced .silenced-actions-group .btn-delete-silence {
-        padding: 8px 16px !important;
-        font-size: 0.84rem !important;
-        font-weight: 600 !important;
-        border-radius: 8px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+    #tab-silenced .btn-edit-silence,
+    #tab-silenced .btn-delete-silence {
+        font-size: 1.05rem !important;
+        padding: 2px 4px !important;
     }
 
     /* Los overlays pasan a ser contenedor fijo a pantalla completa real */
@@ -5313,6 +5289,39 @@ div.inbox-toolbar-header,
     color: #ffffff !important;
     text-decoration: none !important;
 }
+
+/* ── Paginación de Contactos ── */
+.contacts-page-btn {
+    background: rgba(255, 255, 255, 0.06);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.contacts-page-btn:hover:not(:disabled) {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: #a855f7;
+    color: #ffffff;
+}
+
+.contacts-page-btn.active {
+    background: linear-gradient(135deg, #9333ea, #7e22ce) !important;
+    border-color: #a855f7 !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(147, 51, 234, 0.4);
+}
+
+.contacts-page-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
 
 
 

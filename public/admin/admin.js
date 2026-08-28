@@ -430,6 +430,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedTagEmoji = '🏷️';
     let selectedSilencedModalTags = ['proveedor'];
     let currentEditingTagId = null;
+    let currentContactsPage = 1;
+    const CONTACTS_PER_PAGE = 50;
 
     const DEFAULT_SYSTEM_TAGS = [
         { id: 'proveedor', name: 'Proveedores', label: '🚚 Proveedores', emoji: '🚚', color: '#a3e635', bg: 'rgba(132, 204, 22, 0.2)' },
@@ -494,13 +496,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         const existingIdx = custom.findIndex(t => t.id === id);
+        const tagLabel = emoji ? `${emoji} ${cleanName}` : cleanName;
         let tagObj;
         if (existingIdx > -1) {
             tagObj = {
                 ...custom[existingIdx],
                 name: cleanName,
-                label: `${emoji} ${cleanName}`,
-                emoji
+                label: tagLabel,
+                emoji: emoji || ''
             };
             custom[existingIdx] = tagObj;
         } else {
@@ -509,8 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tagObj = {
                 id,
                 name: cleanName,
-                label: `${emoji} ${cleanName}`,
-                emoji,
+                label: tagLabel,
+                emoji: emoji || '',
                 color: colorObj.color || '#38bdf8',
                 bg: colorObj.bg || 'rgba(56, 189, 248, 0.2)'
             };
@@ -701,7 +704,83 @@ document.addEventListener('DOMContentLoaded', () => {
                 silencedFiltersContainer.querySelectorAll('[data-silenced-cat]').forEach(c => c.classList.remove('active'));
                 chip.classList.add('active');
                 currentSilencedFilter = chip.getAttribute('data-silenced-cat');
+                currentContactsPage = 1;
                 renderSilencedNumbersTable();
+            });
+        });
+    }
+
+    function renderContactsPagination(totalItems, totalPages) {
+        const infoEl = document.getElementById('contacts-pagination-info');
+        const controlsEl = document.getElementById('contacts-pagination-controls');
+        if (!infoEl || !controlsEl) return;
+
+        if (totalItems === 0) {
+            infoEl.textContent = 'Mostrando 0 contactos';
+            controlsEl.innerHTML = '';
+            return;
+        }
+
+        const start = (currentContactsPage - 1) * CONTACTS_PER_PAGE + 1;
+        const end = Math.min(currentContactsPage * CONTACTS_PER_PAGE, totalItems);
+        infoEl.textContent = `Mostrando ${start} - ${end} de ${totalItems} contactos (Pág. ${currentContactsPage}/${totalPages})`;
+
+        if (totalPages <= 1) {
+            controlsEl.innerHTML = '';
+            return;
+        }
+
+        let buttonsHtml = '';
+
+        // Botón Anterior
+        buttonsHtml += `
+            <button type="button" class="contacts-page-btn" data-page="${currentContactsPage - 1}" ${currentContactsPage <= 1 ? 'disabled' : ''}>
+                « Anterior
+            </button>
+        `;
+
+        // Generar botones de páginas numéricas
+        let pageNumbers = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+        } else {
+            if (currentContactsPage <= 4) {
+                pageNumbers = [1, 2, 3, 4, 5, '...', totalPages];
+            } else if (currentContactsPage >= totalPages - 3) {
+                pageNumbers = [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+            } else {
+                pageNumbers = [1, '...', currentContactsPage - 1, currentContactsPage, currentContactsPage + 1, '...', totalPages];
+            }
+        }
+
+        pageNumbers.forEach(p => {
+            if (p === '...') {
+                buttonsHtml += `<span style="color: #64748b; padding: 0 4px; font-weight: bold; user-select: none;">...</span>`;
+            } else {
+                buttonsHtml += `
+                    <button type="button" class="contacts-page-btn ${p === currentContactsPage ? 'active' : ''}" data-page="${p}">
+                        ${p}
+                    </button>
+                `;
+            }
+        });
+
+        // Botón Siguiente
+        buttonsHtml += `
+            <button type="button" class="contacts-page-btn" data-page="${currentContactsPage + 1}" ${currentContactsPage >= totalPages ? 'disabled' : ''}>
+                Siguiente »
+            </button>
+        `;
+
+        controlsEl.innerHTML = buttonsHtml;
+
+        controlsEl.querySelectorAll('.contacts-page-btn:not(:disabled)').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetPage = parseInt(btn.getAttribute('data-page'), 10);
+                if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages) {
+                    currentContactsPage = targetPage;
+                    renderSilencedNumbersTable();
+                }
             });
         });
     }
@@ -765,8 +844,18 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }
 
+        const totalPages = Math.ceil(filtered.length / CONTACTS_PER_PAGE) || 1;
+        if (currentContactsPage > totalPages) currentContactsPage = totalPages;
+        if (currentContactsPage < 1) currentContactsPage = 1;
+
+        const startIndex = (currentContactsPage - 1) * CONTACTS_PER_PAGE;
+        const endIndex = Math.min(startIndex + CONTACTS_PER_PAGE, filtered.length);
+        const pageItems = filtered.slice(startIndex, endIndex);
+
+        renderContactsPagination(filtered.length, totalPages);
+
         if (selectAllChk) {
-            const allVisibleSelected = filtered.length > 0 && filtered.every(item => selectedSilencedPhones.has(item.telefono));
+            const allVisibleSelected = pageItems.length > 0 && pageItems.every(item => selectedSilencedPhones.has(item.telefono));
             selectAllChk.checked = allVisibleSelected;
         }
 
@@ -783,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        tbody.innerHTML = filtered.map(item => {
+        tbody.innerHTML = pageItems.map(item => {
             const itemTags = getSilencedItemTags(item);
             const badgesHtml = `
                 <div class="silenced-tags-list-badges">
@@ -800,36 +889,36 @@ document.addEventListener('DOMContentLoaded', () => {
             const isChecked = selectedSilencedPhones.has(cleanPhone);
 
             const statusHtml = isSilencedActive
-                ? `<span class="silenced-status-btn" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); padding: 4px 10px; border-radius: 12px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.15s ease;" title="Bot Cancelado. Haz clic para activarlo.">🔇 Bot Cancelado</span>`
-                : `<span class="silenced-status-btn" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 10px; border-radius: 12px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.15s ease;" title="Bot Activo. Haz clic para cancelarlo.">🔊 Bot Activo</span>`;
+                ? `<span class="silenced-status-btn" style="background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.15s ease;" title="Bot Cancelado. Haz clic para activarlo.">🔇 Bot Cancelado</span>`
+                : `<span class="silenced-status-btn" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 3px 8px; border-radius: 12px; font-size: 0.74rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: transform 0.15s ease;" title="Bot Activo. Haz clic para cancelarlo.">🔊 Bot Activo</span>`;
 
             return `
                 <tr class="silenced-row-item" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); ${isChecked ? 'background: rgba(147, 51, 234, 0.08);' : ''}">
-                    <td style="width: 44px; padding: 12px 14px; text-align: center;">
+                    <td class="col-chk" style="width: 40px; padding: 8px 10px; text-align: center;">
                         <input type="checkbox" class="silenced-row-chk" data-phone="${cleanPhone}" data-id="${item.id || ''}" ${isChecked ? 'checked' : ''} style="width: 17px; height: 17px; cursor: pointer; accent-color: #9333ea;">
                     </td>
-                    <td class="col-name" style="padding: 12px 16px; font-weight: 600; color: #f8fafc;">
+                    <td class="col-name" style="padding: 8px 12px; font-weight: 600; color: #f8fafc;">
                         <span class="silenced-contact-name">${item.nombre || 'Contacto'}</span>
                     </td>
-                    <td class="col-phone" style="padding: 12px 16px; color: #ffffff; font-family: monospace;">
+                    <td class="col-phone" style="padding: 8px 12px; color: #ffffff; font-family: monospace;">
                         <a href="https://wa.me/${cleanPhone}" target="_blank" class="silenced-phone-link" style="color: #ffffff; text-decoration: none;">
                             📞 +${item.telefono}
                         </a>
                     </td>
-                    <td class="col-cat" style="padding: 12px 16px;">
+                    <td class="col-cat" style="padding: 8px 12px;">
                         ${badgesHtml}
                     </td>
-                    <td class="col-status" style="padding: 12px 16px; text-align: center;">
+                    <td class="col-status" style="padding: 8px 12px; text-align: center;">
                         <div class="status-toggle-wrapper" data-phone="${cleanPhone}" data-id="${item.id || ''}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" data-active="${isSilencedActive}" style="display: inline-block;">
                             ${statusHtml}
                         </div>
                     </td>
-                    <td class="col-actions" style="padding: 12px 16px; text-align: right; white-space: nowrap;">
-                        <div class="silenced-actions-group" style="display: inline-flex; gap: 8px; align-items: center; justify-content: flex-end;">
-                            <button type="button" class="btn-edit-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: none; border: none; box-shadow: none; font-size: 1.15rem; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Editar contacto y etiquetas">
+                    <td class="col-actions" style="padding: 8px 12px; text-align: right; white-space: nowrap;">
+                        <div class="silenced-actions-group" style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end;">
+                            <button type="button" class="btn-edit-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: none; border: none; box-shadow: none; font-size: 1.15rem; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Editar contacto y etiquetas">
                                 ✏️
                             </button>
-                            <button type="button" class="btn-delete-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: none; border: none; box-shadow: none; font-size: 1.15rem; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Eliminar contacto">
+                            <button type="button" class="btn-delete-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: none; border: none; box-shadow: none; font-size: 1.15rem; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Eliminar contacto">
                                 🗑️
                             </button>
                         </div>
@@ -1174,9 +1263,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (silencedTagSubmitBtn) silencedTagSubmitBtn.textContent = '💾 Guardar Cambios';
             if (editingTagIdInput) editingTagIdInput.value = editTag.id;
             if (newTagNameInput) newTagNameInput.value = editTag.name || '';
-            selectedTagEmoji = editTag.emoji || '🏷️';
+            selectedTagEmoji = (editTag.emoji !== undefined && editTag.emoji !== null) ? editTag.emoji : '🏷️';
             if (tagEmojiSelect) tagEmojiSelect.value = selectedTagEmoji;
-            if (selectedEmojiPreview) selectedEmojiPreview.textContent = selectedTagEmoji;
+            if (selectedEmojiPreview) selectedEmojiPreview.textContent = selectedTagEmoji || '—';
             if (btnDeleteCurrentTag) {
                 btnDeleteCurrentTag.style.display = 'inline-flex';
                 btnDeleteCurrentTag.setAttribute('data-tag-id', editTag.id);
@@ -1255,8 +1344,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Dropdown de Emoticonos Listener
     if (tagEmojiSelect) {
         tagEmojiSelect.addEventListener('change', () => {
-            selectedTagEmoji = tagEmojiSelect.value || '🏷️';
-            if (selectedEmojiPreview) selectedEmojiPreview.textContent = selectedTagEmoji;
+            selectedTagEmoji = tagEmojiSelect.value;
+            if (selectedEmojiPreview) selectedEmojiPreview.textContent = selectedTagEmoji || '—';
         });
     }
 
@@ -1304,6 +1393,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchSilencedInput) {
         searchSilencedInput.addEventListener('input', (e) => {
             currentSilencedSearch = e.target.value;
+            currentContactsPage = 1;
             renderSilencedNumbersTable();
         });
     }
