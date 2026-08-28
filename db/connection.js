@@ -273,6 +273,42 @@ if (process.env.DATABASE_URL) {
         } catch (seedErr) {
             console.error("⚠️ Error seeding silenced numbers:", seedErr.message);
         }
+
+        // Auto-migración de historial de chats si la tabla bot_chat_history está vacía
+        try {
+            const countCheck = await pool.query('SELECT count(*) as total FROM bot_chat_history');
+            if (parseInt(countCheck.rows[0].total, 10) === 0 && fs.existsSync(DB_PATH)) {
+                console.log("📦 Auto-poblando bot_chat_history en PostgreSQL desde db.json...");
+                const dbJson = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+                const historyList = dbJson.bot_chat_history || [];
+                const client = await pool.connect();
+                try {
+                    await client.query('BEGIN');
+                    for (const item of historyList) {
+                        const tel = (item.telefono || '').toString().trim();
+                        if (!tel) continue;
+                        const emisor = (item.emisor || 'cliente').toString().trim();
+                        const tipo = (item.tipo || 'text').toString().trim();
+                        const texto = (item.texto || '').toString();
+                        const metaStr = typeof item.metadata === 'object' && item.metadata !== null ? JSON.stringify(item.metadata) : (item.metadata || '{}');
+                        const createdAt = item.created_at || new Date().toISOString();
+                        await client.query(
+                            `INSERT INTO bot_chat_history (telefono, emisor, tipo, texto, metadata, created_at) VALUES ($1, $2, $3, $4, $5, $6)`,
+                            [tel, emisor, tipo, texto, metaStr, createdAt]
+                        );
+                    }
+                    await client.query('COMMIT');
+                    console.log(`✅ [Chat History] ${historyList.length} mensajes migrados a PostgreSQL.`);
+                } catch (txErr) {
+                    await client.query('ROLLBACK');
+                    console.error("⚠️ Error migrando chat history a Postgres:", txErr.message);
+                } finally {
+                    client.release();
+                }
+            }
+        } catch (histErr) {
+            console.error("⚠️ Error verificando bot_chat_history:", histErr.message);
+        }
     }).catch(err => console.error("⚠️ Error en Auto-Migración de BD:", err.message));
 }
 
