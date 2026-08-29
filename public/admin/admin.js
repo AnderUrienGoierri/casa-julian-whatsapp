@@ -3673,7 +3673,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const map = getChatTagsMap();
         if (Array.isArray(map[cleanPhone]) && map[cleanPhone].length > 0) {
-            return map[cleanPhone];
+            return map[cleanPhone].map(t => {
+                const low = String(t).toLowerCase();
+                if (low === 'empleado' || low === 'empleados' || low === 'alba') return 'Personal';
+                return t;
+            });
         }
         
         // Si no tiene asignación explícita, inferir de contactos silenciados o categoría
@@ -3681,20 +3685,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const silenced = Array.isArray(allSilencedNumbers) ? allSilencedNumbers.find(s => getCleanPhoneKey(s.telefono) === cleanPhone) : null;
         if (silenced && silenced.categoria) {
             const parts = silenced.categoria.split(',').map(p => p.trim()).filter(Boolean);
-            tags.push(...parts);
+            parts.forEach(p => {
+                const low = p.toLowerCase();
+                if (low === 'empleado' || low === 'empleados' || low === 'alba' || low === 'personal') {
+                    tags.push('Personal');
+                } else if (low === 'proveedor' || low === 'proveedores') {
+                    tags.push('Proveedores');
+                } else if (low === 'hotel' || low === 'hoteles') {
+                    tags.push('Hoteles');
+                } else if (low === 'taxi' || low === 'taxis') {
+                    tags.push('Taxis');
+                } else {
+                    tags.push(p);
+                }
+            });
         } else if (conv && Array.isArray(conv.etiquetas) && conv.etiquetas.length > 0) {
-            tags.push(...conv.etiquetas);
+            tags.push(...conv.etiquetas.map(t => {
+                const low = String(t).toLowerCase();
+                if (low === 'empleado' || low === 'empleados' || low === 'alba') return 'Personal';
+                return t;
+            }));
         } else {
             const cat = conv ? (conv.categoria || '').toLowerCase() : '';
             const name = conv ? (conv.nombreCliente || '').toLowerCase() : '';
             if (cat === 'proveedor' || cat === 'proveedores' || name.includes('entretiempo') || name.includes('ricardo')) {
-                tags.push('PROVEEDORES');
+                tags.push('Proveedores');
             } else if (cat === 'hoteles' || cat === 'hotel') {
-                tags.push('HOTELES');
-            } else if (cat === 'empleado' || cat === 'empleados' || cat === 'alba') {
-                tags.push('EMPLEADOS');
+                tags.push('Hoteles');
+            } else if (cat === 'empleado' || cat === 'empleados' || cat === 'alba' || cat === 'personal' || name.includes('alba') || name.includes('gorrotxategi') || name.includes('informatico')) {
+                tags.push('Personal');
             } else if (cat === 'taxi' || cat === 'taxis') {
-                tags.push('TAXIS');
+                tags.push('Taxis');
             }
         }
         return [...new Set(tags)];
@@ -3938,11 +3959,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (tags.length > 0) {
                 tagsHtml = `<div class="wa-tags-container">` + tags.map(t => {
-                    const tagObj = availableTagsList.find(at => at.id === t.toLowerCase() || at.name.toLowerCase() === t.toLowerCase());
+                    const lowT = String(t).toLowerCase().trim();
+                    const tagObj = availableTagsList.find(at => {
+                        const atId = (at.id || '').toLowerCase();
+                        const atName = (at.name || '').toLowerCase();
+                        if (atId === lowT || atName === lowT) return true;
+                        if (atId === 'empleado' && (lowT === 'empleados' || lowT === 'empleado' || lowT === 'personal' || lowT === 'alba')) return true;
+                        if (atId === 'proveedor' && (lowT === 'proveedores' || lowT === 'proveedor')) return true;
+                        if (atId === 'hoteles' && (lowT === 'hotel' || lowT === 'hoteles')) return true;
+                        if (atId === 'taxi' && (lowT === 'taxis' || lowT === 'taxi')) return true;
+                        return false;
+                    });
                     const label = (tagObj ? tagObj.name : t).toUpperCase();
-                    const color = tagObj ? tagObj.color : '#a3e635';
-                    const bg = tagObj ? tagObj.bg : 'rgba(132, 204, 22, 0.18)';
-                    const tagClass = `tag-${t.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+                    const color = tagObj ? tagObj.color : '#c084fc';
+                    const bg = tagObj ? tagObj.bg : 'rgba(168, 85, 247, 0.2)';
+                    const tagClass = `tag-${(tagObj ? tagObj.id : t).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
                     return `<span class="wa-tag-pill ${tagClass}" style="color: ${color}; background: ${bg}; border-color: ${color}66;">${label}</span>`;
                 }).join('') + `</div>`;
             }
