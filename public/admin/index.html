@@ -1078,6 +1078,8 @@
                 <button type="button" id="save-bulk-tag-btn" class="btn-primary" style="background: linear-gradient(135deg, #9333ea, #7e22ce);">💾 Aplicar a Seleccionados</button>
             </div>
         </div>
+    </div>
+
     <!-- Modal para Cambiar Imagen / Foto de Perfil de un Chat -->
     <div id="chat-avatar-modal" class="modal-overlay" style="display: none; z-index: 10000000; background: rgba(0, 0, 0, 0.75);">
         <div class="modal-content" style="max-width: 440px;">
@@ -1087,7 +1089,7 @@
             </p>
 
             <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 20px;">
-                <div id="chat-avatar-preview-container" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 3px solid #0284c7; background: #1e293b; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                <div id="chat-avatar-preview-container" style="width: 100px; height: 100px; border-radius: 50%; overflow: hidden; border: 3px solid #0284c7; background: #1e293b; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer;" title="Haz clic para seleccionar imagen">
                     <img id="chat-avatar-preview-img" src="/media/taxi_img.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Avatar">
                 </div>
 
@@ -1109,6 +1111,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260829-V441-CUSTOM-CHAT-AVATARS"></script>
+    <script src="/admin/admin.js?v=20260829-V442-ANDER-AVATAR-FIX"></script>
 </body>
 </html>

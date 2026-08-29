@@ -4001,13 +4001,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let avatarHtml = '';
             const lowerName = (clientDisplayName || '').toLowerCase();
             const customAvatarUrl = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[cleanPhone])
-                || (cleanPhone === 'group_taxi_casa_julian' ? '/media/taxi_img.png' : '');
+                || (cleanPhone === 'group_taxi_casa_julian' ? '/media/taxi_img.png' : '')
+                || (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático') ? '/media/ander_img.png' : '');
 
             if (customAvatarUrl) {
                 const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : '#0284c7';
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid ${borderClr}; overflow: hidden;" title="${clientDisplayName}"><img src="${customAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>${cleanPhone === 'group_taxi_casa_julian' ? '🚕' : '👤'}</span>'"></div>`;
             } else if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="Grupo Taxi Casa Julián (3 Taxis + Restaurante)"><img src="/media/taxi_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🚕</span>'"></div>`;
+            } else if (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #0284c7; overflow: hidden;" title="${clientDisplayName}"><img src="/media/ander_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>AI</span>'"></div>`;
             } else if (cleanPhone === '34670426540' || lowerName.includes('iguaran')) {
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_iguaran.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TI</span>'"></div>`;
             } else if (cleanPhone === '34670449858' || lowerName.includes('taxi tolosa')) {
@@ -4472,6 +4475,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatAvatarPreviewImg = document.getElementById('chat-avatar-preview-img');
     const chatAvatarModalDesc = document.getElementById('chat-avatar-modal-desc');
 
+    const chatAvatarPreviewContainer = document.getElementById('chat-avatar-preview-container');
+
     let currentAvatarPhone = null;
     let currentAvatarBase64 = null;
     let currentAvatarFileName = null;
@@ -4487,7 +4492,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const customUrl = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[currentAvatarPhone])
-            || (currentAvatarPhone === 'group_taxi_casa_julian' ? '/media/taxi_img.png' : '');
+            || (currentAvatarPhone === 'group_taxi_casa_julian' ? '/media/taxi_img.png' : '')
+            || (currentAvatarPhone === '34664037707' ? '/media/ander_img.png' : '');
 
         currentAvatarUrl = customUrl;
 
@@ -4499,7 +4505,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (chatAvatarModal) chatAvatarModal.style.display = 'flex';
+        if (chatAvatarModal) {
+            chatAvatarModal.style.setProperty('display', 'flex', 'important');
+        }
     }
 
     function closeChatAvatarModal() {
@@ -4517,6 +4525,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatAvatarModal) {
         chatAvatarModal.addEventListener('click', (e) => {
             if (e.target === chatAvatarModal) closeChatAvatarModal();
+        });
+    }
+
+    if (chatAvatarPreviewContainer && chatAvatarFileInput) {
+        chatAvatarPreviewContainer.addEventListener('click', () => {
+            chatAvatarFileInput.click();
         });
     }
 

@@ -60,7 +60,8 @@ const DEFAULT_INBOX_SETTINGS = {
         "41795958760": true  // +41 79 595 87 60
     },
     chatAvatars: {
-        "group_taxi_casa_julian": "/media/taxi_img.png"
+        "group_taxi_casa_julian": "/media/taxi_img.png",
+        "34664037707": "/media/ander_img.png"
     },
     manualChatStatus: {}
 };
