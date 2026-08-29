@@ -554,23 +554,51 @@ async function getAllWhatsAppConversations() {
     if (pool) {
         try {
             const res = await pool.query(
-                `SELECT 
-                    b.telefono,
-                    MAX(b.created_at) as ultimo_mensaje_fecha,
-                    COUNT(*) as total_interacciones,
-                    (SELECT texto FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_texto,
-                    (SELECT emisor FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_emisor,
-                    (SELECT tipo FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_tipo,
-                    (SELECT metadata FROM bot_chat_history WHERE telefono = b.telefono ORDER BY created_at DESC, id DESC LIMIT 1) as ultimo_metadata,
-                    (SELECT nombre FROM bot_silenced_numbers WHERE telefono = b.telefono LIMIT 1) as silenced_nombre,
-                    (SELECT categoria FROM bot_silenced_numbers WHERE telefono = b.telefono LIMIT 1) as silenced_categoria,
-                    (SELECT nombre_cliente FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as nombre_cliente,
-                    (SELECT id FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as solicitud_id,
-                    (SELECT tipo_accion FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as tipo_solicitud,
-                    (SELECT estado FROM solicitudes WHERE replace(telefono_cliente, '+', '') = b.telefono ORDER BY created_at DESC LIMIT 1) as solicitud_estado
-                FROM bot_chat_history b
-                GROUP BY b.telefono
-                ORDER BY MAX(b.created_at) DESC`
+                `WITH latest_msgs AS (
+                    SELECT DISTINCT ON (telefono)
+                        telefono,
+                        texto as ultimo_texto,
+                        emisor as ultimo_emisor,
+                        tipo as ultimo_tipo,
+                        metadata as ultimo_metadata,
+                        created_at as ultimo_mensaje_fecha
+                    FROM bot_chat_history
+                    ORDER BY telefono, created_at DESC, id DESC
+                ),
+                counts AS (
+                    SELECT telefono, COUNT(*) as total_interacciones, MAX(created_at) as max_fecha
+                    FROM bot_chat_history
+                    GROUP BY telefono
+                ),
+                latest_sols AS (
+                    SELECT DISTINCT ON (replace(telefono_cliente, '+', ''))
+                        replace(telefono_cliente, '+', '') as tel_clean,
+                        id as solicitud_id,
+                        nombre_cliente,
+                        tipo_accion as tipo_solicitud,
+                        estado as solicitud_estado
+                    FROM solicitudes
+                    ORDER BY replace(telefono_cliente, '+', ''), created_at DESC
+                )
+                SELECT 
+                    lm.telefono,
+                    c.max_fecha as ultimo_mensaje_fecha,
+                    c.total_interacciones,
+                    lm.ultimo_texto,
+                    lm.ultimo_emisor,
+                    lm.ultimo_tipo,
+                    lm.ultimo_metadata,
+                    sn.nombre as silenced_nombre,
+                    sn.categoria as silenced_categoria,
+                    ls.nombre_cliente,
+                    ls.solicitud_id,
+                    ls.tipo_solicitud,
+                    ls.solicitud_estado
+                FROM latest_msgs lm
+                JOIN counts c ON lm.telefono = c.telefono
+                LEFT JOIN bot_silenced_numbers sn ON lm.telefono = sn.telefono
+                LEFT JOIN latest_sols ls ON lm.telefono = ls.tel_clean
+                ORDER BY c.max_fecha DESC`
             );
             if (res.rows && res.rows.length > 0) {
                 resultList = res.rows.map(r => {

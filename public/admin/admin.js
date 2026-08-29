@@ -321,8 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (targetTab === 'tab-inbox') {
-                fetchSolicitudes();
-                fetchWhatsAppChats();
+                loadUnifiedInboxData();
             }
             if (targetTab === 'tab-silenced') {
                 fetchSilencedNumbers();
@@ -3507,8 +3506,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 700;">👥 Cliente</span>`;
     }
 
+    // Caché rápida en sessionStorage para renderizado instantáneo en 0 ms
+    const INBOX_CHATS_CACHE_KEY = 'casa_julian_cached_chats_v1';
+    try {
+        const cached = sessionStorage.getItem(INBOX_CHATS_CACHE_KEY);
+        if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                allUnifiedConversations = parsed;
+                setTimeout(() => {
+                    renderInboxCards();
+                }, 0);
+            }
+        }
+    } catch(e) {}
+
     // Cargar Solicitudes desde Backend y Detectar Mensajes Nuevos en Tiempo Real
-    async function fetchSolicitudes() {
+    async function fetchSolicitudes(skipRender = false) {
         if (!adminToken) return;
         try {
             const res = await fetch('/api/admin/solicitudes', {
@@ -3580,16 +3594,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                syncUnifiedConversations();
-                renderInboxCards();
-                renderMinimizedChatsStack();
+                if (!skipRender) {
+                    syncUnifiedConversations();
+                    renderInboxCards();
+                    renderMinimizedChatsStack();
+                }
             }
         } catch (err) {
             console.error("⚠️ Error cargando solicitudes del buzón:", err);
         }
     }
 
-    async function fetchWhatsAppChats() {
+    async function fetchWhatsAppChats(skipRender = false) {
         try {
             const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
             const res = await fetch('/api/admin/chats', {
@@ -3601,13 +3617,34 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 const data = await res.json();
                 allWhatsAppChats = data.chats || [];
-                syncUnifiedConversations();
-                renderInboxCards();
+                if (!skipRender) {
+                    syncUnifiedConversations();
+                    renderInboxCards();
+                }
             } else {
                 console.warn("⚠️ [Chats WhatsApp] Error HTTP en /api/admin/chats:", res.status);
             }
         } catch (err) {
             console.error("⚠️ Error cargando conversaciones de WhatsApp:", err);
+        }
+    }
+
+    // Carga unificada y paralela a máxima velocidad para evitar parpadeos y cargas parciales
+    async function loadUnifiedInboxData() {
+        if (!adminToken) return;
+        try {
+            await Promise.all([
+                fetchSolicitudes(true),
+                fetchWhatsAppChats(true)
+            ]);
+            syncUnifiedConversations();
+            renderInboxCards();
+            renderMinimizedChatsStack();
+            try {
+                sessionStorage.setItem(INBOX_CHATS_CACHE_KEY, JSON.stringify(allUnifiedConversations.slice(0, 100)));
+            } catch(e) {}
+        } catch (err) {
+            console.error("⚠️ Error en loadUnifiedInboxData:", err);
         }
     }
 
