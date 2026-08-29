@@ -1,4 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Limpieza de claves obsoletas en localStorage para evitar parpadeos de versiones antiguas
+    (function cleanupOldLocalStorage() {
+        try {
+            const rawMap = localStorage.getItem('casa_julian_chat_tags_map');
+            if (rawMap && (rawMap.includes('EMPLEADOS') || rawMap.includes('empleados') || rawMap.includes('empleado'))) {
+                const parsed = JSON.parse(rawMap);
+                const cleaned = {};
+                for (const [k, v] of Object.entries(parsed)) {
+                    if (Array.isArray(v)) {
+                        cleaned[k] = v.map(t => {
+                            const low = String(t).toLowerCase().trim();
+                            if (low === 'empleado' || low === 'empleados' || low === 'alba') return 'Personal';
+                            return t;
+                        });
+                    }
+                }
+                localStorage.setItem('casa_julian_chat_tags_map', JSON.stringify(cleaned));
+            }
+            const rawCustom = localStorage.getItem('casa_julian_custom_silenced_tags');
+            if (rawCustom && (rawCustom.includes('EMPLEADOS') || rawCustom.includes('empleados'))) {
+                const parsedC = JSON.parse(rawCustom);
+                if (Array.isArray(parsedC)) {
+                    const cleanedC = parsedC.filter(ct => ct && ct.id !== 'empleados' && (ct.name || '').toLowerCase() !== 'empleados');
+                    localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(cleanedC));
+                }
+            }
+        } catch(e) {}
+    })();
+
     let adminToken = localStorage.getItem('casa_julian_admin_token') || '';
     let currentStructure = null;
     let currentLang = 'es';
@@ -655,8 +684,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const tags = DEFAULT_SYSTEM_TAGS.filter(t => !deleted.includes(t.id)).map(t => ({ ...t }));
         const custom = getCustomSilencedTags();
 
-        // Integrar o sobrescribir etiquetas personalizadas / editadas
+        // Integrar o sobrescribir etiquetas personalizadas / editadas (filtrando residuos antiguos de empleados)
         custom.forEach(ct => {
+            if (!ct || !ct.id) return;
+            const cid = ct.id.toLowerCase();
+            const cname = (ct.name || '').toLowerCase();
+            if (cid === 'empleados' || cid === 'empleado' || cname === 'empleados') return;
             if (deleted.includes(ct.id)) return;
             const idx = tags.findIndex(t => t.id === ct.id);
             if (idx > -1) {
@@ -672,8 +705,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (n.categoria) {
                     const parts = n.categoria.split(',').map(p => p.trim()).filter(Boolean);
                     parts.forEach(p => {
-                        const pid = p.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                        if (pid && !tags.some(t => t.id === pid || t.name.toLowerCase() === p.toLowerCase())) {
+                        const lowP = p.toLowerCase();
+                        if (lowP === 'empleado' || lowP === 'empleados' || lowP === 'alba' || lowP === 'personal') return;
+                        if (lowP === 'proveedor' || lowP === 'proveedores') return;
+                        if (lowP === 'hotel' || lowP === 'hoteles') return;
+                        if (lowP === 'taxi' || lowP === 'taxis') return;
+                        if (lowP === 'cliente' || lowP === 'clientes') return;
+                        const pid = lowP.replace(/[^a-z0-9]/g, '_');
+                        if (pid && !tags.some(t => t.id === pid || t.name.toLowerCase() === lowP)) {
                             tags.push({
                                 id: pid,
                                 name: p,
