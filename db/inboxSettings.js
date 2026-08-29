@@ -80,7 +80,14 @@ async function getInboxSettings() {
             );
             if (res.rows.length > 0 && res.rows[0].value) {
                 const val = typeof res.rows[0].value === 'string' ? JSON.parse(res.rows[0].value) : res.rows[0].value;
-                settings = { ...settings, ...val };
+                settings = {
+                    ...DEFAULT_INBOX_SETTINGS,
+                    ...val,
+                    chatAvatars: {
+                        ...DEFAULT_INBOX_SETTINGS.chatAvatars,
+                        ...((val && val.chatAvatars) || {})
+                    }
+                };
                 return settings;
             }
         } catch (err) {
@@ -91,7 +98,14 @@ async function getInboxSettings() {
     // 2. Respaldo en db.json
     const db = loadLocalDb();
     if (db.inboxSharedSettings) {
-        settings = { ...settings, ...db.inboxSharedSettings };
+        settings = {
+            ...DEFAULT_INBOX_SETTINGS,
+            ...db.inboxSharedSettings,
+            chatAvatars: {
+                ...DEFAULT_INBOX_SETTINGS.chatAvatars,
+                ...((db.inboxSharedSettings && db.inboxSharedSettings.chatAvatars) || {})
+            }
+        };
     }
 
     return settings;
