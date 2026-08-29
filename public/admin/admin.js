@@ -3666,11 +3666,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Carga unificada y paralela a máxima velocidad para evitar parpadeos y cargas parciales
+    // Sincronización en tiempo real de ajustes compartidos (Fotos de perfil, Etiquetas, Chinchetas, Estados)
+    async function fetchInboxSettings() {
+        if (!adminToken) return;
+        try {
+            const res = await fetch('/api/admin/inbox-settings', {
+                headers: { 'x-admin-token': adminToken }
+            });
+            if (res.status === 401) return;
+            const data = await res.json();
+            if (data.success && data.settings) {
+                const prevAvatars = JSON.stringify(serverInboxSettings.chatAvatars || {});
+                const prevTags = JSON.stringify(serverInboxSettings.chatTags || {});
+                const prevPins = JSON.stringify(serverInboxSettings.pinnedChats || {});
+                const prevStatus = JSON.stringify(serverInboxSettings.manualChatStatus || {});
+
+                serverInboxSettings = { ...serverInboxSettings, ...data.settings };
+
+                const newAvatars = JSON.stringify(serverInboxSettings.chatAvatars || {});
+                const newTags = JSON.stringify(serverInboxSettings.chatTags || {});
+                const newPins = JSON.stringify(serverInboxSettings.pinnedChats || {});
+                const newStatus = JSON.stringify(serverInboxSettings.manualChatStatus || {});
+
+                if (prevAvatars !== newAvatars || prevTags !== newTags || prevPins !== newPins || prevStatus !== newStatus) {
+                    renderInboxCards();
+                    if (activeConversationPhone && typeof renderConversationView === 'function') {
+                        renderConversationView(activeConversationPhone);
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn("⚠️ Error en fetchInboxSettings:", err.message);
+        }
+    }
+
+    // Carga unificada y paralela a máxima velocidad para sincronizar todos los datos entre usuarios
     async function loadUnifiedInboxData() {
         if (!adminToken) return;
         try {
             await Promise.all([
+                fetchInboxSettings(),
                 fetchSolicitudes(true),
                 fetchWhatsAppChats(true)
             ]);
