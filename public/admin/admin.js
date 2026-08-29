@@ -1711,17 +1711,15 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             const inboxContent = document.getElementById('tab-inbox');
             if (inboxContent) inboxContent.classList.add('active');
-            // Cargar ajustes compartidos, solicitudes, chats y contactos y empezar polling en tiempo real cada 3.5s
-            await fetchInboxSettings();
-            await fetchSolicitudes();
-            await fetchWhatsAppChats();
-            await fetchSilencedNumbers();
+            // Cargar ajustes compartidos, solicitudes, chats y contactos en paralelo y empezar polling
+            await Promise.all([
+                fetchInboxSettings(),
+                fetchSilencedNumbers(),
+                loadUnifiedInboxData()
+            ]);
             if (!inboxPollingInterval) {
                 inboxPollingInterval = setInterval(() => {
-                    fetchInboxSettings();
-                    fetchSolicitudes();
-                    fetchWhatsAppChats();
-                    fetchSilencedNumbers();
+                    loadUnifiedInboxData();
                 }, 3500);
             }
             // No cargar estructura del bot (no necesaria para recepción)
@@ -1740,17 +1738,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (flowTabBtn) { flowTabBtn.classList.add('active'); }
         if (typeof updateHeaderActiveTab === 'function') updateHeaderActiveTab('tab-flow');
 
-        // Iniciar sincronización compartida y polling continuo en tiempo real (cada 3.5s)
-        await fetchInboxSettings();
-        await fetchSolicitudes();
-        await fetchWhatsAppChats();
-        await fetchSilencedNumbers();
+        // Iniciar sincronización compartida y polling continuo en tiempo real
+        await Promise.all([
+            fetchInboxSettings(),
+            fetchSilencedNumbers(),
+            loadUnifiedInboxData()
+        ]);
         if (!inboxPollingInterval) {
             inboxPollingInterval = setInterval(() => {
-                fetchInboxSettings();
-                fetchSolicitudes();
-                fetchWhatsAppChats();
-                fetchSilencedNumbers();
+                loadUnifiedInboxData();
             }, 3500);
         }
 
@@ -5657,7 +5653,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closeReplyModalBtn) closeReplyModalBtn.addEventListener('click', closeReplyModal);
     if (cancelReplyBtn) cancelReplyBtn.addEventListener('click', closeReplyModal);
-    if (refreshInboxBtn) refreshInboxBtn.addEventListener('click', fetchSolicitudes);
+    if (refreshInboxBtn) refreshInboxBtn.addEventListener('click', loadUnifiedInboxData);
 
     // ── Toggle Colapsable de Filtros ────────────────────────────────────────
     const inboxToolbarCard = document.querySelector('.inbox-toolbar-card');
