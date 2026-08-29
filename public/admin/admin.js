@@ -3523,10 +3523,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {}
         
         if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
-            return '/media/taxi_img.png';
+            return '/admin/taxi_img.png';
         }
         if (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático')) {
-            return '/media/ander_img.png';
+            return '/admin/ander_img.png';
         }
         if (cleanPhone === '34670426540' || lowerName.includes('iguaran')) {
             return '/admin/avatar_taxi_iguaran.png';
@@ -4076,16 +4076,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let avatarHtml = '';
             const lowerName = (clientDisplayName || '').toLowerCase();
             const customAvatarUrl = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[cleanPhone])
-                || (cleanPhone === 'group_taxi_casa_julian' ? '/media/taxi_img.png' : '')
-                || (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático') ? '/media/ander_img.png' : '');
+                || (cleanPhone === 'group_taxi_casa_julian' ? '/admin/taxi_img.png' : '')
+                || (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático') ? '/admin/ander_img.png' : '');
 
             if (customAvatarUrl) {
                 const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : '#0284c7';
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid ${borderClr}; overflow: hidden;" title="${clientDisplayName}"><img src="${customAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>${cleanPhone === 'group_taxi_casa_julian' ? '🚕' : '👤'}</span>'"></div>`;
             } else if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="Grupo Taxi Casa Julián (3 Taxis + Restaurante)"><img src="/media/taxi_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🚕</span>'"></div>`;
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="Grupo Taxi Casa Julián (3 Taxis + Restaurante)"><img src="/admin/taxi_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🚕</span>'"></div>`;
             } else if (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #0284c7; overflow: hidden;" title="${clientDisplayName}"><img src="/media/ander_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>AI</span>'"></div>`;
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #0284c7; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/ander_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>AI</span>'"></div>`;
             } else if (cleanPhone === '34670426540' || lowerName.includes('iguaran')) {
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_iguaran.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TI</span>'"></div>`;
             } else if (cleanPhone === '34670449858' || lowerName.includes('taxi tolosa')) {
@@ -4567,8 +4567,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const customUrl = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[currentAvatarPhone])
-            || (currentAvatarPhone === 'group_taxi_casa_julian' ? '/media/taxi_img.png' : '')
-            || (currentAvatarPhone === '34664037707' ? '/media/ander_img.png' : '');
+            || (currentAvatarPhone === 'group_taxi_casa_julian' ? '/admin/taxi_img.png' : '')
+            || (currentAvatarPhone === '34664037707' ? '/admin/ander_img.png' : '');
 
         currentAvatarUrl = customUrl;
 

@@ -1116,14 +1116,23 @@ router.post('/chat-avatar', requireAdminAuth, async (req, res) => {
             const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
             const ext = (fileName && path.extname(fileName)) || '.png';
             const cleanName = `avatar_${String(phone).replace(/[^a-zA-Z0-9_-]/g, '_')}_${Date.now()}${ext}`;
-            const targetDir = path.join(__dirname, 'media', 'avatars');
-            if (!fs.existsSync(targetDir)) {
-                fs.mkdirSync(targetDir, { recursive: true });
+            
+            // Guardar en public/admin/uploads/avatars
+            const targetDirAdmin = path.join(__dirname, 'public', 'admin', 'uploads', 'avatars');
+            if (!fs.existsSync(targetDirAdmin)) {
+                fs.mkdirSync(targetDirAdmin, { recursive: true });
             }
-            const targetFile = path.join(targetDir, cleanName);
             const buffer = matches ? Buffer.from(matches[2], 'base64') : Buffer.from(imageBase64, 'base64');
-            fs.writeFileSync(targetFile, buffer);
-            finalUrl = `/media/avatars/${cleanName}`;
+            fs.writeFileSync(path.join(targetDirAdmin, cleanName), buffer);
+
+            // Guardar copia de respaldo en media/avatars
+            try {
+                const targetDirMedia = path.join(__dirname, 'media', 'avatars');
+                if (!fs.existsSync(targetDirMedia)) fs.mkdirSync(targetDirMedia, { recursive: true });
+                fs.writeFileSync(path.join(targetDirMedia, cleanName), buffer);
+            } catch(e) {}
+
+            finalUrl = `/admin/uploads/avatars/${cleanName}`;
         }
 
         const result = await setChatAvatar(phone, finalUrl);
