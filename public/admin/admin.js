@@ -4042,7 +4042,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (atId === 'taxi' && (lowT === 'taxis' || lowT === 'taxi')) return true;
                         return false;
                     });
-                    const label = (tagObj ? tagObj.name : t).toUpperCase();
+                    const rawLabel = tagObj ? tagObj.name : t;
+                    const lowRaw = String(rawLabel).toLowerCase().trim();
+                    const label = (lowRaw === 'empleados' || lowRaw === 'empleado' || lowRaw === 'alba' || lowRaw === 'personal') 
+                        ? 'PERSONAL' 
+                        : rawLabel.toUpperCase();
                     const color = tagObj ? tagObj.color : '#c084fc';
                     const bg = tagObj ? tagObj.bg : 'rgba(168, 85, 247, 0.2)';
                     const tagClass = `tag-${(tagObj ? tagObj.id : t).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
