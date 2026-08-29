@@ -481,6 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'hoteles', name: 'Hoteles', label: '🏨 Hoteles', emoji: '🏨', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.2)' },
         { id: 'empleado', name: 'Personal', label: '👷 Personal', emoji: '👷', color: '#c084fc', bg: 'rgba(168, 85, 247, 0.2)' },
         { id: 'taxi', name: 'Taxis', label: '🚕 Taxis', emoji: '🚕', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.2)' },
+        { id: 'grupo', name: 'Grupo', label: '👥 Grupo', emoji: '👥', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.2)' },
         { id: 'cliente', name: 'Clientes', label: '👤 Clientes', emoji: '👤', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.2)' },
         { id: 'otro', name: 'Otros', label: '📌 Otros', emoji: '📌', color: '#fde047', bg: 'rgba(234, 179, 8, 0.2)' }
     ];
@@ -4040,15 +4041,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (atId === 'proveedor' && (lowT === 'proveedores' || lowT === 'proveedor')) return true;
                         if (atId === 'hoteles' && (lowT === 'hotel' || lowT === 'hoteles')) return true;
                         if (atId === 'taxi' && (lowT === 'taxis' || lowT === 'taxi')) return true;
+                        if (atId === 'grupo' && (lowT === 'grupo' || lowT === 'grupos')) return true;
                         return false;
                     });
                     const rawLabel = tagObj ? tagObj.name : t;
                     const lowRaw = String(rawLabel).toLowerCase().trim();
                     const label = (lowRaw === 'empleados' || lowRaw === 'empleado' || lowRaw === 'alba' || lowRaw === 'personal') 
                         ? 'PERSONAL' 
-                        : rawLabel.toUpperCase();
-                    const color = tagObj ? tagObj.color : '#c084fc';
-                    const bg = tagObj ? tagObj.bg : 'rgba(168, 85, 247, 0.2)';
+                        : (lowRaw === 'grupo' || lowRaw === 'grupos' ? 'GRUPO' : rawLabel.toUpperCase());
+                    const defaultColor = (lowRaw === 'grupo' || lowRaw === 'grupos') ? '#94a3b8' : '#c084fc';
+                    const defaultBg = (lowRaw === 'grupo' || lowRaw === 'grupos') ? 'rgba(148, 163, 184, 0.18)' : 'rgba(168, 85, 247, 0.2)';
+                    const color = tagObj ? tagObj.color : defaultColor;
+                    const bg = tagObj ? tagObj.bg : defaultBg;
                     const tagClass = `tag-${(tagObj ? tagObj.id : t).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
                     return `<span class="wa-tag-pill ${tagClass}" style="color: ${color}; background: ${bg}; border-color: ${color}66;">${label}</span>`;
                 }).join('') + `</div>`;

@@ -4743,6 +4743,13 @@ div.inbox-toolbar-header,
     border-color: rgba(253, 224, 71, 0.4);
 }
 
+.wa-tag-pill.tag-grupo,
+.wa-tag-pill.tag-grupos {
+    background: rgba(148, 163, 184, 0.18);
+    color: #94a3b8;
+    border-color: rgba(148, 163, 184, 0.4);
+}
+
 /* Filas en el Gestor de Etiquetas */
 .tag-manager-row-item {
     display: flex;

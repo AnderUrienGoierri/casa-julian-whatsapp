@@ -47,6 +47,7 @@ const DEFAULT_INBOX_SETTINGS = {
         'hoteles',
         'empleado',
         'taxi',
+        'grupo',
         'cliente',
         'otro'
     ],
