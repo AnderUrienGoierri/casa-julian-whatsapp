@@ -200,5 +200,6 @@ module.exports = {
     setChatTags: require('./db/inboxSettings').setChatTags,
     setTagsOrder: require('./db/inboxSettings').setTagsOrder,
     saveCustomTag: require('./db/inboxSettings').saveCustomTag,
-    deleteCustomTag: require('./db/inboxSettings').deleteCustomTag
+    deleteCustomTag: require('./db/inboxSettings').deleteCustomTag,
+    setChatAvatar: require('./db/inboxSettings').setChatAvatar
 };

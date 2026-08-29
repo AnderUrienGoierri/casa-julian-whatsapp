@@ -1105,6 +1105,34 @@ router.post('/tags-order', requireAdminAuth, async (req, res) => {
     }
 });
 
+router.post('/chat-avatar', requireAdminAuth, async (req, res) => {
+    try {
+        const { setChatAvatar } = require('./database');
+        const { phone, avatarUrl, imageBase64, fileName } = req.body || {};
+        if (!phone) return res.status(400).json({ error: "Falta el número de teléfono/chat." });
+
+        let finalUrl = avatarUrl || null;
+        if (imageBase64) {
+            const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            const ext = (fileName && path.extname(fileName)) || '.png';
+            const cleanName = `avatar_${String(phone).replace(/[^a-zA-Z0-9_-]/g, '_')}_${Date.now()}${ext}`;
+            const targetDir = path.join(__dirname, 'media', 'avatars');
+            if (!fs.existsSync(targetDir)) {
+                fs.mkdirSync(targetDir, { recursive: true });
+            }
+            const targetFile = path.join(targetDir, cleanName);
+            const buffer = matches ? Buffer.from(matches[2], 'base64') : Buffer.from(imageBase64, 'base64');
+            fs.writeFileSync(targetFile, buffer);
+            finalUrl = `/media/avatars/${cleanName}`;
+        }
+
+        const result = await setChatAvatar(phone, finalUrl);
+        return res.json({ success: true, avatarUrl: finalUrl, chatAvatars: result });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
 // 19. Obtener lista completa de tarjetas regalo con estados y fecha de caducidad a 6 meses
 router.get('/tarjetas-regalo', requireAdminAuth, async (req, res) => {
     try {

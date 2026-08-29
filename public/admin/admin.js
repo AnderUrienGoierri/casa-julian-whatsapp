@@ -3997,11 +3997,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span class="wa-check-double" title="Entregado y Leído">✓✓</span> ` 
                 : '';
 
-            // Generador de Avatar estilo WhatsApp Business
+            // Generador de Avatar estilo WhatsApp Business con soporte de fotos personalizadas
             let avatarHtml = '';
             const lowerName = (clientDisplayName || '').toLowerCase();
-            if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="Grupo Taxi Casa Julián (3 Taxis + Restaurante)"><img src="/admin/avatar_taxi_casa_julian.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🚕</span>'"></div>`;
+            const customAvatarUrl = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[cleanPhone])
+                || (cleanPhone === 'group_taxi_casa_julian' ? '/media/taxi_img.png' : '');
+
+            if (customAvatarUrl) {
+                const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : '#0284c7';
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid ${borderClr}; overflow: hidden;" title="${clientDisplayName}"><img src="${customAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>${cleanPhone === 'group_taxi_casa_julian' ? '🚕' : '👤'}</span>'"></div>`;
+            } else if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="Grupo Taxi Casa Julián (3 Taxis + Restaurante)"><img src="/media/taxi_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🚕</span>'"></div>`;
             } else if (cleanPhone === '34670426540' || lowerName.includes('iguaran')) {
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_iguaran.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TI</span>'"></div>`;
             } else if (cleanPhone === '34670449858' || lowerName.includes('taxi tolosa')) {
@@ -4085,6 +4091,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         <!-- Dropdown de Acciones Rápidas -->
                         <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: ${isDropdownOpen ? 'flex' : 'none'}; padding-top: 8px; margin-top: 6px; border-top: 1px solid rgba(134, 150, 160, 0.15); flex-wrap: wrap; gap: 6px; width: 100%;">
+                            <button class="btn-change-chat-avatar" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.35);">
+                                🖼️ Cambiar Imagen
+                            </button>
                             <button class="btn-edit-chat-tags" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">
                                 🏷️ Etiquetas
                             </button>
@@ -4121,6 +4130,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const phone = card.getAttribute('data-phone');
                 const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
                 selectConversation(phone, name);
+            });
+        });
+
+        // Botón interactivo para cambiar imagen/avatar del chat
+        container.querySelectorAll('.btn-change-chat-avatar').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                activeCardDropdownPhone = null;
+                const phone = btn.getAttribute('data-phone');
+                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Chat');
+                openChatAvatarModal(phone, name);
             });
         });
 
@@ -4439,6 +4459,139 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderSilencedFilters();
                 renderInboxCards();
             });
+        });
+    }
+
+    // ── MODAL CAMBIAR IMAGEN / AVATAR DE CHAT ──────────────────────────────
+    const chatAvatarModal = document.getElementById('chat-avatar-modal');
+    const closeChatAvatarModalBtn = document.getElementById('close-chat-avatar-modal-btn');
+    const saveChatAvatarBtn = document.getElementById('save-chat-avatar-btn');
+    const chatAvatarFileInput = document.getElementById('chat-avatar-file-input');
+    const btnSelectChatAvatarFile = document.getElementById('btn-select-chat-avatar-file');
+    const btnRemoveChatAvatar = document.getElementById('btn-remove-chat-avatar');
+    const chatAvatarPreviewImg = document.getElementById('chat-avatar-preview-img');
+    const chatAvatarModalDesc = document.getElementById('chat-avatar-modal-desc');
+
+    let currentAvatarPhone = null;
+    let currentAvatarBase64 = null;
+    let currentAvatarFileName = null;
+    let currentAvatarUrl = null;
+
+    function openChatAvatarModal(phone, name) {
+        currentAvatarPhone = getCleanPhoneKey(phone);
+        currentAvatarBase64 = null;
+        currentAvatarFileName = null;
+        
+        if (chatAvatarModalDesc) {
+            chatAvatarModalDesc.textContent = `Personaliza la foto para "${name || phone}".`;
+        }
+
+        const customUrl = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[currentAvatarPhone])
+            || (currentAvatarPhone === 'group_taxi_casa_julian' ? '/media/taxi_img.png' : '');
+
+        currentAvatarUrl = customUrl;
+
+        if (chatAvatarPreviewImg) {
+            if (customUrl) {
+                chatAvatarPreviewImg.src = customUrl;
+            } else {
+                chatAvatarPreviewImg.src = '/admin/casa_julian_logo_CJ.jpeg';
+            }
+        }
+
+        if (chatAvatarModal) chatAvatarModal.style.display = 'flex';
+    }
+
+    function closeChatAvatarModal() {
+        if (chatAvatarModal) chatAvatarModal.style.display = 'none';
+        currentAvatarPhone = null;
+        currentAvatarBase64 = null;
+        currentAvatarFileName = null;
+        currentAvatarUrl = null;
+        if (chatAvatarFileInput) chatAvatarFileInput.value = '';
+    }
+
+    if (closeChatAvatarModalBtn) {
+        closeChatAvatarModalBtn.addEventListener('click', closeChatAvatarModal);
+    }
+    if (chatAvatarModal) {
+        chatAvatarModal.addEventListener('click', (e) => {
+            if (e.target === chatAvatarModal) closeChatAvatarModal();
+        });
+    }
+
+    if (btnSelectChatAvatarFile && chatAvatarFileInput) {
+        btnSelectChatAvatarFile.addEventListener('click', () => {
+            chatAvatarFileInput.click();
+        });
+        chatAvatarFileInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            currentAvatarFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = (re) => {
+                currentAvatarBase64 = re.target.result;
+                currentAvatarUrl = currentAvatarBase64;
+                if (chatAvatarPreviewImg) chatAvatarPreviewImg.src = currentAvatarBase64;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (btnRemoveChatAvatar) {
+        btnRemoveChatAvatar.addEventListener('click', () => {
+            currentAvatarBase64 = null;
+            currentAvatarFileName = null;
+            currentAvatarUrl = null;
+            if (chatAvatarPreviewImg) chatAvatarPreviewImg.src = '/admin/casa_julian_logo_CJ.jpeg';
+            showToast('ℹ️ Foto eliminada. Pulsa Guardar para aplicar por defecto.');
+        });
+    }
+
+    if (saveChatAvatarBtn) {
+        saveChatAvatarBtn.addEventListener('click', async () => {
+            if (!currentAvatarPhone) return;
+            saveChatAvatarBtn.disabled = true;
+            saveChatAvatarBtn.textContent = 'Guardando...';
+            try {
+                const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                const payload = {
+                    phone: currentAvatarPhone,
+                    avatarUrl: currentAvatarUrl,
+                    imageBase64: currentAvatarBase64,
+                    fileName: currentAvatarFileName
+                };
+                const res = await fetch('/api/admin/chat-avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': currentToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (!serverInboxSettings.chatAvatars) serverInboxSettings.chatAvatars = {};
+                    if (data.avatarUrl) {
+                        serverInboxSettings.chatAvatars[currentAvatarPhone] = data.avatarUrl;
+                    } else {
+                        delete serverInboxSettings.chatAvatars[currentAvatarPhone];
+                    }
+                    showToast('✅ Imagen de perfil guardada con éxito.');
+                    closeChatAvatarModal();
+                    renderInboxCards();
+                    if (activeConversationPhone === currentAvatarPhone && typeof renderConversationView === 'function') {
+                        renderConversationView(currentAvatarPhone);
+                    }
+                } else {
+                    alert('Error al guardar imagen: ' + (data.error || 'Desconocido'));
+                }
+            } catch (err) {
+                alert('Error de conexión: ' + err.message);
+            } finally {
+                saveChatAvatarBtn.disabled = false;
+                saveChatAvatarBtn.textContent = '💾 Guardar Imagen';
+            }
         });
     }
 

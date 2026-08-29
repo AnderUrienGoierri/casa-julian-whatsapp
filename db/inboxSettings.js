@@ -59,6 +59,9 @@ const DEFAULT_INBOX_SETTINGS = {
         "34623476521": true, // Ricardo Entretiempo Studio
         "41795958760": true  // +41 79 595 87 60
     },
+    chatAvatars: {
+        "group_taxi_casa_julian": "/media/taxi_img.png"
+    },
     manualChatStatus: {}
 };
 
@@ -219,6 +222,22 @@ async function deleteCustomTag(tagId) {
     return true;
 }
 
+/**
+ * Guardar o eliminar el avatar personalizado de un chat
+ */
+async function setChatAvatar(phone, avatarUrl) {
+    if (!phone) return null;
+    const settings = await getInboxSettings();
+    const chatAvatars = { ...(settings.chatAvatars || {}) };
+    if (!avatarUrl) {
+        delete chatAvatars[phone];
+    } else {
+        chatAvatars[phone] = avatarUrl;
+    }
+    await saveInboxSettings({ chatAvatars });
+    return chatAvatars;
+}
+
 module.exports = {
     getInboxSettings,
     saveInboxSettings,
@@ -227,5 +246,6 @@ module.exports = {
     setChatTags,
     setTagsOrder,
     saveCustomTag,
-    deleteCustomTag
+    deleteCustomTag,
+    setChatAvatar
 };
