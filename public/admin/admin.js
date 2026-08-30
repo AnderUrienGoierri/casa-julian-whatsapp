@@ -278,6 +278,63 @@ document.addEventListener('DOMContentLoaded', () => {
             nameEl.textContent = 'Ajustes & Diagnóstico';
             if (badgeEl) badgeEl.style.display = 'none';
         }
+
+        updateHeaderAndMenuBadges();
+    }
+
+    // Actualiza los badges tanto del header como del menú desplegable y pestañas
+    function updateHeaderAndMenuBadges() {
+        const totalContacts = (typeof getCombinedContactsList === 'function')
+            ? getCombinedContactsList().length
+            : ((typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) ? allSilencedNumbers.length : 0);
+
+        const pendingInbox = (typeof getPendingConversationsCount === 'function')
+            ? getPendingConversationsCount()
+            : 0;
+
+        // Badge en Menú Desplegable (Contactos)
+        const dropdownSilencedBadge = document.getElementById('dropdown-silenced-badge');
+        if (dropdownSilencedBadge) {
+            dropdownSilencedBadge.textContent = totalContacts;
+            dropdownSilencedBadge.style.display = totalContacts > 0 ? 'inline-block' : 'none';
+        }
+
+        // Badge en Menú Desplegable (Buzón)
+        const dropdownInboxBadge = document.getElementById('dropdown-inbox-badge');
+        if (dropdownInboxBadge) {
+            dropdownInboxBadge.textContent = pendingInbox;
+            dropdownInboxBadge.style.display = pendingInbox > 0 ? 'inline-block' : 'none';
+        }
+
+        // Badge en Pestaña superior (Contactos)
+        const silencedBadge = document.getElementById('silenced-count-badge');
+        if (silencedBadge) {
+            silencedBadge.textContent = totalContacts;
+            silencedBadge.style.display = totalContacts > 0 ? 'inline-block' : 'none';
+        }
+
+        // Badge en Pestaña superior (Buzón)
+        const inboxBadge = document.getElementById('inbox-count-badge');
+        if (inboxBadge) {
+            inboxBadge.textContent = pendingInbox;
+            inboxBadge.style.display = pendingInbox > 0 ? 'inline-block' : 'none';
+        }
+
+        // Badge en Header Central Activo
+        const headerBadge = document.getElementById('header-active-tab-badge');
+        if (headerBadge) {
+            if (currentActiveTabId === 'tab-silenced') {
+                headerBadge.textContent = totalContacts;
+                headerBadge.style.background = '#a855f7';
+                headerBadge.style.color = '#fff';
+                headerBadge.style.display = totalContacts > 0 ? 'inline-block' : 'none';
+            } else if (currentActiveTabId === 'tab-inbox') {
+                headerBadge.textContent = pendingInbox;
+                headerBadge.style.background = '#ef4444';
+                headerBadge.style.color = '#fff';
+                headerBadge.style.display = pendingInbox > 0 ? 'inline-block' : 'none';
+            }
+        }
     }
 
     // ==========================================
@@ -776,6 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     allSilencedNumbers = data.numbers;
                     renderSilencedNumbersTable();
                     renderSilencedFilters();
+                    updateHeaderAndMenuBadges();
                 }
             }
         } catch (err) {
