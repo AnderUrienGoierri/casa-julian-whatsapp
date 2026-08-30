@@ -7082,8 +7082,40 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+     // ── GESTIÓN INTEGRAL DE GRUPOS DE WHATSAPP (CREACIÓN, MIEMBROS E INFORMACIÓN) ──────────
+    function getClientDisplayName(nombre, phone) {
+        if (nombre && typeof nombre === 'string' && nombre.trim() && !nombre.startsWith('+')) {
+            return nombre.trim();
+        }
+        const clean = getCleanPhoneKey(phone);
+        if (!clean) return 'Contacto';
+        if (clean === 'group_taxi_casa_julian') return 'Taxi Casa Julián';
+        if (clean === '34670426540') return 'Taxi Iguaran';
+        if (clean === '34670449858') return 'Taxi Tolosa';
+        if (clean === '34636979092') return 'Taxi Lexus';
+        if (clean === '34943671417') return 'Casa Julián Tolosa';
+        if (clean === '34664037707') return 'Ander Informatico';
+        if (clean === '34645747754') return 'Xabi Gorrotxategi';
+        if (clean === '34623476521') return 'Ricardo Entretiempo Studio';
+        return `+${clean}`;
+    }
 
-    // ── GESTIÓN INTEGRAL DE GRUPOS DE WHATSAPP (CREACIÓN, MIEMBROS E INFORMACIÓN) ──────────
+    function getClientCustomAvatar(phone, name = '') {
+        const clean = getCleanPhoneKey(phone);
+        if (!clean) return '';
+        if (serverInboxSettings && serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[clean]) {
+            return serverInboxSettings.chatAvatars[clean];
+        }
+        const low = (name || '').toLowerCase();
+        if (clean === 'group_taxi_casa_julian') return '/admin/taxi_img.png';
+        if (clean === '34670426540' || low.includes('iguaran')) return '/admin/avatar_taxi_iguaran.png';
+        if (clean === '34670449858' || low.includes('taxi tolosa')) return '/admin/avatar_taxi_tolosa.png';
+        if (clean === '34636979092' || low.includes('lexus')) return '/admin/avatar_taxi_lexus.png';
+        if (clean === '34943671417' || low.includes('casa julián tolosa')) return '/admin/casa_julian_logo_CJ.jpeg';
+        if (clean === '34664037707' || low.includes('ander informatico')) return '/admin/ander_img.png';
+        return '';
+    }
+
     const DEFAULT_TAXI_GROUP = {
         id: "group_taxi_casa_julian",
         nombre: "Taxi Casa Julián",
@@ -7108,7 +7140,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const clean = getCleanPhoneKey(c.telefono);
                 if (!clean || clean.startsWith('group_') || c.isGroup) return;
                 const name = c.nombreCliente && !c.nombreCliente.startsWith('+') ? c.nombreCliente : getClientDisplayName('', clean);
-                const avatar = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[clean]) || getClientCustomAvatar(clean, name);
+                const avatar = (serverInboxSettings && serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[clean]) || getClientCustomAvatar(clean, name);
                 contactsMap.set(clean, {
                     telefono: clean,
                     nombre: name,
@@ -7131,7 +7163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     contactsMap.set(clean, {
                         telefono: clean,
                         nombre: name,
-                        avatar: (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[clean]) || '',
+                        avatar: (serverInboxSettings && serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[clean]) || getClientCustomAvatar(clean, name),
                         categoria: s.categoria || 'cliente',
                         etiquetas: getChatTags(clean)
                     });
@@ -7169,7 +7201,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openCreateGroupModal() {
         const modal = document.getElementById('modal-create-group');
-        if (!modal) return;
+        if (!modal) {
+            console.error('Modal #modal-create-group not found in DOM');
+            return;
+        }
         
         const nameInput = document.getElementById('group-create-name');
         const searchInput = document.getElementById('group-create-search-contacts');
@@ -7189,7 +7224,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        renderCreateGroupContactsList('');
+        try {
+            renderCreateGroupContactsList('');
+        } catch(e) {
+            console.error('Error rendering create group contacts list:', e);
+        }
+        
         modal.style.display = 'flex';
         if (nameInput) setTimeout(() => nameInput.focus(), 50);
     }
@@ -7658,7 +7698,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const groupAddMemberSearchInput = document.getElementById('group-add-member-search-input');
     if (groupAddMemberSearchInput) {
         groupAddMemberSearchInput.addEventListener('input', (e) => {
-            if (currentGroupInfoId) renderGroupAddMembersList(currentGroupInfoId, e.target.value);
+            if (!currentGroupInfoId) return;
+            renderGroupAddMembersList(currentGroupInfoId, e.target.value);
         });
     }
 
@@ -7715,6 +7756,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const inboxBtnCreateGroup = document.getElementById('btn-inbox-create-group');
     if (headerBtnCreateGroup) headerBtnCreateGroup.addEventListener('click', openCreateGroupModal);
     if (inboxBtnCreateGroup) inboxBtnCreateGroup.addEventListener('click', openCreateGroupModal);
+
+    // Event delegation global para garantizar apertura del modal de grupo bajo cualquier condición
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('#header-btn-create-group, #btn-inbox-create-group, .header-btn-create-group, .btn-inbox-create-group');
+        if (btn) {
+            e.preventDefault();
+            e.stopPropagation();
+            openCreateGroupModal();
+        }
+    });
 
     const closeCreateGroupBtn = document.getElementById('close-create-group-modal-btn');
     const btnXCloseCreateGroup = document.getElementById('btn-x-close-create-group');
