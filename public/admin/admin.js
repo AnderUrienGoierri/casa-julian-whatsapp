@@ -3565,20 +3565,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mapa de estados manuales y última fecha de lectura (persistido en PostgreSQL y localStorage)
     function getManualChatStatusMap() {
-        if (serverInboxSettings.manualChatStatus && typeof serverInboxSettings.manualChatStatus === 'object') {
-            return serverInboxSettings.manualChatStatus;
-        }
+        let localMap = {};
         try {
-            return JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
-        } catch (e) {
-            return {};
-        }
+            localMap = JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
+        } catch (e) {}
+        const serverMap = (serverInboxSettings && typeof serverInboxSettings.manualChatStatus === 'object') 
+            ? serverInboxSettings.manualChatStatus 
+            : {};
+        return { ...serverMap, ...localMap };
     }
 
     function setManualChatStatus(phone, status) {
         const clean = getCleanPhoneKey(phone);
         if (!clean) return;
-        const map = { ...getManualChatStatusMap() };
+        
+        let localMap = {};
+        try {
+            localMap = JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
+        } catch (e) {}
+        const serverMap = (serverInboxSettings && typeof serverInboxSettings.manualChatStatus === 'object') 
+            ? serverInboxSettings.manualChatStatus 
+            : {};
+        const map = { ...serverMap, ...localMap };
         
         // Buscar la conversación para guardar su huella exacta
         const conv = allUnifiedConversations.find(c => getCleanPhoneKey(c.telefono) === clean) 
@@ -3647,20 +3655,26 @@ document.addEventListener('DOMContentLoaded', () => {
             const statusVal = typeof manualEntry === 'object' ? manualEntry.status : manualEntry;
             
             if (statusVal === 'leido') {
-                if (typeof manualEntry === 'object' && manualEntry.lastText !== undefined) {
-                    // Si tenemos registrada la huella del mensaje leído:
-                    const isSameText = (c.ultimoTexto || '').trim() === (manualEntry.lastText || '').trim();
-                    const isSameDate = String(c.ultimoMensajeFecha || '') === String(manualEntry.lastDate || '');
-                    
-                    // Si el texto o la fecha del último mensaje no ha cambiado, NO hay mensaje nuevo -> LEIDO
-                    if (isSameText || isSameDate) {
+                if (typeof manualEntry === 'object') {
+                    const lastText = (manualEntry.lastText || '').trim();
+                    const currentText = (c.ultimoTexto || '').trim();
+                    const lastDate = String(manualEntry.lastDate || '').trim();
+                    const currentDate = String(c.ultimoMensajeFecha || '').trim();
+
+                    // Si no hay texto previo registrado o el texto coincide -> LEIDO
+                    if (!lastText || (lastText && currentText && lastText === currentText)) {
                         return 'leido';
                     }
-                    // Solo si el texto Y la fecha cambiaron, ha entrado un mensaje nuevo -> PENDIENTE
-                    return 'pendiente';
+                    // Si la fecha coincide -> LEIDO
+                    if (lastDate && currentDate && lastDate === currentDate) {
+                        return 'leido';
+                    }
+                    // Solo si TANTO el texto COMO la fecha son distintos a cuando se leyó -> PENDIENTE
+                    if (lastText && currentText && lastText !== currentText && lastDate !== currentDate) {
+                        return 'pendiente';
+                    }
                 }
                 
-                // Si está marcado como 'leido' pero no hay huella detallada, se respeta como LEIDO
                 return 'leido';
             }
             
@@ -3684,8 +3698,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getConversationUnreadCount(c) {
         if (getConversationStatus(c) !== 'pendiente') return 0;
-        if (typeof c.unreadCount === 'number' && c.unreadCount > 0) return c.unreadCount;
-        if (c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user') return 1;
+        const cleanPhone = getCleanPhoneKey(c.telefono);
+        const manualMap = getManualChatStatusMap();
+        const manualEntry = manualMap[cleanPhone];
+
+        // Si tenemos el conteo de cuando se leyó por última vez y aumentaron las interacciones
+        if (manualEntry && typeof manualEntry === 'object' && manualEntry.lastCount && c.totalInteracciones) {
+            const diff = Number(c.totalInteracciones) - Number(manualEntry.lastCount);
+            if (diff > 0) return diff;
+        }
+
+        if (typeof c.unreadCount === 'number' && c.unreadCount > 0) {
+            return c.unreadCount;
+        }
         return 1;
     }
 
@@ -3895,7 +3920,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const prevStatus = JSON.stringify(serverInboxSettings.manualChatStatus || {});
                 const prevOrder = JSON.stringify(serverInboxSettings.tagsOrder || []);
 
-                serverInboxSettings = { ...serverInboxSettings, ...data.settings };
+                let localStatus = {};
+                try {
+                    localStatus = JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
+                } catch(e) {}
+
+                serverInboxSettings = { 
+                    ...serverInboxSettings, 
+                    ...data.settings,
+                    manualChatStatus: {
+                        ...((data.settings && data.settings.manualChatStatus) || {}),
+                        ...localStatus
+                    }
+                };
 
                 const newAvatars = JSON.stringify(serverInboxSettings.chatAvatars || {});
                 const newTags = JSON.stringify(serverInboxSettings.chatTags || {});
@@ -4373,10 +4410,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const clientDisplayName = isGroup ? 'Taxi Casa Julián' : getClientDisplayName(c.nombreCliente, cleanPhone);
             const smartTime = formatSmartDateTime(c.ultimoMensajeFecha);
             const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
-            const status = getConversationStatus(c);
-            const isPending = status === 'pendiente';
-            const isPinned = isChatPinned(cleanPhone);
             const isSelected = activeConversationPhone === cleanPhone;
+            const status = isSelected ? 'leido' : getConversationStatus(c);
+            const isPending = (status === 'pendiente');
+            const unreadCount = isPending ? getConversationUnreadCount(c) : 0;
+            const isPinned = isChatPinned(cleanPhone);
             const isDropdownOpen = (activeCardDropdownPhone === cleanPhone);
 
             const outgoingCheckHtml = !isFromClient 
@@ -4473,7 +4511,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="wa-status-icons">
                                 ${isPinned ? '<span class="wa-pin-icon" title="Conversación fijada arriba">📌</span>' : ''}
-                                ${isPending ? `<span class="wa-unread-badge">${getConversationUnreadCount(c)}</span>` : ''}
+                                ${isPending && unreadCount > 0 ? `<span class="wa-unread-badge">${unreadCount}</span>` : ''}
                                 <div class="wa-item-actions-trigger btn-card-more-actions" data-phone="${cleanPhone}" title="Opciones">⋮</div>
                             </div>
                         </div>
