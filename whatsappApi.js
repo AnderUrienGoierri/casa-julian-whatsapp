@@ -4,8 +4,13 @@ const path = require('path');
 const FormData = require('form-data');
 require('dotenv').config();
 
-const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
-const PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;
+function getWhatsAppToken() {
+    return process.env.WHATSAPP_TOKEN || '';
+}
+
+function getPhoneNumberId() {
+    return process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.PHONE_NUMBER_ID || '';
+}
 
 let simMessageStore = new Map();
 
@@ -48,17 +53,17 @@ async function sendMessage(to, text) {
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+    if (!getWhatsAppToken() || !getPhoneNumberId()) {
+        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
         return;
     }
     
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -96,8 +101,8 @@ async function sendInteractiveButtons(to, text, buttons) {
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+    if (!getWhatsAppToken() || !getPhoneNumberId()) {
+        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
         return;
     }
 
@@ -117,9 +122,9 @@ async function sendInteractiveButtons(to, text, buttons) {
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -162,8 +167,8 @@ async function sendCtaUrlButton(to, bodyText, buttonTitle, url, headerText = nul
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+    if (!getWhatsAppToken() || !getPhoneNumberId()) {
+        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
         return;
     }
 
@@ -189,9 +194,9 @@ async function sendCtaUrlButton(to, bodyText, buttonTitle, url, headerText = nul
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -230,8 +235,8 @@ async function sendTemplateMessage(to, templateName, languageCode = 'es', compon
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+    if (!getWhatsAppToken() || !getPhoneNumberId()) {
+        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
         return;
     }
 
@@ -254,9 +259,9 @@ async function sendTemplateMessage(to, templateName, languageCode = 'es', compon
 
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: payload
@@ -299,8 +304,8 @@ async function sendInteractiveList(to, bodyText, buttonText, sections) {
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+    if (!getWhatsAppToken() || !getPhoneNumberId()) {
+        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
         return;
     }
 
@@ -314,9 +319,9 @@ async function sendInteractiveList(to, bodyText, buttonText, sections) {
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -347,17 +352,17 @@ async function sendImageMessage(to, imageUrl, caption = '') {
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+    if (!getWhatsAppToken() || !getPhoneNumberId()) {
+        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
         return;
     }
 
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -379,9 +384,9 @@ async function sendImageMessage(to, imageUrl, caption = '') {
             try {
                 const retryResp = await axios({
                     method: 'POST',
-                    url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+                    url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
                     headers: {
-                        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                        'Authorization': `Bearer ${getWhatsAppToken()}`,
                         'Content-Type': 'application/json'
                     },
                     data: {
@@ -411,8 +416,8 @@ async function sendVideoMessage(to, videoUrl, caption = '') {
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+    if (!getWhatsAppToken() || !getPhoneNumberId()) {
+        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
         return;
     }
 
@@ -424,9 +429,9 @@ async function sendVideoMessage(to, videoUrl, caption = '') {
 
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -450,14 +455,14 @@ async function sendDocumentMessage(to, documentUrl, caption = '', filename = 'do
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) return;
+    if (!getWhatsAppToken() || !getPhoneNumberId()) return;
 
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -485,14 +490,14 @@ async function sendAudioMessage(to, audioUrl) {
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) return;
+    if (!getWhatsAppToken() || !getPhoneNumberId()) return;
 
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -542,11 +547,11 @@ async function uploadStickerToMeta(filePath) {
     formData.append('type', 'image/webp');
 
     const uploadRes = await axios.post(
-        `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/media`,
+        `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/media`,
         formData,
         {
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 ...formData.getHeaders()
             }
         }
@@ -563,8 +568,8 @@ async function sendStickerMessage(to, stickerFilePath) {
         return { success: true, simulated: true };
     }
 
-    if (!WHATSAPP_TOKEN || !PHONE_NUMBER_ID) {
-        console.error("Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
+    if (!getWhatsAppToken() || !getPhoneNumberId()) {
+        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
         return;
     }
 
@@ -582,9 +587,9 @@ async function sendStickerMessage(to, stickerFilePath) {
 
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
             headers: {
-                'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                'Authorization': `Bearer ${getWhatsAppToken()}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -608,9 +613,9 @@ async function sendStickerMessage(to, stickerFilePath) {
 
             const retryResponse = await axios({
                 method: 'POST',
-                url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+                url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
                 headers: {
-                    'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
+                    'Authorization': `Bearer ${getWhatsAppToken()}`,
                     'Content-Type': 'application/json'
                 },
                 data: {
