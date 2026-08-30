@@ -24,7 +24,13 @@ async function sendLanguageMenu(from, userLanguages, userStates) {
         { id: "lang_eu", title: "EU Euskara" },
         { id: "lang_en", title: "EN English" }
     ];
-    await sendInteractiveButtons(from, bodyText, buttons);
+    console.log(`📤 Enviando menú de idiomas a ${from}...`);
+    const resp = await sendInteractiveButtons(from, bodyText, buttons);
+    if (resp && resp.messages) {
+        console.log(`✅ Menú de idiomas entregado a Meta para ${from} (MsgID: ${resp.messages[0].id})`);
+    } else {
+        console.warn(`⚠️ Resultado de envío de menú de idiomas para ${from}:`, resp);
+    }
 }
 
 /**
