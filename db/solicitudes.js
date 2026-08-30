@@ -570,6 +570,20 @@ async function getAllWhatsAppConversations() {
                     FROM bot_chat_history
                     GROUP BY telefono
                 ),
+                last_staff_msg AS (
+                    SELECT telefono, MAX(created_at) as max_staff_date
+                    FROM bot_chat_history
+                    WHERE emisor IN ('staff', 'humano', 'recepcion', 'admin', 'restaurante')
+                    GROUP BY telefono
+                ),
+                unreads AS (
+                    SELECT h.telefono, COUNT(*) as unread_count
+                    FROM bot_chat_history h
+                    LEFT JOIN last_staff_msg s ON h.telefono = s.telefono
+                    WHERE h.emisor IN ('cliente', 'user')
+                      AND (s.max_staff_date IS NULL OR h.created_at > s.max_staff_date)
+                    GROUP BY h.telefono
+                ),
                 latest_sols AS (
                     SELECT DISTINCT ON (replace(telefono_cliente, '+', ''))
                         replace(telefono_cliente, '+', '') as tel_clean,
@@ -584,6 +598,7 @@ async function getAllWhatsAppConversations() {
                     lm.telefono,
                     c.max_fecha as ultimo_mensaje_fecha,
                     c.total_interacciones,
+                    COALESCE(u.unread_count, 0) as unread_count,
                     lm.ultimo_texto,
                     lm.ultimo_emisor,
                     lm.ultimo_tipo,
@@ -596,6 +611,7 @@ async function getAllWhatsAppConversations() {
                     ls.solicitud_estado
                 FROM latest_msgs lm
                 JOIN counts c ON lm.telefono = c.telefono
+                LEFT JOIN unreads u ON lm.telefono = u.telefono
                 LEFT JOIN bot_silenced_numbers sn ON lm.telefono = sn.telefono
                 LEFT JOIN latest_sols ls ON lm.telefono = ls.tel_clean
                 ORDER BY c.max_fecha DESC`
@@ -620,6 +636,7 @@ async function getAllWhatsAppConversations() {
                         telefono: r.telefono,
                         ultimoMensajeFecha: r.ultimo_mensaje_fecha,
                         totalInteracciones: parseInt(r.total_interacciones, 10) || 0,
+                        unreadCount: parseInt(r.unread_count, 10) || 0,
                         ultimoTexto: r.ultimo_texto || '',
                         ultimoEmisor: r.ultimo_emisor || 'bot',
                         ultimoTipo: r.ultimo_tipo || 'text',

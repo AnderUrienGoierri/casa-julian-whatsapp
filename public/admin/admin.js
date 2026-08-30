@@ -3563,7 +3563,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Estado Unificado del Buzón de Recepción ──────────────────────────────
 
-    // Mapa de estados manuales (persistido en PostgreSQL y localStorage)
+    // Mapa de estados manuales y última fecha de lectura (persistido en PostgreSQL y localStorage)
     function getManualChatStatusMap() {
         if (serverInboxSettings.manualChatStatus && typeof serverInboxSettings.manualChatStatus === 'object') {
             return serverInboxSettings.manualChatStatus;
@@ -3579,7 +3579,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const clean = getCleanPhoneKey(phone);
         if (!clean) return;
         const map = { ...getManualChatStatusMap() };
-        map[clean] = status; // 'pendiente' o 'leido'
+        
+        // Guardamos tanto el estado como la fecha exacta en la que se marcó como leído
+        if (status === 'leido') {
+            map[clean] = { status: 'leido', readAt: new Date().toISOString() };
+        } else {
+            map[clean] = { status: 'pendiente', readAt: null };
+        }
+        
         serverInboxSettings.manualChatStatus = map;
         localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(map));
 
@@ -3592,16 +3599,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 'x-admin-token': currentToken,
                 'Authorization': `Bearer ${currentToken}`
             },
-            body: JSON.stringify({ phone: clean, status })
+            body: JSON.stringify({ phone: clean, status: map[clean] })
         }).catch(e => console.warn('Error guardando chatStatus en servidor:', e));
     }
 
     function getConversationStatus(c) {
         const cleanPhone = getCleanPhoneKey(c.telefono);
         const manualMap = getManualChatStatusMap();
-        if (manualMap[cleanPhone]) {
-            return manualMap[cleanPhone]; // 'pendiente' o 'leido'
+        const manualEntry = manualMap[cleanPhone];
+
+        // Si el usuario marcó como leído antes, pero DESPUÉS ha llegado un mensaje nuevo del cliente, vuelve a 'pendiente'
+        if (manualEntry) {
+            const statusVal = typeof manualEntry === 'object' ? manualEntry.status : manualEntry;
+            const readAt = typeof manualEntry === 'object' ? manualEntry.readAt : null;
+            
+            if (statusVal === 'leido') {
+                if (readAt && c.ultimoMensajeFecha) {
+                    const msgTime = new Date(c.ultimoMensajeFecha).getTime();
+                    const readTime = new Date(readAt).getTime();
+                    const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
+                    // Si el cliente escribió después de la fecha de lectura, vuelve a estar PENDIENTE
+                    if (isFromClient && msgTime > (readTime + 1000)) {
+                        return 'pendiente';
+                    }
+                }
+                return 'leido';
+            }
+            if (statusVal === 'pendiente') {
+                return 'pendiente';
+            }
         }
+
         // Por defecto: si tiene solicitud activa en PENDIENTE o EN_ATENCION, o último mensaje del cliente
         if (c.solicitudEstado === 'PENDIENTE' || c.solicitudEstado === 'EN_ATENCION') {
             return 'pendiente';
@@ -3610,6 +3638,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return 'pendiente';
         }
         return 'leido';
+    }
+
+    function getConversationUnreadCount(c) {
+        if (getConversationStatus(c) !== 'pendiente') return 0;
+        if (typeof c.unreadCount === 'number' && c.unreadCount > 0) return c.unreadCount;
+        if (c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user') return 1;
+        return 1;
     }
 
     function getPendingConversationsCount() {
@@ -4395,7 +4430,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="wa-status-icons">
                                 ${isPinned ? '<span class="wa-pin-icon" title="Conversación fijada arriba">📌</span>' : ''}
-                                ${isPending ? '<span class="wa-unread-badge">1</span>' : ''}
+                                ${isPending ? `<span class="wa-unread-badge">${getConversationUnreadCount(c)}</span>` : ''}
                                 <div class="wa-item-actions-trigger btn-card-more-actions" data-phone="${cleanPhone}" title="Opciones">⋮</div>
                             </div>
                         </div>
