@@ -1599,6 +1599,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof renderInboxTagsManagerList === 'function') renderInboxTagsManagerList();
             if (typeof renderChatTagsModalGrid === 'function') renderChatTagsModalGrid();
             syncUnifiedConversations();
+            if (typeof renderInboxFilterPills === 'function') renderInboxFilterPills();
             renderInboxCards();
 
             showToast(`🗑️ Etiqueta "${tagName}" eliminada correctamente.`);
@@ -1644,6 +1645,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof renderInboxTagsManagerList === 'function') renderInboxTagsManagerList();
                 if (typeof renderChatTagsModalGrid === 'function') renderChatTagsModalGrid();
                 syncUnifiedConversations();
+                if (typeof renderInboxFilterPills === 'function') renderInboxFilterPills();
                 renderInboxCards();
 
                 closeSilencedTagModal();
@@ -3680,6 +3682,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const prevTags = JSON.stringify(serverInboxSettings.chatTags || {});
                 const prevPins = JSON.stringify(serverInboxSettings.pinnedChats || {});
                 const prevStatus = JSON.stringify(serverInboxSettings.manualChatStatus || {});
+                const prevOrder = JSON.stringify(serverInboxSettings.tagsOrder || []);
 
                 serverInboxSettings = { ...serverInboxSettings, ...data.settings };
 
@@ -3687,8 +3690,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newTags = JSON.stringify(serverInboxSettings.chatTags || {});
                 const newPins = JSON.stringify(serverInboxSettings.pinnedChats || {});
                 const newStatus = JSON.stringify(serverInboxSettings.manualChatStatus || {});
+                const newOrder = JSON.stringify(serverInboxSettings.tagsOrder || []);
 
-                if (prevAvatars !== newAvatars || prevTags !== newTags || prevPins !== newPins || prevStatus !== newStatus) {
+                if (prevAvatars !== newAvatars || prevTags !== newTags || prevPins !== newPins || prevStatus !== newStatus || prevOrder !== newOrder) {
+                    renderInboxFilterPills();
                     renderInboxCards();
                     if (activeConversationPhone && typeof renderConversationView === 'function') {
                         renderConversationView(activeConversationPhone);
@@ -3710,6 +3715,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchWhatsAppChats(true)
             ]);
             syncUnifiedConversations();
+            renderInboxFilterPills();
             renderInboxCards();
             renderMinimizedChatsStack();
             try {
@@ -3802,6 +3808,62 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeInboxStatusFilters = new Set();
     let activeInboxCatFilters = new Set();
     let activeInboxTopicFilters = new Set();
+    let activeInboxTagFilters = new Set();
+
+    function chatMatchesTag(c, tagId, tagName) {
+        const id = (tagId || '').toLowerCase().trim();
+        const name = (tagName || '').toLowerCase().trim();
+        const chatTags = getChatTags(c.telefono, c).map(t => String(t).toLowerCase().trim());
+
+        // 1. Coincidencia directa por etiquetas asignadas al chat
+        if (chatTags.some(t => t === id || t === name || (name.length > 2 && t.includes(name)) || (t.length > 2 && name.includes(t)))) {
+            return true;
+        }
+
+        // 2. Coincidencia por Temática (para OT, MODIF, CANCEL, FAQs, OTRAS)
+        const topic = getConversationTopic(c);
+        if (id === 'menu_tradicion' || name === 'ot' || name === 'menu_tradicion') {
+            if (topic === 'menu_tradicion') return true;
+        }
+        if (id === 'modificacion' || name === 'modif' || name === 'modificacion') {
+            if (topic === 'modificacion') return true;
+        }
+        if (id === 'cancelacion' || name === 'cancel' || name === 'cancelacion') {
+            if (topic === 'cancelacion') return true;
+        }
+        if (id === 'faq' || name === 'faqs' || name === 'faq') {
+            if (topic === 'faq') return true;
+        }
+        if (id === 'otras_cuestiones' || name === 'otras' || name === 'otras_cuestiones') {
+            if (topic === 'otras_cuestiones') return true;
+        }
+
+        // 3. Coincidencia por Categoría (para Proveedores, Hoteles, Personal, Taxis, Grupo, Clientes, Otros)
+        const cat = getConversationCategory(c);
+        if (id === 'proveedor' || name.includes('proveedor')) {
+            if (cat === 'proveedor') return true;
+        }
+        if (id === 'hoteles' || name.includes('hotel')) {
+            if (cat === 'hoteles') return true;
+        }
+        if (id === 'empleado' || name.includes('personal') || name.includes('emplead')) {
+            if (cat === 'empleado') return true;
+        }
+        if (id === 'taxi' || name.includes('taxi')) {
+            if (cat === 'taxi' || c.telefono === 'group_taxi_casa_julian' || c.isGroup) return true;
+        }
+        if (id === 'grupo' || name === 'grupo') {
+            if (c.telefono === 'group_taxi_casa_julian' || c.isGroup || (c.nombreCliente && c.nombreCliente.toLowerCase().includes('grupo'))) return true;
+        }
+        if (id === 'cliente' || name.includes('cliente')) {
+            if (cat === 'cliente') return true;
+        }
+        if (id === 'otro' || name.includes('otro')) {
+            if (cat === 'otro') return true;
+        }
+
+        return false;
+    }
 
     function getChatTagsMap() {
         if (serverInboxSettings.chatTags && typeof serverInboxSettings.chatTags === 'object') {
@@ -3945,56 +4007,82 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'otras_cuestiones';
     }
 
+    // ── Renderizar Píldoras de Filtro Dinámicas según el orden de Gestión de Etiquetas ──
+    function renderInboxFilterPills() {
+        const pillsRow = document.querySelector('.wa-filter-pills-row');
+        if (!pillsRow) return;
+
+        const countPend = allUnifiedConversations.filter(c => getConversationStatus(c) === 'pendiente').length;
+        const isTodosActive = (activeInboxStatusFilters.size === 0 && activeInboxTagFilters.size === 0 && activeInboxCatFilters.size === 0 && activeInboxTopicFilters.size === 0);
+        const isPendActive = activeInboxStatusFilters.has('pendiente');
+
+        const availableTags = getAllAvailableSilencedTags();
+
+        let html = `
+            <button class="filter-chip wa-pill ${isTodosActive ? 'active' : ''}" data-filter-type="all">Todos</button>
+            <button class="filter-chip wa-pill ${isPendActive ? 'active' : ''}" data-filter-type="status" data-filter-val="pendiente">No leídos <span id="count-status-pend">${countPend}</span></button>
+        `;
+
+        availableTags.forEach(tag => {
+            const tagCount = allUnifiedConversations.filter(c => chatMatchesTag(c, tag.id, tag.name)).length;
+            const isTagActive = activeInboxTagFilters.has(tag.id) || activeInboxTagFilters.has(tag.name.toLowerCase());
+            const tagDisplayName = tag.name || tag.label || tag.id;
+            
+            html += `
+                <button class="filter-chip wa-pill wa-tag-filter-pill ${isTagActive ? 'active' : ''}" data-filter-type="tag" data-tag-id="${tag.id}" data-tag-name="${tagDisplayName}">
+                    ${tagDisplayName} (<span class="tag-filter-count">${tagCount}</span>)
+                </button>
+            `;
+        });
+
+        pillsRow.innerHTML = html;
+
+        // Conectar event listeners a las píldoras renderizadas
+        pillsRow.querySelectorAll('.wa-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const filterType = pill.getAttribute('data-filter-type');
+                
+                if (filterType === 'all') {
+                    activeInboxStatusFilters.clear();
+                    activeInboxTagFilters.clear();
+                    activeInboxCatFilters.clear();
+                    activeInboxTopicFilters.clear();
+                    renderInboxFilterPills();
+                    renderInboxCards();
+                    return;
+                }
+
+                if (filterType === 'status') {
+                    const statusVal = pill.getAttribute('data-filter-val');
+                    if (activeInboxStatusFilters.has(statusVal)) {
+                        activeInboxStatusFilters.delete(statusVal);
+                    } else {
+                        activeInboxStatusFilters.add(statusVal);
+                    }
+                } else if (filterType === 'tag') {
+                    const tagId = pill.getAttribute('data-tag-id');
+                    const tagName = pill.getAttribute('data-tag-name');
+                    const tagKey = tagId || (tagName || '').toLowerCase();
+                    if (activeInboxTagFilters.has(tagKey)) {
+                        activeInboxTagFilters.delete(tagKey);
+                    } else {
+                        activeInboxTagFilters.add(tagKey);
+                    }
+                }
+
+                renderInboxFilterPills();
+                renderInboxCards();
+            });
+        });
+    }
+
     // Renderizar Tarjetas Unificadas de Conversación en Buzón Recepción
     function renderInboxCards() {
         const container = document.getElementById('inbox-cards-container');
         const summaryEl = document.getElementById('inbox-total-summary');
         if (!container) return;
 
-        // Calcular contadores Fila 1: Contactos y Estado
         const total = allUnifiedConversations.length;
-        const countPend = allUnifiedConversations.filter(c => getConversationStatus(c) === 'pendiente').length;
-        const countProv = allUnifiedConversations.filter(c => getConversationCategory(c) === 'proveedor').length;
-        const countHoteles = allUnifiedConversations.filter(c => getConversationCategory(c) === 'hoteles').length;
-        const countEmpleados = allUnifiedConversations.filter(c => getConversationCategory(c) === 'empleado').length;
-        const countCli = allUnifiedConversations.filter(c => getConversationCategory(c) === 'cliente').length;
-        const countOtros = allUnifiedConversations.filter(c => getConversationCategory(c) === 'otro').length;
-
-        const cAll = document.getElementById('count-cat-all');
-        const cStatPend = document.getElementById('count-status-pend');
-        const cProv = document.getElementById('count-cat-prov');
-        const cHoteles = document.getElementById('count-cat-hoteles');
-        const cEmpleados = document.getElementById('count-cat-empleados');
-        const cCli = document.getElementById('count-cat-cli');
-        const cOtros = document.getElementById('count-cat-otros');
-
-        if (cAll) cAll.textContent = total;
-        if (cStatPend) cStatPend.textContent = countPend;
-        if (cProv) cProv.textContent = countProv;
-        if (cHoteles) cHoteles.textContent = countHoteles;
-        if (cEmpleados) cEmpleados.textContent = countEmpleados;
-        if (cCli) cCli.textContent = countCli;
-        if (cOtros) cOtros.textContent = countOtros;
-
-        // Calcular contadores Fila 2: Tipos de Solicitud y Temáticas
-        const countTopicMenu = allUnifiedConversations.filter(c => getConversationTopic(c) === 'menu_tradicion').length;
-        const countTopicMod = allUnifiedConversations.filter(c => getConversationTopic(c) === 'modificacion').length;
-        const countTopicCancel = allUnifiedConversations.filter(c => getConversationTopic(c) === 'cancelacion').length;
-        const countTopicOtras = allUnifiedConversations.filter(c => getConversationTopic(c) === 'otras_cuestiones').length;
-        const countTopicFaq = allUnifiedConversations.filter(c => getConversationTopic(c) === 'faq').length;
-
-        const cTopicMenu = document.getElementById('count-topic-menu');
-        const cTopicMod = document.getElementById('count-topic-mod');
-        const cTopicCancel = document.getElementById('count-topic-cancel');
-        const cTopicOtras = document.getElementById('count-topic-otras');
-        const cTopicFaq = document.getElementById('count-topic-faq');
-
-        if (cTopicMenu) cTopicMenu.textContent = countTopicMenu;
-        if (cTopicMod) cTopicMod.textContent = countTopicMod;
-        if (cTopicCancel) cTopicCancel.textContent = countTopicCancel;
-        if (cTopicOtras) cTopicOtras.textContent = countTopicOtras;
-        if (cTopicFaq) cTopicFaq.textContent = countTopicFaq;
-
         updateHeaderAndMenuBadges();
 
         let filtered = [...allUnifiedConversations];
@@ -4004,7 +4092,20 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(c => activeInboxStatusFilters.has(getConversationStatus(c)));
         }
 
-        // 2. Filtrar por Categoría / Etiquetas Múltiples (ej: 'proveedor', 'hoteles')
+        // 2. Filtrar por Etiquetas Múltiples (según las etiquetas seleccionadas)
+        if (activeInboxTagFilters.size > 0) {
+            const availableTagsList = typeof getAllAvailableSilencedTags === 'function' ? getAllAvailableSilencedTags() : [];
+            filtered = filtered.filter(c => {
+                return Array.from(activeInboxTagFilters).some(tagKey => {
+                    const tagObj = availableTagsList.find(t => t.id === tagKey || (t.name && t.name.toLowerCase() === tagKey.toLowerCase()));
+                    const tagId = tagObj ? tagObj.id : tagKey;
+                    const tagName = tagObj ? tagObj.name : tagKey;
+                    return chatMatchesTag(c, tagId, tagName);
+                });
+            });
+        }
+
+        // 3. Filtrar por Categoría / Temática residual si existiese
         if (activeInboxCatFilters.size > 0) {
             filtered = filtered.filter(c => {
                 const cat = getConversationCategory(c);
@@ -4012,8 +4113,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return activeInboxCatFilters.has(cat) || Array.from(activeInboxCatFilters).some(f => chatTags.some(t => t.includes(f) || f.includes(t)));
             });
         }
-
-        // 3. Filtrar por Temática Múltiple (ej: 'menu_tradicion')
         if (activeInboxTopicFilters.size > 0) {
             filtered = filtered.filter(c => activeInboxTopicFilters.has(getConversationTopic(c)));
         }
@@ -4508,6 +4607,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setCustomTagsOrder(currentOrder);
             renderSilencedFilters();
+            renderInboxFilterPills();
             renderInboxCards();
         }
 
@@ -4535,6 +4635,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 renderInboxTagsManagerList();
                 renderSilencedFilters();
+                renderInboxFilterPills();
                 renderInboxCards();
             });
         });

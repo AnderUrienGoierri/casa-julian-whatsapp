@@ -307,20 +307,11 @@
                                     <button type="button" id="btn-clear-inbox-search" class="wa-search-clear-btn" title="Cerrar búsqueda" style="display: none;">✕</button>
                                 </div>
 
-                                <!-- Píldoras Horizontales de Filtro estilo WhatsApp (1 Fila Unificada) -->
+                                <!-- Píldoras Horizontales de Filtro estilo WhatsApp (1 Fila Unificada Dinámica) -->
                                 <div class="wa-filter-rows-container" style="background: #0a0b0e !important; background-color: #0a0b0e !important;">
                                     <div class="wa-filter-pills-row" style="background: #0a0b0e !important; background-color: #0a0b0e !important;">
-                                        <button class="filter-chip wa-pill active" data-inbox-status="all" data-inbox-cat="all" data-inbox-topic="all">Todos</button>
-                                        <button class="filter-chip wa-pill" data-inbox-status="pendiente">No leídos <span id="count-status-pend">0</span></button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="menu_tradicion">OT (<span id="count-topic-menu">0</span>)</button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="modificacion">MODIF (<span id="count-topic-mod">0</span>)</button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="cancelacion">CANCEL (<span id="count-topic-cancel">0</span>)</button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="faq">FAQs (<span id="count-topic-faq">0</span>)</button>
-                                        <button class="filter-chip wa-pill wa-topic-pill" data-inbox-topic="otras_cuestiones">OTRAS (<span id="count-topic-otras">0</span>)</button>
-                                        <button class="filter-chip wa-pill" data-inbox-cat="proveedor">Proveedores (<span id="count-cat-prov">0</span>)</button>
-                                        <button class="filter-chip wa-pill" data-inbox-cat="hoteles">Hoteles (<span id="count-cat-hoteles">0</span>)</button>
-                                        <button class="filter-chip wa-pill" data-inbox-cat="empleado">Personal (<span id="count-cat-empleados">0</span>)</button>
-                                        <button class="filter-chip wa-pill" data-inbox-cat="cliente">Clientes (<span id="count-cat-cli">0</span>)</button>
+                                        <button class="filter-chip wa-pill active" data-filter-type="all">Todos</button>
+                                        <button class="filter-chip wa-pill" data-filter-type="status" data-filter-val="pendiente">No leídos <span id="count-status-pend">0</span></button>
                                     </div>
                                 </div>
                             </div>
@@ -1111,6 +1102,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260829-V445-FIX-STATIC-AVATARS-PATH"></script>
+    <script src="/admin/admin.js?v=20260830-V447-DYNAMIC-INBOX-TAGS-ORDER"></script>
 </body>
 </html>
