@@ -2,14 +2,37 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
-require('dotenv').config();
+function getFreshEnv() {
+    try {
+        const envPath = path.join(__dirname, '.env');
+        if (fs.existsSync(envPath)) {
+            const raw = fs.readFileSync(envPath, 'utf8');
+            const lines = raw.split(/\r?\n/);
+            const envMap = {};
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('#')) continue;
+                const eqIdx = trimmed.indexOf('=');
+                if (eqIdx > 0) {
+                    const k = trimmed.substring(0, eqIdx).trim();
+                    const v = trimmed.substring(eqIdx + 1).trim();
+                    envMap[k] = v;
+                }
+            }
+            return envMap;
+        }
+    } catch (e) {}
+    return process.env;
+}
 
 function getWhatsAppToken() {
-    return process.env.WHATSAPP_TOKEN || '';
+    const env = getFreshEnv();
+    return env.WHATSAPP_TOKEN || process.env.WHATSAPP_TOKEN || '';
 }
 
 function getPhoneNumberId() {
-    return process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.PHONE_NUMBER_ID || '';
+    const env = getFreshEnv();
+    return env.WHATSAPP_PHONE_NUMBER_ID || env.PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.PHONE_NUMBER_ID || '1309819002211779';
 }
 
 let simMessageStore = new Map();
