@@ -5498,7 +5498,84 @@ div.inbox-toolbar-header,
     }
 }
 
+/* ── BLOQUE DE CONTACTOS: UNIFICACIÓN DE TIPOGRAFÍA Y TAMAÑOS ── */
+#tab-silenced table.data-table {
+    font-family: var(--font-family) !important;
+    font-size: 0.88rem !important;
+    letter-spacing: -0.01em !important;
+}
 
+#tab-silenced table.data-table th {
+    font-family: var(--font-family) !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: #94a3b8 !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    padding: 12px 14px !important;
+}
 
+#tab-silenced table.data-table td {
+    font-family: var(--font-family) !important;
+    font-size: 0.88rem !important;
+    line-height: 1.4 !important;
+    vertical-align: middle !important;
+}
 
+#tab-silenced .silenced-contact-name {
+    font-family: var(--font-family) !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    color: #f8fafc !important;
+}
 
+#tab-silenced .silenced-phone-link {
+    font-family: var(--font-family) !important;
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    color: #f1f5f9 !important;
+    letter-spacing: 0.02em !important;
+}
+
+#tab-silenced .silenced-tags-list-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+#tab-silenced .silenced-tag-badge {
+    font-family: var(--font-family) !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    padding: 3px 8px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    line-height: 1.2 !important;
+}
+
+#tab-silenced .silenced-status-btn {
+    font-family: var(--font-family) !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    line-height: 1.2 !important;
+}
+
+#tab-silenced .btn-chat-silence img {
+    width: 22px !important;
+    height: 22px !important;
+    object-fit: contain !important;
+    display: block !important;
+    transition: transform 0.15s ease !important;
+}
+
+#tab-silenced .btn-chat-silence:hover img {
+    transform: scale(1.15) !important;
+}

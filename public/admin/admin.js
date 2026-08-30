@@ -1263,29 +1263,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <tr class="silenced-row-item" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); ${isChecked ? 'background: rgba(147, 51, 234, 0.08);' : ''}">
-                    <td class="col-chk" style="width: 40px; padding: 8px 10px; text-align: center;">
+                    <td class="col-chk" style="width: 40px; padding: 10px 12px; text-align: center; vertical-align: middle;">
                         <input type="checkbox" class="silenced-row-chk" data-phone="${cleanPhone}" data-id="${item.id || ''}" ${isChecked ? 'checked' : ''} style="width: 17px; height: 17px; cursor: pointer; accent-color: #9333ea;">
                     </td>
-                    <td class="col-name" style="padding: 8px 12px; font-weight: 600; color: #f8fafc;">
+                    <td class="col-name" style="padding: 10px 14px; font-family: var(--font-family); font-size: 0.88rem; font-weight: 600; color: #f8fafc; vertical-align: middle;">
                         <span class="silenced-contact-name">${item.nombre || 'Contacto'}</span>
                     </td>
-                    <td class="col-phone" style="padding: 8px 12px; color: #ffffff; font-family: monospace;">
-                        <a href="https://wa.me/${cleanPhone}" target="_blank" class="silenced-phone-link" style="color: #ffffff; text-decoration: none;">
+                    <td class="col-phone" style="padding: 10px 14px; font-family: var(--font-family); font-size: 0.88rem; color: #f1f5f9; vertical-align: middle;">
+                        <a href="https://wa.me/${cleanPhone}" target="_blank" class="silenced-phone-link" style="color: #f1f5f9; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-family); font-size: 0.88rem;">
                             📞 +${item.telefono}
                         </a>
                     </td>
-                    <td class="col-cat" style="padding: 8px 12px;">
+                    <td class="col-cat" style="padding: 10px 14px; font-family: var(--font-family); font-size: 0.88rem; vertical-align: middle;">
                         ${badgesHtml}
                     </td>
-                    <td class="col-status" style="padding: 8px 12px; text-align: center;">
+                    <td class="col-status" style="padding: 10px 14px; text-align: center; vertical-align: middle;">
                         <div class="status-toggle-wrapper" data-phone="${cleanPhone}" data-id="${item.id || ''}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" data-active="${isSilencedActive}" style="display: inline-block;">
                             ${statusHtml}
                         </div>
                     </td>
-                    <td class="col-actions" style="padding: 8px 12px; text-align: right; white-space: nowrap;">
+                    <td class="col-actions" style="padding: 10px 14px; text-align: right; white-space: nowrap; vertical-align: middle;">
                         <div class="silenced-actions-group" style="display: inline-flex; gap: 8px; align-items: center; justify-content: flex-end;">
                             <button type="button" class="btn-chat-silence" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: none; border: none; box-shadow: none; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Abrir chat de WhatsApp con este contacto">
-                                <img src="/admin/icono_enviar_whatsapp.png" alt="WhatsApp" style="width: 20px; height: 20px; object-fit: contain;">
+                                <img src="/admin/whatsapp_logo_icon.png" alt="WhatsApp" style="width: 22px; height: 22px; object-fit: contain; display: block;">
                             </button>
                             <button type="button" class="btn-edit-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: none; border: none; box-shadow: none; font-size: 1.15rem; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Editar contacto y etiquetas">
                                 ✏️
