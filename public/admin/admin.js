@@ -3605,6 +3605,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getConversationStatus(c) {
         const cleanPhone = getCleanPhoneKey(c.telefono);
+        
+        // Si esta conversación es la que el usuario tiene abierta actualmente en pantalla, está leída
+        if (activeConversationPhone && cleanPhone === activeConversationPhone) {
+            return 'leido';
+        }
+
         const manualMap = getManualChatStatusMap();
         const manualEntry = manualMap[cleanPhone];
 
@@ -5626,7 +5632,7 @@ document.addEventListener('DOMContentLoaded', () => {
             stopTitleFlash();
         }
 
-        // Resaltar elemento seleccionado en la columna izquierda
+        // Resaltar elemento seleccionado en la columna izquierda y eliminar de inmediato el badge
         const container = document.getElementById('inbox-cards-container');
         if (container) {
             container.querySelectorAll('.whatsapp-chat-row').forEach(row => {
@@ -5636,11 +5642,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     row.classList.remove('is-unread');
                     const unreadBadge = row.querySelector('.wa-unread-badge');
                     if (unreadBadge) unreadBadge.remove();
+                    const timeEl = row.querySelector('.wa-chat-time');
+                    if (timeEl) timeEl.classList.remove('wa-time-unread');
                 } else {
                     row.classList.remove('is-selected');
                 }
             });
         }
+        updateHeaderAndMenuBadges();
 
         const emptyState = document.getElementById('wa-empty-state');
         const activePanel = document.getElementById('wa-active-chat-panel');
