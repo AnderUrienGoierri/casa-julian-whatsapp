@@ -3580,18 +3580,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!clean) return;
         const map = { ...getManualChatStatusMap() };
         
-        // Buscar la conversación para guardar su estado exacto en el momento de leer
+        // Buscar la conversación para guardar su huella exacta
         const conv = allUnifiedConversations.find(c => getCleanPhoneKey(c.telefono) === clean) 
                   || allWhatsAppChats.find(c => getCleanPhoneKey(c.telefono) === clean);
 
-        // Guardamos tanto el estado como la fecha y huella del último mensaje leído
         if (status === 'leido') {
+            const currentText = conv ? (conv.ultimoTexto || '') : '';
+            const currentDate = conv ? (conv.ultimoMensajeFecha || '') : '';
+            const currentCount = conv ? (conv.totalInteracciones || 0) : 0;
+
             map[clean] = { 
                 status: 'leido', 
                 readAt: new Date().toISOString(),
-                lastReadMsgTime: (conv && conv.ultimoMensajeFecha) ? String(conv.ultimoMensajeFecha) : '',
-                lastReadMsgText: (conv && conv.ultimoTexto) ? String(conv.ultimoTexto) : '',
-                lastReadTotal: (conv && conv.totalInteracciones) ? Number(conv.totalInteracciones) : 0
+                lastText: currentText,
+                lastDate: currentDate,
+                lastCount: currentCount
             };
             if (conv) {
                 conv.unreadCount = 0;
@@ -3601,7 +3604,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 waMatch.unreadCount = 0;
             }
         } else {
-            map[clean] = { status: 'pendiente', readAt: null, lastReadMsgTime: '', lastReadMsgText: '', lastReadTotal: 0 };
+            map[clean] = { status: 'pendiente', readAt: null, lastText: '', lastDate: '', lastCount: 0 };
         }
         
         serverInboxSettings.manualChatStatus = map;
@@ -3621,72 +3624,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getConversationStatus(c) {
+        if (!c) return 'leido';
         const cleanPhone = getCleanPhoneKey(c.telefono);
+        if (!cleanPhone) return 'leido';
         
-        // Si esta conversación es la que el usuario tiene abierta actualmente en pantalla, está leída
+        // 1. Si esta conversación es la que el usuario tiene abierta actualmente en pantalla, SIEMPRE está leída
         if (activeConversationPhone && cleanPhone === activeConversationPhone) {
             return 'leido';
         }
 
+        // 2. Si el último mensaje es saliente (restaurante, staff, bot, admin), SIEMPRE está leída
+        const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
+        if (!isFromClient) {
+            return 'leido';
+        }
+
+        // 3. Comprobar si está marcada manualmente o registrada como leída
         const manualMap = getManualChatStatusMap();
         const manualEntry = manualMap[cleanPhone];
 
-        // Si el usuario marcó como leído antes
         if (manualEntry) {
             const statusVal = typeof manualEntry === 'object' ? manualEntry.status : manualEntry;
             
             if (statusVal === 'leido') {
-                const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
-                
-                // Si el último mensaje es del restaurante/bot/staff, está 100% leído
-                if (!isFromClient) {
-                    return 'leido';
-                }
-
-                if (typeof manualEntry === 'object') {
-                    const { lastReadMsgTime, lastReadMsgText, lastReadTotal, readAt } = manualEntry;
+                if (typeof manualEntry === 'object' && manualEntry.lastText !== undefined) {
+                    // Si tenemos registrada la huella del mensaje leído:
+                    const isSameText = (c.ultimoTexto || '').trim() === (manualEntry.lastText || '').trim();
+                    const isSameDate = String(c.ultimoMensajeFecha || '') === String(manualEntry.lastDate || '');
                     
-                    // Comprobación de huella exacta del mensaje:
-                    // Si el texto del último mensaje es el mismo que cuando se leyó -> NO hay mensaje nuevo -> LEIDO
-                    if (lastReadMsgText && c.ultimoTexto && c.ultimoTexto === lastReadMsgText) {
+                    // Si el texto o la fecha del último mensaje no ha cambiado, NO hay mensaje nuevo -> LEIDO
+                    if (isSameText || isSameDate) {
                         return 'leido';
                     }
-
-                    // Si el número total de interacciones no ha aumentado -> NO hay mensaje nuevo -> LEIDO
-                    if (lastReadTotal && c.totalInteracciones && c.totalInteracciones <= lastReadTotal) {
-                        return 'leido';
-                    }
-
-                    // Si la fecha coincide exactamente -> LEIDO
-                    if (lastReadMsgTime && c.ultimoMensajeFecha && String(c.ultimoMensajeFecha) === String(lastReadMsgTime)) {
-                        return 'leido';
-                    }
-
-                    // Si se leyó recientemente y el mensaje tiene fecha anterior -> LEIDO
-                    if (readAt && c.ultimoMensajeFecha) {
-                        const msgTime = new Date(c.ultimoMensajeFecha).getTime();
-                        const readTime = new Date(readAt).getTime();
-                        // Solo si el mensaje nuevo tiene más de 60 segundos de posterioridad respecto a cuando se abrió
-                        if (msgTime > (readTime + 60000)) {
-                            return 'pendiente';
-                        }
-                        return 'leido';
-                    }
+                    // Solo si el texto Y la fecha cambiaron, ha entrado un mensaje nuevo -> PENDIENTE
+                    return 'pendiente';
                 }
+                
+                // Si está marcado como 'leido' pero no hay huella detallada, se respeta como LEIDO
                 return 'leido';
             }
+            
             if (statusVal === 'pendiente') {
                 return 'pendiente';
             }
         }
 
-        // Por defecto: si tiene solicitud activa en PENDIENTE o EN_ATENCION, o último mensaje del cliente
+        // 4. Si tiene solicitud activa en estado PENDIENTE o EN_ATENCION
         if (c.solicitudEstado === 'PENDIENTE' || c.solicitudEstado === 'EN_ATENCION') {
             return 'pendiente';
         }
-        if (c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user') {
+
+        // 5. Si no hay registro de lectura previo y el último mensaje es del cliente
+        if (isFromClient) {
             return 'pendiente';
         }
+
         return 'leido';
     }
 
