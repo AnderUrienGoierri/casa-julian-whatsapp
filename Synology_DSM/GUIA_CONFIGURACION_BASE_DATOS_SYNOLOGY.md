@@ -6,17 +6,17 @@
 
 ## 📋 Ficha Técnica del Synology (Extraída de tu sistema)
 
-| Parámetro                           | Valor detectado en Casa Julián                                         |
-| :----------------------------------- | :---------------------------------------------------------------------- |
-| **Modelo**                     | Synology DiskStation**DS223j**                                    |
-| **Procesador / CPU**           | Realtek RTD1619B (4 núcleos, 64-bit ARMv8)                             |
-| **Memoria RAM**                | 1024 MB (1 GB)                                                          |
-| **Sistema Operativo**          | DSM 7.4.1 / 7.2                                                         |
-| **Almacenamiento Libre**       | **~6.8 TB libres** (Volumen 1 en RAID/SHR)                        |
-| **IP Local en el Restaurante** | `192.168.110.57`                                                      |
-| **Puerta de Enlace / Router**  | `192.168.110.1`                                                       |
+| Parámetro                      | Valor detectado en Casa Julián                                  |
+| :----------------------------- | :-------------------------------------------------------------- |
+| **Modelo**                     | Synology DiskStation**DS223j**                                  |
+| **Procesador / CPU**           | Realtek RTD1619B (4 núcleos, 64-bit ARMv8)                      |
+| **Memoria RAM**                | 1024 MB (1 GB)                                                  |
+| **Sistema Operativo**          | DSM 7.4.1 / 7.2                                                 |
+| **Almacenamiento Libre**       | **~6.8 TB libres** (Volumen 1 en RAID/SHR)                      |
+| **IP Local en el Restaurante** | `192.168.110.57`                                                |
+| **Puerta de Enlace / Router**  | `192.168.110.1`                                                 |
 | **Dominio DDNS Synology**      | **`casajuliantolosa.synology.me`** (Estado: Normal / Conectado) |
-| **Herramienta disponible**     | **Container Manager (Docker)** ya instalado y operativo           |
+| **Herramienta disponible**     | **Container Manager (Docker)** ya instalado y operativo         |
 
 ---
 
@@ -28,7 +28,7 @@
 
 1. Abre el navegador y accede al panel de DSM: `https://192.168.110.57:5001` (o mediante `https://casajuliantolosa.synology.me:5001`).
 2. Abre la aplicación **File Station**.
-3. Ve a la carpeta compartida **`docker`** (si no existe, créala desde *Panel de Control > Carpeta compartida*).
+3. Ve a la carpeta compartida **`docker`** (si no existe, créala desde _Panel de Control > Carpeta compartida_).
 4. Dentro de `docker`, crea una nueva carpeta llamada:
    📁 **`postgres_casa_julian`** (Ruta: `/volume1/docker/postgres_casa_julian`).
 
@@ -40,14 +40,14 @@
 2. Ve a la pestaña **Registro** (Registry) en el menú de la izquierda.
 3. En la barra de búsqueda escribe: `postgres`.
 4. Selecciona la imagen oficial **`postgres`**, haz clic en **Descargar** y elige la etiqueta:
-   🏷️ **`16-alpine`** *(Es ultra ligera, consume menos de 30 MB de RAM y es 100% compatible con la arquitectura ARM64 de tu DS223j)*.
+   🏷️ **`16-alpine`** _(Es ultra ligera, consume menos de 30 MB de RAM y es 100% compatible con la arquitectura ARM64 de tu DS223j)_.
 5. Una vez descargada, ve a la pestaña **Imagen**, selecciona `postgres:16-alpine` y pulsa **Ejecutar**.
 6. Configura los siguientes parámetros en el asistente:
 
 #### Configuración General:
 
 - **Nombre del contenedor:** `casa-julian-postgres`
-- **Habilitar reinicio automático:** ✅ **Marcado** *(Si el Synology se reinicia por corte de luz, la base de datos arrancará sola)*.
+- **Habilitar reinicio automático:** ✅ **Marcado** _(Si el Synology se reinicia por corte de luz, la base de datos arrancará sola)_.
 
 #### Configuración Avanzada:
 
@@ -60,13 +60,13 @@
   - Carpeta del Synology: `/docker/postgres_casa_julian`
   - Ruta de montaje dentro del contenedor: `/var/lib/postgresql/data`
 - **Variables de Entorno (Environment Variables):**
-  Pulsa *Agregar* para añadir cada una de estas 3 variables:
+  Pulsa _Agregar_ para añadir cada una de estas 3 variables:
 
-| Variable              | Valor                     | Descripción                             |
-| :-------------------- | :------------------------ | :--------------------------------------- |
-| `POSTGRES_DB`       | `casa_julian_db`        | Nombre de la base de datos               |
-| `POSTGRES_USER`     | `casajulian_admin`      | Usuario administrador de la BD           |
-| `POSTGRES_PASSWORD` | `CasaJulianTolosa2026!` | *(O la contraseña segura que elijas)* |
+| Variable            | Valor                   | Descripción                           |
+| :------------------ | :---------------------- | :------------------------------------ |
+| `POSTGRES_DB`       | `casa_julian_db`        | Nombre de la base de datos            |
+| `POSTGRES_USER`     | `casajulian_admin`      | Usuario administrador de la BD        |
+| `POSTGRES_PASSWORD` | `CasaJulianTolosa2026!` | _(O la contraseña segura que elijas)_ |
 
 7. Haz clic en **Siguiente** y luego en **Listo**. El contenedor se iniciará inmediatamente.
 
@@ -81,12 +81,12 @@ Dado que el bot/panel corre en la nube (Render) o en remoto, necesita conectar c
 3. Añade una regla de redirección:
    - **Nombre:** `PostgreSQL Casa Julian`
    - **Protocolo:** `TCP`
-   - **Puerto Externo (WAN):** `5432` *(o `54320` por mayor seguridad)*
-   - **IP Interna:** `192.168.110.57` *(la IP fija del Synology)*
+   - **Puerto Externo (WAN):** `5432` _(o `54320` por mayor seguridad)_
+   - **IP Interna:** `192.168.110.57` _(la IP fija del Synology)_
    - **Puerto Interno (LAN):** `5432`
 4. Guarda los cambios en el router.
 
-> 🔒 **Recomendación de Seguridad:** En el cortafuegos de Synology (*Panel de Control > Seguridad > Cortafuegos*), asegúrate de que el puerto `5432` esté permitido.
+> 🔒 **Recomendación de Seguridad:** En el cortafuegos de Synology (_Panel de Control > Seguridad > Cortafuegos_), asegúrate de que el puerto `5432` esté permitido.
 
 ---
 
@@ -98,7 +98,7 @@ La nueva URL de conexión PostgreSQL para el proyecto es:
 DATABASE_URL=postgresql://casajulian_admin:CasaJulianTolosa2026!@casajuliantolosa.synology.me:5432/casa_julian_db?sslmode=disable
 ```
 
-*(Si usaste un puerto externo diferente en el router, por ejemplo 54320, sustituye `:5432` por `:54320`)*.
+_(Si usaste un puerto externo diferente en el router, por ejemplo 54320, sustituye `:5432` por `:54320`)_.
 
 #### Dónde se aplica:
 

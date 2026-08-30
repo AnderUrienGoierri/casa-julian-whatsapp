@@ -22,14 +22,14 @@ Alojar de forma simultánea e independiente la **Base de Datos PostgreSQL** y el
 
 ## 📊 Ficha Técnica del Entorno Casa Julián
 
-| Parámetro                          | Valor Configurado                          |
-| :---------------------------------- | :----------------------------------------- |
-| **Servidor NAS**              | Synology DiskStation**DS223j**       |
-| **Sistema Operativo**         | DSM 7.4.1 / 7.2                            |
-| **IP Fija Local Synology**    | `192.168.110.57`                         |
-| **Router del Restaurante**    | `192.168.110.1`                          |
+| Parámetro                     | Valor Configurado                  |
+| :---------------------------- | :--------------------------------- |
+| **Servidor NAS**              | Synology DiskStation**DS223j**     |
+| **Sistema Operativo**         | DSM 7.4.1 / 7.2                    |
+| **IP Fija Local Synology**    | `192.168.110.57`                   |
+| **Router del Restaurante**    | `192.168.110.1`                    |
 | **Dominio DDNS Activo**       | **`casajuliantolosa.synology.me`** |
-| **Herramienta de Despliegue** | **Container Manager (Docker)**       |
+| **Herramienta de Despliegue** | **Container Manager (Docker)**     |
 
 ---
 
@@ -64,12 +64,11 @@ Alojar de forma simultánea e independiente la **Base de Datos PostgreSQL** y el
 ### FASE 1: Configurar la Base de Datos (PostgreSQL). [OK]
 
 1. **Crear la carpeta en File Station:**
-
    - Abre **File Station** en DSM.
    - Entra en la carpeta compartida **`docker`**.
    - Crea una nueva carpeta llamada: `postgres_casa_julian` (Ruta: `/volume1/docker/postgres_casa_julian`).
-2. **Crear el contenedor en Container Manager:**
 
+2. **Crear el contenedor en Container Manager:**
    - Abre **Container Manager > Imagen**.
    - Selecciona **`postgres:latest`** (o `postgres:16-alpine`) y pulsa **Ejecutar**.
    - **Configuración General:**
@@ -77,13 +76,13 @@ Alojar de forma simultánea e independiente la **Base de Datos PostgreSQL** y el
      - Habilitar el reinicio automático: ✅ **Marcado**
    - **Configuración Avanzada:**
      - **Configuración de puertos:**
-       - *Puerto local:* `5433`
-       - *Puerto del contenedor:* `5432`
-       - *Tipo:* `TCP`
+       - _Puerto local:_ `5433`
+       - _Puerto del contenedor:_ `5432`
+       - _Tipo:_ `TCP`
      - **Configuración de volúmenes:**
-       - *Carpeta:* `/docker/postgres_casa_julian`
-       - *Ruta de montaje:* `/var/lib/postgresql/data`
-       - *Sólo lectura:* `No`
+       - _Carpeta:_ `/docker/postgres_casa_julian`
+       - _Ruta de montaje:_ `/var/lib/postgresql/data`
+       - _Sólo lectura:_ `No`
      - **Medio ambiente / Variables de Entorno:**
        - `POSTGRES_DB` = `casa_julian_db`
        - `POSTGRES_USER` = `casajulian_admin`
@@ -101,19 +100,19 @@ Alojar de forma simultánea e independiente la **Base de Datos PostgreSQL** y el
    - Habilitar el reinicio automático: ✅ **Marcado**
 4. **Configuración Avanzada:**
    - **Configuración de puertos:**
-     - *Puerto local:* `3000`
-     - *Puerto del contenedor:* `3000`
-     - *Tipo:* `TCP`
+     - _Puerto local:_ `3000`
+     - _Puerto del contenedor:_ `3000`
+     - _Tipo:_ `TCP`
    - **Medio ambiente / Variables de Entorno (Environment):**
-     Pulsa *+ Agregar* para definir la conexión con la base de datos y Meta:
+     Pulsa _+ Agregar_ para definir la conexión con la base de datos y Meta:
 
-| Variable | Valor |
-| :--- | :--- |
-| **`PORT`** | `3000` |
-| **`DATABASE_URL`** | `postgresql://casajulian_admin:CasaJulianTolosa2026!@192.168.110.57:5433/casa_julian_db?sslmode=disable` |
-| **`PHONE_NUMBER_ID`** | `1232422906619224` |
-| **`WHATSAPP_TOKEN`** | `EAAPS3Ie3sf4BSAeCbINNQfDUbGF8gl5PGAk2KWiwknBzyCQlYdlHaolBQZBDiSnxTXaP2DItHs7OpQj8w1Ib6MvDQVUlKLVVMtDQdYnYoipgjkLiu6BIeRlFmJQHZAADXpBcDEBslnzeJwNPmpVlMGZAVMGDebTVs5eTJeoBvvPLglTnnPusvWDJUx5vwZDZD` |
-| **`WEBHOOK_VERIFY_TOKEN`** | `casajulian123` |
+| Variable                   | Valor                                                                                                                                                                                                |
+| :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`PORT`**                 | `3000`                                                                                                                                                                                               |
+| **`DATABASE_URL`**         | `postgresql://casajulian_admin:CasaJulianTolosa2026!@192.168.110.57:5433/casa_julian_db?sslmode=disable`                                                                                             |
+| **`PHONE_NUMBER_ID`**      | `1232422906619224`                                                                                                                                                                                   |
+| **`WHATSAPP_TOKEN`**       | `EAAPS3Ie3sf4BSAeCbINNQfDUbGF8gl5PGAk2KWiwknBzyCQlYdlHaolBQZBDiSnxTXaP2DItHs7OpQj8w1Ib6MvDQVUlKLVVMtDQdYnYoipgjkLiu6BIeRlFmJQHZAADXpBcDEBslnzeJwNPmpVlMGZAVMGDebTVs5eTJeoBvvPLglTnnPusvWDJUx5vwZDZD` |
+| **`WEBHOOK_VERIFY_TOKEN`** | `casajulian123`                                                                                                                                                                                      |
 
 5. Pulsa **Siguiente** y luego **Finalizado**.
 
@@ -142,7 +141,6 @@ Para poder entrar al panel de administración desde cualquier móvil o lugar fue
 
 1. En Synology DSM, ve a **Panel de Control > Portal de inicio de sesión > Avanzado**.
 2. Pulsa en el botón **Proxy Inverso** y luego en **Crear**:
-
    - **Nombre de la descripción:** `Casa Julian Panel Web`
    - **Origen:**
      - Protocolo: `HTTPS`
@@ -153,9 +151,9 @@ Para poder entrar al panel de administración desde cualquier móvil o lugar fue
      - Protocolo: `HTTP`
      - Nombre de host: `localhost`
      - Puerto: `3000`
+
 3. Pulsa **Guardar**.
 4. **Vincular el Certificado SSL:**
-
    - Ve a **Panel de Control > Seguridad > Certificado**.
    - Haz clic en **Configuración** (arriba).
    - En la línea `Casa Julian Panel Web`, asegúrate de que el certificado seleccionado sea el de **`synology.me` (Let's Encrypt)**.
@@ -167,10 +165,10 @@ Para poder entrar al panel de administración desde cualquier móvil o lugar fue
 
 Accede a la página del router del restaurante (`http://192.168.110.1`) y en **Port Forwarding / NAT** añade las siguientes reglas:
 
-| Servicio                                      | Puerto Externo (WAN) | IP Destino Synology | Puerto Interno (LAN) | Protocolo |
-| :-------------------------------------------- | :------------------- | :------------------ | :------------------- | :-------- |
-| **Panel Web & Webhook WhatsApp**        | `3443`             | `192.168.110.57`  | `3443`             | TCP       |
-| **Base de Datos PostgreSQL (Opcional)** | `5433`             | `192.168.110.57`  | `5433`             | TCP       |
+| Servicio                                | Puerto Externo (WAN) | IP Destino Synology | Puerto Interno (LAN) | Protocolo |
+| :-------------------------------------- | :------------------- | :------------------ | :------------------- | :-------- |
+| **Panel Web & Webhook WhatsApp**        | `3443`               | `192.168.110.57`    | `3443`               | TCP       |
+| **Base de Datos PostgreSQL (Opcional)** | `5433`               | `192.168.110.57`    | `5433`               | TCP       |
 
 ---
 
@@ -209,9 +207,9 @@ Accede a la página del router del restaurante (`http://192.168.110.1`) y en **P
 
 ## ✅ Resumen del Estado del Sistema
 
-| Componente                    | Antes                                              | Ahora (Synology Autónomo)                            |
-| :---------------------------- | :------------------------------------------------- | :---------------------------------------------------- |
-| **Base de Datos**       | Neon Cloud (Límite 5 GB, bloqueos de cuota)       | **Synology DS223j (6.8 TB libres, sin cuotas)** |
-| **Servidor Web & Bot**  | Render Free (Se duerme tras 15 min de inactividad) | **Synology DS223j (Activo 24/7 instantáneo)**  |
-| **Coste Mensual**       | Riesgo de cobro por consumo                        | **0 € para siempre**                           |
-| **Privacidad de Datos** | Servidores en EE.UU./Nube                          | **Discos físicos en Casa Julián (Tolosa)**    |
+| Componente              | Antes                                              | Ahora (Synology Autónomo)                       |
+| :---------------------- | :------------------------------------------------- | :---------------------------------------------- |
+| **Base de Datos**       | Neon Cloud (Límite 5 GB, bloqueos de cuota)        | **Synology DS223j (6.8 TB libres, sin cuotas)** |
+| **Servidor Web & Bot**  | Render Free (Se duerme tras 15 min de inactividad) | **Synology DS223j (Activo 24/7 instantáneo)**   |
+| **Coste Mensual**       | Riesgo de cobro por consumo                        | **0 € para siempre**                            |
+| **Privacidad de Datos** | Servidores en EE.UU./Nube                          | **Discos físicos en Casa Julián (Tolosa)**      |
