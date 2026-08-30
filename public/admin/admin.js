@@ -3580,11 +3580,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!clean) return;
         const map = { ...getManualChatStatusMap() };
         
-        // Guardamos tanto el estado como la fecha exacta en la que se marcó como leído
+        // Buscar la conversación para guardar su estado exacto en el momento de leer
+        const conv = allUnifiedConversations.find(c => getCleanPhoneKey(c.telefono) === clean) 
+                  || allWhatsAppChats.find(c => getCleanPhoneKey(c.telefono) === clean);
+
+        // Guardamos tanto el estado como la fecha y huella del último mensaje leído
         if (status === 'leido') {
-            map[clean] = { status: 'leido', readAt: new Date().toISOString() };
+            map[clean] = { 
+                status: 'leido', 
+                readAt: new Date().toISOString(),
+                lastReadMsgTime: (conv && conv.ultimoMensajeFecha) ? String(conv.ultimoMensajeFecha) : '',
+                lastReadMsgText: (conv && conv.ultimoTexto) ? String(conv.ultimoTexto) : '',
+                lastReadTotal: (conv && conv.totalInteracciones) ? Number(conv.totalInteracciones) : 0
+            };
+            if (conv) {
+                conv.unreadCount = 0;
+            }
+            const waMatch = allWhatsAppChats.find(c => getCleanPhoneKey(c.telefono) === clean);
+            if (waMatch) {
+                waMatch.unreadCount = 0;
+            }
         } else {
-            map[clean] = { status: 'pendiente', readAt: null };
+            map[clean] = { status: 'pendiente', readAt: null, lastReadMsgTime: '', lastReadMsgText: '', lastReadTotal: 0 };
         }
         
         serverInboxSettings.manualChatStatus = map;
@@ -3614,19 +3631,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const manualMap = getManualChatStatusMap();
         const manualEntry = manualMap[cleanPhone];
 
-        // Si el usuario marcó como leído antes, pero DESPUÉS ha llegado un mensaje nuevo del cliente, vuelve a 'pendiente'
+        // Si el usuario marcó como leído antes
         if (manualEntry) {
             const statusVal = typeof manualEntry === 'object' ? manualEntry.status : manualEntry;
-            const readAt = typeof manualEntry === 'object' ? manualEntry.readAt : null;
             
             if (statusVal === 'leido') {
-                if (readAt && c.ultimoMensajeFecha) {
-                    const msgTime = new Date(c.ultimoMensajeFecha).getTime();
-                    const readTime = new Date(readAt).getTime();
-                    const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
-                    // Si el cliente escribió después de la fecha de lectura, vuelve a estar PENDIENTE
-                    if (isFromClient && msgTime > (readTime + 1000)) {
-                        return 'pendiente';
+                const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
+                
+                // Si el último mensaje es del restaurante/bot/staff, está 100% leído
+                if (!isFromClient) {
+                    return 'leido';
+                }
+
+                if (typeof manualEntry === 'object') {
+                    const { lastReadMsgTime, lastReadMsgText, lastReadTotal, readAt } = manualEntry;
+                    
+                    // Comprobación de huella exacta del mensaje:
+                    // Si el texto del último mensaje es el mismo que cuando se leyó -> NO hay mensaje nuevo -> LEIDO
+                    if (lastReadMsgText && c.ultimoTexto && c.ultimoTexto === lastReadMsgText) {
+                        return 'leido';
+                    }
+
+                    // Si el número total de interacciones no ha aumentado -> NO hay mensaje nuevo -> LEIDO
+                    if (lastReadTotal && c.totalInteracciones && c.totalInteracciones <= lastReadTotal) {
+                        return 'leido';
+                    }
+
+                    // Si la fecha coincide exactamente -> LEIDO
+                    if (lastReadMsgTime && c.ultimoMensajeFecha && String(c.ultimoMensajeFecha) === String(lastReadMsgTime)) {
+                        return 'leido';
+                    }
+
+                    // Si se leyó recientemente y el mensaje tiene fecha anterior -> LEIDO
+                    if (readAt && c.ultimoMensajeFecha) {
+                        const msgTime = new Date(c.ultimoMensajeFecha).getTime();
+                        const readTime = new Date(readAt).getTime();
+                        // Solo si el mensaje nuevo tiene más de 60 segundos de posterioridad respecto a cuando se abrió
+                        if (msgTime > (readTime + 60000)) {
+                            return 'pendiente';
+                        }
+                        return 'leido';
                     }
                 }
                 return 'leido';
@@ -3918,6 +3962,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ultimoTexto: c.ultimoTexto || (isGroup ? '🚕 Grupo Taxi Casa Julián (3 Taxis + Restaurante)' : ''),
                 ultimoEmisor: c.ultimoEmisor || 'cliente',
                 totalInteracciones: c.totalInteracciones || 1,
+                unreadCount: (c.unreadCount !== undefined ? c.unreadCount : 0),
                 solicitudId: c.solicitudId || null,
                 solicitudEstado: c.solicitudEstado || null,
                 tipoSolicitud: c.tipoSolicitud || null,
