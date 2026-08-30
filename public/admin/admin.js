@@ -1010,10 +1010,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages) {
                     currentContactsPage = targetPage;
                     renderSilencedNumbersTable();
-                    const tableContainer = document.querySelector('#tab-silenced .table-container');
-                    if (tableContainer) {
-                        tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
+                    // Desplazarse al inicio de la página manteniendo el header visible
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             });
         });
