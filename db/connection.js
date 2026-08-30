@@ -262,6 +262,8 @@ if (process.env.DATABASE_URL) {
 
         CREATE INDEX IF NOT EXISTS idx_bot_silenced_numbers_telefono ON bot_silenced_numbers(telefono);
 
+        ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS respuesta_staff TEXT;
+        ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS fecha_respuesta TIMESTAMP WITH TIME ZONE;
         ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS en_atencion_humana BOOLEAN DEFAULT FALSE;
         ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS mensajes TEXT DEFAULT '[]';
     `).then(async () => {
