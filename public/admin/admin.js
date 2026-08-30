@@ -4421,16 +4421,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span class="wa-check-double" title="Entregado y Leído">✓✓</span> ` 
                 : '';
 
-            // Generador de Avatar estilo WhatsApp Business con soporte de fotos personalizadas
+            // Generador de Avatar estilo WhatsApp Business con soporte de fotos personalizadas y grupos
             let avatarHtml = '';
             const lowerName = (clientDisplayName || '').toLowerCase();
+            const grpData = (serverInboxSettings.customGroups && serverInboxSettings.customGroups[cleanPhone]) || (c.isGroup ? c : null);
             const customAvatarUrl = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[cleanPhone])
+                || (grpData && grpData.avatar && (grpData.avatar.startsWith('/') || grpData.avatar.startsWith('http')) ? grpData.avatar : '')
                 || (cleanPhone === 'group_taxi_casa_julian' ? '/admin/taxi_img.png' : '')
                 || (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático') ? '/admin/ander_img.png' : '');
 
             if (customAvatarUrl) {
-                const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : '#0284c7';
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid ${borderClr}; overflow: hidden;" title="${clientDisplayName}"><img src="${customAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>${cleanPhone === 'group_taxi_casa_julian' ? '🚕' : '👤'}</span>'"></div>`;
+                const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : (isGroup ? '#10b981' : '#0284c7');
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid ${borderClr}; overflow: hidden;" title="${clientDisplayName}"><img src="${customAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>${cleanPhone === 'group_taxi_casa_julian' ? '🚕' : (isGroup ? '👥' : '👤')}</span>'"></div>`;
+            } else if (grpData && grpData.avatar && !grpData.avatar.startsWith('/')) {
+                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #10b981; overflow: hidden;" title="${clientDisplayName}"><span style="font-size: 1.4rem;">${grpData.avatar}</span></div>`;
             } else if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="Grupo Taxi Casa Julián (3 Taxis + Restaurante)"><img src="/admin/taxi_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🚕</span>'"></div>`;
             } else if (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático')) {
@@ -5734,8 +5738,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activePanel) activePanel.style.display = 'flex';
         if (webContainer) webContainer.classList.add('mobile-chat-open');
 
+        const isGroup = cleanPhoneStr.startsWith('group_') || (sol && sol.isGroup);
         const isTaxiGroup = cleanPhoneStr === 'group_taxi_casa_julian';
-        const clientDisplayName = isTaxiGroup ? 'Taxi Casa Julián' : getClientDisplayName(sol.nombreCliente, cleanPhoneStr);
+        const groups = (serverInboxSettings && serverInboxSettings.customGroups) || {};
+        const customGrp = groups[cleanPhoneStr] || (isTaxiGroup ? DEFAULT_TAXI_GROUP : null);
+        const clientDisplayName = isTaxiGroup ? 'Taxi Casa Julián' : (customGrp ? customGrp.nombre : getClientDisplayName(sol.nombreCliente, cleanPhoneStr));
 
         // Header del panel derecho
         const nameEl = document.getElementById('pane-chat-client-name');
@@ -5743,6 +5750,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const avatarEl = document.getElementById('pane-chat-avatar');
         const btnCall = document.getElementById('pane-btn-call-phone');
         const btnWa = document.getElementById('pane-btn-open-wa');
+        const groupMembersBadge = document.getElementById('pane-group-members-badge');
+        const groupMembersCount = document.getElementById('pane-group-members-count');
         const catBadgeEl = document.getElementById('pane-chat-category-badge');
         const handoverStatusEl = document.getElementById('pane-chat-handover-status');
         const btnToggleHuman = document.getElementById('pane-btn-toggle-human');
@@ -5750,19 +5759,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const paneSolIdInput = document.getElementById('pane-reply-solicitud-id');
 
         if (nameEl) nameEl.textContent = clientDisplayName;
-        if (phoneEl) {
-            if (isTaxiGroup) {
-                phoneEl.innerHTML = `👥 Grupo (3 Taxis + Restaurante) • 🚕 Iguaran, Tolosa, Lexus`;
-            } else {
-                phoneEl.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
+        
+        if (isGroup) {
+            const partList = (customGrp && Array.isArray(customGrp.participants)) ? customGrp.participants : (sol.participants || []);
+            const memberCount = partList.length;
+            if (groupMembersBadge) {
+                groupMembersBadge.style.display = 'inline-flex';
+                if (groupMembersCount) groupMembersCount.textContent = memberCount;
             }
+            if (phoneEl) {
+                if (isTaxiGroup) {
+                    phoneEl.innerHTML = `👥 Grupo (3 Taxis + Restaurante) • 🚕 Iguaran, Tolosa, Lexus`;
+                } else {
+                    phoneEl.innerHTML = `👥 Grupo (${memberCount} contactos) • ℹ️ Ver miembros`;
+                }
+            }
+        } else {
+            if (groupMembersBadge) groupMembersBadge.style.display = 'none';
+            if (phoneEl) phoneEl.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
         }
+
         if (btnCall) {
-            btnCall.style.display = isTaxiGroup ? 'none' : 'inline-flex';
+            btnCall.style.display = isGroup ? 'none' : 'inline-flex';
             btnCall.href = cleanPhoneStr ? `tel:+${cleanPhoneStr}` : '#';
         }
         if (btnWa) {
-            btnWa.style.display = isTaxiGroup ? 'none' : 'inline-flex';
+            btnWa.style.display = isGroup ? 'none' : 'inline-flex';
             btnWa.href = cleanPhoneStr ? `https://wa.me/${cleanPhoneStr}` : '#';
         }
         if (paneSolIdInput) paneSolIdInput.value = sol.id || `chat_${cleanPhoneStr}`;
@@ -5771,7 +5793,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (avatarEl) {
             avatarEl.style.overflow = 'hidden';
             const lower = clientDisplayName.toLowerCase();
-            if (isTaxiGroup || lower.includes('taxi casa juli')) {
+            if (customGrp && customGrp.avatar) {
+                if (customGrp.avatar.startsWith('/') || customGrp.avatar.startsWith('http') || customGrp.avatar.startsWith('data:')) {
+                    avatarEl.innerHTML = `<img src="${customGrp.avatar}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>👥</span>'">`;
+                } else {
+                    avatarEl.innerHTML = `<span style="font-size: 1.4rem;">${customGrp.avatar}</span>`;
+                }
+                avatarEl.style.border = '2px solid #10b981';
+                avatarEl.style.background = '#1e293b';
+            } else if (isTaxiGroup || lower.includes('taxi casa juli')) {
                 avatarEl.innerHTML = `<img src="/admin/avatar_taxi_casa_julian.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>🚕</span>'">`;
                 avatarEl.style.border = '2px solid #f59e0b';
                 avatarEl.style.background = '#1e293b';
@@ -7051,7 +7081,668 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveMaintenanceSettingsBtn.disabled = false;
             }
         });
+    // ── GESTIÓN INTEGRAL DE GRUPOS DE WHATSAPP (CREACIÓN, MIEMBROS E INFORMACIÓN) ──────────
+    const DEFAULT_TAXI_GROUP = {
+        id: "group_taxi_casa_julian",
+        nombre: "Taxi Casa Julián",
+        categoria: "taxi",
+        avatar: "/admin/taxi_img.png",
+        etiquetas: ["TAXIS", "GRUPO"],
+        participants: [
+            { telefono: '34670426540', nombre: 'Taxi Iguaran', avatar: '/admin/avatar_taxi_iguaran.png' },
+            { telefono: '34670449858', nombre: 'Taxi Tolosa', avatar: '/admin/avatar_taxi_tolosa.png' },
+            { telefono: '34636979092', nombre: 'Taxi Lexus', avatar: '/admin/avatar_taxi_lexus.png' },
+            { telefono: '34943671417', nombre: 'Casa Julián Tolosa', avatar: '/admin/casa_julian_logo_CJ.jpeg', isOfficial: true }
+        ],
+        created_at: "2026-08-20T10:00:00.000Z"
+    };
+
+    function getAllKnownContactsList() {
+        const contactsMap = new Map();
+
+        // 1. Contactos de WhatsApp previos
+        if (Array.isArray(allWhatsAppChats)) {
+            allWhatsAppChats.forEach(c => {
+                const clean = getCleanPhoneKey(c.telefono);
+                if (!clean || clean.startsWith('group_') || c.isGroup) return;
+                const name = c.nombreCliente && !c.nombreCliente.startsWith('+') ? c.nombreCliente : getClientDisplayName('', clean);
+                const avatar = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[clean]) || getClientCustomAvatar(clean, name);
+                contactsMap.set(clean, {
+                    telefono: clean,
+                    nombre: name,
+                    avatar: avatar,
+                    categoria: c.categoria || 'cliente',
+                    etiquetas: getChatTags(clean, c)
+                });
+            });
+        }
+
+        // 2. Contactos de Solicitudes
+        if (Array.isArray(allSolicitudes)) {
+            allSolicitudes.forEach(s => {
+                const rawTel = s.telefonoCliente || s.telefonoReserva || '';
+                const clean = getCleanPhoneKey(rawTel);
+                if (!clean || clean.startsWith('group_')) return;
+                const existing = contactsMap.get(clean);
+                const name = s.nombreCliente || (existing ? existing.nombre : `+${clean}`);
+                if (!existing) {
+                    contactsMap.set(clean, {
+                        telefono: clean,
+                        nombre: name,
+                        avatar: (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[clean]) || '',
+                        categoria: s.categoria || 'cliente',
+                        etiquetas: getChatTags(clean)
+                    });
+                } else if (s.nombreCliente && (!existing.nombre || existing.nombre.startsWith('+'))) {
+                    existing.nombre = s.nombreCliente;
+                }
+            });
+        }
+
+        // 3. Contactos predeterminados y del equipo
+        const defaultContacts = [
+            { telefono: '34670426540', nombre: 'Taxi Iguaran', avatar: '/admin/avatar_taxi_iguaran.png', categoria: 'taxi', etiquetas: ['TAXIS'] },
+            { telefono: '34670449858', nombre: 'Taxi Tolosa', avatar: '/admin/avatar_taxi_tolosa.png', categoria: 'taxi', etiquetas: ['TAXIS'] },
+            { telefono: '34636979092', nombre: 'Taxi Lexus', avatar: '/admin/avatar_taxi_lexus.png', categoria: 'taxi', etiquetas: ['TAXIS'] },
+            { telefono: '34664037707', nombre: 'Ander Informatico', avatar: '/admin/ander_img.png', categoria: 'personal', etiquetas: ['PERSONAL'] },
+            { telefono: '34645747754', nombre: 'Xabi Gorrotxategi', avatar: '', categoria: 'personal', etiquetas: ['PERSONAL'] },
+            { telefono: '34623476521', nombre: 'Ricardo Entretiempo Studio', avatar: '', categoria: 'personal', etiquetas: ['PERSONAL'] }
+        ];
+
+        defaultContacts.forEach(dc => {
+            if (!contactsMap.has(dc.telefono)) {
+                contactsMap.set(dc.telefono, dc);
+            } else {
+                const ex = contactsMap.get(dc.telefono);
+                if (!ex.avatar && dc.avatar) ex.avatar = dc.avatar;
+                if (!ex.nombre || ex.nombre.startsWith('+')) ex.nombre = dc.nombre;
+            }
+        });
+
+        return Array.from(contactsMap.values()).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
     }
+
+    let createGroupSelectedPhones = new Set();
+    let selectedGroupPresetAvatar = '👥';
+
+    function openCreateGroupModal() {
+        const modal = document.getElementById('modal-create-group');
+        if (!modal) return;
+        
+        const nameInput = document.getElementById('group-create-name');
+        const searchInput = document.getElementById('group-create-search-contacts');
+        if (nameInput) nameInput.value = '';
+        if (searchInput) searchInput.value = '';
+        
+        createGroupSelectedPhones.clear();
+        selectedGroupPresetAvatar = '👥';
+
+        document.querySelectorAll('.group-preset-avatar-btn').forEach(btn => {
+            if (btn.getAttribute('data-avatar') === '👥') {
+                btn.classList.add('active');
+                btn.style.border = '2px solid #10b981';
+            } else {
+                btn.classList.remove('active');
+                btn.style.border = '1px solid rgba(255,255,255,0.15)';
+            }
+        });
+
+        renderCreateGroupContactsList('');
+        modal.style.display = 'flex';
+        if (nameInput) setTimeout(() => nameInput.focus(), 50);
+    }
+
+    function closeCreateGroupModal() {
+        const modal = document.getElementById('modal-create-group');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function renderCreateGroupContactsList(filterText = '') {
+        const container = document.getElementById('group-create-contacts-list');
+        const countBadge = document.getElementById('group-selected-count-badge');
+        if (!container) return;
+
+        if (countBadge) {
+            countBadge.textContent = `${createGroupSelectedPhones.size} seleccionados`;
+        }
+
+        const contacts = getAllKnownContactsList();
+        const searchLow = (filterText || '').toLowerCase().trim();
+
+        const filtered = contacts.filter(c => {
+            if (!searchLow) return true;
+            return (c.nombre || '').toLowerCase().includes(searchLow) || (c.telefono || '').includes(searchLow);
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #8696a0; font-size: 0.84rem;">
+                    No se encontraron contactos con ese criterio.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(c => {
+            const isChecked = createGroupSelectedPhones.has(c.telefono);
+            const avatarHtml = c.avatar 
+                ? `<img src="${c.avatar}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1rem\\'>👤</span>'">` 
+                : `<span style="font-size: 1rem;">👤</span>`;
+            const tagsHtml = (c.etiquetas || []).map(t => `<span class="wa-tag-pill" style="font-size: 0.65rem; padding: 1px 5px;">${t}</span>`).join(' ');
+
+            return `
+                <label class="group-contact-select-row" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.12s; background: ${isChecked ? 'rgba(16, 185, 129, 0.12)' : 'transparent'};">
+                    <input type="checkbox" class="group-contact-checkbox" data-phone="${c.telefono}" ${isChecked ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer; accent-color: #10b981;">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: #1e293b; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                        ${avatarHtml}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 0.86rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.nombre}</div>
+                        <div style="font-size: 0.76rem; color: #94a3b8;">+${c.telefono} ${tagsHtml ? '• ' + tagsHtml : ''}</div>
+                    </div>
+                </label>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.group-contact-checkbox').forEach(chk => {
+            chk.addEventListener('change', () => {
+                const phone = chk.getAttribute('data-phone');
+                if (chk.checked) {
+                    createGroupSelectedPhones.add(phone);
+                } else {
+                    createGroupSelectedPhones.delete(phone);
+                }
+                const row = chk.closest('.group-contact-select-row');
+                if (row) {
+                    row.style.background = chk.checked ? 'rgba(16, 185, 129, 0.12)' : 'transparent';
+                }
+                if (countBadge) {
+                    countBadge.textContent = `${createGroupSelectedPhones.size} seleccionados`;
+                }
+            });
+        });
+    }
+
+    // Selector de Emojis para Grupo
+    document.querySelectorAll('.group-preset-avatar-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.group-preset-avatar-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.border = '1px solid rgba(255,255,255,0.15)';
+            });
+            btn.classList.add('active');
+            btn.style.border = '2px solid #10b981';
+            selectedGroupPresetAvatar = btn.getAttribute('data-avatar') || '👥';
+        });
+    });
+
+    const groupSearchInput = document.getElementById('group-create-search-contacts');
+    if (groupSearchInput) {
+        groupSearchInput.addEventListener('input', (e) => {
+            renderCreateGroupContactsList(e.target.value);
+        });
+    }
+
+    // Enviar formulario de creación de grupo
+    const createGroupForm = document.getElementById('create-group-form');
+    if (createGroupForm) {
+        createGroupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('group-create-name');
+            const groupName = nameInput ? nameInput.value.trim() : '';
+            if (!groupName) {
+                alert('Introduce un nombre para el grupo.');
+                return;
+            }
+            if (createGroupSelectedPhones.size === 0) {
+                alert('Selecciona al menos 1 contacto para el grupo.');
+                return;
+            }
+
+            const allContacts = getAllKnownContactsList();
+            const participants = Array.from(createGroupSelectedPhones).map(phone => {
+                const c = allContacts.find(item => item.telefono === phone);
+                return {
+                    telefono: phone,
+                    nombre: c ? c.nombre : `+${phone}`,
+                    avatar: c ? c.avatar : ''
+                };
+            });
+
+            // Añadir al restaurante como participante oficial
+            participants.push({
+                telefono: '34943671417',
+                nombre: 'Casa Julián Tolosa',
+                avatar: '/admin/casa_julian_logo_CJ.jpeg',
+                isOfficial: true
+            });
+
+            const newGroup = {
+                nombre: groupName,
+                avatar: selectedGroupPresetAvatar,
+                categoria: 'grupo',
+                etiquetas: ['GRUPO'],
+                participants: participants,
+                created_at: new Date().toISOString()
+            };
+
+            const submitBtn = document.getElementById('submit-create-group-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '⏳ Creando grupo...';
+            }
+
+            try {
+                const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                const res = await fetch('/api/admin/groups', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': currentToken
+                    },
+                    body: JSON.stringify(newGroup)
+                });
+                const data = await res.json();
+                if (data.success && data.group) {
+                    showToast(`✅ Grupo "${data.group.nombre}" creado exitosamente.`);
+                    closeCreateGroupModal();
+                    if (!serverInboxSettings.customGroups) serverInboxSettings.customGroups = {};
+                    serverInboxSettings.customGroups[data.group.id] = data.group;
+                    await fetchWhatsAppChats(true);
+                    syncUnifiedConversations();
+                    renderInboxCards();
+                    selectConversation(data.group.id, data.group.nombre);
+                } else {
+                    alert('Error creando el grupo: ' + (data.error || 'Desconocido'));
+                }
+            } catch (err) {
+                alert('Error de conexión al crear el grupo: ' + err.message);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '💾 Crear Grupo';
+                }
+            }
+        });
+    }
+
+    // ── MODAL INFORMACIÓN Y MIEMBROS DE GRUPO ─────────────────────────────────
+    let currentGroupInfoId = null;
+
+    function openGroupInfoModal(groupId) {
+        currentGroupInfoId = groupId;
+        const modal = document.getElementById('modal-group-info');
+        if (!modal) return;
+
+        const groups = (serverInboxSettings && serverInboxSettings.customGroups) || {};
+        let grp = groups[groupId];
+        if (!grp && groupId === 'group_taxi_casa_julian') {
+            grp = DEFAULT_TAXI_GROUP;
+        }
+        if (!grp) {
+            const conv = allUnifiedConversations.find(c => c.telefono === groupId);
+            if (conv) {
+                grp = {
+                    id: groupId,
+                    nombre: conv.nombreCliente,
+                    categoria: conv.categoria || 'grupo',
+                    avatar: conv.avatar || '',
+                    participants: conv.participants || []
+                };
+            }
+        }
+
+        if (!grp) {
+            showToast('⚠️ No se encontró la información del grupo.');
+            return;
+        }
+
+        const nameEl = document.getElementById('group-info-name');
+        const countBadge = document.getElementById('group-info-members-count-badge');
+        const avatarWrap = document.getElementById('group-info-avatar-wrap');
+        const deleteBtn = document.getElementById('btn-group-info-delete-group');
+        const searchInput = document.getElementById('group-info-search-members');
+
+        if (nameEl) nameEl.textContent = grp.nombre;
+        if (countBadge) countBadge.textContent = `${(grp.participants || []).length} contactos`;
+        if (avatarWrap) {
+            avatarWrap.innerHTML = grp.avatar && grp.avatar.startsWith('/') 
+                ? `<img src="${grp.avatar}" style="width:100%;height:100%;object-fit:cover;">` 
+                : `<span style="font-size:1.6rem;">${grp.avatar || '👥'}</span>`;
+        }
+        if (deleteBtn) {
+            deleteBtn.style.display = (groupId === 'group_taxi_casa_julian') ? 'none' : 'inline-flex';
+        }
+        if (searchInput) searchInput.value = '';
+
+        renderGroupInfoMembersList(grp, '');
+        modal.style.display = 'flex';
+    }
+
+    function closeGroupInfoModal() {
+        const modal = document.getElementById('modal-group-info');
+        if (modal) modal.style.display = 'none';
+        currentGroupInfoId = null;
+    }
+
+    function renderGroupInfoMembersList(grp, filterText = '') {
+        const listContainer = document.getElementById('group-info-members-list');
+        if (!listContainer || !grp) return;
+
+        const participants = Array.isArray(grp.participants) ? grp.participants : [];
+        const searchLow = (filterText || '').toLowerCase().trim();
+
+        const filtered = participants.filter(p => {
+            if (!searchLow) return true;
+            return (p.nombre || '').toLowerCase().includes(searchLow) || (p.telefono || '').includes(searchLow);
+        });
+
+        if (filtered.length === 0) {
+            listContainer.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #8696a0; font-size: 0.84rem;">
+                    No hay miembros en este grupo que coincidan.
+                </div>
+            `;
+            return;
+        }
+
+        const isTaxiMain = grp.id === 'group_taxi_casa_julian';
+
+        listContainer.innerHTML = filtered.map(p => {
+            const cleanTel = getCleanPhoneKey(p.telefono);
+            const avatarHtml = p.avatar 
+                ? `<img src="${p.avatar}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.1rem\\'>👤</span>'">` 
+                : `<span style="font-size: 1.1rem;">👤</span>`;
+
+            return `
+                <div class="group-member-card-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: #16202a; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: #1e293b; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                            ${avatarHtml}
+                        </div>
+                        <div style="min-width: 0; flex: 1;">
+                            <div style="font-size: 0.88rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nombre || `+${cleanTel}`}</div>
+                            <div style="font-size: 0.78rem; color: #94a3b8;">+${cleanTel} ${p.isOfficial ? '• <span style="color:#38bdf8;">Restaurante</span>' : ''}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <a href="tel:+${cleanTel}" title="Llamar por teléfono" style="padding: 5px 8px; border-radius: 6px; background: rgba(255,255,255,0.08); color: #e2e8f0; text-decoration: none; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 3px;">
+                            📞
+                        </a>
+                        <a href="https://wa.me/${cleanTel}" target="_blank" title="Abrir chat en WhatsApp" style="padding: 5px 8px; border-radius: 6px; background: rgba(16,185,129,0.18); color: #34d399; text-decoration: none; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 3px;">
+                            💬
+                        </a>
+                        ${!isTaxiMain && !p.isOfficial ? `
+                            <button type="button" class="btn-remove-group-member" data-phone="${cleanTel}" title="Quitar del grupo" style="padding: 5px 8px; border-radius: 6px; background: rgba(239,68,68,0.15); color: #fca5a5; border: none; font-size: 0.78rem; cursor: pointer;">
+                                ✕
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        listContainer.querySelectorAll('.btn-remove-group-member').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const phoneToRemove = btn.getAttribute('data-phone');
+                if (!confirm(`¿Quitar este contacto del grupo?`)) return;
+
+                grp.participants = grp.participants.filter(p => getCleanPhoneKey(p.telefono) !== phoneToRemove);
+                
+                const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                try {
+                    await fetch('/api/admin/groups', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-token': currentToken
+                        },
+                        body: JSON.stringify(grp)
+                    });
+                    if (!serverInboxSettings.customGroups) serverInboxSettings.customGroups = {};
+                    serverInboxSettings.customGroups[grp.id] = grp;
+                    showToast('✅ Miembro eliminado del grupo.');
+                    openGroupInfoModal(grp.id);
+                    syncUnifiedConversations();
+                    renderInboxCards();
+                } catch(e) {
+                    alert('Error eliminando miembro: ' + e.message);
+                }
+            });
+        });
+    }
+
+    const groupInfoSearchInput = document.getElementById('group-info-search-members');
+    if (groupInfoSearchInput) {
+        groupInfoSearchInput.addEventListener('input', (e) => {
+            if (!currentGroupInfoId) return;
+            const groups = (serverInboxSettings && serverInboxSettings.customGroups) || {};
+            const grp = groups[currentGroupInfoId] || (currentGroupInfoId === 'group_taxi_casa_julian' ? DEFAULT_TAXI_GROUP : null);
+            if (grp) renderGroupInfoMembersList(grp, e.target.value);
+        });
+    }
+
+    // Eliminar Grupo Completo
+    const btnGroupInfoDeleteGroup = document.getElementById('btn-group-info-delete-group');
+    if (btnGroupInfoDeleteGroup) {
+        btnGroupInfoDeleteGroup.addEventListener('click', async () => {
+            if (!currentGroupInfoId || currentGroupInfoId === 'group_taxi_casa_julian') return;
+            const groups = (serverInboxSettings && serverInboxSettings.customGroups) || {};
+            const grp = groups[currentGroupInfoId];
+            const groupName = grp ? grp.nombre : 'este grupo';
+            if (!confirm(`¿Estás seguro de que deseas eliminar el grupo "${groupName}"?`)) return;
+
+            try {
+                const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                const res = await fetch(`/api/admin/groups/${currentGroupInfoId}`, {
+                    method: 'DELETE',
+                    headers: { 'x-admin-token': currentToken }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`🗑️ Grupo "${groupName}" eliminado.`);
+                    closeGroupInfoModal();
+                    if (serverInboxSettings.customGroups) {
+                        delete serverInboxSettings.customGroups[currentGroupInfoId];
+                    }
+                    allUnifiedConversations = allUnifiedConversations.filter(c => c.telefono !== currentGroupInfoId);
+                    allWhatsAppChats = allWhatsAppChats.filter(c => c.telefono !== currentGroupInfoId);
+                    if (activeConversationPhone === currentGroupInfoId) {
+                        activeConversationPhone = null;
+                        const emptyState = document.getElementById('wa-empty-state');
+                        const activePanel = document.getElementById('wa-active-chat-panel');
+                        if (emptyState) emptyState.style.display = 'flex';
+                        if (activePanel) activePanel.style.display = 'none';
+                    }
+                    renderInboxCards();
+                } else {
+                    alert('Error eliminando grupo: ' + (data.error || 'Desconocido'));
+                }
+            } catch(err) {
+                alert('Error de conexión: ' + err.message);
+            }
+        });
+    }
+
+    // ── MODAL AÑADIR MIEMBRO A GRUPO EXISTENTE ───────────────────────────────
+    let addMembersSelectedPhones = new Set();
+
+    function openGroupAddMemberModal(groupId) {
+        const modal = document.getElementById('modal-group-add-member');
+        if (!modal) return;
+        
+        const searchInput = document.getElementById('group-add-member-search-input');
+        if (searchInput) searchInput.value = '';
+        addMembersSelectedPhones.clear();
+
+        renderGroupAddMembersList(groupId, '');
+        modal.style.display = 'flex';
+    }
+
+    function closeGroupAddMemberModal() {
+        const modal = document.getElementById('modal-group-add-member');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function renderGroupAddMembersList(groupId, filterText = '') {
+        const container = document.getElementById('group-add-member-contacts-list');
+        if (!container) return;
+
+        const groups = (serverInboxSettings && serverInboxSettings.customGroups) || {};
+        const grp = groups[groupId] || (groupId === 'group_taxi_casa_julian' ? DEFAULT_TAXI_GROUP : null);
+        const existingPhones = new Set((grp && grp.participants ? grp.participants : []).map(p => getCleanPhoneKey(p.telefono)));
+
+        const allContacts = getAllKnownContactsList();
+        const availableContacts = allContacts.filter(c => !existingPhones.has(c.telefono));
+        const searchLow = (filterText || '').toLowerCase().trim();
+
+        const filtered = availableContacts.filter(c => {
+            if (!searchLow) return true;
+            return (c.nombre || '').toLowerCase().includes(searchLow) || (c.telefono || '').includes(searchLow);
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #8696a0; font-size: 0.84rem;">
+                    Todos los contactos disponibles ya forman parte de este grupo.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(c => {
+            const isChecked = addMembersSelectedPhones.has(c.telefono);
+            const avatarHtml = c.avatar 
+                ? `<img src="${c.avatar}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;">` 
+                : `<span style="font-size: 1rem;">👤</span>`;
+
+            return `
+                <label class="group-contact-select-row" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.12s; background: ${isChecked ? 'rgba(56, 189, 248, 0.12)' : 'transparent'};">
+                    <input type="checkbox" class="group-add-contact-checkbox" data-phone="${c.telefono}" ${isChecked ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer; accent-color: #38bdf8;">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: #1e293b; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                        ${avatarHtml}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 0.86rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.nombre}</div>
+                        <div style="font-size: 0.76rem; color: #94a3b8;">+${c.telefono}</div>
+                    </div>
+                </label>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.group-add-contact-checkbox').forEach(chk => {
+            chk.addEventListener('change', () => {
+                const phone = chk.getAttribute('data-phone');
+                if (chk.checked) {
+                    addMembersSelectedPhones.add(phone);
+                } else {
+                    addMembersSelectedPhones.delete(phone);
+                }
+                const row = chk.closest('.group-contact-select-row');
+                if (row) {
+                    row.style.background = chk.checked ? 'rgba(56, 189, 248, 0.12)' : 'transparent';
+                }
+            });
+        });
+    }
+
+    const btnGroupInfoAddContact = document.getElementById('btn-group-info-add-contact');
+    if (btnGroupInfoAddContact) {
+        btnGroupInfoAddContact.addEventListener('click', () => {
+            if (currentGroupInfoId) openGroupAddMemberModal(currentGroupInfoId);
+        });
+    }
+
+    const groupAddMemberSearchInput = document.getElementById('group-add-member-search-input');
+    if (groupAddMemberSearchInput) {
+        groupAddMemberSearchInput.addEventListener('input', (e) => {
+            if (currentGroupInfoId) renderGroupAddMembersList(currentGroupInfoId, e.target.value);
+        });
+    }
+
+    const saveGroupAddMemberBtn = document.getElementById('save-group-add-member-btn');
+    if (saveGroupAddMemberBtn) {
+        saveGroupAddMemberBtn.addEventListener('click', async () => {
+            if (!currentGroupInfoId) return;
+            if (addMembersSelectedPhones.size === 0) {
+                alert('Selecciona al menos 1 contacto para añadir al grupo.');
+                return;
+            }
+
+            const groups = (serverInboxSettings && serverInboxSettings.customGroups) || {};
+            let grp = groups[currentGroupInfoId] || (currentGroupInfoId === 'group_taxi_casa_julian' ? DEFAULT_TAXI_GROUP : null);
+            if (!grp) return;
+
+            const allContacts = getAllKnownContactsList();
+            if (!Array.isArray(grp.participants)) grp.participants = [];
+
+            addMembersSelectedPhones.forEach(phone => {
+                const c = allContacts.find(item => item.telefono === phone);
+                grp.participants.push({
+                    telefono: phone,
+                    nombre: c ? c.nombre : `+${phone}`,
+                    avatar: c ? c.avatar : ''
+                });
+            });
+
+            try {
+                const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                await fetch('/api/admin/groups', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': currentToken
+                    },
+                    body: JSON.stringify(grp)
+                });
+                if (!serverInboxSettings.customGroups) serverInboxSettings.customGroups = {};
+                serverInboxSettings.customGroups[grp.id] = grp;
+                showToast('✅ Contactos añadidos al grupo.');
+                closeGroupAddMemberModal();
+                openGroupInfoModal(grp.id);
+                syncUnifiedConversations();
+                renderInboxCards();
+            } catch(e) {
+                alert('Error añadiendo miembros: ' + e.message);
+            }
+        });
+    }
+
+    // Eventos de botones y modales
+    const headerBtnCreateGroup = document.getElementById('header-btn-create-group');
+    const inboxBtnCreateGroup = document.getElementById('btn-inbox-create-group');
+    if (headerBtnCreateGroup) headerBtnCreateGroup.addEventListener('click', openCreateGroupModal);
+    if (inboxBtnCreateGroup) inboxBtnCreateGroup.addEventListener('click', openCreateGroupModal);
+
+    const closeCreateGroupBtn = document.getElementById('close-create-group-modal-btn');
+    const btnXCloseCreateGroup = document.getElementById('btn-x-close-create-group');
+    if (closeCreateGroupBtn) closeCreateGroupBtn.addEventListener('click', closeCreateGroupModal);
+    if (btnXCloseCreateGroup) btnXCloseCreateGroup.addEventListener('click', closeCreateGroupModal);
+
+    const closeGroupInfoBtn = document.getElementById('close-group-info-modal-btn');
+    const btnXCloseGroupInfo = document.getElementById('btn-x-close-group-info');
+    if (closeGroupInfoBtn) closeGroupInfoBtn.addEventListener('click', closeGroupInfoModal);
+    if (btnXCloseGroupInfo) btnXCloseGroupInfo.addEventListener('click', closeGroupInfoModal);
+
+    const closeGroupAddMemberBtn = document.getElementById('close-group-add-member-modal-btn');
+    const btnXCloseGroupAddMember = document.getElementById('btn-x-close-group-add-member');
+    if (closeGroupAddMemberBtn) closeGroupAddMemberBtn.addEventListener('click', closeGroupAddMemberModal);
+    if (btnXCloseGroupAddMember) btnXCloseGroupAddMember.addEventListener('click', closeGroupAddMemberModal);
+
+    // Evento de clic en cabecera del chat activo para abrir Info de Grupo
+    const headerInfoWrap = document.getElementById('pane-chat-header-info-wrap');
+    const headerAvatar = document.getElementById('pane-chat-avatar');
+    const groupBadge = document.getElementById('pane-group-members-badge');
+
+    [headerInfoWrap, headerAvatar, groupBadge].forEach(el => {
+        if (el) {
+            el.addEventListener('click', () => {
+                if (activeConversationPhone && (activeConversationPhone.startsWith('group_') || (activeReplySolicitud && activeReplySolicitud.isGroup))) {
+                    openGroupInfoModal(activeConversationPhone);
+                }
+            });
+        }
+    });
 
 });
 

@@ -740,21 +740,56 @@ async function getAllWhatsAppConversations() {
         resultList = Array.from(grouped.values());
     }
 
-    // Garantizar que el grupo "Taxi Casa Julián" siempre esté presente
-    if (!resultList.some(c => c.telefono === 'group_taxi_casa_julian')) {
-        resultList.unshift({
-            telefono: 'group_taxi_casa_julian',
-            ultimoMensajeFecha: getSpainIsoTimestamp(),
-            totalInteracciones: 1,
-            ultimoTexto: '🚕 Grupo Taxi Casa Julián (Taxi Iguaran, Taxi Tolosa, Taxi Lexus)',
-            ultimoEmisor: 'recepcion',
-            ultimoTipo: 'text',
-            nombreCliente: 'Taxi Casa Julián',
-            categoria: 'taxi',
-            etiquetas: ['TAXIS', 'GRUPO'],
-            isGroup: true,
-            participants: TAXI_GROUP_PARTICIPANTS
+    // Cargar todos los grupos (Taxi Casa Julián + Grupos personalizados creados por recepción)
+    try {
+        const { getInboxSettings } = require('./inboxSettings');
+        const settings = await getInboxSettings();
+        const customGroups = settings.customGroups || {};
+        
+        Object.values(customGroups).forEach(grp => {
+            if (!grp || !grp.id) return;
+            const existing = resultList.find(c => c.telefono === grp.id);
+            if (existing) {
+                existing.isGroup = true;
+                existing.nombreCliente = grp.nombre || existing.nombreCliente;
+                existing.categoria = grp.categoria || existing.categoria || 'grupo';
+                existing.etiquetas = grp.etiquetas || existing.etiquetas || ['GRUPO'];
+                existing.participants = grp.participants || [];
+                if (grp.avatar) existing.avatar = grp.avatar;
+            } else {
+                resultList.push({
+                    telefono: grp.id,
+                    ultimoMensajeFecha: grp.created_at || getSpainIsoTimestamp(),
+                    totalInteracciones: 1,
+                    ultimoTexto: `👥 Grupo: ${grp.nombre} (${(grp.participants || []).length} contactos)`,
+                    ultimoEmisor: 'recepcion',
+                    ultimoTipo: 'text',
+                    nombreCliente: grp.nombre,
+                    categoria: grp.categoria || 'grupo',
+                    etiquetas: grp.etiquetas || ['GRUPO'],
+                    isGroup: true,
+                    participants: grp.participants || [],
+                    avatar: grp.avatar || ''
+                });
+            }
         });
+    } catch (e) {
+        console.warn("⚠️ Error cargando grupos en getAllWhatsAppConversations:", e.message);
+        if (!resultList.some(c => c.telefono === 'group_taxi_casa_julian')) {
+            resultList.unshift({
+                telefono: 'group_taxi_casa_julian',
+                ultimoMensajeFecha: getSpainIsoTimestamp(),
+                totalInteracciones: 1,
+                ultimoTexto: '🚕 Grupo Taxi Casa Julián (Taxi Iguaran, Taxi Tolosa, Taxi Lexus)',
+                ultimoEmisor: 'recepcion',
+                ultimoTipo: 'text',
+                nombreCliente: 'Taxi Casa Julián',
+                categoria: 'taxi',
+                etiquetas: ['TAXIS', 'GRUPO'],
+                isGroup: true,
+                participants: TAXI_GROUP_PARTICIPANTS
+            });
+        }
     }
 
     return resultList.sort((a, b) => new Date(b.ultimoMensajeFecha) - new Date(a.ultimoMensajeFecha));

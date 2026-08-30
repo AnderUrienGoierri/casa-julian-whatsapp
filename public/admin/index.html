@@ -230,6 +230,9 @@
                     <button type="button" id="header-btn-manage-inbox-tags" class="header-action-icon-btn" title="Gestionar etiquetas" style="background: none !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.15rem; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;">
                         🏷️
                     </button>
+                    <button type="button" id="header-btn-create-group" class="header-btn-create-group" title="Crear nuevo grupo de WhatsApp" style="background: linear-gradient(135deg, #059669, #10b981) !important; color: #ffffff !important; border: none !important; border-radius: 6px; font-weight: 600; font-size: 0.80rem; cursor: pointer; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
+                        ➕ Grupo
+                    </button>
                 </div>
             </div>
 
@@ -308,11 +311,14 @@
                                 </div>
 
                                 <!-- Píldoras Horizontales de Filtro estilo WhatsApp (1 Fila Unificada Dinámica) -->
-                                <div class="wa-filter-rows-container" style="background: #0a0b0e !important; background-color: #0a0b0e !important;">
-                                    <div class="wa-filter-pills-row" style="background: #0a0b0e !important; background-color: #0a0b0e !important;">
+                                <div class="wa-filter-rows-container" style="background: #0a0b0e !important; background-color: #0a0b0e !important; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                    <div class="wa-filter-pills-row" style="background: #0a0b0e !important; background-color: #0a0b0e !important; flex: 1;">
                                         <button class="filter-chip wa-pill active" data-filter-type="all">Todos</button>
                                         <button class="filter-chip wa-pill" data-filter-type="status" data-filter-val="pendiente">No leídos <span id="count-status-pend">0</span></button>
                                     </div>
+                                    <button type="button" id="btn-inbox-create-group" class="btn-inbox-create-group" title="Crear nuevo grupo de WhatsApp" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 20px; font-weight: 600; font-size: 0.76rem; padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; margin-right: 6px;">
+                                        ➕ Grupo
+                                    </button>
                                 </div>
                             </div>
 
@@ -340,9 +346,12 @@
                             <div class="wa-chat-header">
                                 <div class="wa-chat-header-left">
                                     <button type="button" class="wa-back-btn btn-back-to-inbox" id="wa-back-to-list-btn" title="Volver a la lista de chats">←</button>
-                                    <div class="wa-avatar-container" id="pane-chat-avatar">👤</div>
-                                    <div class="wa-chat-header-info">
-                                        <span class="wa-header-contact-name" id="pane-chat-client-name">+34 000 00 00 00</span>
+                                    <div class="wa-avatar-container" id="pane-chat-avatar" style="cursor: pointer;" title="Ver información del chat">👤</div>
+                                    <div class="wa-chat-header-info" id="pane-chat-header-info-wrap" style="cursor: pointer;" title="Ver información del chat y miembros">
+                                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <span class="wa-header-contact-name" id="pane-chat-client-name">+34 000 00 00 00</span>
+                                            <span id="pane-group-members-badge" class="wa-group-badge-indicator" style="display: none; background: rgba(56, 189, 248, 0.18); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); font-size: 0.72rem; padding: 2px 7px; border-radius: 10px; font-weight: 600; cursor: pointer;" title="Haz clic para ver los contactos del grupo">👥 <span id="pane-group-members-count">0</span> miembros</span>
+                                        </div>
                                         <span class="wa-category-badge" id="pane-chat-category-badge" style="display: none;"></span>
                                     </div>
                                 </div>
@@ -1102,6 +1111,138 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260830-V474-PERSISTENT-READ-AND-COUNT"></script>
+    <!-- Modal para Crear Nuevo Grupo de WhatsApp -->
+    <div id="modal-create-group" class="modal-overlay" style="display: none; z-index: 10000000; background: rgba(0, 0, 0, 0.8);">
+        <div class="modal-content" style="max-width: 520px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">👥 Crear Grupo de WhatsApp</h3>
+                <button type="button" id="btn-x-close-create-group" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer;">✕</button>
+            </div>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0; margin-bottom: 16px;">
+                Crea un chat grupal para difusión o comunicación conjunta con varios contactos.
+            </p>
+
+            <form id="create-group-form" style="display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-right: 4px; flex: 1;">
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-weight: 600; font-size: 0.85rem; color: #e2e8f0;">Nombre del Grupo *</label>
+                    <input type="text" id="group-create-name" required placeholder="Ej. Proveedores Carne, Taxis Tolosa, VIP Clientes..." style="width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #fff; font-size: 0.92rem;">
+                </div>
+
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-weight: 600; font-size: 0.85rem; color: #e2e8f0;">Icono / Avatar del Grupo</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;" id="group-avatar-preset-picker">
+                        <button type="button" class="group-preset-avatar-btn active" data-avatar="👥" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 2px solid #10b981; cursor: pointer;">👥</button>
+                        <button type="button" class="group-preset-avatar-btn" data-avatar="🚕" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🚕</button>
+                        <button type="button" class="group-preset-avatar-btn" data-avatar="🥩" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🥩</button>
+                        <button type="button" class="group-preset-avatar-btn" data-avatar="🍷" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🍷</button>
+                        <button type="button" class="group-preset-avatar-btn" data-avatar="🏨" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🏨</button>
+                        <button type="button" class="group-preset-avatar-btn" data-avatar="👔" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">👔</button>
+                        <button type="button" class="group-preset-avatar-btn" data-avatar="👨‍🍳" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">👨‍🍳</button>
+                        <button type="button" class="group-preset-avatar-btn" data-avatar="🛎️" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🛎️</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="font-weight: 600; font-size: 0.85rem; color: #e2e8f0; margin: 0;">Seleccionar Contactos del Grupo *</label>
+                        <span id="group-selected-count-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.4);">0 seleccionados</span>
+                    </div>
+                    
+                    <div class="search-box" style="margin: 0; width: 100%;">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="group-create-search-contacts" placeholder="Filtrar por nombre o teléfono..." style="width: 100%; padding: 8px 12px 8px 34px; font-size: 0.85rem; background: #111b21; color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+                    </div>
+
+                    <!-- Lista con Checkboxes de Contactos -->
+                    <div id="group-create-contacts-list" style="max-height: 220px; overflow-y: auto; background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Generado dinámicamente con todos los contactos -->
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" id="close-create-group-modal-btn" class="btn-secondary">Cancelar</button>
+                    <button type="submit" id="submit-create-group-btn" class="btn-primary" style="background: linear-gradient(135deg, #059669, #10b981);">💾 Crear Grupo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Ver / Gestionar Miembros de un Grupo -->
+    <div id="modal-group-info" class="modal-overlay" style="display: none; z-index: 10000000; background: rgba(0, 0, 0, 0.8);">
+        <div class="modal-content" style="max-width: 520px; max-height: 90vh; display: flex; flex-direction: column;">
+            <!-- Cabecera del Grupo -->
+            <div style="display: flex; align-items: center; gap: 14px; padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); margin-bottom: 14px;">
+                <div id="group-info-avatar-wrap" style="width: 56px; height: 56px; border-radius: 50%; background: #1e293b; border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; overflow: hidden; flex-shrink: 0;">
+                    👥
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between;">
+                        <h3 id="group-info-name" style="margin: 0; font-size: 1.15rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Nombre del Grupo</h3>
+                        <button type="button" id="btn-x-close-group-info" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer;">✕</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                        <span id="group-info-members-count-badge" style="background: rgba(56, 189, 248, 0.18); color: #38bdf8; font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.35);">0 contactos</span>
+                        <span id="group-info-tag-badge" class="wa-tag-pill tag-grupo" style="font-size: 0.72rem;">GRUPO</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buscador interno de miembros -->
+            <div class="search-box" style="margin-bottom: 12px; width: 100%;">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="group-info-search-members" placeholder="Buscar miembro por nombre o teléfono..." style="width: 100%; padding: 8px 12px 8px 34px; font-size: 0.85rem; background: #111b21; color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+            </div>
+
+            <!-- Lista de Contactos que Agrupa -->
+            <div style="font-size: 0.82rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                Contactos agrupados en este chat
+            </div>
+            <div id="group-info-members-list" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; flex: 1;">
+                <!-- Rellenado dinámicamente -->
+            </div>
+
+            <!-- Acciones del Grupo -->
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.12); flex-wrap: wrap;">
+                <button type="button" id="btn-group-info-add-contact" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; padding: 7px 12px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">
+                    ➕ Añadir Contacto
+                </button>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                    <button type="button" id="btn-group-info-delete-group" class="btn-secondary" style="display: none; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); font-size: 0.82rem; padding: 7px 12px;">
+                        🗑️ Eliminar Grupo
+                    </button>
+                    <button type="button" id="close-group-info-modal-btn" class="btn-secondary" style="font-size: 0.82rem; padding: 7px 14px;">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Añadir Miembros Adicionales a un Grupo Existente -->
+    <div id="modal-group-add-member" class="modal-overlay" style="display: none; z-index: 10000001; background: rgba(0, 0, 0, 0.85);">
+        <div class="modal-content" style="max-width: 480px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin: 0;">➕ Añadir Contactos al Grupo</h3>
+                <button type="button" id="btn-x-close-group-add-member" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer;">✕</button>
+            </div>
+            <p style="font-size: 0.84rem; color: #94a3b8; margin-top: 0; margin-bottom: 12px;">
+                Selecciona los contactos de tu lista para añadirlos al grupo.
+            </p>
+
+            <div class="search-box" style="margin-bottom: 10px; width: 100%;">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="group-add-member-search-input" placeholder="Buscar por nombre o teléfono..." style="width: 100%; padding: 8px 12px 8px 34px; font-size: 0.85rem; background: #111b21; color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+            </div>
+
+            <div id="group-add-member-contacts-list" style="max-height: 240px; overflow-y: auto; background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px; flex: 1;">
+                <!-- Lista dinámica -->
+            </div>
+
+            <div class="modal-actions" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" id="close-group-add-member-modal-btn" class="btn-secondary">Cancelar</button>
+                <button type="button" id="save-group-add-member-btn" class="btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1);">💾 Añadir al Grupo</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/admin.js?v=20260830-V475-GROUPS-SUPPORT"></script>
 </body>
 </html>

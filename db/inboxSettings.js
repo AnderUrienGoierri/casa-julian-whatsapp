@@ -34,6 +34,21 @@ function saveLocalDb(db) {
     }
 }
 
+const DEFAULT_TAXI_GROUP = {
+    id: "group_taxi_casa_julian",
+    nombre: "Taxi Casa Julián",
+    categoria: "taxi",
+    avatar: "/admin/taxi_img.png",
+    etiquetas: ["TAXIS", "GRUPO"],
+    participants: [
+        { telefono: '34670426540', nombre: 'Taxi Iguaran', avatar: '/admin/avatar_taxi_iguaran.png' },
+        { telefono: '34670449858', nombre: 'Taxi Tolosa', avatar: '/admin/avatar_taxi_tolosa.png' },
+        { telefono: '34636979092', nombre: 'Taxi Lexus', avatar: '/admin/avatar_taxi_lexus.png' },
+        { telefono: '34943671417', nombre: 'Casa Julián Tolosa', avatar: '/admin/casa_julian_logo_CJ.jpeg', isOfficial: true }
+    ],
+    created_at: "2026-08-20T10:00:00.000Z"
+};
+
 // Configuración por defecto si no existe en BD
 const DEFAULT_INBOX_SETTINGS = {
     customTags: [],
@@ -63,7 +78,10 @@ const DEFAULT_INBOX_SETTINGS = {
         "group_taxi_casa_julian": "/admin/taxi_img.png",
         "34664037707": "/admin/ander_img.png"
     },
-    manualChatStatus: {}
+    manualChatStatus: {},
+    customGroups: {
+        "group_taxi_casa_julian": DEFAULT_TAXI_GROUP
+    }
 };
 
 /**
@@ -260,7 +278,46 @@ async function setChatAvatar(phone, avatarUrl) {
     return chatAvatars;
 }
 
+/**
+ * Guardar o actualizar un grupo de WhatsApp personalizado
+ */
+async function saveCustomGroup(groupObj) {
+    if (!groupObj || !groupObj.id || !groupObj.nombre) return null;
+    const settings = await getInboxSettings();
+    const customGroups = { ...(settings.customGroups || {}) };
+
+    customGroups[groupObj.id] = {
+        id: groupObj.id,
+        nombre: groupObj.nombre.trim(),
+        categoria: groupObj.categoria || 'grupo',
+        avatar: groupObj.avatar || '',
+        etiquetas: Array.isArray(groupObj.etiquetas) ? groupObj.etiquetas : ['GRUPO'],
+        participants: Array.isArray(groupObj.participants) ? groupObj.participants : [],
+        created_at: groupObj.created_at || new Date().toISOString()
+    };
+
+    await saveInboxSettings({ customGroups });
+    return customGroups[groupObj.id];
+}
+
+/**
+ * Eliminar un grupo de WhatsApp personalizado
+ */
+async function deleteCustomGroup(groupId) {
+    if (!groupId || groupId === 'group_taxi_casa_julian') return false;
+    const settings = await getInboxSettings();
+    const customGroups = { ...(settings.customGroups || {}) };
+
+    if (customGroups[groupId]) {
+        delete customGroups[groupId];
+        await saveInboxSettings({ customGroups });
+        return true;
+    }
+    return false;
+}
+
 module.exports = {
+    DEFAULT_TAXI_GROUP,
     getInboxSettings,
     saveInboxSettings,
     setChatPin,
@@ -269,5 +326,7 @@ module.exports = {
     setTagsOrder,
     saveCustomTag,
     deleteCustomTag,
-    setChatAvatar
+    setChatAvatar,
+    saveCustomGroup,
+    deleteCustomGroup
 };

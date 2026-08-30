@@ -606,39 +606,57 @@ router.post('/solicitudes/:id/responder', requireAdminAuth, async (req, res) => 
             return res.status(400).json({ error: 'El mensaje de respuesta no puede estar vacío.' });
         }
 
-        // Manejo especial de Chat Grupal: Taxi Casa Julián
-        if (id === 'group_taxi_casa_julian' || id === 'chat_group_taxi_casa_julian') {
-            const TAXI_PHONES = ['34670426540', '34670449858', '34636979092'];
+        // Manejo de Chat Grupal: Taxi Casa Julián y Grupos Personalizados
+        if (id.startsWith('group_') || id.startsWith('chat_group_')) {
+            const cleanGroupId = id.replace('chat_', '');
+            const { getInboxSettings } = require('./database');
             const { logChatMessage } = require('./db/solicitudes');
+            const settings = await getInboxSettings();
+            const customGroups = settings.customGroups || {};
+            const grp = customGroups[cleanGroupId] || (cleanGroupId === 'group_taxi_casa_julian' ? {
+                id: 'group_taxi_casa_julian',
+                nombre: 'Taxi Casa Julián',
+                participants: [
+                    { telefono: '34670426540', nombre: 'Taxi Iguaran' },
+                    { telefono: '34670449858', nombre: 'Taxi Tolosa' },
+                    { telefono: '34636979092', nombre: 'Taxi Lexus' }
+                ]
+            } : null);
 
-            // 1. Guardar en historial del grupo Taxi Casa Julián
-            await logChatMessage('group_taxi_casa_julian', 'recepcion', 'text', respuestaText.trim(), {
+            const groupName = grp ? grp.nombre : 'Grupo WhatsApp';
+            const participants = grp && Array.isArray(grp.participants) ? grp.participants : [];
+
+            // 1. Guardar en historial del grupo
+            await logChatMessage(cleanGroupId, 'recepcion', 'text', respuestaText.trim(), {
                 emisor: 'recepcion',
-                source: 'admin_panel_group_taxi',
-                nombreCliente: 'Taxi Casa Julián'
+                source: 'admin_panel_group',
+                nombreCliente: groupName,
+                isGroup: true
             });
 
-            // 2. Difusión individual por WhatsApp a los 3 taxistas
+            // 2. Difusión individual por WhatsApp a los participantes del grupo
             let sentCount = 0;
-            for (const phone of TAXI_PHONES) {
+            for (const part of participants) {
+                const pTel = (part.telefono || '').replace(/\D/g, '');
+                if (!pTel || part.isOfficial || pTel === '34943671417') continue;
                 try {
-                    await sendMessage(phone, respuestaText.trim());
-                    await logChatMessage(phone, 'recepcion', 'text', respuestaText.trim(), {
+                    await sendMessage(pTel, respuestaText.trim());
+                    await logChatMessage(pTel, 'recepcion', 'text', respuestaText.trim(), {
                         emisor: 'recepcion',
-                        source: 'admin_panel_group_taxi',
-                        grupo: 'Taxi Casa Julián'
+                        source: 'admin_panel_group',
+                        grupo: groupName
                     });
                     sentCount++;
                 } catch (sendErr) {
-                    console.warn(`⚠️ Error enviando a taxi ${phone}:`, sendErr.message);
+                    console.warn(`⚠️ Error enviando a participante ${pTel} del grupo ${groupName}:`, sendErr.message);
                 }
             }
 
             return res.json({
                 success: true,
-                message: `✅ Mensaje enviado al grupo Taxi Casa Julián (${sentCount} taxistas notificados).`,
+                message: `✅ Mensaje enviado al grupo ${groupName} (${sentCount} contactos notificados).`,
                 isGroup: true,
-                telefono: 'group_taxi_casa_julian'
+                telefono: cleanGroupId
             });
         }
 
@@ -1137,6 +1155,50 @@ router.post('/chat-avatar', requireAdminAuth, async (req, res) => {
 
         const result = await setChatAvatar(phone, finalUrl);
         return res.json({ success: true, avatarUrl: finalUrl, chatAvatars: result });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+// 18.2 Gestión de Grupos de WhatsApp Personalizados (Crear, Editar, Eliminar)
+router.get('/groups', requireAdminAuth, async (req, res) => {
+    try {
+        const { getInboxSettings } = require('./database');
+        const settings = await getInboxSettings();
+        const groups = settings.customGroups || {};
+        return res.json({ success: true, groups: Object.values(groups) });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/groups', requireAdminAuth, async (req, res) => {
+    try {
+        const { saveCustomGroup } = require('./database');
+        const groupData = req.body || {};
+        if (!groupData.nombre || !groupData.nombre.trim()) {
+            return res.status(400).json({ error: 'El nombre del grupo es obligatorio.' });
+        }
+        if (!groupData.id) {
+            const slug = groupData.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_').substring(0, 20);
+            groupData.id = `group_${slug}_${Date.now().toString().slice(-4)}`;
+        }
+        const saved = await saveCustomGroup(groupData);
+        return res.json({ success: true, group: saved });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.delete('/groups/:id', requireAdminAuth, async (req, res) => {
+    try {
+        const { deleteCustomGroup } = require('./database');
+        const { id } = req.params;
+        if (id === 'group_taxi_casa_julian') {
+            return res.status(400).json({ error: 'El grupo de Taxis principal no se puede eliminar.' });
+        }
+        const deleted = await deleteCustomGroup(id);
+        return res.json({ success: true, deleted });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
