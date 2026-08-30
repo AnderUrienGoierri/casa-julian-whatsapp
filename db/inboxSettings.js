@@ -167,12 +167,19 @@ async function setChatPin(phone, isPinned) {
  * Marcar conversación como Leída o Pendiente
  */
 async function setChatStatus(phone, status) {
-    const cleanPhone = (phone || '').replace(/\D/g, '');
+    const cleanPhone = (phone || '').toString().startsWith('group_') ? phone : (phone || '').replace(/\D/g, '');
     if (!cleanPhone) return null;
     const settings = await getInboxSettings();
     const manualChatStatus = { ...(settings.manualChatStatus || {}) };
 
-    manualChatStatus[cleanPhone] = status === 'leido' ? 'leido' : 'pendiente';
+    if (typeof status === 'object' && status !== null) {
+        manualChatStatus[cleanPhone] = status;
+    } else {
+        manualChatStatus[cleanPhone] = status === 'leido' 
+            ? { status: 'leido', readAt: new Date().toISOString() } 
+            : { status: 'pendiente', readAt: null };
+    }
+    
     await saveInboxSettings({ manualChatStatus });
     return manualChatStatus[cleanPhone];
 }
