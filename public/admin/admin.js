@@ -118,6 +118,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const customRulesBody = document.getElementById('custom-rules-body');
 
     // VERIFICAR AUTENTICACIÓN INICIAL - validar el token guardado con la API
+    // Actualizar badges visuales inmediatamente con la caché para evitar parpadeos
+    try {
+        const cachedCount = parseInt(localStorage.getItem('casa_julian_cached_total_contacts') || '0', 10);
+        const dropdownSilencedBadge = document.getElementById('dropdown-silenced-badge');
+        const silencedBadge = document.getElementById('silenced-count-badge');
+        if (cachedCount > 0) {
+            if (dropdownSilencedBadge) {
+                dropdownSilencedBadge.textContent = cachedCount;
+                dropdownSilencedBadge.style.display = 'inline-block';
+            }
+            if (silencedBadge) {
+                silencedBadge.textContent = cachedCount;
+                silencedBadge.style.display = 'inline-block';
+            }
+        }
+    } catch(e) {}
+
     if (adminToken) {
         // Validar token contra el servidor antes de arrancar el dashboard
         fetch('/api/admin/solicitudes', { headers: { 'x-admin-token': adminToken } })
@@ -1131,11 +1148,7 @@ document.addEventListener('DOMContentLoaded', () => {
             badge.textContent = total;
             badge.style.display = total > 0 ? 'inline-block' : 'none';
         }
-        const dropdownSilencedBadge = document.getElementById('dropdown-silenced-badge');
-        if (dropdownSilencedBadge) {
-            dropdownSilencedBadge.textContent = total;
-            dropdownSilencedBadge.style.display = total > 0 ? 'inline-block' : 'none';
-        }
+        updateHeaderAndMenuBadges();
 
         let filtered = [...allContacts];
 
