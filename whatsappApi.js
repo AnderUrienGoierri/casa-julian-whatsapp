@@ -53,17 +53,20 @@ async function sendMessage(to, text) {
         return { success: true, simulated: true };
     }
 
-    if (!getWhatsAppToken() || !getPhoneNumberId()) {
-        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
+    const token = getWhatsAppToken();
+    const phoneId = getPhoneNumberId();
+
+    if (!token || !phoneId) {
+        console.error("❌ Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
     }
     
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
+            url: `https://graph.facebook.com/v19.0/${phoneId}/messages`,
             headers: {
-                'Authorization': `Bearer ${getWhatsAppToken()}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -73,9 +76,10 @@ async function sendMessage(to, text) {
                 text: { body: text }
             }
         });
+        console.log(`✅ [Texto Enviado] A: ${to} | PhoneID: ${phoneId} | MsgID: ${response.data?.messages?.[0]?.id}`);
         return response.data;
     } catch (error) {
-        console.error("Error enviando mensaje de texto:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        console.error("❌ Error enviando mensaje de texto:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
     }
 }
 
@@ -101,8 +105,11 @@ async function sendInteractiveButtons(to, text, buttons) {
         return { success: true, simulated: true };
     }
 
-    if (!getWhatsAppToken() || !getPhoneNumberId()) {
-        console.error("Falta configurar getWhatsAppToken() o getPhoneNumberId() en el archivo .env");
+    const token = getWhatsAppToken();
+    const phoneId = getPhoneNumberId();
+
+    if (!token || !phoneId) {
+        console.error("❌ Falta configurar WHATSAPP_TOKEN o PHONE_NUMBER_ID en el archivo .env");
         return;
     }
 
@@ -122,9 +129,9 @@ async function sendInteractiveButtons(to, text, buttons) {
     try {
         const response = await axios({
             method: 'POST',
-            url: `https://graph.facebook.com/v19.0/${getPhoneNumberId()}/messages`,
+            url: `https://graph.facebook.com/v19.0/${phoneId}/messages`,
             headers: {
-                'Authorization': `Bearer ${getWhatsAppToken()}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             data: {
@@ -140,9 +147,10 @@ async function sendInteractiveButtons(to, text, buttons) {
                 }
             }
         });
+        console.log(`✅ [Botones Enviados] A: ${to} | PhoneID: ${phoneId} | MsgID: ${response.data?.messages?.[0]?.id}`);
         return response.data;
     } catch (error) {
-        console.error("Error enviando botones interactivos:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        console.error("❌ Error enviando botones interactivos:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
     }
 }
 
