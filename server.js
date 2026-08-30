@@ -149,6 +149,10 @@ app.post('/webhook', async (req, res) => {
                 for (const change of entry.changes) {
                     // Verificamos que contenga un mensaje entrante
                     if (change.value && change.value.messages && change.value.messages[0]) {
+                        const metadata = change.value.metadata || {};
+                        const incomingPhoneId = metadata.phone_number_id || 'desconocido';
+                        const displayPhone = metadata.display_phone_number || '';
+                        console.log(`📥 Webhook recibido para Teléfono: ${displayPhone} (Phone ID: ${incomingPhoneId})`);
                         
                         const message = change.value.messages[0];
 
