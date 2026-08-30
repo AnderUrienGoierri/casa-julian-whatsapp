@@ -311,6 +311,18 @@ if (process.env.DATABASE_URL) {
         } catch (histErr) {
             console.error("⚠️ Error verificando bot_chat_history:", histErr.message);
         }
+
+        // Auto-sincronización de tarjetas regalo completas desde tarjetas_regalo_unificadas.json si hay menos de 500
+        try {
+            const cardCountCheck = await pool.query('SELECT count(*) as total FROM tarjetas_regalo');
+            if (parseInt(cardCountCheck.rows[0].total, 10) < 500) {
+                console.log("💳 Sincronizando catálogo completo de 1133 tarjetas regalo en PostgreSQL...");
+                const { importAllCards } = require('../import_gift_cards_to_postgres');
+                await importAllCards();
+            }
+        } catch (cardSyncErr) {
+            console.error("⚠️ Error auto-sincronizando tarjetas regalo:", cardSyncErr.message);
+        }
     }).catch(err => console.error("⚠️ Error en Auto-Migración de BD:", err.message));
 }
 
