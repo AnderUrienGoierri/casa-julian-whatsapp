@@ -7081,6 +7081,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveMaintenanceSettingsBtn.disabled = false;
             }
         });
+    }
+
     // ── GESTIÓN INTEGRAL DE GRUPOS DE WHATSAPP (CREACIÓN, MIEMBROS E INFORMACIÓN) ──────────
     const DEFAULT_TAXI_GROUP = {
         id: "group_taxi_casa_julian",
