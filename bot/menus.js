@@ -13,11 +13,7 @@ async function sendLanguageMenu(from, userLanguages, userStates) {
     const lang = userLanguages.get(from) || 'es';
     userStates.set(from, { step: 'select_language', data: {} });
 
-    let welcomeMsgText = getTranslation('es', 'welcomeMessage', from);
-    if (!welcomeMsgText || welcomeMsgText.includes('FR:') || welcomeMsgText.includes('🇫🇷') || welcomeMsgText.includes('Bienvenue')) {
-        welcomeMsgText = "\u2800\u2800\u2800\u2800\u2800\u2800\u2800\u2800CASA JULIAN TOLOSA";
-    }
-    const bodyText = welcomeMsgText;
+    const bodyText = "🔥🥩 *Asador Casa Julián (Tolosa)*\n\nPor favor, selecciona tu idioma / Mesedez, hautatu hizkuntza / Please select your language:";
     
     const buttons = [
         { id: "lang_es", title: "ES Español" },
