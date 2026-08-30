@@ -3876,26 +3876,20 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         }
 
-        // 2. Coincidencia por Temática (para OT, MODIF, CANCEL, FAQs, OTRAS)
-        const topic = getConversationTopic(c);
-        if (id === 'menu_tradicion' || name === 'ot' || name === 'menu_tradicion') {
-            if (topic === 'menu_tradicion') return true;
-        }
-        if (id === 'modificacion' || name === 'modif' || name === 'modificacion') {
-            if (topic === 'modificacion') return true;
-        }
-        if (id === 'cancelacion' || name === 'cancel' || name === 'cancelacion') {
-            if (topic === 'cancelacion') return true;
-        }
-        if (id === 'faq' || name === 'faqs' || name === 'faq') {
-            if (topic === 'faq') return true;
-        }
-        if (id === 'otras_cuestiones' || name === 'otras' || name === 'otras_cuestiones') {
-            if (topic === 'otras_cuestiones') return true;
+        // 2. Coincidencia por Temática (SOLO si el chat fue gestionado por bot con solicitud activa explícita)
+        if (c.solicitudId && c.tipoSolicitud) {
+            const topic = getConversationTopic(c);
+            if ((id === 'menu_tradicion' || name === 'ot' || name === 'menu_tradicion') && topic === 'menu_tradicion') return true;
+            if ((id === 'modificacion' || name === 'modif' || name === 'modificacion') && topic === 'modificacion') return true;
+            if ((id === 'cancelacion' || name === 'cancel' || name === 'cancelacion') && topic === 'cancelacion') return true;
+            if ((id === 'faq' || name === 'faqs' || name === 'faq') && topic === 'faq') return true;
+            if ((id === 'otras_cuestiones' || name === 'otras' || name === 'otras_cuestiones') && topic === 'otras_cuestiones') return true;
         }
 
-        // 3. Coincidencia por Categoría (para Proveedores, Hoteles, Personal, Taxis, Grupo, Clientes, Otros)
+        // 3. Coincidencia por Categoría / Grupo
         const cat = getConversationCategory(c);
+        const cleanPhone = getCleanPhoneKey(c.telefono);
+
         if (id === 'proveedor' || name.includes('proveedor')) {
             if (cat === 'proveedor') return true;
         }
@@ -3906,16 +3900,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cat === 'empleado') return true;
         }
         if (id === 'taxi' || name.includes('taxi')) {
-            if (cat === 'taxi' || c.telefono === 'group_taxi_casa_julian' || c.isGroup) return true;
+            if (cat === 'taxi' || cleanPhone === 'group_taxi_casa_julian' || c.isGroup) return true;
         }
         if (id === 'grupo' || name === 'grupo') {
-            if (c.telefono === 'group_taxi_casa_julian' || c.isGroup || (c.nombreCliente && c.nombreCliente.toLowerCase().includes('grupo'))) return true;
+            if (cleanPhone === 'group_taxi_casa_julian' || c.isGroup || (c.nombreCliente && c.nombreCliente.toLowerCase().includes('grupo'))) return true;
         }
         if (id === 'cliente' || name.includes('cliente')) {
-            if (cat === 'cliente') return true;
+            if (cat === 'cliente' && cleanPhone !== 'group_taxi_casa_julian' && !c.isGroup) return true;
         }
-        if (id === 'otro' || name.includes('otro')) {
-            if (cat === 'otro') return true;
+        if (id === 'otro' || name === 'otros' || name === 'otro') {
+            if (cat === 'otro' && cleanPhone !== 'group_taxi_casa_julian' && !c.isGroup) return true;
         }
 
         return false;
@@ -3934,16 +3928,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getChatTags(phone, conv = null) {
         const cleanPhone = getCleanPhoneKey(phone);
+        const map = getChatTagsMap();
+        
+        // Si el usuario ha guardado explícitamente etiquetas para este chat (incluso si está vacío []), se respeta su decisión
+        if (map && Object.prototype.hasOwnProperty.call(map, cleanPhone)) {
+            const arr = map[cleanPhone];
+            if (Array.isArray(arr)) {
+                return arr.map(t => {
+                    const low = String(t).toLowerCase();
+                    if (low === 'empleado' || low === 'empleados' || low === 'alba') return 'Personal';
+                    return t;
+                });
+            }
+        }
+
         if (cleanPhone === 'group_taxi_casa_julian') {
             return ['TAXIS', 'GRUPO'];
-        }
-        const map = getChatTagsMap();
-        if (Array.isArray(map[cleanPhone]) && map[cleanPhone].length > 0) {
-            return map[cleanPhone].map(t => {
-                const low = String(t).toLowerCase();
-                if (low === 'empleado' || low === 'empleados' || low === 'alba') return 'Personal';
-                return t;
-            });
         }
         
         // Si no tiene asignación explícita, inferir de contactos silenciados o categoría
@@ -4856,9 +4856,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openChatTagsModal(phone, name) {
         if (!chatTagsModal) return;
-        activeChatTagsPhone = (phone || '').replace(/\D/g, '');
+        activeChatTagsPhone = getCleanPhoneKey(phone);
+        const displayName = name || (activeChatTagsPhone.startsWith('group_') ? 'Taxi Casa Julián' : `+${activeChatTagsPhone}`);
         if (chatTagsModalTitle) chatTagsModalTitle.textContent = `🏷️ Etiquetas del Chat`;
-        if (chatTagsModalSubtitle) chatTagsModalSubtitle.textContent = `Asigna etiquetas para ${name} (+${activeChatTagsPhone})`;
+        if (chatTagsModalSubtitle) chatTagsModalSubtitle.textContent = `Asigna etiquetas para ${displayName}`;
 
         const currentTags = getChatTags(activeChatTagsPhone);
         selectedChatTagsList = [...currentTags];
