@@ -284,9 +284,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Actualiza los badges tanto del header como del menú desplegable y pestañas
     function updateHeaderAndMenuBadges() {
-        const totalContacts = (typeof getCombinedContactsList === 'function')
-            ? getCombinedContactsList().length
-            : ((typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) ? allSilencedNumbers.length : 0);
+        let totalContacts = 0;
+        if (typeof getCombinedContactsList === 'function') {
+            const list = getCombinedContactsList();
+            totalContacts = list.length;
+        } else if (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) {
+            totalContacts = allSilencedNumbers.length;
+        }
+
+        // Si aún no se han cargado los contactos del backend, usar la última cuenta guardada en caché para evitar parpadeos
+        if (totalContacts <= 135) {
+            try {
+                const cachedTotal = parseInt(localStorage.getItem('casa_julian_cached_total_contacts') || '0', 10);
+                if (cachedTotal > totalContacts) {
+                    totalContacts = cachedTotal;
+                }
+            } catch(e) {}
+        } else {
+            try {
+                localStorage.setItem('casa_julian_cached_total_contacts', totalContacts.toString());
+            } catch(e) {}
+        }
 
         const pendingInbox = (typeof getPendingConversationsCount === 'function')
             ? getPendingConversationsCount()
@@ -486,10 +504,16 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 66, telefono: "34943671417", nombre: "Casa Julián Tolosa", categoria: "empleado", notas: "Teléfono oficial del restaurante (+34 943 67 14 17)", activo: true }
     ];
 
-    // ==========================================
-    // SECCIÓN: GESTIÓN DE NÚMEROS SILENCIADOS (PROVEEDORES / EMPLEADOS / ALBA)
-    // ==========================================
-    let allSilencedNumbers = [...DEFAULT_INITIAL_SILENCED];
+    // Cargar caché local persistente de contactos silenciados si existe
+    let cachedSilencedNumbers = [];
+    try {
+        const raw = localStorage.getItem('casa_julian_cached_silenced_list');
+        if (raw) cachedSilencedNumbers = JSON.parse(raw);
+    } catch(e) {}
+
+    let allSilencedNumbers = (Array.isArray(cachedSilencedNumbers) && cachedSilencedNumbers.length > 0)
+        ? cachedSilencedNumbers
+        : [...DEFAULT_INITIAL_SILENCED];
     let currentSilencedFilter = 'all';
     let currentSilencedSearch = '';
 
@@ -831,6 +855,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await res.json();
                 if (data.success && Array.isArray(data.numbers)) {
                     allSilencedNumbers = data.numbers;
+                    try {
+                        localStorage.setItem('casa_julian_cached_silenced_list', JSON.stringify(data.numbers));
+                    } catch(e) {}
                     renderSilencedNumbersTable();
                     renderSilencedFilters();
                     updateHeaderAndMenuBadges();
