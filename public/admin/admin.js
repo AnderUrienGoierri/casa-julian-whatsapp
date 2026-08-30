@@ -1234,7 +1234,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </td>
                     <td class="col-actions" style="padding: 8px 12px; text-align: right; white-space: nowrap;">
-                        <div class="silenced-actions-group" style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end;">
+                        <div class="silenced-actions-group" style="display: inline-flex; gap: 8px; align-items: center; justify-content: flex-end;">
+                            <button type="button" class="btn-chat-silence" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || 'Contacto')}" style="background: none; border: none; box-shadow: none; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Abrir chat de WhatsApp con este contacto">
+                                <img src="/admin/icono_enviar_whatsapp.png" alt="WhatsApp" style="width: 20px; height: 20px; object-fit: contain;">
+                            </button>
                             <button type="button" class="btn-edit-silence" data-id="${item.id || ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(item.nombre || '')}" data-cat="${encodeURIComponent(item.categoria || '')}" data-notes="${encodeURIComponent(item.notas || '')}" style="background: none; border: none; box-shadow: none; font-size: 1.15rem; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;" title="Editar contacto y etiquetas">
                                 ✏️
                             </button>
@@ -1257,6 +1260,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     selectedSilencedPhones.delete(phone);
                 }
                 renderSilencedNumbersTable();
+            });
+        });
+
+        // Listeners para abrir chat de WhatsApp directo desde Contactos
+        tbody.querySelectorAll('.btn-chat-silence').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const phone = btn.getAttribute('data-phone') || '';
+                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
+                if (!phone) return;
+
+                // 1. Cambiar a la pestaña Buzón
+                if (typeof switchToTab === 'function') {
+                    switchToTab('tab-inbox');
+                } else {
+                    tabBtns.forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === 'tab-inbox'));
+                    tabContents.forEach(c => c.classList.toggle('active', c.id === 'tab-inbox'));
+                }
+
+                // 2. Si existe o no la conversación en la lista, abrirla en el panel de conversación
+                setTimeout(() => {
+                    if (typeof selectConversation === 'function') {
+                        selectConversation(phone, name);
+                    } else if (typeof openReplyModal === 'function') {
+                        openReplyModal(phone, name);
+                    }
+                }, 80);
             });
         });
 
