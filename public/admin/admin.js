@@ -964,7 +964,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeBotCount = allContacts.filter(c => !c.activo).length;
         const canceledBotCount = allContacts.filter(c => !!c.activo).length;
 
-        const tags = getAllAvailableSilencedTags();
+        const tags = getAllAvailableSilencedTags().filter(tag => {
+            const lowId = (tag.id || '').toLowerCase();
+            const lowName = (tag.name || '').toLowerCase();
+            if (['menu_tradicion', 'ot', 'modificacion', 'modif', 'cancelacion', 'cancel', 'faq', 'faqs', 'otras_cuestiones', 'otras', 'grupo'].includes(lowId) ||
+                ['ot', 'modif', 'cancel', 'faqs', 'otras', 'grupo'].includes(lowName)) {
+                return false;
+            }
+            return true;
+        });
         const isAllActive = selectedSilencedFilters.size === 0;
 
         let html = `
@@ -1274,7 +1282,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td class="col-phone" style="padding: 10px 14px; font-family: var(--font-family); font-size: 0.88rem; color: #f1f5f9; vertical-align: middle;">
                         <a href="https://wa.me/${cleanPhone}" target="_blank" class="silenced-phone-link" style="color: #f1f5f9; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-family); font-size: 0.88rem;">
-                            📞 +${item.telefono}
+                            +${item.telefono}
                         </a>
                     </td>
                     <td class="col-cat" style="padding: 10px 14px; font-family: var(--font-family); font-size: 0.88rem; vertical-align: middle;">
@@ -1660,13 +1668,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (editTag) {
             currentEditingTagId = editTag.id;
             if (silencedTagModalTitle) silencedTagModalTitle.textContent = '✏️ Editar Etiqueta';
-            if (silencedTagModalDesc) silencedTagModalDesc.textContent = `Modifica el nombre o icono de la etiqueta "${editTag.name}".`;
+            if (silencedTagModalDesc) silencedTagModalDesc.textContent = `Modifica el nombre de la etiqueta "${editTag.name}".`;
             if (silencedTagSubmitBtn) silencedTagSubmitBtn.textContent = '💾 Guardar Cambios';
             if (editingTagIdInput) editingTagIdInput.value = editTag.id;
             if (newTagNameInput) newTagNameInput.value = editTag.name || '';
-            selectedTagEmoji = (editTag.emoji !== undefined && editTag.emoji !== null) ? editTag.emoji : '🏷️';
-            if (tagEmojiSelect) tagEmojiSelect.value = selectedTagEmoji;
-            if (selectedEmojiPreview) selectedEmojiPreview.textContent = selectedTagEmoji || '—';
+            selectedTagEmoji = (editTag.emoji !== undefined && editTag.emoji !== null) ? editTag.emoji : '';
             if (btnDeleteCurrentTag) {
                 btnDeleteCurrentTag.style.display = 'inline-flex';
                 btnDeleteCurrentTag.setAttribute('data-tag-id', editTag.id);
@@ -1679,9 +1685,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (silencedTagSubmitBtn) silencedTagSubmitBtn.textContent = '💾 Guardar Etiqueta';
             if (editingTagIdInput) editingTagIdInput.value = '';
             if (newTagNameInput) newTagNameInput.value = '';
-            selectedTagEmoji = '🏷️';
-            if (tagEmojiSelect) tagEmojiSelect.value = '🏷️';
-            if (selectedEmojiPreview) selectedEmojiPreview.textContent = '🏷️';
+            selectedTagEmoji = '';
             if (btnDeleteCurrentTag) {
                 btnDeleteCurrentTag.style.display = 'none';
                 btnDeleteCurrentTag.removeAttribute('data-tag-id');
@@ -5072,7 +5076,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderChatTagsModalGrid() {
         if (!chatTagsSelectorGrid) return;
-        const available = getAllAvailableSilencedTags();
+        const available = getAllAvailableSilencedTags().filter(tag => {
+            const lowId = (tag.id || '').toLowerCase();
+            const lowName = (tag.name || '').toLowerCase();
+            if (['grupo', 'otro', 'otros'].includes(lowId) || ['grupo', 'otro', 'otros'].includes(lowName)) {
+                return false;
+            }
+            return true;
+        });
 
         chatTagsSelectorGrid.innerHTML = available.map(tag => {
             const isSelected = selectedChatTagsList.some(t => t.toLowerCase() === tag.id || t.toLowerCase() === tag.name.toLowerCase());

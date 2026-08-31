@@ -259,11 +259,11 @@ button {
     background: #0a0b0e !important;
     background-color: #0a0b0e !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    padding: 8px 6px 8px 12px;
+    padding: 8px 10px 8px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 16px;
     position: relative;
     min-height: 52px;
     box-sizing: border-box;

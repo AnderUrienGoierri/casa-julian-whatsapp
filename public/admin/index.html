@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V480-LOGIN-CLEAN-HEADER">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V481-HEADER-TAGS-CONTACTS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
                 <div class="login-logo-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px;">
                     <img src="/admin/casa_julian_logo_CJ.jpeg" alt="Casa Julián" class="login-logo-img" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: none; box-shadow: none; display: block;">
                 </div>
-                <h2>Acceso al Panel Interno</h2>
+                <h2>Panel Interno</h2>
                 <p>Selecciona tu perfil e introduce la contraseña de acceso</p>
             </div>
             <form id="login-form">
@@ -226,7 +226,7 @@
                 </div>
 
                 <!-- 5. +Grupo (sin recuadro) -->
-                <button type="button" id="header-btn-create-group" class="header-btn-create-group" title="Crear nuevo grupo de WhatsApp" style="background: transparent !important; background-color: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; color: #10b981 !important; font-weight: 600; font-size: 0.88rem; cursor: pointer; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; white-space: nowrap;">
+                <button type="button" id="header-btn-create-group" class="header-btn-create-group" title="Crear nuevo grupo de WhatsApp" style="background: transparent !important; background-color: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; color: #10b981 !important; font-weight: 600; font-size: 0.88rem; cursor: pointer; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; white-space: nowrap; margin-left: 4px; margin-right: 18px;">
                     ➕ Grupo
                 </button>
             </div>
@@ -920,66 +920,6 @@
                     <label>Nombre de la Etiqueta *</label>
                     <input type="text" id="new-tag-name-input" placeholder="ej: Bodega / Carnicería / Pescados" required autocomplete="off">
                 </div>
-                <div class="form-group">
-                    <label>Icono / Emoticono de la Etiqueta</label>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <div id="selected-emoji-preview" style="font-size: 1.7rem; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; flex-shrink: 0;">🏷️</div>
-                        <select id="tag-emoji-select" class="custom-select" style="flex: 1; font-size: 0.92rem; padding: 10px 12px; background: #0f172a; color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px;">
-                            <option value="">🚫 Sin emoticono / Ninguno</option>
-                            <optgroup label="🏷️ Populares y Generales">
-                                <option value="🏷️" selected>🏷️ Etiqueta</option>
-                                <option value="📌">📌 Chincheta</option>
-                                <option value="⭐">⭐ Favorito / VIP</option>
-                                <option value="🚚">🚚 Proveedor General</option>
-                                <option value="👷">👷 Personal / Empleado</option>
-                            </optgroup>
-                            <optgroup label="🍷 Comida, Bebida & Hostelería">
-                                <option value="🍷">🍷 Vinos y Bodega</option>
-                                <option value="🥩">🥩 Carnes y Asador</option>
-                                <option value="🐟">🐟 Pescados y Mariscos</option>
-                                <option value="🍞">🍞 Panadería y Masas</option>
-                                <option value="🥬">🥬 Frutas y Verduras</option>
-                                <option value="🧀">🧀 Quesos y Lácteos</option>
-                                <option value="🍺">🍺 Cervezas y Licores</option>
-                                <option value="☕">☕ Café e Infusiones</option>
-                                <option value="🍰">🍰 Repostería y Postres</option>
-                                <option value="🍽️">🍽️ Menaje y Vajilla</option>
-                                <option value="👨‍🍳">👨‍🍳 Cocina / Chef</option>
-                                <option value="🧊">🧊 Hielo y Frío</option>
-                            </optgroup>
-                            <optgroup label="🚚 Proveedores, Logística & Suministros">
-                                <option value="🚚">🚚 Reparto / Transporte</option>
-                                <option value="📦">📦 Cajas / Embalaje</option>
-                                <option value="🛒">🛒 Compras / Suministros</option>
-                                <option value="🏢">🏢 Empresa / Mayorista</option>
-                                <option value="🏭">🏭 Fábrica / Distribuidor</option>
-                                <option value="🧾">🧾 Facturación / Albaranes</option>
-                                <option value="💰">💰 Finanzas / Pagos</option>
-                            </optgroup>
-                            <optgroup label="🔧 Mantenimiento & Servicios">
-                                <option value="🔧">🔧 Mantenimiento y Averías</option>
-                                <option value="🧹">🧹 Limpieza e Higiene</option>
-                                <option value="🔌">🔌 Electricidad</option>
-                                <option value="🚰">🚰 Fontanería</option>
-                                <option value="🔥">🔥 Carbón / Parrilla / Gas</option>
-                                <option value="💻">💻 Informática / TPV / Redes</option>
-                                <option value="🛡️">🛡️ Seguridad / Alarmas</option>
-                            </optgroup>
-                            <optgroup label="👥 Personal, Clientes & Gestión">
-                                <option value="👷">👷 Personal / Plantilla</option>
-                                <option value="🧑‍💼">🧑‍💼 Gerencia / Oficina</option>
-                                <option value="👑">👑 Cliente Exclusivo / VIP</option>
-                                <option value="🤝">🤝 Colaborador / Socio</option>
-                                <option value="🚨">🚨 Urgente / Prioritario</option>
-                                <option value="⚠️">⚠️ Incidencias</option>
-                                <option value="📅">📅 Eventos / Grupos</option>
-                                <option value="🔒">🔒 Confidencial / Privado</option>
-                                <option value="✅">✅ Verificado</option>
-                                <option value="📞">📞 Llamadas / Teléfono</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                </div>
                 <div class="modal-actions" style="margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <button type="button" id="btn-delete-current-tag" class="btn-secondary" style="background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); display: none; margin-right: auto; padding: 8px 12px; font-size: 0.82rem;">
                         🗑️ Eliminar
@@ -1227,6 +1167,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260831-V480-LOGIN-CLEAN-HEADER"></script>
+    <script src="/admin/admin.js?v=20260831-V481-HEADER-TAGS-CONTACTS"></script>
 </body>
 </html>
