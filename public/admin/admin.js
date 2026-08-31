@@ -3685,8 +3685,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return 'leido';
         }
 
-        // 5. Si el usuario de recepción no ha entrado al chat (aunque el bot haya respondido), permanece PENDIENTE con notificación verde
-        return 'pendiente';
+        // 5. Determinar por el tipo de emisor del último mensaje:
+        //    - cliente/user/bot → PENDIENTE (el bot no cuenta como "atendido" por recepción)
+        //    - restaurante/admin/staff → LEIDO (recepción ya intervino)
+        const lastSender = (c.ultimoEmisor || '').toLowerCase();
+        const isFromClientOrBot = lastSender === 'cliente' || lastSender === 'user' || lastSender === 'bot';
+        if (isFromClientOrBot) {
+            return 'pendiente';
+        }
+        return 'leido';
     }
 
     function getConversationUnreadCount(c) {
