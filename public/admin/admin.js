@@ -3678,51 +3678,49 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!c) return 'leido';
         const cleanPhone = getCleanPhoneKey(c.telefono);
         if (!cleanPhone) return 'leido';
-        
-        // 1. Si esta conversación es la que el usuario tiene abierta actualmente en pantalla, SIEMPRE está leída
+
+        const manualMap = getManualChatStatusMap();
+        const manualEntry = manualMap[cleanPhone];
+        const statusVal = manualEntry ? (typeof manualEntry === 'object' ? manualEntry.status : manualEntry) : null;
+
+        // 1. Si está marcado MANUALMENTE como "No Leído" → mostrar badge verde aunque el chat esté abierto
+        if (statusVal === 'pendiente') {
+            return 'pendiente';
+        }
+
+        // 2. Si esta conversación es la que el usuario tiene abierta actualmente en pantalla, está leída
         if (activeConversationPhone && cleanPhone === activeConversationPhone) {
             return 'leido';
         }
 
-        // 2. Comprobar si está gestionada manualmente o registrada como leída por recepción
-        const manualMap = getManualChatStatusMap();
-        const manualEntry = manualMap[cleanPhone];
-
-        if (manualEntry) {
-            const statusVal = typeof manualEntry === 'object' ? manualEntry.status : manualEntry;
-            
-            if (statusVal === 'pendiente') {
-                return 'pendiente';
-            }
-
-            if (statusVal === 'leido') {
-                if (typeof manualEntry === 'object' && manualEntry.readAt) {
-                    // Comparar por fecha: si el último mensaje es posterior a cuando se marcó leído → PENDIENTE
-                    const readTime = new Date(manualEntry.readAt).getTime();
-                    const lastMsgFecha = c.ultimoMensajeFecha;
-                    if (lastMsgFecha) {
-                        const msgTime = new Date(lastMsgFecha).getTime();
-                        // 15 segundos de margen para evitar falsos positivos por desfase de reloj
-                        if (!isNaN(readTime) && !isNaN(msgTime) && msgTime > readTime + 15000) {
-                            return 'pendiente';
-                        }
+        // 3. Si está marcado como leído manualmente
+        if (statusVal === 'leido') {
+            if (typeof manualEntry === 'object' && manualEntry.readAt) {
+                // Comparar por fecha: si el último mensaje es posterior a cuando se marcó leído → PENDIENTE
+                const readTime = new Date(manualEntry.readAt).getTime();
+                const lastMsgFecha = c.ultimoMensajeFecha;
+                if (lastMsgFecha) {
+                    const msgTime = new Date(lastMsgFecha).getTime();
+                    // 15 segundos de margen para evitar falsos positivos por desfase de reloj
+                    if (!isNaN(readTime) && !isNaN(msgTime) && msgTime > readTime + 15000) {
+                        return 'pendiente';
                     }
                 }
-                return 'leido';
             }
+            return 'leido';
         }
 
-        // 3. Si tiene solicitud activa en estado PENDIENTE o EN_ATENCION
+        // 4. Si tiene solicitud activa en estado PENDIENTE o EN_ATENCION
         if (c.solicitudEstado === 'PENDIENTE' || c.solicitudEstado === 'EN_ATENCION') {
             return 'pendiente';
         }
 
-        // 4. Si es un grupo sin mensajes pendientes
+        // 5. Si es un grupo sin mensajes pendientes
         if (cleanPhone.startsWith('group_')) {
             return 'leido';
         }
 
-        // 5. Determinar por el tipo de emisor del último mensaje:
+        // 6. Determinar por el tipo de emisor del último mensaje:
         //    - cliente/user/bot → PENDIENTE (el bot no cuenta como "atendido" por recepción)
         //    - restaurante/admin/staff → LEIDO (recepción ya intervino)
         const lastSender = (c.ultimoEmisor || '').toLowerCase();
