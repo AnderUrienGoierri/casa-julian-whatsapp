@@ -3570,16 +3570,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Estado Unificado del Buzón de Recepción ──────────────────────────────
 
-    // Mapa de estados manuales y última fecha de lectura (persistido en PostgreSQL y localStorage)
+    // Mapa de estados manuales y última fecha de lectura (persistido en PostgreSQL y sincronizado entre usuarios)
     function getManualChatStatusMap() {
+        const serverMap = (serverInboxSettings && typeof serverInboxSettings.manualChatStatus === 'object') 
+            ? serverInboxSettings.manualChatStatus 
+            : {};
         let localMap = {};
         try {
             localMap = JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
         } catch (e) {}
-        const serverMap = (serverInboxSettings && typeof serverInboxSettings.manualChatStatus === 'object') 
-            ? serverInboxSettings.manualChatStatus 
-            : {};
-        return { ...serverMap, ...localMap };
+        return { ...localMap, ...serverMap };
     }
 
     function setManualChatStatus(phone, status) {
@@ -3593,7 +3593,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const serverMap = (serverInboxSettings && typeof serverInboxSettings.manualChatStatus === 'object') 
             ? serverInboxSettings.manualChatStatus 
             : {};
-        const map = { ...serverMap, ...localMap };
+        const map = { ...localMap, ...serverMap };
         
         // Buscar la conversación para guardar su huella exacta
         const conv = allUnifiedConversations.find(c => getCleanPhoneKey(c.telefono) === clean) 
@@ -3625,7 +3625,7 @@ document.addEventListener('DOMContentLoaded', () => {
         serverInboxSettings.manualChatStatus = map;
         localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(map));
 
-        // Persistir en servidor PostgreSQL
+        // Persistir en servidor PostgreSQL para que todos los usuarios lo vean
         const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
         fetch('/api/admin/chat-status', {
             method: 'POST',
@@ -3648,7 +3648,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return 'leido';
         }
 
-        // 2. Comprobar si está marcada manualmente por el usuario
+        // 2. Comprobar si está gestionada manualmente o registrada como leída por recepción
         const manualMap = getManualChatStatusMap();
         const manualEntry = manualMap[cleanPhone];
 
@@ -3666,9 +3666,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const lastDate = String(manualEntry.lastDate || '').trim();
                     const currentDate = String(c.ultimoMensajeFecha || '').trim();
 
-                    // Solo si entraron nuevos mensajes del cliente después de marcarse como leída -> PENDIENTE
-                    const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
-                    if (isFromClient && lastText && currentText && lastText !== currentText && lastDate && currentDate && lastDate !== currentDate) {
+                    // Si entraron nuevos mensajes después de que recepción leyera el chat -> PENDIENTE (No leído)
+                    if (lastText && currentText && lastText !== currentText && lastDate && currentDate && lastDate !== currentDate) {
                         return 'pendiente';
                     }
                 }
@@ -3681,13 +3680,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return 'pendiente';
         }
 
-        // 4. Si el último mensaje es saliente (restaurante, staff, bot, admin), por defecto está leída
-        const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
-        if (!isFromClient) {
+        // 4. Si es un grupo sin mensajes pendientes
+        if (cleanPhone.startsWith('group_')) {
             return 'leido';
         }
 
-        // 5. Si el último mensaje es del cliente y no ha sido marcado
+        // 5. Si el usuario de recepción no ha entrado al chat (aunque el bot haya respondido), permanece PENDIENTE con notificación verde
         return 'pendiente';
     }
 
@@ -3934,10 +3932,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     ...serverInboxSettings, 
                     ...data.settings,
                     manualChatStatus: {
-                        ...((data.settings && data.settings.manualChatStatus) || {}),
-                        ...localStatus
+                        ...localStatus,
+                        ...((data.settings && data.settings.manualChatStatus) || {})
                     }
                 };
+                if (data.settings && data.settings.manualChatStatus) {
+                    try {
+                        localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(serverInboxSettings.manualChatStatus));
+                    } catch(e) {}
+                }
+                if (data.settings && data.settings.pinnedChats) {
+                    try {
+                        localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(data.settings.pinnedChats));
+                    } catch(e) {}
+                }
 
                 const newAvatars = JSON.stringify(serverInboxSettings.chatAvatars || {});
                 const newTags = JSON.stringify(serverInboxSettings.chatTags || {});
@@ -4344,7 +4352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
 
         try {
-            if (contact && contact.id && !contact.id.startsWith('chat_')) {
+            if (contact && contact.id && !String(contact.id).startsWith('chat_')) {
                 await fetch(`/api/admin/silenced-numbers/${contact.id}/toggle`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
