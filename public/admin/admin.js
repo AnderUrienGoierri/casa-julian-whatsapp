@@ -250,6 +250,11 @@ document.addEventListener('DOMContentLoaded', () => {
             headerInboxActions.style.display = (tabId === 'tab-inbox') ? 'inline-flex' : 'none';
         }
 
+        const headerBtnCreateGroup = document.getElementById('header-btn-create-group');
+        if (headerBtnCreateGroup) {
+            headerBtnCreateGroup.style.display = (tabId === 'tab-inbox') ? 'inline-flex' : 'none';
+        }
+
         const iconEl = document.getElementById('header-active-tab-icon');
         const nameEl = document.getElementById('header-active-tab-name');
         const badgeEl = document.getElementById('header-active-tab-badge');
@@ -331,11 +336,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ? getPendingConversationsCount()
             : 0;
 
-        // Badge en Menú Desplegable (Contactos)
+        // Badge en Menú Desplegable (Contactos) - Ocultado según requerimiento
         const dropdownSilencedBadge = document.getElementById('dropdown-silenced-badge');
         if (dropdownSilencedBadge) {
-            dropdownSilencedBadge.textContent = finalContactsDisplay;
-            dropdownSilencedBadge.style.display = 'inline-block';
+            dropdownSilencedBadge.style.display = 'none';
         }
 
         // Badge en Menú Desplegable (Buzón)

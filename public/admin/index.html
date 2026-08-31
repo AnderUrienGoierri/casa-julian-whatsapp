@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260830-V469-CONTACTS-ICON-TYPO">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V478-HEADER-LAYOUT-COLOR">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -230,17 +230,17 @@
                     <button type="button" id="header-btn-manage-inbox-tags" class="header-action-icon-btn" title="Gestionar etiquetas" style="background: none !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.15rem; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;">
                         🏷️
                     </button>
-                    <button type="button" id="header-btn-create-group" class="header-btn-create-group" title="Crear nuevo grupo de WhatsApp" style="background: linear-gradient(135deg, #059669, #10b981) !important; color: #ffffff !important; border: none !important; border-radius: 6px; font-weight: 600; font-size: 0.80rem; cursor: pointer; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
-                        ➕ Grupo
-                    </button>
                 </div>
             </div>
 
-            <!-- Título Centrado de la Pestaña Activa -->
-            <div class="header-center" id="header-active-tab-title">
+            <!-- Título Centrado de la Pestaña Activa con botón ➕ Grupo a su derecha -->
+            <div class="header-center" id="header-active-tab-title" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <span id="header-active-tab-icon" class="header-active-icon" style="display: none;"></span>
                 <span id="header-active-tab-name" class="header-active-name">Buzón</span>
                 <span id="header-active-tab-badge" class="header-active-badge" style="background:#ef4444; color:#fff;">0</span>
+                <button type="button" id="header-btn-create-group" class="header-btn-create-group" title="Crear nuevo grupo de WhatsApp" style="background: linear-gradient(135deg, #059669, #10b981) !important; color: #ffffff !important; border: none !important; border-radius: 6px; font-weight: 600; font-size: 0.80rem; cursor: pointer; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
+                    ➕ Grupo
+                </button>
             </div>
 
             <div class="header-right">
@@ -260,7 +260,6 @@
                         </button>
                         <button type="button" class="dropdown-menu-item" id="dropdown-tab-silenced" data-tab-target="tab-silenced">
                             <span class="dropdown-item-text">Contactos</span>
-                            <span id="dropdown-silenced-badge" class="dropdown-badge" style="background:#a855f7; color:#fff;">1002</span>
                         </button>
 
                         <div class="dropdown-divider"></div>
@@ -310,15 +309,12 @@
                                     <button type="button" id="btn-clear-inbox-search" class="wa-search-clear-btn" title="Cerrar búsqueda" style="display: none;">✕</button>
                                 </div>
 
-                                <!-- Píldoras Horizontales de Filtro estilo WhatsApp (1 Fila Unificada Dinámica) -->
-                                <div class="wa-filter-rows-container" style="background: #0a0b0e !important; background-color: #0a0b0e !important; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                                    <div class="wa-filter-pills-row" style="background: #0a0b0e !important; background-color: #0a0b0e !important; flex: 1;">
+                                <!-- Píldoras Horizontales de Filtro estilo WhatsApp (Scroll Horizontal Completo) -->
+                                <div class="wa-filter-rows-container" style="background: #0a0b0e !important; background-color: #0a0b0e !important; width: 100%; overflow: hidden;">
+                                    <div class="wa-filter-pills-row" style="background: #0a0b0e !important; background-color: #0a0b0e !important; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; width: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: thin; padding-bottom: 4px;">
                                         <button class="filter-chip wa-pill active" data-filter-type="all">Todos</button>
                                         <button class="filter-chip wa-pill" data-filter-type="status" data-filter-val="pendiente">No leídos <span id="count-status-pend">0</span></button>
                                     </div>
-                                    <button type="button" id="btn-inbox-create-group" class="btn-inbox-create-group" title="Crear nuevo grupo de WhatsApp" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 20px; font-weight: 600; font-size: 0.76rem; padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; margin-right: 6px;">
-                                        ➕ Grupo
-                                    </button>
                                 </div>
                             </div>
 
@@ -1243,6 +1239,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260830-V477-BTN-CREATE-GROUP-FIX"></script>
+    <script src="/admin/admin.js?v=20260831-V478-HEADER-LAYOUT-COLOR"></script>
 </body>
 </html>

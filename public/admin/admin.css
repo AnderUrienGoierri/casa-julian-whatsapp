@@ -1566,11 +1566,11 @@ body.mode-recepcion .inbox-cards-grid {
    ========================================================================= */
 
 .whatsapp-business-header-container {
-    background: #111b21;
+    background: #0a0b0e !important;
     border-radius: 12px 12px 0 0;
-    padding: 16px 16px 12px 16px;
-    border: 1px solid rgba(134, 150, 160, 0.15);
-    border-bottom: none;
+    padding: 14px 14px 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     margin-bottom: 0;
 }
 
@@ -1654,12 +1654,12 @@ body.mode-recepcion .inbox-cards-grid {
 .wa-search-container {
     display: flex;
     align-items: center;
-    background: #202c33;
+    background: #14171e;
     border-radius: 8px;
     padding: 8px 12px;
     margin-bottom: 12px;
     gap: 8px;
-    border: 1px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.09);
     transition: all 0.2s ease;
     cursor: text !important;
     user-select: text !important;
@@ -1668,7 +1668,7 @@ body.mode-recepcion .inbox-cards-grid {
 
 .wa-search-container:focus-within {
     border-color: #00a884;
-    background: #111b21;
+    background: #0a0b0e;
 }
 
 .wa-search-icon {
@@ -1701,65 +1701,74 @@ body.mode-recepcion .inbox-cards-grid {
     display: flex;
     flex-direction: column;
     gap: 7px;
+    width: 100%;
+    overflow: hidden;
 }
 
 .wa-filter-pills-row {
-    display: flex;
+    display: flex !important;
+    flex-wrap: nowrap !important;
     gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: thin;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    width: 100% !important;
+    padding-bottom: 4px;
 }
 
 .wa-filter-pills-row::-webkit-scrollbar {
-    height: 3px;
+    height: 4px;
 }
 .wa-filter-pills-row::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
 }
 
 .filter-chip.wa-pill {
-    background: #202c33;
-    color: #8696a0;
-    border: 1px solid rgba(134, 150, 160, 0.15);
+    background: #14171e;
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 16px;
     padding: 5px 13px;
     font-size: 0.82rem;
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
+    flex-shrink: 0;
     transition: all 0.15s ease;
 }
 
 .filter-chip.wa-pill:hover {
-    background: #2a3942;
-    color: #e9edef;
+    background: #1e232c;
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.18);
 }
 
 .filter-chip.wa-pill.active {
     background: #00a884;
-    color: #111b21;
+    color: #0a0b0e;
     border-color: #00a884;
     font-weight: 700;
     box-shadow: 0 2px 8px rgba(0, 168, 132, 0.3);
 }
 
 .filter-chip.wa-topic-pill {
-    background: #182229;
-    border: 1px solid rgba(134, 150, 160, 0.12);
+    background: #14171e;
+    border: 1px solid rgba(255, 255, 255, 0.09);
     color: #94a3b8;
     font-size: 0.80rem;
+    flex-shrink: 0;
 }
 
 .filter-chip.wa-topic-pill:hover {
-    background: #222e35;
-    color: #e9edef;
+    background: #1e232c;
+    color: #ffffff;
 }
 
 .filter-chip.wa-topic-pill.active {
     background: #00a884;
-    color: #111b21;
+    color: #0a0b0e;
     border-color: #00a884;
     font-weight: 700;
     box-shadow: 0 2px 8px rgba(0, 168, 132, 0.35);
@@ -1771,17 +1780,17 @@ body.mode-recepcion .inbox-cards-grid {
     align-items: center;
     gap: 14px;
     padding: 12px 18px;
-    background: #111b21;
-    border: 1px solid rgba(134, 150, 160, 0.15);
-    border-top: 1px solid rgba(134, 150, 160, 0.1);
-    border-bottom: 1px solid rgba(134, 150, 160, 0.15);
+    background: #0a0b0e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     cursor: pointer;
     transition: background 0.15s ease;
     user-select: none;
 }
 
 .wa-archived-bar:hover {
-    background: #202c33;
+    background: #13151b;
 }
 
 .wa-archived-icon {
@@ -1806,8 +1815,8 @@ body.mode-recepcion .inbox-cards-grid {
 .whatsapp-chats-list {
     display: flex;
     flex-direction: column;
-    background: #111b21;
-    border: 1px solid rgba(134, 150, 160, 0.15);
+    background: #0a0b0e !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-top: none;
     border-radius: 0 0 12px 12px;
     overflow: hidden;
@@ -1817,8 +1826,8 @@ body.mode-recepcion .inbox-cards-grid {
     display: flex;
     align-items: center;
     padding: 12px 16px;
-    background: #111b21;
-    border-bottom: 1px solid rgba(134, 150, 160, 0.1);
+    background: #0a0b0e !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     cursor: pointer;
     transition: background 0.15s ease;
     position: relative;
@@ -1830,14 +1839,14 @@ body.mode-recepcion .inbox-cards-grid {
 }
 
 .whatsapp-chat-row:hover {
-    background: #202c33;
+    background: #13151b !important;
 }
 
 .whatsapp-chat-row.is-pinned {
-    background: #152028;
+    background: #0e1015 !important;
 }
 .whatsapp-chat-row.is-pinned:hover {
-    background: #222e37;
+    background: #181b22 !important;
 }
 
 /* Avatar circular WhatsApp */
@@ -2117,13 +2126,13 @@ body.mode-recepcion .inbox-cards-grid {
     border: none;
     border-radius: 0;
     overflow-y: auto;
-    background: #111b21;
+    background: #0a0b0e !important;
 }
 
 /* Chat seleccionado en la lista */
 .whatsapp-chat-row.is-selected {
-    background: #2a3942 !important;
-    border-left: 4px solid #00a884;
+    background: #191e26 !important;
+    border-left: 4px solid #10b981;
 }
 
 .whatsapp-chat-row.is-selected .wa-contact-name {
