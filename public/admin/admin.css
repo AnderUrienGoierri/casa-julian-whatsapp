@@ -99,15 +99,54 @@ body.is-inbox-active-body {
     }
 }
 
-.restaurant-badge {
-    display: inline-block;
-    background: rgba(217, 119, 6, 0.15);
-    color: var(--accent-gold);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+.role-btn-item {
+    flex: 1;
+    font-size: 0.92rem;
     font-weight: 600;
-    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.role-btn-item.active {
+    background: #7c463b !important;
+    color: #ffffff !important;
+    border: 1px solid #925447 !important;
+    opacity: 1 !important;
+    box-shadow: 0 4px 12px rgba(124, 70, 59, 0.35);
+}
+
+.role-btn-item:not(.active) {
+    background: #16171b !important;
+    color: #94a3b8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    opacity: 0.65 !important;
+}
+
+.role-btn-item:hover:not(.active) {
+    opacity: 0.9 !important;
+    background: #1f2127 !important;
+    color: #ffffff !important;
+}
+
+.login-btn-submit {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.login-btn-submit:hover {
+    background: #111216 !important;
+    border-color: #7c463b !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
 }
 
 .login-header h2 {
@@ -220,13 +259,13 @@ button {
     background: #0a0b0e !important;
     background-color: #0a0b0e !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    padding: 10px 16px;
+    padding: 8px 6px 8px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
     position: relative;
-    min-height: 54px;
+    min-height: 52px;
     box-sizing: border-box;
 }
 
@@ -355,14 +394,17 @@ button {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    margin-left: auto;
     flex-shrink: 0;
 }
 
 /* Header Menu Dropdown */
 .header-menu-container {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header-menu-btn {
@@ -372,8 +414,8 @@ button {
     background: transparent !important;
     color: #ffffff;
     border: none !important;
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     font-size: 1.45rem;
     font-weight: 600;

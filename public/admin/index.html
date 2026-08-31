@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V479-HEADER-ORDER-AVATARS">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V480-LOGIN-CLEAN-HEADER">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -16,25 +16,21 @@
     <div id="login-modal" class="modal-overlay">
         <div class="login-box">
             <div class="login-header">
-                <div class="login-logo-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px;">
-                    <img src="/admin/casa_julian_logo_CJ.jpeg" alt="Casa Julián" class="login-logo-img" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: none; box-shadow: none; display: block;">
-                    <span class="restaurant-badge" style="margin-bottom: 0;">Asador Casa Julián Tolosa</span>
+                <div class="login-logo-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px;">
+                    <img src="/admin/casa_julian_logo_CJ.jpeg" alt="Casa Julián" class="login-logo-img" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: none; box-shadow: none; display: block;">
                 </div>
                 <h2>Acceso al Panel Interno</h2>
                 <p>Selecciona tu perfil e introduce la contraseña de acceso</p>
             </div>
             <form id="login-form">
                 <!-- Selector de Rol -->
-                <div style="display: flex; gap: 10px; margin-bottom: 18px;">
-                    <button type="button" id="role-btn-recepcion" class="btn-primary" style="flex: 1; background: linear-gradient(135deg, #0284c7, #0369a1); font-size: 0.9rem; padding: 10px; border-radius: 10px;" onclick="selectRole('recepcion')">
-                        📥 Recepción
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button type="button" id="role-btn-recepcion" class="role-btn-item active" onclick="selectRole('recepcion')">
+                        Recepción
                     </button>
-                    <button type="button" id="role-btn-admin" class="btn-secondary" style="flex: 1; font-size: 0.9rem; padding: 10px; border-radius: 10px; opacity: 0.6;" onclick="selectRole('admin')">
-                        ⚙️ Administración
+                    <button type="button" id="role-btn-admin" class="role-btn-item" onclick="selectRole('admin')">
+                        Administración
                     </button>
-                </div>
-                <div id="role-hint" style="text-align: center; font-size: 0.78rem; color: #38bdf8; margin-bottom: 14px; font-style: italic;">
-                    📥 Buzón de solicitudes y respuestas a clientes por WhatsApp
                 </div>
 
                 <div class="form-group">
@@ -47,7 +43,7 @@
                     </div>
                 </div>
                 <div id="login-error" class="error-msg" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; text-align: left; font-size: 0.85rem;"></div>
-                <button type="submit" class="btn-primary full-width">🔐 Iniciar Sesión</button>
+                <button type="submit" id="btn-submit-login" class="login-btn-submit full-width">Iniciar Sesión</button>
                 <!-- Botón para limpiar sesión si hay token viejo -->
                 <div style="text-align: center; margin-top: 14px;">
                     <button type="button" onclick="clearOldSession()" style="background: none; border: none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">⟳ Limpiar sesión anterior</button>
@@ -59,27 +55,16 @@
         function selectRole(role) {
             const btnRecepcion = document.getElementById('role-btn-recepcion');
             const btnAdmin = document.getElementById('role-btn-admin');
-            const hint = document.getElementById('role-hint');
             const label = document.getElementById('password-label');
             if (role === 'recepcion') {
-                btnRecepcion.style.opacity = '1';
-                btnRecepcion.className = 'btn-primary';
-                btnRecepcion.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
-                btnAdmin.style.opacity = '0.5';
-                btnAdmin.className = 'btn-secondary';
-                hint.style.color = '#38bdf8';
-                hint.textContent = '📥 Buzón de solicitudes y respuestas a clientes por WhatsApp';
+                btnRecepcion.classList.add('active');
+                btnAdmin.classList.remove('active');
                 label.textContent = 'Contraseña de Recepción:';
                 document.getElementById('admin-password').value = '';
                 document.getElementById('admin-password').placeholder = 'Contraseña de recepción...';
             } else {
-                btnAdmin.style.opacity = '1';
-                btnAdmin.className = 'btn-primary';
-                btnAdmin.style.background = 'linear-gradient(135deg, #92400e, #78350f)';
-                btnRecepcion.style.opacity = '0.5';
-                btnRecepcion.className = 'btn-secondary';
-                hint.style.color = '#f59e0b';
-                hint.textContent = '⚙️ Editor completo del chatbot, mensajes, flujos y publicación';
+                btnAdmin.classList.add('active');
+                btnRecepcion.classList.remove('active');
                 label.textContent = 'Contraseña de Administrador:';
                 document.getElementById('admin-password').value = '';
                 document.getElementById('admin-password').placeholder = 'Contraseña de administrador...';
@@ -1242,6 +1227,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260831-V479-HEADER-ORDER-AVATARS"></script>
+    <script src="/admin/admin.js?v=20260831-V480-LOGIN-CLEAN-HEADER"></script>
 </body>
 </html>
