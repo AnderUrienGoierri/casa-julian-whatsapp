@@ -812,8 +812,8 @@ router.post('/solicitudes/:id/atencion-humana', requireAdminAuth, async (req, re
     }
 });
 
-// 18. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, CANCELADA, ARCHIVADA)
-router.post('/solicitudes/:id/estado', requireAdminAuth, async (req, res) => {
+// 18. Cambiar estado de una solicitud (PENDIENTE, CONFIRMADA, RECHAZADA, CANCELADA, ARCHIVADA, RESUELTA)
+const handleSolicitudEstado = async (req, res) => {
     try {
         const { id } = req.params;
         const { estado } = req.body || {};
@@ -843,6 +843,53 @@ router.post('/solicitudes/:id/estado', requireAdminAuth, async (req, res) => {
 
         const updated = await updateSolicitudStatus(id, targetStatus);
         return res.json({ success: true, solicitud: updated });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+};
+
+router.post('/solicitudes/:id/estado', requireAdminAuth, handleSolicitudEstado);
+router.patch('/solicitudes/:id/estado', requireAdminAuth, handleSolicitudEstado);
+
+// 18-bulk-chats. Eliminación y archivado masivo de chats completos
+router.post('/chats/bulk-delete', requireAdminAuth, async (req, res) => {
+    try {
+        const { phones } = req.body || {};
+        if (!Array.isArray(phones) || phones.length === 0) {
+            return res.status(400).json({ error: 'Se requiere una lista de teléfonos.' });
+        }
+        const { deleteChatMessages } = require('./database');
+        for (const p of phones) {
+            try {
+                await deleteChatMessages(p);
+            } catch (err) {}
+        }
+        return res.json({ success: true, count: phones.length, message: `${phones.length} chats eliminados correctamente.` });
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/chats/bulk-archive', requireAdminAuth, async (req, res) => {
+    try {
+        const { phones } = req.body || {};
+        if (!Array.isArray(phones) || phones.length === 0) {
+            return res.status(400).json({ error: 'Se requiere una lista de teléfonos.' });
+        }
+        const list = await getAllSolicitudes();
+        for (const p of phones) {
+            const clean = String(p).replace(/\D/g, '');
+            const matching = list.filter(s => {
+                const sPhone = (s.telefonoCliente || s.telefonoReserva || '').replace(/\D/g, '');
+                return sPhone === clean;
+            });
+            for (const s of matching) {
+                try {
+                    await updateSolicitudStatus(s.id, 'ARCHIVADA', null, false);
+                } catch (err) {}
+            }
+        }
+        return res.json({ success: true, count: phones.length, message: `${phones.length} chats archivados.` });
     } catch (e) {
         return res.status(500).json({ error: e.message });
     }
