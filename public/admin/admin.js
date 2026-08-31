@@ -4388,48 +4388,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const summaryEl = document.getElementById('inbox-filter-summary');
         if (!container) return;
 
+        const total = allUnifiedConversations.length;
+        if (typeof updateHeaderAndMenuBadges === 'function') updateHeaderAndMenuBadges();
+
         let filtered = [...allUnifiedConversations];
-        const total = filtered.length;
 
-        // 1. Filtrar por Tipo de Solicitud
-        if (activeInboxTypeFilter !== 'all') {
-            filtered = filtered.filter(c => c.tipoSolicitud === activeInboxTypeFilter);
+        // 1. Filtrar por Estado Múltiple (ej: 'pendiente' / No leídos)
+        if (activeInboxStatusFilters.size > 0) {
+            filtered = filtered.filter(c => activeInboxStatusFilters.has(getConversationStatus(c)));
         }
 
-        // 2. Filtrar por Estado / Pestañas de Vista Rápida
-        if (activeInboxStatusFilter === 'unread') {
-            filtered = filtered.filter(c => getConversationStatus(c) === 'pendiente');
-        } else if (activeInboxStatusFilter === 'pending') {
-            filtered = filtered.filter(c => (c.solicitudEstado === 'PENDIENTE' || getConversationStatus(c) === 'pendiente'));
-        } else if (activeInboxStatusFilter === 'today') {
-            const todayStr = new Date().toISOString().slice(0, 10);
+        // 2. Filtrar por Etiquetas Múltiples (según las etiquetas seleccionadas en las píldoras superiores)
+        if (activeInboxTagFilters.size > 0) {
+            const availableTagsList = typeof getAllAvailableSilencedTags === 'function' ? getAllAvailableSilencedTags() : [];
             filtered = filtered.filter(c => {
-                if (!c.ultimoMensajeFecha) return false;
-                return c.ultimoMensajeFecha.slice(0, 10) === todayStr;
-            });
-        } else if (activeInboxStatusFilter.startsWith('tag:')) {
-            const filterTag = activeInboxStatusFilter.replace('tag:', '').toLowerCase();
-            filtered = filtered.filter(c => {
-                const tags = getChatTags(c.telefono, c).map(t => t.toLowerCase());
-                return tags.some(t => t === filterTag || (filterTag === 'personal' && (t === 'empleados' || t === 'empleado' || t === 'alba')));
-            });
-        }
-
-        // 2b. Filtros de Píldoras Multi-Seleccionables
-        if (selectedInboxPills.size > 0) {
-            filtered = filtered.filter(c => {
-                const isPending = getConversationStatus(c) === 'pendiente';
-                const unreadCount = getConversationUnreadCount(c);
-                const isUnread = isPending && unreadCount > 0;
-                const tags = getChatTags(c.telefono, c).map(t => t.toLowerCase());
-                const cleanPhone = getCleanPhoneKey(c.telefono);
-                const isGroup = cleanPhone === 'group_taxi_casa_julian' || c.isGroup;
-
-                return Array.from(selectedInboxPills).every(pill => {
-                    if (pill === 'all') return true;
-                    if (pill === 'unread') return isUnread;
-                    if (pill === 'group') return isGroup || tags.includes('grupo') || tags.includes('grupos');
-                    return tags.some(t => t === pill || (pill === 'personal' && (t === 'empleados' || t === 'empleado' || t === 'alba')));
+                return Array.from(activeInboxTagFilters).some(tagKey => {
+                    const tagObj = availableTagsList.find(t => t.id === tagKey || (t.name && t.name.toLowerCase() === tagKey.toLowerCase()));
+                    const tagId = tagObj ? tagObj.id : tagKey;
+                    const tagName = tagObj ? tagObj.name : tagKey;
+                    return chatMatchesTag(c, tagId, tagName);
                 });
             });
         }
