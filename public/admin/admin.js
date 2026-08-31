@@ -245,15 +245,14 @@ document.addEventListener('DOMContentLoaded', () => {
             mainLayout.classList.toggle('is-inbox-active', tabId === 'tab-inbox');
         }
 
-        const headerInboxActions = document.getElementById('header-inbox-actions');
-        if (headerInboxActions) {
-            headerInboxActions.style.display = (tabId === 'tab-inbox') ? 'inline-flex' : 'none';
-        }
-
+        const isInbox = (tabId === 'tab-inbox');
+        const btnToggleSearch = document.getElementById('header-btn-toggle-inbox-search');
+        const btnManageTags = document.getElementById('header-btn-manage-inbox-tags');
         const headerBtnCreateGroup = document.getElementById('header-btn-create-group');
-        if (headerBtnCreateGroup) {
-            headerBtnCreateGroup.style.display = (tabId === 'tab-inbox') ? 'inline-flex' : 'none';
-        }
+
+        if (btnToggleSearch) btnToggleSearch.style.display = isInbox ? 'inline-flex' : 'none';
+        if (btnManageTags) btnManageTags.style.display = isInbox ? 'inline-flex' : 'none';
+        if (headerBtnCreateGroup) headerBtnCreateGroup.style.display = isInbox ? 'inline-flex' : 'none';
 
         const iconEl = document.getElementById('header-active-tab-icon');
         const nameEl = document.getElementById('header-active-tab-name');
@@ -3752,32 +3751,42 @@ document.addEventListener('DOMContentLoaded', () => {
         return str.replace(/\D/g, '');
     }
 
-    function getChatAvatarUrl(phone, clientDisplayName = '') {
+    function getChatAvatarUrl(phone, clientDisplayName = '', convObj = null) {
         const cleanPhone = getCleanPhoneKey(phone);
         const lowerName = (clientDisplayName || '').toLowerCase();
         
+        // 1. Si el objeto conversación o contacto ya contiene foto o avatar de WhatsApp
+        if (convObj) {
+            if (convObj.avatar && typeof convObj.avatar === 'string' && convObj.avatar.trim()) return convObj.avatar.trim();
+            if (convObj.avatarUrl && typeof convObj.avatarUrl === 'string' && convObj.avatarUrl.trim()) return convObj.avatarUrl.trim();
+            if (convObj.profilePic && typeof convObj.profilePic === 'string' && convObj.profilePic.trim()) return convObj.profilePic.trim();
+            if (convObj.photo && typeof convObj.photo === 'string' && convObj.photo.trim()) return convObj.photo.trim();
+            if (convObj.profilePhoto && typeof convObj.profilePhoto === 'string' && convObj.profilePhoto.trim()) return convObj.profilePhoto.trim();
+        }
+
+        // 2. Comprobar si está en serverInboxSettings.chatAvatars
         if (serverInboxSettings && serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[cleanPhone]) {
             return serverInboxSettings.chatAvatars[cleanPhone];
         }
+
+        // 3. Comprobar si está en contactos silenciados o conocidos
+        if (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers)) {
+            const found = allSilencedNumbers.find(s => getCleanPhoneKey(s.telefono) === cleanPhone);
+            if (found && found.avatar) return found.avatar;
+        }
+
+        // 4. Comprobar en caché local
         try {
             const localAvatars = JSON.parse(localStorage.getItem('casa_julian_chat_avatars_map') || '{}');
             if (localAvatars[cleanPhone]) return localAvatars[cleanPhone];
         } catch(e) {}
         
+        // 5. Avatares del restaurante y grupos predeterminados
         if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
             return '/admin/taxi_img.png';
         }
         if (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático')) {
             return '/admin/ander_img.png';
-        }
-        if (cleanPhone === '34670426540' || lowerName.includes('iguaran')) {
-            return '/admin/avatar_taxi_iguaran.png';
-        }
-        if (cleanPhone === '34670449858' || lowerName.includes('taxi tolosa')) {
-            return '/admin/avatar_taxi_tolosa.png';
-        }
-        if (cleanPhone === '34636979092' || lowerName.includes('lexus')) {
-            return '/admin/avatar_taxi_lexus.png';
         }
         if (cleanPhone === '34943671417' || lowerName.includes('casa julián tolosa') || lowerName.includes('casa julian tolosa')) {
             return '/admin/casa_julian_logo_CJ.jpeg';
@@ -4425,32 +4434,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span class="wa-check-double" title="Entregado y Leído">✓✓</span> ` 
                 : '';
 
-            // Generador de Avatar estilo WhatsApp Business con soporte de fotos personalizadas y grupos
+            // Generador de Avatar estilo WhatsApp Business con soporte de fotos personalizadas, grupos y WhatsApp
             let avatarHtml = '';
             const lowerName = (clientDisplayName || '').toLowerCase();
             const grpData = (serverInboxSettings.customGroups && serverInboxSettings.customGroups[cleanPhone]) || (c.isGroup ? c : null);
-            const customAvatarUrl = (serverInboxSettings.chatAvatars && serverInboxSettings.chatAvatars[cleanPhone])
-                || (grpData && grpData.avatar && (grpData.avatar.startsWith('/') || grpData.avatar.startsWith('http')) ? grpData.avatar : '')
-                || (cleanPhone === 'group_taxi_casa_julian' ? '/admin/taxi_img.png' : '')
-                || (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático') ? '/admin/ander_img.png' : '');
+            const customAvatarUrl = getChatAvatarUrl(cleanPhone, clientDisplayName, c)
+                || (grpData && grpData.avatar && (grpData.avatar.startsWith('/') || grpData.avatar.startsWith('http')) ? grpData.avatar : '');
 
             if (customAvatarUrl) {
-                const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : (isGroup ? '#10b981' : '#0284c7');
+                const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : (isGroup ? '#10b981' : 'transparent');
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid ${borderClr}; overflow: hidden;" title="${clientDisplayName}"><img src="${customAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>${cleanPhone === 'group_taxi_casa_julian' ? '🚕' : (isGroup ? '👥' : '👤')}</span>'"></div>`;
             } else if (grpData && grpData.avatar && !grpData.avatar.startsWith('/')) {
                 avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #10b981; overflow: hidden;" title="${clientDisplayName}"><span style="font-size: 1.4rem;">${grpData.avatar}</span></div>`;
-            } else if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="Grupo Taxi Casa Julián (3 Taxis + Restaurante)"><img src="/admin/taxi_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>🚕</span>'"></div>`;
-            } else if (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #0284c7; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/ander_img.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>AI</span>'"></div>`;
-            } else if (cleanPhone === '34670426540' || lowerName.includes('iguaran')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_iguaran.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TI</span>'"></div>`;
-            } else if (cleanPhone === '34670449858' || lowerName.includes('taxi tolosa')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_tolosa.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TT</span>'"></div>`;
-            } else if (cleanPhone === '34636979092' || lowerName.includes('lexus')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #f59e0b; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/avatar_taxi_lexus.png" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>TL</span>'"></div>`;
-            } else if (cleanPhone === '34943671417' || lowerName.includes('casa julián tolosa') || lowerName.includes('casa julian tolosa')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #a855f7; overflow: hidden;" title="${clientDisplayName}"><img src="/admin/casa_julian_logo_CJ.jpeg" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span>CJ</span>'"></div>`;
             } else if (lowerName.includes('entretiempo') || lowerName.includes('ricardo')) {
                 avatarHtml = `<div class="wa-avatar-container wa-avatar-ricardo" title="${clientDisplayName}"><span>E</span></div>`;
             } else if (lowerName.includes('xabi') || lowerName.includes('gorrotxategi')) {
@@ -5992,36 +5987,42 @@ document.addEventListener('DOMContentLoaded', () => {
         replyClientName.textContent = clientDisplayName;
         replyClientPhone.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
 
-        // Generador de Avatar dinámico
+        // Generador de Avatar dinámico con soporte de fotos
         const avatarEl = document.getElementById('reply-modal-avatar');
         if (avatarEl) {
-            const lower = clientDisplayName.toLowerCase();
-            if (lower.includes('entretiempo') || lower.includes('ricardo')) {
-                avatarEl.textContent = 'E';
-                avatarEl.style.background = '#0284c7';
-                avatarEl.style.color = '#fff';
-            } else if (lower.includes('xabi') || lower.includes('gorrotxategi')) {
-                avatarEl.textContent = 'XG';
-                avatarEl.style.background = '#1e3a8a';
-                avatarEl.style.color = '#93c5fd';
-            } else if (cleanPhoneStr === '41795958760') {
-                avatarEl.textContent = '+41';
-                avatarEl.style.background = '#065f46';
-                avatarEl.style.color = '#6ee7b7';
-            } else if (cleanPhoneStr === '923218428609') {
-                avatarEl.textContent = 'SA';
-                avatarEl.style.background = '#701a75';
-                avatarEl.style.color = '#f5d0fe';
-            } else if (clientDisplayName && !clientDisplayName.startsWith('+')) {
-                const words = clientDisplayName.trim().split(/\s+/);
-                const initials = words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].slice(0, 2).toUpperCase();
-                avatarEl.textContent = initials;
-                avatarEl.style.background = '#2a3942';
-                avatarEl.style.color = '#e9edef';
+            const customAvatarUrl = getChatAvatarUrl(cleanPhoneStr, clientDisplayName, sol);
+            if (customAvatarUrl) {
+                avatarEl.innerHTML = `<img src="${customAvatarUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" onerror="this.outerHTML='👤'">`;
+                avatarEl.style.background = 'transparent';
             } else {
-                avatarEl.textContent = '👤';
-                avatarEl.style.background = '#202c33';
-                avatarEl.style.color = '#8696a0';
+                const lower = clientDisplayName.toLowerCase();
+                if (lower.includes('entretiempo') || lower.includes('ricardo')) {
+                    avatarEl.textContent = 'E';
+                    avatarEl.style.background = '#0284c7';
+                    avatarEl.style.color = '#fff';
+                } else if (lower.includes('xabi') || lower.includes('gorrotxategi')) {
+                    avatarEl.textContent = 'XG';
+                    avatarEl.style.background = '#1e3a8a';
+                    avatarEl.style.color = '#93c5fd';
+                } else if (cleanPhoneStr === '41795958760') {
+                    avatarEl.textContent = '+41';
+                    avatarEl.style.background = '#065f46';
+                    avatarEl.style.color = '#6ee7b7';
+                } else if (cleanPhoneStr === '923218428609') {
+                    avatarEl.textContent = 'SA';
+                    avatarEl.style.background = '#701a75';
+                    avatarEl.style.color = '#f5d0fe';
+                } else if (clientDisplayName && !clientDisplayName.startsWith('+')) {
+                    const words = clientDisplayName.trim().split(/\s+/);
+                    const initials = words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].slice(0, 2).toUpperCase();
+                    avatarEl.textContent = initials;
+                    avatarEl.style.background = '#2a3942';
+                    avatarEl.style.color = '#e9edef';
+                } else {
+                    avatarEl.textContent = '👤';
+                    avatarEl.style.background = '#202c33';
+                    avatarEl.style.color = '#8696a0';
+                }
             }
         }
 

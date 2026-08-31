@@ -313,24 +313,16 @@ button {
     opacity: 1;
 }
 
-/* TÍTULO CENTRADO MATEMÁTICAMENTE EN EL HEADER */
+/* TÍTULO Y ELEMENTOS LINEALES DEL HEADER */
+.header-active-tab-wrap,
 .header-center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    text-align: center;
-    max-width: calc(100% - 110px);
-    z-index: 5;
-    pointer-events: none;
-}
-
-.header-center > * {
-    pointer-events: auto;
+    gap: 6px;
+    position: static;
+    transform: none;
+    max-width: none;
+    z-index: 1;
 }
 
 .header-active-icon {

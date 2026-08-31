@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V478-HEADER-LAYOUT-COLOR">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V479-HEADER-ORDER-AVATARS">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -217,28 +217,31 @@
     <div id="app-container" style="display: none;">
         <!-- Header Principal -->
         <header class="main-header" style="background: #0a0b0e !important; background-color: #0a0b0e !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;">
-            <div class="header-left">
-                <div class="logo-area">
+            <div class="header-left" style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                <!-- 1. Logo Casa Julián -->
+                <div class="logo-area" style="flex-shrink: 0;">
                     <img src="/admin/casa_julian_logo_CJ.jpeg" alt="Casa Julián Tolosa" class="header-logo-img">
                 </div>
-                <span class="status-pill online"><span class="dot"></span> Bot Activo 24/7</span>
-                <!-- Acciones de Buzón en Header (Lupa y Etiquetas) -->
-                <div id="header-inbox-actions" class="header-inbox-actions" style="display: inline-flex; align-items: center; gap: 4px; margin-left: 8px;">
-                    <button type="button" id="header-btn-toggle-inbox-search" class="header-action-icon-btn" title="Buscar conversación" style="background: none !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.15rem; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;">
-                        🔎
-                    </button>
-                    <button type="button" id="header-btn-manage-inbox-tags" class="header-action-icon-btn" title="Gestionar etiquetas" style="background: none !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.15rem; cursor: pointer; padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; transition: transform 0.15s ease;">
-                        🏷️
-                    </button>
-                </div>
-            </div>
 
-            <!-- Título Centrado de la Pestaña Activa con botón ➕ Grupo a su derecha -->
-            <div class="header-center" id="header-active-tab-title" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <span id="header-active-tab-icon" class="header-active-icon" style="display: none;"></span>
-                <span id="header-active-tab-name" class="header-active-name">Buzón</span>
-                <span id="header-active-tab-badge" class="header-active-badge" style="background:#ef4444; color:#fff;">0</span>
-                <button type="button" id="header-btn-create-group" class="header-btn-create-group" title="Crear nuevo grupo de WhatsApp" style="background: linear-gradient(135deg, #059669, #10b981) !important; color: #ffffff !important; border: none !important; border-radius: 6px; font-weight: 600; font-size: 0.80rem; cursor: pointer; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);">
+                <!-- 2. Botón Lupa -->
+                <button type="button" id="header-btn-toggle-inbox-search" class="header-action-icon-btn" title="Buscar conversación" style="background: none !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.15rem; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0;">
+                    🔎
+                </button>
+
+                <!-- 3. Botón Etiqueta -->
+                <button type="button" id="header-btn-manage-inbox-tags" class="header-action-icon-btn" title="Gestionar etiquetas" style="background: none !important; border: none !important; outline: none !important; box-shadow: none !important; font-size: 1.15rem; cursor: pointer; padding: 2px 4px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; flex-shrink: 0;">
+                    🏷️
+                </button>
+
+                <!-- 4. Título Buzón -->
+                <div class="header-active-tab-wrap" id="header-active-tab-title" style="display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span id="header-active-tab-icon" class="header-active-icon" style="display: none;"></span>
+                    <span id="header-active-tab-name" class="header-active-name" style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">Buzón</span>
+                    <span id="header-active-tab-badge" class="header-active-badge" style="background:#ef4444; color:#fff; font-size: 0.75rem; font-weight: 700; padding: 1px 7px; border-radius: 12px; display: inline-block;">0</span>
+                </div>
+
+                <!-- 5. +Grupo (sin recuadro) -->
+                <button type="button" id="header-btn-create-group" class="header-btn-create-group" title="Crear nuevo grupo de WhatsApp" style="background: transparent !important; background-color: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; color: #10b981 !important; font-weight: 600; font-size: 0.88rem; cursor: pointer; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; white-space: nowrap;">
                     ➕ Grupo
                 </button>
             </div>
@@ -1239,6 +1242,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260831-V478-HEADER-LAYOUT-COLOR"></script>
+    <script src="/admin/admin.js?v=20260831-V479-HEADER-ORDER-AVATARS"></script>
 </body>
 </html>
