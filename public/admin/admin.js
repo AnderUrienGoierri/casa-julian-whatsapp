@@ -610,6 +610,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     async function fetchInboxSettings() {
+        // Esta función es llamada en el arranque del panel (pestaña Contactos/Configuración)
+        // La versión completa con merge por timestamp está en la sección de Buzón (loadUnifiedInboxData la usa)
         const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
         if (!currentToken) return;
         try {
@@ -622,7 +624,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 const data = await res.json();
                 if (data.success && data.settings) {
-                    serverInboxSettings = data.settings;
+                    // Merge de manualChatStatus por timestamp para no perder estados locales recientes
+                    let localStatus = {};
+                    try { localStatus = JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}'); } catch(e) {}
+                    const serverStatus = data.settings.manualChatStatus || {};
+                    const merged = {};
+                    const allPhones = new Set([...Object.keys(localStatus), ...Object.keys(serverStatus)]);
+                    allPhones.forEach(phone => {
+                        const loc = localStatus[phone];
+                        const srv = serverStatus[phone];
+                        if (!loc) { merged[phone] = srv; }
+                        else if (!srv) { merged[phone] = loc; }
+                        else {
+                            const tsL = loc.readAt ? new Date(loc.readAt).getTime() : 0;
+                            const tsS = srv.readAt ? new Date(srv.readAt).getTime() : 0;
+                            merged[phone] = tsS >= tsL ? srv : loc;
+                        }
+                    });
+                    serverInboxSettings = { ...serverInboxSettings, ...data.settings, manualChatStatus: merged };
                     if (Array.isArray(serverInboxSettings.customTags)) {
                         localStorage.setItem('casa_julian_custom_silenced_tags', JSON.stringify(serverInboxSettings.customTags));
                     }
@@ -638,13 +657,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (serverInboxSettings.pinnedChats && typeof serverInboxSettings.pinnedChats === 'object') {
                         localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(serverInboxSettings.pinnedChats));
                     }
-                    if (serverInboxSettings.manualChatStatus && typeof serverInboxSettings.manualChatStatus === 'object') {
-                        localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(serverInboxSettings.manualChatStatus));
-                    }
+                    try { localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(merged)); } catch(e) {}
                 }
             }
         } catch (err) {
-            console.warn("⚠️ [Inbox Settings] Error sincronizando con el servidor:", err.message);
+            console.warn('⚠️ [Inbox Settings] Error sincronizando con el servidor:', err.message);
         }
     }
 
@@ -3679,15 +3696,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (statusVal === 'leido') {
-                if (typeof manualEntry === 'object') {
-                    const lastText = (manualEntry.lastText || '').trim();
-                    const currentText = (c.ultimoTexto || '').trim();
-                    const lastDate = String(manualEntry.lastDate || '').trim();
-                    const currentDate = String(c.ultimoMensajeFecha || '').trim();
-
-                    // Si entraron nuevos mensajes después de que recepción leyera el chat -> PENDIENTE (No leído)
-                    if (lastText && currentText && lastText !== currentText && lastDate && currentDate && lastDate !== currentDate) {
-                        return 'pendiente';
+                if (typeof manualEntry === 'object' && manualEntry.readAt) {
+                    // Comparar por fecha: si el último mensaje es posterior a cuando se marcó leído → PENDIENTE
+                    const readTime = new Date(manualEntry.readAt).getTime();
+                    const lastMsgFecha = c.ultimoMensajeFecha;
+                    if (lastMsgFecha) {
+                        const msgTime = new Date(lastMsgFecha).getTime();
+                        // 15 segundos de margen para evitar falsos positivos por desfase de reloj
+                        if (!isNaN(readTime) && !isNaN(msgTime) && msgTime > readTime + 15000) {
+                            return 'pendiente';
+                        }
                     }
                 }
                 return 'leido';
