@@ -3570,6 +3570,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Estado Unificado del Buzón de Recepción ──────────────────────────────
 
+    // Merge de estados manuales: gana el entry con readAt más reciente (local o servidor)
+    function mergeStatusMaps(mapA, mapB) {
+        const result = { ...mapA };
+        for (const phone in mapB) {
+            const entryB = mapB[phone];
+            const entryA = result[phone];
+            if (!entryA) {
+                result[phone] = entryB;
+            } else {
+                // Comparar timestamps: gana el más reciente
+                const tsA = entryA && entryA.readAt ? new Date(entryA.readAt).getTime() : 0;
+                const tsB = entryB && entryB.readAt ? new Date(entryB.readAt).getTime() : 0;
+                if (tsB > tsA) result[phone] = entryB;
+            }
+        }
+        return result;
+    }
+
     // Mapa de estados manuales y última fecha de lectura (persistido en PostgreSQL y sincronizado entre usuarios)
     function getManualChatStatusMap() {
         const serverMap = (serverInboxSettings && typeof serverInboxSettings.manualChatStatus === 'object') 
@@ -3579,7 +3597,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             localMap = JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
         } catch (e) {}
-        return { ...localMap, ...serverMap };
+        // Merge por timestamp: gana el entry más reciente de cualquier origen
+        return mergeStatusMaps(localMap, serverMap);
     }
 
     function setManualChatStatus(phone, status) {
@@ -3935,19 +3954,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStatus = JSON.parse(localStorage.getItem('casa_julian_manual_chat_status') || '{}');
                 } catch(e) {}
 
+                // Merge de manualChatStatus por timestamp: el entry más reciente (local o servidor) gana
+                const serverStatusData = (data.settings && data.settings.manualChatStatus) || {};
+                const mergedStatus = mergeStatusMaps(localStatus, serverStatusData);
+
                 serverInboxSettings = { 
                     ...serverInboxSettings, 
                     ...data.settings,
-                    manualChatStatus: {
-                        ...localStatus,
-                        ...((data.settings && data.settings.manualChatStatus) || {})
-                    }
+                    manualChatStatus: mergedStatus
                 };
-                if (data.settings && data.settings.manualChatStatus) {
-                    try {
-                        localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(serverInboxSettings.manualChatStatus));
-                    } catch(e) {}
-                }
+                // Sincronizar localStorage con el resultado del merge
+                try {
+                    localStorage.setItem('casa_julian_manual_chat_status', JSON.stringify(mergedStatus));
+                } catch(e) {}
                 if (data.settings && data.settings.pinnedChats) {
                     try {
                         localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(data.settings.pinnedChats));
