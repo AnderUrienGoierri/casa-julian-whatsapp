@@ -3648,19 +3648,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return 'leido';
         }
 
-        // 2. Si el último mensaje es saliente (restaurante, staff, bot, admin), SIEMPRE está leída
-        const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
-        if (!isFromClient) {
-            return 'leido';
-        }
-
-        // 3. Comprobar si está marcada manualmente o registrada como leída
+        // 2. Comprobar si está marcada manualmente por el usuario
         const manualMap = getManualChatStatusMap();
         const manualEntry = manualMap[cleanPhone];
 
         if (manualEntry) {
             const statusVal = typeof manualEntry === 'object' ? manualEntry.status : manualEntry;
             
+            if (statusVal === 'pendiente') {
+                return 'pendiente';
+            }
+
             if (statusVal === 'leido') {
                 if (typeof manualEntry === 'object') {
                     const lastText = (manualEntry.lastText || '').trim();
@@ -3668,39 +3666,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     const lastDate = String(manualEntry.lastDate || '').trim();
                     const currentDate = String(c.ultimoMensajeFecha || '').trim();
 
-                    // Si no hay texto previo registrado o el texto coincide -> LEIDO
-                    if (!lastText || (lastText && currentText && lastText === currentText)) {
-                        return 'leido';
-                    }
-                    // Si la fecha coincide -> LEIDO
-                    if (lastDate && currentDate && lastDate === currentDate) {
-                        return 'leido';
-                    }
-                    // Solo si TANTO el texto COMO la fecha son distintos a cuando se leyó -> PENDIENTE
-                    if (lastText && currentText && lastText !== currentText && lastDate !== currentDate) {
+                    // Solo si entraron nuevos mensajes del cliente después de marcarse como leída -> PENDIENTE
+                    const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
+                    if (isFromClient && lastText && currentText && lastText !== currentText && lastDate && currentDate && lastDate !== currentDate) {
                         return 'pendiente';
                     }
                 }
-                
                 return 'leido';
-            }
-            
-            if (statusVal === 'pendiente') {
-                return 'pendiente';
             }
         }
 
-        // 4. Si tiene solicitud activa en estado PENDIENTE o EN_ATENCION
+        // 3. Si tiene solicitud activa en estado PENDIENTE o EN_ATENCION
         if (c.solicitudEstado === 'PENDIENTE' || c.solicitudEstado === 'EN_ATENCION') {
             return 'pendiente';
         }
 
-        // 5. Si no hay registro de lectura previo y el último mensaje es del cliente
-        if (isFromClient) {
-            return 'pendiente';
+        // 4. Si el último mensaje es saliente (restaurante, staff, bot, admin), por defecto está leída
+        const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
+        if (!isFromClient) {
+            return 'leido';
         }
 
-        return 'leido';
+        // 5. Si el último mensaje es del cliente y no ha sido marcado
+        return 'pendiente';
     }
 
     function getConversationUnreadCount(c) {
@@ -7999,21 +7987,172 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Eventos de botones y modales
-    const headerBtnCreateGroup = document.getElementById('header-btn-create-group');
-    const inboxBtnCreateGroup = document.getElementById('btn-inbox-create-group');
-    if (headerBtnCreateGroup) headerBtnCreateGroup.addEventListener('click', openCreateGroupModal);
-    if (inboxBtnCreateGroup) inboxBtnCreateGroup.addEventListener('click', openCreateGroupModal);
+    // ===== MODAL: INICIAR NUEVO CHAT =====
+    function openNewChatModal() {
+        const modal = document.getElementById('modal-new-chat');
+        if (!modal) return;
+        const phoneInput = document.getElementById('new-chat-phone-input');
+        const searchInput = document.getElementById('new-chat-search-contacts');
+        if (phoneInput) phoneInput.value = '';
+        if (searchInput) searchInput.value = '';
+        renderNewChatContactsList('');
+        modal.style.display = 'flex';
+        if (phoneInput) setTimeout(() => phoneInput.focus(), 50);
+    }
 
-    // Event delegation global para garantizar apertura del modal de grupo bajo cualquier condición
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('#header-btn-create-group, #btn-inbox-create-group, .header-btn-create-group, .btn-inbox-create-group');
-        if (btn) {
+    function closeNewChatModal() {
+        const modal = document.getElementById('modal-new-chat');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function renderNewChatContactsList(filterText = '') {
+        const container = document.getElementById('new-chat-contacts-list');
+        if (!container) return;
+        const contacts = getAllKnownContactsList();
+        const searchLow = (filterText || '').toLowerCase().trim();
+        const filtered = contacts.filter(c => {
+            if (!searchLow) return true;
+            return (c.nombre || '').toLowerCase().includes(searchLow) || (c.telefono || '').includes(searchLow);
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="padding: 18px; text-align: center; color: #8696a0; font-size: 0.84rem;">
+                    No se encontraron contactos.
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(c => {
+            const avatarHtml = c.avatar 
+                ? `<img src="${c.avatar}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1rem\\'>👤</span>'">` 
+                : `<span style="font-size: 1rem;">👤</span>`;
+            return `
+                <div class="new-chat-contact-item" data-phone="${c.telefono}" data-name="${encodeURIComponent(c.nombre)}" style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.12s; background: rgba(255,255,255,0.03); margin-bottom: 2px;">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; background: #1e293b; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                        ${avatarHtml}
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-size: 0.88rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.nombre}</div>
+                        <div style="font-size: 0.76rem; color: #94a3b8;">+${c.telefono}</div>
+                    </div>
+                    <span style="color: #10b981; font-size: 0.85rem; font-weight: 700;">💬</span>
+                </div>
+            `;
+        }).join('');
+
+        container.querySelectorAll('.new-chat-contact-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const phone = item.getAttribute('data-phone');
+                const name = decodeURIComponent(item.getAttribute('data-name') || '');
+                startNewChatWith(phone, name);
+            });
+        });
+    }
+
+    function startNewChatWith(phone, name = '') {
+        const clean = getCleanPhoneKey(phone);
+        if (!clean) {
+            alert('Introduce un número de WhatsApp válido.');
+            return;
+        }
+        closeNewChatModal();
+        // Cambiar a la pestaña de Buzón si no estamos en ella
+        const tabInboxBtn = document.getElementById('tab-btn-inbox') || document.getElementById('dropdown-tab-inbox');
+        if (tabInboxBtn) tabInboxBtn.click();
+
+        // Buscar si ya existe la conversación o inicializarla
+        let conv = allUnifiedConversations.find(c => getCleanPhoneKey(c.telefono) === clean);
+        if (!conv) {
+            conv = {
+                telefono: clean,
+                nombreCliente: name || `+${clean}`,
+                ultimoTexto: 'Chat iniciado manualmente',
+                ultimoMensajeFecha: new Date().toISOString(),
+                ultimoEmisor: 'restaurante',
+                solicitudEstado: 'RESUELTA',
+                unreadCount: 0
+            };
+            allUnifiedConversations.unshift(conv);
+            renderInboxCards();
+        }
+        selectConversation(clean, name || conv.nombreCliente);
+    }
+
+    // Botón ➕ en el Header con Dropdown (+Chat / +Grupo)
+    const headerBtnCreateAction = document.getElementById('header-btn-create-action');
+    const headerCreateDropdown = document.getElementById('header-create-dropdown');
+    const dropdownActionNewChat = document.getElementById('dropdown-action-new-chat');
+    const dropdownActionNewGroup = document.getElementById('dropdown-action-new-group');
+
+    if (headerBtnCreateAction && headerCreateDropdown) {
+        headerBtnCreateAction.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            openCreateGroupModal();
+            const isOpen = headerCreateDropdown.style.display === 'flex';
+            headerCreateDropdown.style.display = isOpen ? 'none' : 'flex';
+        });
+
+        if (dropdownActionNewChat) {
+            dropdownActionNewChat.addEventListener('click', (e) => {
+                e.stopPropagation();
+                headerCreateDropdown.style.display = 'none';
+                openNewChatModal();
+            });
+        }
+
+        if (dropdownActionNewGroup) {
+            dropdownActionNewGroup.addEventListener('click', (e) => {
+                e.stopPropagation();
+                headerCreateDropdown.style.display = 'none';
+                openCreateGroupModal();
+            });
+        }
+    }
+
+    // Cerrar dropdown de creación al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        if (headerCreateDropdown && headerCreateDropdown.style.display === 'flex') {
+            if (!headerCreateDropdown.contains(e.target) && e.target !== headerBtnCreateAction) {
+                headerCreateDropdown.style.display = 'none';
+            }
         }
     });
+
+    // Eventos de New Chat Modal
+    const btnSubmitNewChatPhone = document.getElementById('btn-submit-new-chat-phone');
+    const newChatPhoneInput = document.getElementById('new-chat-phone-input');
+    const newChatSearchContacts = document.getElementById('new-chat-search-contacts');
+    const closeNewChatModalBtn = document.getElementById('close-new-chat-modal-btn');
+    const btnXCloseNewChat = document.getElementById('btn-x-close-new-chat');
+
+    if (btnSubmitNewChatPhone && newChatPhoneInput) {
+        btnSubmitNewChatPhone.addEventListener('click', () => {
+            const raw = newChatPhoneInput.value.trim();
+            if (raw) startNewChatWith(raw);
+        });
+        newChatPhoneInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const raw = newChatPhoneInput.value.trim();
+                if (raw) startNewChatWith(raw);
+            }
+        });
+    }
+
+    if (newChatSearchContacts) {
+        newChatSearchContacts.addEventListener('input', (e) => {
+            renderNewChatContactsList(e.target.value);
+        });
+    }
+
+    if (closeNewChatModalBtn) closeNewChatModalBtn.addEventListener('click', closeNewChatModal);
+    if (btnXCloseNewChat) btnXCloseNewChat.addEventListener('click', closeNewChatModal);
+
+    // Eventos de botones y modales existentes
+    const inboxBtnCreateGroup = document.getElementById('btn-inbox-create-group');
+    if (inboxBtnCreateGroup) inboxBtnCreateGroup.addEventListener('click', openCreateGroupModal);
 
     const closeCreateGroupBtn = document.getElementById('close-create-group-modal-btn');
     const btnXCloseCreateGroup = document.getElementById('btn-x-close-create-group');

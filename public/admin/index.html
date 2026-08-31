@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V484-FIX-FILTERS">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260831-V485-HEADER-PLUS-NEWCHAT">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -225,10 +225,20 @@
                     <span id="header-active-tab-badge" class="header-active-badge" style="background:#ef4444; color:#fff; font-size: 0.75rem; font-weight: 700; padding: 1px 7px; border-radius: 12px; display: inline-block;">0</span>
                 </div>
 
-                <!-- 5. +Grupo (sin recuadro) -->
-                <button type="button" id="header-btn-create-group" class="header-btn-create-group" title="Crear nuevo grupo de WhatsApp" style="background: transparent !important; background-color: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; color: #10b981 !important; font-weight: 600; font-size: 0.88rem; cursor: pointer; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; white-space: nowrap; margin-left: 4px; margin-right: 18px;">
-                    ➕ Grupo
-                </button>
+                <!-- 5. Botón ➕ con menú desplegable (+Chat / +Grupo) -->
+                <div class="header-create-container" style="position: relative; display: inline-flex; align-items: center; margin-left: 4px; margin-right: 18px;">
+                    <button type="button" id="header-btn-create-action" class="header-btn-create-action" title="Crear nuevo chat o grupo" aria-expanded="false" style="background: transparent !important; background-color: transparent !important; border: none !important; outline: none !important; box-shadow: none !important; color: #10b981 !important; font-weight: 700; font-size: 1.15rem; cursor: pointer; padding: 2px 6px; display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; white-space: nowrap;">
+                        ➕
+                    </button>
+                    <div id="header-create-dropdown" class="header-create-dropdown" style="display: none; position: absolute; top: calc(100% + 8px); left: 0; background: #111b21; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); z-index: 100000; min-width: 140px; padding: 4px; flex-direction: column; gap: 2px;">
+                        <button type="button" id="dropdown-action-new-chat" class="dropdown-menu-item" style="padding: 8px 12px; font-size: 0.88rem; font-weight: 600; color: #f8fafc; border-radius: 6px; display: flex; align-items: center; gap: 8px; background: transparent; border: none; cursor: pointer; width: 100%; text-align: left;">
+                            <span>💬</span> <span>+ Chat</span>
+                        </button>
+                        <button type="button" id="dropdown-action-new-group" class="dropdown-menu-item" style="padding: 8px 12px; font-size: 0.88rem; font-weight: 600; color: #f8fafc; border-radius: 6px; display: flex; align-items: center; gap: 8px; background: transparent; border: none; cursor: pointer; width: 100%; text-align: left;">
+                            <span>👥</span> <span>+ Grupo</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="header-right">
@@ -1052,20 +1062,6 @@
                     <input type="text" id="group-create-name" required placeholder="Ej. Proveedores Carne, Taxis Tolosa, VIP Clientes..." style="width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #fff; font-size: 0.92rem;">
                 </div>
 
-                <div class="form-group" style="margin: 0;">
-                    <label style="font-weight: 600; font-size: 0.85rem; color: #e2e8f0;">Icono / Avatar del Grupo</label>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;" id="group-avatar-preset-picker">
-                        <button type="button" class="group-preset-avatar-btn active" data-avatar="👥" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 2px solid #10b981; cursor: pointer;">👥</button>
-                        <button type="button" class="group-preset-avatar-btn" data-avatar="🚕" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🚕</button>
-                        <button type="button" class="group-preset-avatar-btn" data-avatar="🥩" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🥩</button>
-                        <button type="button" class="group-preset-avatar-btn" data-avatar="🍷" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🍷</button>
-                        <button type="button" class="group-preset-avatar-btn" data-avatar="🏨" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🏨</button>
-                        <button type="button" class="group-preset-avatar-btn" data-avatar="👔" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">👔</button>
-                        <button type="button" class="group-preset-avatar-btn" data-avatar="👨‍🍳" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">👨‍🍳</button>
-                        <button type="button" class="group-preset-avatar-btn" data-avatar="🛎️" style="width: 38px; height: 38px; font-size: 1.2rem; border-radius: 8px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;">🛎️</button>
-                    </div>
-                </div>
-
                 <div class="form-group" style="margin: 0; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <label style="font-weight: 600; font-size: 0.85rem; color: #e2e8f0; margin: 0;">Seleccionar Contactos del Grupo *</label>
@@ -1167,6 +1163,50 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260831-V484-FIX-FILTERS"></script>
+    <!-- Modal para Iniciar Nuevo Chat -->
+    <div id="modal-new-chat" class="modal-overlay" style="display: none; z-index: 10000000; background: rgba(0, 0, 0, 0.8);">
+        <div class="modal-content" style="max-width: 480px; max-height: 85vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">💬 Iniciar Nuevo Chat</h3>
+                <button type="button" id="btn-x-close-new-chat" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer;">✕</button>
+            </div>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0; margin-bottom: 14px;">
+                Elige un contacto existente o escribe un número de WhatsApp para abrir o iniciar una conversación.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 12px; flex: 1; overflow-y: auto;">
+                <div class="form-group" style="margin: 0;">
+                    <label style="font-weight: 600; font-size: 0.85rem; color: #e2e8f0;">Número de WhatsApp</label>
+                    <div style="display: flex; gap: 8px; margin-top: 4px;">
+                        <input type="tel" id="new-chat-phone-input" placeholder="ej: 34670426540 o +346..." style="flex: 1; padding: 10px 12px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: #fff; font-size: 0.92rem;">
+                        <button type="button" id="btn-submit-new-chat-phone" class="btn-primary" style="background: linear-gradient(135deg, #059669, #10b981); white-space: nowrap; font-size: 0.88rem; padding: 0 16px;">
+                            Abrir Chat
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px; margin: 4px 0;">
+                    <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">o elegir de contactos</span>
+                    <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.12);"></div>
+                </div>
+
+                <div class="search-box" style="margin: 0; width: 100%;">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="new-chat-search-contacts" placeholder="Buscar contacto por nombre o teléfono..." style="width: 100%; padding: 8px 12px 8px 34px; font-size: 0.85rem; background: #111b21; color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+                </div>
+
+                <div id="new-chat-contacts-list" style="max-height: 220px; overflow-y: auto; background: #111b21; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+                    <!-- Generado dinámicamente -->
+                </div>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" id="close-new-chat-modal-btn" class="btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/admin.js?v=20260831-V485-HEADER-PLUS-NEWCHAT"></script>
 </body>
 </html>
