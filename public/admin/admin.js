@@ -4568,6 +4568,175 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Cache en memoria para renderizado instantáneo de hilos de chat
+    const chatHistoryCache = new Map();
+
+    // ── GESTIÓN ULTRA-FLUIDA DE SELECCIÓN MÚLTIPLE FLOTANTE ──
+    let isFloatingBarEventsBound = false;
+
+    function updateFloatingSelectionToolbar() {
+        const floatingBar = document.getElementById('chat-multi-select-floating-bar');
+        if (!floatingBar) return;
+        const container = document.getElementById('inbox-cards-container');
+        const isActive = isChatMultiSelectMode && selectedChatCardsPhones.size > 0;
+        
+        if (container) {
+            container.classList.toggle('multi-select-mode', isActive);
+        }
+
+        if (isActive) {
+            floatingBar.style.display = 'flex';
+            const countText = document.getElementById('chat-multi-select-count-text');
+            if (countText) countText.textContent = `${selectedChatCardsPhones.size} seleccionados`;
+            const chkAll = document.getElementById('chat-multi-select-all');
+            if (chkAll) {
+                const allVisible = Array.from(document.querySelectorAll('.chat-card-item')).map(el => el.getAttribute('data-phone')).filter(Boolean);
+                chkAll.checked = allVisible.length > 0 && allVisible.every(ph => selectedChatCardsPhones.has(ph));
+            }
+        } else {
+            floatingBar.style.display = 'none';
+        }
+    }
+
+    function toggleChatCardSelection(phone, cardEl) {
+        const clean = getCleanPhoneKey(phone);
+        if (!clean) return;
+        const willSelect = !selectedChatCardsPhones.has(clean);
+        if (willSelect) {
+            selectedChatCardsPhones.add(clean);
+        } else {
+            selectedChatCardsPhones.delete(clean);
+        }
+        isChatMultiSelectMode = selectedChatCardsPhones.size > 0;
+
+        const targetCard = cardEl || document.querySelector(`.chat-card-item[data-phone="${clean}"]`);
+        if (targetCard) {
+            targetCard.classList.toggle('is-bulk-selected', willSelect);
+            const chk = targetCard.querySelector('.wa-chat-select-chk');
+            if (chk) chk.checked = willSelect;
+        }
+
+        updateFloatingSelectionToolbar();
+    }
+
+    function setAllChatsSelected(selectAll) {
+        const container = document.getElementById('inbox-cards-container');
+        if (!container) return;
+        const allCards = container.querySelectorAll('.chat-card-item');
+        if (selectAll) {
+            allCards.forEach(card => {
+                const ph = card.getAttribute('data-phone');
+                if (ph) {
+                    selectedChatCardsPhones.add(ph);
+                    card.classList.add('is-bulk-selected');
+                    const chk = card.querySelector('.wa-chat-select-chk');
+                    if (chk) chk.checked = true;
+                }
+            });
+            isChatMultiSelectMode = selectedChatCardsPhones.size > 0;
+        } else {
+            selectedChatCardsPhones.clear();
+            isChatMultiSelectMode = false;
+            allCards.forEach(card => {
+                card.classList.remove('is-bulk-selected');
+                const chk = card.querySelector('.wa-chat-select-chk');
+                if (chk) chk.checked = false;
+            });
+        }
+        updateFloatingSelectionToolbar();
+    }
+
+    function initFloatingSelectionToolbarEvents() {
+        if (isFloatingBarEventsBound) return;
+        isFloatingBarEventsBound = true;
+
+        const chkAll = document.getElementById('chat-multi-select-all');
+        if (chkAll) {
+            chkAll.addEventListener('change', (e) => {
+                setAllChatsSelected(e.target.checked);
+            });
+        }
+
+        const btnCancel = document.getElementById('btn-multi-cancel');
+        if (btnCancel) {
+            btnCancel.addEventListener('click', () => {
+                setAllChatsSelected(false);
+            });
+        }
+
+        const btnArchive = document.getElementById('btn-multi-archive-chats');
+        if (btnArchive) {
+            btnArchive.addEventListener('click', () => {
+                if (selectedChatCardsPhones.size === 0) return;
+                const phonesArr = Array.from(selectedChatCardsPhones);
+                let archMap = {};
+                try { archMap = JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}'); } catch(e) {}
+                const now = new Date().toISOString();
+                phonesArr.forEach(ph => { archMap[ph] = { archivedAt: now }; });
+                localStorage.setItem('casa_julian_archived_chats', JSON.stringify(archMap));
+                if (!serverInboxSettings.archivedChats) serverInboxSettings.archivedChats = {};
+                phonesArr.forEach(ph => { serverInboxSettings.archivedChats[ph] = { archivedAt: now }; });
+                const tok = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                fetch('/api/admin/inbox-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-admin-token': tok, 'Authorization': `Bearer ${tok}` },
+                    body: JSON.stringify({ settings: serverInboxSettings })
+                }).catch(e => console.warn('Error guardando archivedChats:', e));
+                showToast(`📦 ${phonesArr.length} chat(s) movidos al fondo de la lista`);
+                setAllChatsSelected(false);
+                renderInboxCards();
+            });
+        }
+
+        const btnDelete = document.getElementById('btn-multi-delete-chats');
+        if (btnDelete) {
+            btnDelete.addEventListener('click', async () => {
+                if (selectedChatCardsPhones.size === 0) return;
+                const phonesArr = Array.from(selectedChatCardsPhones);
+                if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE los ${phonesArr.length} chats seleccionados? Esta acción no se puede deshacer.`)) return;
+                try {
+                    const res = await fetch('/api/admin/chats/bulk-delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                        body: JSON.stringify({ phones: phonesArr })
+                    });
+                    const d = await res.json();
+                    showToast(d.message || `${phonesArr.length} chats eliminados.`);
+                    setAllChatsSelected(false);
+                    await fetchWhatsAppChats();
+                    syncUnifiedConversations();
+                    renderInboxCards();
+                } catch (err) {
+                    showToast('❌ Error al eliminar: ' + err.message);
+                }
+            });
+        }
+
+        const btnMarkUnread = document.getElementById('btn-multi-mark-unread');
+        if (btnMarkUnread) {
+            btnMarkUnread.addEventListener('click', () => {
+                if (selectedChatCardsPhones.size === 0) return;
+                const phonesArr = Array.from(selectedChatCardsPhones);
+                phonesArr.forEach(ph => setManualChatStatus(ph, 'pendiente'));
+                showToast(`🔴 ${phonesArr.length} chat(s) marcados como No Leído`);
+                setAllChatsSelected(false);
+                renderInboxCards();
+            });
+        }
+
+        const btnMarkRead = document.getElementById('btn-multi-mark-read');
+        if (btnMarkRead) {
+            btnMarkRead.addEventListener('click', () => {
+                if (selectedChatCardsPhones.size === 0) return;
+                const phonesArr = Array.from(selectedChatCardsPhones);
+                phonesArr.forEach(ph => setManualChatStatus(ph, 'leido'));
+                showToast(`✅ ${phonesArr.length} chat(s) marcados como Leído`);
+                setAllChatsSelected(false);
+                renderInboxCards();
+            });
+        }
+    }
+
     function renderInboxCards() {
         const container = document.getElementById('inbox-cards-container');
         const summaryEl = document.getElementById('inbox-filter-summary');
@@ -4795,7 +4964,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cardsHtml.push(`
                 <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''} ${isSelected ? 'is-selected' : ''} ${isBulkSelected ? 'is-bulk-selected' : ''} ${isDropdownOpen ? 'dropdown-active' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
-                    ${isChatMultiSelectMode ? `<div class="wa-chat-select-box" style="display: flex; align-items: center; justify-content: center; margin-right: 8px;"><input type="checkbox" class="wa-chat-select-chk" data-phone="${cleanPhone}" ${isBulkSelected ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;"></div>` : ''}
+                    <div class="wa-chat-select-box">
+                        <input type="checkbox" class="wa-chat-select-chk" data-phone="${cleanPhone}" ${isBulkSelected ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                    </div>
                     ${avatarHtml}
                     <div class="wa-chat-content">
                         <div class="wa-row-top">
@@ -4851,165 +5022,38 @@ document.addEventListener('DOMContentLoaded', () => {
             `);
         });
 
-        let multiSelectToolbarHtml = '';
-        if (isChatMultiSelectMode) {
-            const allFilteredPhones = filtered.map(c => getCleanPhoneKey(c.telefono)).filter(Boolean);
-            const allSelected = allFilteredPhones.length > 0 && allFilteredPhones.every(p => selectedChatCardsPhones.has(p));
-            multiSelectToolbarHtml = `
-                <div class="chat-multi-select-toolbar" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #111b21; border-bottom: 1px solid rgba(16, 185, 129, 0.3); margin-bottom: 6px; border-radius: 8px; gap: 8px; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="chat-multi-select-all" ${allSelected ? 'checked' : ''} style="width: 17px; height: 17px; cursor: pointer; accent-color: #10b981;">
-                        <span style="font-size: 0.85rem; font-weight: 700; color: #10b981;">${selectedChatCardsPhones.size} seleccionados</span>
-                    </div>
-                    <div style="display: flex; gap: 6px; align-items: center;">
-                        <button type="button" id="btn-multi-archive-chats" title="Mover al fondo de la lista" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                            📦 Archivar
-                        </button>
-                        <button type="button" id="btn-multi-delete-chats" title="Eliminar chats seleccionados" style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                            🗑️ Eliminar
-                        </button>
-                        <button type="button" id="btn-multi-mark-unread" title="Marcar seleccionados como No Leído" style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                            🔴 No Leído
-                        </button>
-                        <button type="button" id="btn-multi-mark-read" title="Marcar seleccionados como Leído" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #e9edef; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                            ✅ Leído
-                        </button>
-                        <button type="button" id="btn-multi-cancel" title="Cancelar selección múltiple" style="background: none; border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer; padding: 2px 6px;">
-                            ✕
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
+        // Insertar únicamente las tarjetas (la barra de selección flota superpuesta sin mover los chats)
+        container.innerHTML = cardsHtml.join('');
 
-        container.innerHTML = multiSelectToolbarHtml + cardsHtml.join('');
+        // Sincronizar barra flotante de selección múltiple
+        initFloatingSelectionToolbarEvents();
+        updateFloatingSelectionToolbar();
 
-        // Event listeners para selección múltiple en Toolbar
-        if (isChatMultiSelectMode) {
-            const chkAll = document.getElementById('chat-multi-select-all');
-            if (chkAll) {
-                chkAll.addEventListener('change', () => {
-                    const allFilteredPhones = filtered.map(c => getCleanPhoneKey(c.telefono)).filter(Boolean);
-                    if (chkAll.checked) {
-                        allFilteredPhones.forEach(p => selectedChatCardsPhones.add(p));
-                    } else {
-                        allFilteredPhones.forEach(p => selectedChatCardsPhones.delete(p));
-                    }
-                    if (selectedChatCardsPhones.size === 0) {
-                        isChatMultiSelectMode = false;
-                    }
-                    renderInboxCards();
-                });
-            }
-
-            const btnArchive = document.getElementById('btn-multi-archive-chats');
-            if (btnArchive) {
-                btnArchive.addEventListener('click', () => {
-                    if (selectedChatCardsPhones.size === 0) return;
-                    const phonesArr = Array.from(selectedChatCardsPhones);
-                    // Archivar = mover al fondo de la lista (NO eliminar)
-                    let archMap = {};
-                    try { archMap = JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}'); } catch(e) {}
-                    const now = new Date().toISOString();
-                    phonesArr.forEach(ph => { archMap[ph] = { archivedAt: now }; });
-                    localStorage.setItem('casa_julian_archived_chats', JSON.stringify(archMap));
-                    if (!serverInboxSettings.archivedChats) serverInboxSettings.archivedChats = {};
-                    phonesArr.forEach(ph => { serverInboxSettings.archivedChats[ph] = { archivedAt: now }; });
-                    // Persistir en servidor
-                    const tok = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-                    fetch('/api/admin/inbox-settings', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-admin-token': tok, 'Authorization': `Bearer ${tok}` },
-                        body: JSON.stringify({ settings: serverInboxSettings })
-                    }).catch(e => console.warn('Error guardando archivedChats:', e));
-                    showToast(`📦 ${phonesArr.length} chat(s) movidos al fondo de la lista`);
-                    selectedChatCardsPhones.clear();
-                    isChatMultiSelectMode = false;
-                    renderInboxCards();
-                });
-            }
-
-            const btnDelete = document.getElementById('btn-multi-delete-chats');
-            if (btnDelete) {
-                btnDelete.addEventListener('click', async () => {
-                    if (selectedChatCardsPhones.size === 0) return;
-                    const phonesArr = Array.from(selectedChatCardsPhones);
-                    if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE los ${phonesArr.length} chats seleccionados? Esta acción no se puede deshacer.`)) return;
-                    try {
-                        const res = await fetch('/api/admin/chats/bulk-delete', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-                            body: JSON.stringify({ phones: phonesArr })
-                        });
-                        const d = await res.json();
-                        showToast(d.message || `${phonesArr.length} chats eliminados.`);
-                        selectedChatCardsPhones.clear();
-                        isChatMultiSelectMode = false;
-                        await fetchWhatsAppChats();
-                        syncUnifiedConversations();
-                        renderInboxCards();
-                    } catch (err) {
-                        showToast('❌ Error al eliminar: ' + err.message);
-                    }
-                });
-            }
-
-            const btnMarkUnread = document.getElementById('btn-multi-mark-unread');
-            if (btnMarkUnread) {
-                btnMarkUnread.addEventListener('click', () => {
-                    if (selectedChatCardsPhones.size === 0) return;
-                    const phonesArr = Array.from(selectedChatCardsPhones);
-                    phonesArr.forEach(ph => setManualChatStatus(ph, 'pendiente'));
-                    showToast(`🔴 ${phonesArr.length} chat(s) marcados como No Leído`);
-                    selectedChatCardsPhones.clear();
-                    isChatMultiSelectMode = false;
-                    renderInboxCards();
-                });
-            }
-
-            const btnMarkRead = document.getElementById('btn-multi-mark-read');
-            if (btnMarkRead) {
-                btnMarkRead.addEventListener('click', () => {
-                    if (selectedChatCardsPhones.size === 0) return;
-                    const phonesArr = Array.from(selectedChatCardsPhones);
-                    phonesArr.forEach(ph => setManualChatStatus(ph, 'leido'));
-                    showToast(`✅ ${phonesArr.length} chat(s) marcados como Leído`);
-                    selectedChatCardsPhones.clear();
-                    isChatMultiSelectMode = false;
-                    renderInboxCards();
-                });
-            }
-
-            const btnCancel = document.getElementById('btn-multi-cancel');
-            if (btnCancel) {
-                btnCancel.addEventListener('click', () => {
-                    selectedChatCardsPhones.clear();
-                    isChatMultiSelectMode = false;
-                    renderInboxCards();
-                });
-            }
-        }
-
-        // Event listeners para las filas de conversación (click y pulsación larga)
+        // Event listeners para las filas de conversación (click y pulsación larga con respuesta instantánea)
         container.querySelectorAll('.chat-card-item').forEach(card => {
             const phone = card.getAttribute('data-phone');
             const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
             let pressTimer = null;
             let isLongPressed = false;
 
+            const chk = card.querySelector('.wa-chat-select-chk');
+            if (chk) {
+                chk.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    toggleChatCardSelection(phone, card);
+                });
+                chk.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+
             const startPress = () => {
                 isLongPressed = false;
                 pressTimer = setTimeout(() => {
                     isLongPressed = true;
                     if (navigator.vibrate) navigator.vibrate(40);
-                    isChatMultiSelectMode = true;
-                    if (selectedChatCardsPhones.has(phone)) {
-                        selectedChatCardsPhones.delete(phone);
-                    } else {
-                        selectedChatCardsPhones.add(phone);
-                    }
-                    renderInboxCards();
-                }, 450);
+                    toggleChatCardSelection(phone, card);
+                }, 380);
             };
 
             const cancelPress = () => {
@@ -5041,15 +5085,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 if (isChatMultiSelectMode) {
-                    if (selectedChatCardsPhones.has(phone)) {
-                        selectedChatCardsPhones.delete(phone);
-                    } else {
-                        selectedChatCardsPhones.add(phone);
-                    }
-                    if (selectedChatCardsPhones.size === 0) {
-                        isChatMultiSelectMode = false;
-                    }
-                    renderInboxCards();
+                    toggleChatCardSelection(phone, card);
                     return;
                 }
                 selectConversation(phone, name);
@@ -6125,6 +6161,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 msgList = [{ emisor: 'cliente', texto: sol.datosDetallados, fecha: sol.created_at }];
             }
 
+            // Guardar en caché de memoria para cambio instantáneo entre chats
+            chatHistoryCache.set(cleanPhoneStr, msgList);
+
             const lastMsg = msgList[msgList.length - 1];
             const currentSig = `${msgList.length}_${lastMsg ? (lastMsg.id || lastMsg.fecha || lastMsg.texto) : ''}`;
 
@@ -6466,10 +6505,58 @@ document.addEventListener('DOMContentLoaded', () => {
             textArea.value = prefilledText || '';
         }
 
-        // Cargar historial en el hilo de mensajes
+        // Cargar historial en el hilo de mensajes (instantáneo desde caché si existe)
         stopChatPolling();
         currentChatPhone = cleanPhoneStr;
         lastChatRenderedSig = '';
+        if (chatHistoryCache.has(cleanPhoneStr)) {
+            const cachedList = chatHistoryCache.get(cleanPhoneStr);
+            if (Array.isArray(cachedList) && cachedList.length > 0) {
+                const paneThread = document.getElementById('pane-chat-thread');
+                if (paneThread) {
+                    paneThread.innerHTML = '';
+                    cachedList.forEach(m => {
+                        const isClient = m.emisor === 'cliente';
+                        const timeStr = m.fecha ? new Date(m.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }) : '';
+                        const formattedBody = formatWhatsAppText(m.texto);
+                        const bubble = document.createElement('div');
+                        bubble.style.cssText = `
+                            max-width: 78%;
+                            align-self: ${isClient ? 'flex-start' : 'flex-end'};
+                            background: ${isClient ? '#202c33' : '#005c4b'};
+                            color: #e9edef;
+                            padding: 9px 13px;
+                            border-radius: ${isClient ? '0 12px 12px 12px' : '12px 0 12px 12px'};
+                            font-size: 0.88rem;
+                            line-height: 1.45;
+                            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+                            word-break: break-word;
+                            border: 1px solid ${isClient ? 'rgba(255,255,255,0.06)' : 'rgba(37, 211, 102, 0.2)'};
+                            margin-bottom: 4px;
+                        `;
+                        let metaBadge = '';
+                        if (m.tipo === 'interactive' || m.tipo === 'button' || m.tipo === 'list') {
+                            metaBadge = `<span style="background: rgba(139, 92, 246, 0.25); color: #c4b5fd; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600;">👆 Opción seleccionada</span>`;
+                        }
+                        bubble.innerHTML = `
+                            <div style="font-size: 0.74rem; font-weight: 700; color: ${isClient ? '#53bdeb' : '#25d366'}; margin-bottom: 3px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                <span style="display: flex; align-items: center; gap: 5px;">
+                                    ${isClient ? '👤 ' + (sol.nombreCliente || 'Cliente') : '<img src="/admin/casa_julian_logo_CJ.jpeg" alt="Logo" style="width: 17px; height: 17px; border-radius: 50%; object-fit: cover; border: none; vertical-align: middle; display: inline-block;"> Recepción Casa Julián'}
+                                </span>
+                                ${metaBadge}
+                            </div>
+                            <div>${formattedBody}</div>
+                            <div style="text-align: right; font-size: 0.68rem; color: #8696a0; margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+                                <span>${timeStr}</span>
+                                ${!isClient ? '<span style="color: #53bdeb; font-size: 0.75rem; font-weight: bold;">✓✓</span>' : ''}
+                            </div>
+                        `;
+                        paneThread.appendChild(bubble);
+                    });
+                    paneThread.scrollTop = paneThread.scrollHeight;
+                }
+            }
+        }
         await fetchAndRenderChatThread(cleanPhoneStr, sol, true);
 
         // Polling en tiempo real para el panel de mensajes cada 1.5s

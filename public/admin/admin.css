@@ -4921,6 +4921,137 @@ div.inbox-toolbar-header,
     background: rgba(239, 68, 68, 0.2) !important;
 }
 
+/* ── BARRA FLOTANTE SUPERPUESTA DE SELECCIÓN MÚLTIPLE (Sin desplazar la lista) ── */
+.wa-left-pane {
+    position: relative !important;
+}
+
+.chat-multi-select-floating-bar {
+    position: absolute !important;
+    top: 8px !important;
+    left: 8px !important;
+    right: 8px !important;
+    z-index: 100000 !important;
+    background: rgba(17, 27, 33, 0.96) !important;
+    border: 1px solid rgba(16, 185, 129, 0.45) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.85), 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+    padding: 8px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    backdrop-filter: blur(12px) !important;
+    animation: slideDownFloatingBar 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes slideDownFloatingBar {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.multi-select-info-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.multi-select-master-chk {
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer !important;
+    accent-color: #10b981 !important;
+}
+
+.multi-select-counter-label {
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    color: #10b981 !important;
+    white-space: nowrap !important;
+}
+
+.multi-select-btn-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    flex-wrap: wrap !important;
+}
+
+.multi-action-btn {
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    padding: 5px 8px !important;
+    transition: all 0.12s ease !important;
+    border: none !important;
+}
+
+.multi-action-btn.btn-archive {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #e9edef !important;
+}
+
+.multi-action-btn.btn-delete {
+    background: rgba(239, 68, 68, 0.18) !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    color: #fca5a5 !important;
+}
+
+.multi-action-btn.btn-unread {
+    background: rgba(16, 185, 129, 0.18) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    color: #34d399 !important;
+}
+
+.multi-action-btn.btn-read {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #e9edef !important;
+}
+
+.multi-action-btn.btn-cancel {
+    background: transparent !important;
+    border: none !important;
+    color: #94a3b8 !important;
+    font-size: 1.1rem !important;
+    padding: 2px 6px !important;
+}
+
+.multi-action-btn:hover {
+    transform: translateY(-1px) !important;
+    filter: brightness(1.15) !important;
+}
+
+/* Casilla de verificación animada de cada chat */
+.wa-chat-select-box {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.multi-select-mode .wa-chat-select-box {
+    display: flex !important;
+}
+
+.whatsapp-chat-row.is-bulk-selected {
+    background: rgba(16, 185, 129, 0.12) !important;
+    border-left: 3px solid #10b981 !important;
+}
+
 /* Botón Rojo: Activar Atención Humana */
 #pane-btn-toggle-human.wa-header-action-btn,
 .wa-header-action-btn.btn-human-mode {

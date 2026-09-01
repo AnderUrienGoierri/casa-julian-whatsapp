@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260902-V499-CARD-DROPDOWN-MOBILE-STYLE-DESKTOP">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260902-V500-MULTISELECT-FLOATING-FAST-NAV">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -313,6 +313,31 @@
                                         <button class="filter-chip wa-pill active" data-filter-type="all">Todos</button>
                                         <button class="filter-chip wa-pill" data-filter-type="status" data-filter-val="pendiente">No leídos <span id="count-status-pend">0</span></button>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Barra Flotante Superpuesta de Selección Múltiple (Sin desplazar la lista) -->
+                            <div id="chat-multi-select-floating-bar" class="chat-multi-select-floating-bar" style="display: none;">
+                                <div class="multi-select-info-group">
+                                    <input type="checkbox" id="chat-multi-select-all" class="multi-select-master-chk">
+                                    <span id="chat-multi-select-count-text" class="multi-select-counter-label">0 seleccionados</span>
+                                </div>
+                                <div class="multi-select-btn-group">
+                                    <button type="button" id="btn-multi-archive-chats" class="multi-action-btn btn-archive" title="Mover al fondo de la lista">
+                                        📦 <span class="action-btn-text">Archivar</span>
+                                    </button>
+                                    <button type="button" id="btn-multi-delete-chats" class="multi-action-btn btn-delete" title="Eliminar chats seleccionados">
+                                        🗑️ <span class="action-btn-text">Eliminar</span>
+                                    </button>
+                                    <button type="button" id="btn-multi-mark-unread" class="multi-action-btn btn-unread" title="Marcar seleccionados como No Leído">
+                                        🔴 <span class="action-btn-text">No Leído</span>
+                                    </button>
+                                    <button type="button" id="btn-multi-mark-read" class="multi-action-btn btn-read" title="Marcar seleccionados como Leído">
+                                        ✅ <span class="action-btn-text">Leído</span>
+                                    </button>
+                                    <button type="button" id="btn-multi-cancel" class="multi-action-btn btn-cancel" title="Cancelar selección múltiple">
+                                        ✕
+                                    </button>
                                 </div>
                             </div>
 
@@ -1207,6 +1232,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260902-V499-CARD-DROPDOWN-MOBILE-STYLE-DESKTOP"></script>
+    <script src="/admin/admin.js?v=20260902-V500-MULTISELECT-FLOATING-FAST-NAV"></script>
 </body>
 </html>
