@@ -3695,20 +3695,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Si está marcado como leído manualmente
         if (statusVal === 'leido') {
-            if (typeof manualEntry === 'object' && manualEntry.readAt) {
-                // Comparar por fecha: si el último mensaje es posterior a cuando se marcó leído → PENDIENTE
-                const readTime = new Date(manualEntry.readAt).getTime();
-                const lastMsgFecha = c.ultimoMensajeFecha;
-                if (lastMsgFecha) {
-                    const msgTime = new Date(lastMsgFecha).getTime();
-                    // 15 segundos de margen para evitar falsos positivos por desfase de reloj
-                    if (!isNaN(readTime) && !isNaN(msgTime) && msgTime > readTime + 15000) {
-                        return 'pendiente';
+                // Grupos: nunca comparar por fecha → la comparación de fechas NO aplica a grupos
+                // porque ultimoMensajeFecha puede ser null/imprecisa (API WhatsApp)
+                const isGroupConv = c.isGroup || cleanPhone.startsWith('group_');
+                if (!isGroupConv && typeof manualEntry === 'object' && manualEntry.readAt) {
+                    // Comparar por fecha: si el último mensaje es posterior a cuando se marcó leído → PENDIENTE
+                    const readTime = new Date(manualEntry.readAt).getTime();
+                    const lastMsgFecha = c.ultimoMensajeFecha;
+                    if (lastMsgFecha) {
+                        const msgTime = new Date(lastMsgFecha).getTime();
+                        // 15 segundos de margen para evitar falsos positivos por desfase de reloj
+                        if (!isNaN(readTime) && !isNaN(msgTime) && msgTime > readTime + 15000) {
+                            return 'pendiente';
+                        }
                     }
                 }
+                return 'leido';
             }
-            return 'leido';
-        }
 
         // 4. Si tiene solicitud activa en estado PENDIENTE o EN_ATENCION
         if (c.solicitudEstado === 'PENDIENTE' || c.solicitudEstado === 'EN_ATENCION') {
@@ -4042,7 +4045,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 telefono: phoneKey,
                 nombreCliente: isGroup ? 'Taxi Casa Julián' : (c.nombreCliente || `+${phoneKey}`),
                 categoria: isGroup ? 'taxi' : (c.categoria || 'cliente'),
-                ultimoMensajeFecha: c.ultimoMensajeFecha || new Date().toISOString(),
+                ultimoMensajeFecha: c.ultimoMensajeFecha || null,
                 ultimoTexto: c.ultimoTexto || (isGroup ? '🚕 Grupo Taxi Casa Julián (3 Taxis + Restaurante)' : ''),
                 ultimoEmisor: c.ultimoEmisor || 'cliente',
                 totalInteracciones: c.totalInteracciones || 1,
@@ -4485,6 +4488,47 @@ document.addEventListener('DOMContentLoaded', () => {
             summaryEl.textContent = `${filtered.length} de ${total} conversaciones`;
         }
 
+        // Mover chats archivados al fondo (salvo que haya llegado un nuevo mensaje después de archivarlos)
+        let archMap = {};
+        try { archMap = { ...(serverInboxSettings.archivedChats || {}), ...JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}') }; } catch(e) {}
+        if (Object.keys(archMap).length > 0) {
+            filtered.sort((a, b) => {
+                const aKey = getCleanPhoneKey(a.telefono);
+                const bKey = getCleanPhoneKey(b.telefono);
+                const archA = archMap[aKey];
+                const archB = archMap[bKey];
+                // Auto-desarchivar si llegó un mensaje nuevo después de archivar
+                if (archA) {
+                    const archTime = new Date(archA.archivedAt).getTime();
+                    const msgTime = a.ultimoMensajeFecha ? new Date(a.ultimoMensajeFecha).getTime() : 0;
+                    if (!isNaN(archTime) && !isNaN(msgTime) && msgTime > archTime + 5000) {
+                        delete archMap[aKey];
+                        // Limpiar del localStorage y serverInboxSettings
+                        const saved = JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}');
+                        delete saved[aKey];
+                        localStorage.setItem('casa_julian_archived_chats', JSON.stringify(saved));
+                        if (serverInboxSettings.archivedChats) delete serverInboxSettings.archivedChats[aKey];
+                    }
+                }
+                if (archB) {
+                    const archTime = new Date(archB.archivedAt).getTime();
+                    const msgTime = b.ultimoMensajeFecha ? new Date(b.ultimoMensajeFecha).getTime() : 0;
+                    if (!isNaN(archTime) && !isNaN(msgTime) && msgTime > archTime + 5000) {
+                        delete archMap[bKey];
+                        const saved = JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}');
+                        delete saved[bKey];
+                        localStorage.setItem('casa_julian_archived_chats', JSON.stringify(saved));
+                        if (serverInboxSettings.archivedChats) delete serverInboxSettings.archivedChats[bKey];
+                    }
+                }
+                const isArchA = !!archMap[aKey];
+                const isArchB = !!archMap[bKey];
+                if (isArchA && !isArchB) return 1;  // A al fondo
+                if (!isArchA && isArchB) return -1; // B al fondo
+                return 0; // Mantener orden relativo
+            });
+        }
+
         if (filtered.length === 0) {
             container.innerHTML = `
                 <div style="text-align: center; color: var(--text-muted); padding: 50px 20px; background: #111b21; border-radius: 0 0 12px 12px; border: 1px dashed rgba(134, 150, 160, 0.2);">
@@ -4507,7 +4551,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
             const isSelected = activeConversationPhone === cleanPhone;
             const isBulkSelected = selectedChatCardsPhones.has(cleanPhone);
-            const status = isSelected ? 'leido' : getConversationStatus(c);
+            // Si el chat está abierto Y NO está marcado manualmente como pendiente → leído
+            const _manualMap = getManualChatStatusMap();
+            const _mEntry = _manualMap[cleanPhone];
+            const _mVal = _mEntry ? (typeof _mEntry === 'object' ? _mEntry.status : _mEntry) : null;
+            const status = (isSelected && _mVal !== 'pendiente') ? 'leido' : getConversationStatus(c);
             const isPending = (status === 'pendiente');
             const unreadCount = isPending ? getConversationUnreadCount(c) : 0;
             const isPinned = isChatPinned(cleanPhone);
@@ -4655,14 +4703,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span style="font-size: 0.85rem; font-weight: 700; color: #10b981;">${selectedChatCardsPhones.size} seleccionados</span>
                     </div>
                     <div style="display: flex; gap: 6px; align-items: center;">
-                        <button type="button" id="btn-multi-archive-chats" title="Archivar chats seleccionados" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                        <button type="button" id="btn-multi-archive-chats" title="Mover al fondo de la lista" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
                             📦 Archivar
                         </button>
                         <button type="button" id="btn-multi-delete-chats" title="Eliminar chats seleccionados" style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.35); color: #fca5a5; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
                             🗑️ Eliminar
                         </button>
-                        <button type="button" id="btn-multi-create-group" title="Crear grupo con los chats seleccionados" style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                            👥 Crear Grupo
+                        <button type="button" id="btn-multi-mark-unread" title="Marcar seleccionados como No Leído" style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                            🔴 No Leído
+                        </button>
+                        <button type="button" id="btn-multi-mark-read" title="Marcar seleccionados como Leído" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #e9edef; font-size: 0.78rem; font-weight: 600; padding: 5px 8px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                            ✅ Leído
                         </button>
                         <button type="button" id="btn-multi-cancel" title="Cancelar selección múltiple" style="background: none; border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer; padding: 2px 6px;">
                             ✕
@@ -4694,25 +4745,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btnArchive = document.getElementById('btn-multi-archive-chats');
             if (btnArchive) {
-                btnArchive.addEventListener('click', async () => {
+                btnArchive.addEventListener('click', () => {
                     if (selectedChatCardsPhones.size === 0) return;
                     const phonesArr = Array.from(selectedChatCardsPhones);
-                    try {
-                        const res = await fetch('/api/admin/chats/bulk-archive', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-                            body: JSON.stringify({ phones: phonesArr })
-                        });
-                        const d = await res.json();
-                        showToast(d.message || `${phonesArr.length} chats archivados.`);
-                        selectedChatCardsPhones.clear();
-                        isChatMultiSelectMode = false;
-                        await fetchSolicitudes();
-                        syncUnifiedConversations();
-                        renderInboxCards();
-                    } catch (err) {
-                        showToast('❌ Error al archivar: ' + err.message);
-                    }
+                    // Archivar = mover al fondo de la lista (NO eliminar)
+                    let archMap = {};
+                    try { archMap = JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}'); } catch(e) {}
+                    const now = new Date().toISOString();
+                    phonesArr.forEach(ph => { archMap[ph] = { archivedAt: now }; });
+                    localStorage.setItem('casa_julian_archived_chats', JSON.stringify(archMap));
+                    if (!serverInboxSettings.archivedChats) serverInboxSettings.archivedChats = {};
+                    phonesArr.forEach(ph => { serverInboxSettings.archivedChats[ph] = { archivedAt: now }; });
+                    // Persistir en servidor
+                    const tok = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    fetch('/api/admin/inbox-settings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-token': tok, 'Authorization': `Bearer ${tok}` },
+                        body: JSON.stringify({ settings: serverInboxSettings })
+                    }).catch(e => console.warn('Error guardando archivedChats:', e));
+                    showToast(`📦 ${phonesArr.length} chat(s) movidos al fondo de la lista`);
+                    selectedChatCardsPhones.clear();
+                    isChatMultiSelectMode = false;
+                    renderInboxCards();
                 });
             }
 
@@ -4741,15 +4795,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            const btnCreateGrp = document.getElementById('btn-multi-create-group');
-            if (btnCreateGrp) {
-                btnCreateGrp.addEventListener('click', () => {
+            const btnMarkUnread = document.getElementById('btn-multi-mark-unread');
+            if (btnMarkUnread) {
+                btnMarkUnread.addEventListener('click', () => {
                     if (selectedChatCardsPhones.size === 0) return;
                     const phonesArr = Array.from(selectedChatCardsPhones);
-                    isChatMultiSelectMode = false;
+                    phonesArr.forEach(ph => setManualChatStatus(ph, 'pendiente'));
+                    showToast(`🔴 ${phonesArr.length} chat(s) marcados como No Leído`);
                     selectedChatCardsPhones.clear();
+                    isChatMultiSelectMode = false;
                     renderInboxCards();
-                    openCreateGroupModal(phonesArr);
+                });
+            }
+
+            const btnMarkRead = document.getElementById('btn-multi-mark-read');
+            if (btnMarkRead) {
+                btnMarkRead.addEventListener('click', () => {
+                    if (selectedChatCardsPhones.size === 0) return;
+                    const phonesArr = Array.from(selectedChatCardsPhones);
+                    phonesArr.forEach(ph => setManualChatStatus(ph, 'leido'));
+                    showToast(`✅ ${phonesArr.length} chat(s) marcados como Leído`);
+                    selectedChatCardsPhones.clear();
+                    isChatMultiSelectMode = false;
+                    renderInboxCards();
                 });
             }
 
