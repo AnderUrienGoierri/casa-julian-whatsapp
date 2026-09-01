@@ -3614,10 +3614,10 @@ document.addEventListener('DOMContentLoaded', () => {
             map[clean] = true;
             isNowPinned = true;
         }
-        serverInboxSettings.pinnedChats = map;
+        serverInboxSettings.pinnedChats = { ...map };
         localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(map));
 
-        // Persistir en servidor PostgreSQL
+        // Persistir en servidor PostgreSQL (enviando a ambos endpoints para máxima fiabilidad)
         const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
         fetch('/api/admin/chat-pin', {
             method: 'POST',
@@ -3628,6 +3628,16 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             body: JSON.stringify({ phone: clean, isPinned: isNowPinned })
         }).catch(e => console.warn('Error guardando pin en servidor:', e));
+
+        fetch('/api/admin/inbox-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': currentToken,
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ pinnedChats: map })
+        }).catch(e => console.warn('Error guardando inbox-settings en servidor:', e));
 
         return isNowPinned;
     }
@@ -4784,7 +4794,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
 
             cardsHtml.push(`
-                <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''} ${isSelected ? 'is-selected' : ''} ${isBulkSelected ? 'is-bulk-selected' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
+                <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''} ${isSelected ? 'is-selected' : ''} ${isBulkSelected ? 'is-bulk-selected' : ''} ${isDropdownOpen ? 'dropdown-active' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
                     ${isChatMultiSelectMode ? `<div class="wa-chat-select-box" style="display: flex; align-items: center; justify-content: center; margin-right: 8px;"><input type="checkbox" class="wa-chat-select-chk" data-phone="${cleanPhone}" ${isBulkSelected ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;"></div>` : ''}
                     ${avatarHtml}
                     <div class="wa-chat-content">
@@ -4807,31 +4817,31 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
 
-                        <!-- Dropdown de Acciones Rápidas -->
-                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: ${isDropdownOpen ? 'flex' : 'none'}; padding-top: 8px; margin-top: 6px; border-top: 1px solid rgba(134, 150, 160, 0.15); flex-wrap: wrap; gap: 6px; width: 100%;">
-                            <button class="btn-change-chat-avatar" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.35);">
+                        <!-- Menú Flotante Superpuesto de Acciones Rápidas (estilo WhatsApp Web) -->
+                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: ${isDropdownOpen ? 'flex' : 'none'};">
+                            <button class="btn-change-chat-avatar" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
                                 🖼️ Cambiar Imagen
                             </button>
-                            <button class="btn-edit-chat-tags" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35);">
+                            <button class="btn-edit-chat-tags" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
                                 🏷️ Etiquetas
                             </button>
-                            <button class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
+                            <button class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}">
                                 ${isPinned ? '📌 Desfijar' : '📌 Fijar arriba'}
                             </button>
-                            <button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="${isPending ? 'leido' : 'pendiente'}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
+                            <button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="${isPending ? 'leido' : 'pendiente'}">
                                 ${isPending ? '✓ Marcar Leído' : '⏳ Marcar No Leído'}
                             </button>
-                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
+                            <a href="tel:+${cleanPhone}" class="btn-phone-call">
                                 📞 Llamar
                             </a>
-                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
+                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa">
                                 📲 WhatsApp
                             </a>
                             ${!isGroup ? `
-                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Activar o desactivar bot para este número" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
+                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Activar o desactivar bot para este número">
                                 ${isBotCanceled ? '🔊 Activar Bot' : '🔇 Desactivar Bot'}
                             </button>` : ''}
-                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}">
                                 🗑️ Eliminar
                             </button>
                         </div>
@@ -5105,7 +5115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Botón interactivo para alternar desplegable de más opciones (persistente, no se cierra solo por polling)
+        // Botón interactivo para alternar desplegable de más opciones (flotante sobre las tarjetas)
         container.querySelectorAll('.btn-card-more-actions').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -5119,6 +5129,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.card-actions-dropdown-menu').forEach(m => {
                     const isTarget = m.id === `dropdown-actions-${phone}`;
                     m.style.display = (isTarget && activeCardDropdownPhone === phone) ? 'flex' : 'none';
+                });
+                document.querySelectorAll('.whatsapp-chat-row').forEach(r => {
+                    const rPhone = r.getAttribute('data-phone');
+                    if (rPhone === activeCardDropdownPhone) {
+                        r.classList.add('dropdown-active');
+                    } else {
+                        r.classList.remove('dropdown-active');
+                    }
                 });
             });
         });
@@ -5153,17 +5171,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Botón interactivo para Activar / Desactivar Bot
-        container.querySelectorAll('.btn-silence-chat-card').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                activeCardDropdownPhone = null;
-                const phone = btn.getAttribute('data-phone');
-                const name = decodeURIComponent(btn.getAttribute('data-name') || 'Contacto');
-                await toggleBotStatusForContact(phone, name);
-            });
-        });
-
         container.querySelectorAll('.btn-delete-chat-card').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
@@ -5189,6 +5196,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // Cerrar menú contextual desplegable de 3 puntitos al hacer clic en cualquier parte fuera de él
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.card-actions-dropdown-menu') && !e.target.closest('.btn-card-more-actions')) {
+            if (activeCardDropdownPhone !== null) {
+                activeCardDropdownPhone = null;
+                document.querySelectorAll('.card-actions-dropdown-menu').forEach(m => {
+                    m.style.display = 'none';
+                });
+                document.querySelectorAll('.whatsapp-chat-row').forEach(r => {
+                    r.classList.remove('dropdown-active');
+                });
+            }
+        }
+    });
 
     // ── MODAL GESTOR DE ETIQUETAS Y MODAL ASIGNAR ETIQUETAS A CHAT ──────────
     const btnManageInboxTags = document.getElementById('btn-manage-inbox-tags');
