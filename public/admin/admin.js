@@ -4516,18 +4516,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper centralizado para alternar estado del bot (Activar / Desactivar) para cualquier contacto o chat
     async function toggleBotStatusForContact(phone, name = '') {
         const clean = getCleanPhoneKey(phone);
-        if (!clean) return;
-        const allContacts = getCombinedContactsList();
-        const contact = allContacts.find(c => getCleanPhoneKey(c.telefono) === clean);
-        const isCanceled = contact ? !!contact.activo : false;
+        if (!clean || clean.startsWith('group_')) return;
+        
+        // Buscar en la lista de silenciados
+        const cleanNoPrefix = clean.replace(/^34/, '');
+        const silenced = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers))
+            ? allSilencedNumbers.find(s => {
+                const sClean = getCleanPhoneKey(s.telefono);
+                return sClean === clean || sClean === cleanNoPrefix || (sClean && cleanNoPrefix.length >= 7 && sClean.endsWith(cleanNoPrefix));
+            })
+            : null;
+            
+        const isCurrentlySilenced = silenced ? !!silenced.activo : false;
         const tokenToUse = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
 
         try {
-            if (contact && contact.id && !String(contact.id).startsWith('chat_')) {
-                await fetch(`/api/admin/silenced-numbers/${contact.id}/toggle`, {
+            if (silenced && silenced.id) {
+                await fetch(`/api/admin/silenced-numbers/${silenced.id}/toggle`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json', 'x-admin-token': tokenToUse },
-                    body: JSON.stringify({ activo: !isCanceled })
+                    body: JSON.stringify({ activo: !isCurrentlySilenced })
                 });
             } else {
                 await fetch('/api/admin/silenced-numbers', {
@@ -4537,11 +4545,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         telefono: clean,
                         nombre: name || `+${clean}`,
                         categoria: 'cliente',
-                        activo: !isCanceled
+                        notas: 'Desactivado desde buzón (atención humana)'
                     })
                 });
             }
-            showToast(!isCanceled ? '🔇 Bot desactivado para este chat' : '🔊 Bot activado para este chat');
+            showToast(!isCurrentlySilenced ? '🔇 Bot desactivado (atención humana)' : '🔊 Bot reactivado');
             await fetchSilencedNumbers();
             renderInboxCards();
         } catch (err) {
@@ -4819,9 +4827,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 📲 WhatsApp
                             </a>
+                            ${!isGroup ? `
                             <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Activar o desactivar bot para este número" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.08); color: #e9edef; border: 1px solid rgba(255, 255, 255, 0.15);">
                                 ${isBotCanceled ? '🔊 Activar Bot' : '🔇 Desactivar Bot'}
-                            </button>
+                            </button>` : ''}
                             <button class="btn-delete-chat-card" data-phone="${cleanPhone}" style="padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3);">
                                 🗑️ Eliminar
                             </button>
@@ -5081,6 +5090,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(isNowPinned ? '📌 Conversación fijada arriba' : 'Conversación desfijada');
                 syncUnifiedConversations();
                 renderInboxCards();
+            });
+        });
+
+        // Botón interactivo para Activar / Desactivar Bot por contacto
+        container.querySelectorAll('.btn-silence-chat-card').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const phone = btn.getAttribute('data-phone');
+                const name = decodeURIComponent(btn.getAttribute('data-name') || '');
+                activeCardDropdownPhone = null;
+                await toggleBotStatusForContact(phone, name);
             });
         });
 
