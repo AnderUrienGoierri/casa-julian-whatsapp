@@ -669,12 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tagsOrder: [],
         deletedTags: [],
         chatTags: {},
-        pinnedChats: {
-            "group_taxi_casa_julian": true, // 🚕 Grupo Taxi Casa Julián
-            "34645747754": true, // Xabi Gorrotxategi
-            "34623476521": true, // Ricardo Entretiempo Studio
-            "41795958760": true  // +41 79 595 87 60
-        },
+        pinnedChats: {},
         manualChatStatus: {}
     };
 
@@ -3598,23 +3593,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const saved = localStorage.getItem('casa_julian_pinned_chats');
             let map = saved ? JSON.parse(saved) : null;
-            if (!map || typeof map !== 'object' || Object.keys(map).length === 0) {
-                map = {
-                    "group_taxi_casa_julian": true, // 🚕 Grupo Taxi Casa Julián
-                    "34645747754": true, // Xabi Gorrotxategi
-                    "34623476521": true, // Ricardo Entretiempo Studio
-                    "41795958760": true  // +41 79 595 87 60
-                };
-                localStorage.setItem('casa_julian_pinned_chats', JSON.stringify(map));
+            if (!map || typeof map !== 'object') {
+                map = {};
             }
             return map;
         } catch (e) {
-            return {
-                "group_taxi_casa_julian": true,
-                "34645747754": true,
-                "34623476521": true,
-                "41795958760": true
-            };
+            return {};
         }
     }
 
@@ -4809,7 +4793,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${tagsHtml}
                             </div>
                             <div class="wa-status-icons">
-                                ${isPinned ? '<span class="wa-pin-icon" title="Conversación fijada arriba">📌</span>' : ''}
+                                ${isPinned ? `<span class="wa-pin-icon btn-click-pin-icon" data-phone="${cleanPhone}" title="Desfijar conversación" style="cursor: pointer; padding: 2px 4px; border-radius: 4px; user-select: none;">📌</span>` : ''}
                                 ${isPending ? `<span class="wa-unread-badge">${unreadCount > 0 ? unreadCount : ''}</span>` : ''}
                                 <div class="wa-item-actions-trigger btn-card-more-actions" data-phone="${cleanPhone}" title="Opciones">⋮</div>
                             </div>
@@ -5013,7 +4997,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             card.addEventListener('touchstart', (e) => {
-                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu') || e.target.closest('.wa-chat-select-chk')) return;
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu') || e.target.closest('.wa-chat-select-chk') || e.target.closest('.btn-click-pin-icon')) return;
                 startPress();
             }, { passive: true });
 
@@ -5023,7 +5007,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             card.addEventListener('mousedown', (e) => {
                 if (e.button !== 0) return;
-                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu') || e.target.closest('.wa-chat-select-chk')) return;
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu') || e.target.closest('.wa-chat-select-chk') || e.target.closest('.btn-click-pin-icon')) return;
                 startPress();
             });
 
@@ -5031,7 +5015,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.addEventListener('mouseleave', cancelPress);
 
             card.addEventListener('click', (e) => {
-                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu')) return;
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu') || e.target.closest('.btn-click-pin-icon')) return;
                 if (isLongPressed) {
                     isLongPressed = false;
                     return;
@@ -5049,6 +5033,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 selectConversation(phone, name);
+            });
+        });
+
+        // Botón interactivo directo al hacer clic en el icono de la Chincheta 📌
+        container.querySelectorAll('.btn-click-pin-icon').forEach(pinIcon => {
+            pinIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const phone = pinIcon.getAttribute('data-phone');
+                const isNowPinned = toggleChatPinned(phone);
+                showToast(isNowPinned ? '📌 Conversación fijada arriba' : 'Conversación desfijada');
+                syncUnifiedConversations();
+                renderInboxCards();
             });
         });
 

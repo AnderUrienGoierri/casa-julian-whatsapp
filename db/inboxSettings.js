@@ -166,7 +166,7 @@ async function saveInboxSettings(patch) {
  * Fijar / Desfijar Chat con Chincheta 📌
  */
 async function setChatPin(phone, isPinned) {
-    const cleanPhone = (phone || '').replace(/\D/g, '');
+    const cleanPhone = (phone || '').toString().startsWith('group_') ? phone.toString().trim() : (phone || '').replace(/\D/g, '');
     if (!cleanPhone) return false;
     const settings = await getInboxSettings();
     const pinnedChats = { ...(settings.pinnedChats || {}) };
@@ -185,7 +185,7 @@ async function setChatPin(phone, isPinned) {
  * Marcar conversación como Leída o Pendiente
  */
 async function setChatStatus(phone, status) {
-    const cleanPhone = (phone || '').toString().startsWith('group_') ? phone : (phone || '').replace(/\D/g, '');
+    const cleanPhone = (phone || '').toString().startsWith('group_') ? phone.toString().trim() : (phone || '').replace(/\D/g, '');
     if (!cleanPhone) return null;
     const settings = await getInboxSettings();
     const manualChatStatus = { ...(settings.manualChatStatus || {}) };
@@ -206,7 +206,7 @@ async function setChatStatus(phone, status) {
  * Asignar etiquetas a un chat específico
  */
 async function setChatTags(phone, tagsArray) {
-    const cleanPhone = (phone || '').replace(/\D/g, '');
+    const cleanPhone = (phone || '').toString().startsWith('group_') ? phone.toString().trim() : (phone || '').replace(/\D/g, '');
     if (!cleanPhone) return [];
     const settings = await getInboxSettings();
     const chatTags = { ...(settings.chatTags || {}) };
