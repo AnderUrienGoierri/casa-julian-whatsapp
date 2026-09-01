@@ -6411,8 +6411,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Modo Humano
-        const isHandoverActive = sol.enAtencionHumana === true && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA';
+        // Modo Humano / Estado del Bot
+        const cleanNoPrefix = cleanPhoneStr.replace(/^34/, '');
+        const silencedContact = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers))
+            ? allSilencedNumbers.find(s => {
+                const sClean = getCleanPhoneKey(s.telefono);
+                return sClean === cleanPhoneStr || sClean === cleanNoPrefix || (sClean && cleanNoPrefix.length >= 7 && sClean.endsWith(cleanNoPrefix));
+            })
+            : null;
+        const isSilenced = silencedContact ? !!silencedContact.activo : false;
+        const isHandoverActive = (sol.enAtencionHumana === true && sol.estado !== 'CONFIRMADA' && sol.estado !== 'RECHAZADA') || isSilenced;
+
         if (handoverStatusEl) {
             handoverStatusEl.textContent = isHandoverActive ? '🟢 Modo Humano (Bot Pausado)' : '⚪ Bot Activo';
             handoverStatusEl.style.background = isHandoverActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(100, 116, 139, 0.2)';
@@ -6420,10 +6429,15 @@ document.addEventListener('DOMContentLoaded', () => {
             handoverStatusEl.style.borderColor = isHandoverActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(100, 116, 139, 0.3)';
         }
         if (btnToggleHuman && btnConclude) {
-            if (isHandoverActive) {
+            if (isGroup) {
+                btnToggleHuman.style.display = 'none';
+                btnConclude.style.display = 'none';
+            } else if (isHandoverActive) {
+                // Si el bot está desactivado: solo botón verde Concluir Gestión y Reactivar Bot
                 btnToggleHuman.style.display = 'none';
                 btnConclude.style.display = 'inline-flex';
             } else {
+                // Si el bot está activo: solo botón rojo Activar Atención humana
                 btnToggleHuman.style.display = 'inline-flex';
                 btnConclude.style.display = 'none';
             }
@@ -7308,93 +7322,130 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Modo Humano en Panel Derecho
+    // Modo Humano en Panel Derecho (Activar Atención humana - Botón Rojo)
     const paneBtnToggleHuman = document.getElementById('pane-btn-toggle-human');
     if (paneBtnToggleHuman) {
         paneBtnToggleHuman.addEventListener('click', async () => {
-            if (!activeReplySolicitud) return;
-            const solId = activeReplySolicitud.id;
+            if (!activeConversationPhone && !activeReplySolicitud) return;
             paneBtnToggleHuman.disabled = true;
             try {
-                const res = await fetch(`/api/admin/solicitudes/${solId}/atencion-humana`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-admin-token': adminToken
-                    },
-                    body: JSON.stringify({ activar: true })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    activeReplySolicitud.enAtencionHumana = true;
-                    const handoverStatusEl = document.getElementById('pane-chat-handover-status');
-                    if (handoverStatusEl) {
-                        handoverStatusEl.textContent = '🟢 Modo Humano (Bot Pausado)';
-                        handoverStatusEl.style.background = 'rgba(16, 185, 129, 0.2)';
-                        handoverStatusEl.style.color = '#34d399';
-                        handoverStatusEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                    }
-                    const btnToggle = document.getElementById('pane-btn-toggle-human');
-                    const btnConc = document.getElementById('pane-btn-conclude');
-                    if (btnToggle) btnToggle.style.display = 'none';
-                    if (btnConc) btnConc.style.display = 'inline-flex';
+                const phone = activeConversationPhone || (activeReplySolicitud ? activeReplySolicitud.telefono : '');
+                const clean = getCleanPhoneKey(phone);
+                const solId = activeReplySolicitud ? activeReplySolicitud.id : null;
 
-                    await fetchSolicitudes();
-                    syncUnifiedConversations();
+                if (solId && !solId.startsWith('chat_')) {
+                    await fetch(`/api/admin/solicitudes/${solId}/atencion-humana`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-token': adminToken
+                        },
+                        body: JSON.stringify({ activar: true })
+                    }).catch(e => console.warn("Error atencion-humana:", e));
                 }
+
+                if (activeReplySolicitud) activeReplySolicitud.enAtencionHumana = true;
+
+                // Silenciar bot para este contacto para que no responda automáticamente
+                if (clean) {
+                    const cleanNoPrefix = clean.replace(/^34/, '');
+                    const isSilenced = allSilencedNumbers.some(s => {
+                        const sClean = getCleanPhoneKey(s.telefono);
+                        return s.activo && (sClean === clean || sClean === cleanNoPrefix || (sClean && cleanNoPrefix.length >= 7 && sClean.endsWith(cleanNoPrefix)));
+                    });
+                    if (!isSilenced) {
+                        const name = activeReplySolicitud ? (activeReplySolicitud.nombreCliente || '') : '';
+                        await toggleBotStatusForContact(clean, name);
+                    }
+                }
+
+                showToast('🔴 Atención humana activada (Bot pausado)');
+                const handoverStatusEl = document.getElementById('pane-chat-handover-status');
+                if (handoverStatusEl) {
+                    handoverStatusEl.textContent = '🟢 Modo Humano (Bot Pausado)';
+                    handoverStatusEl.style.background = 'rgba(16, 185, 129, 0.2)';
+                    handoverStatusEl.style.color = '#34d399';
+                    handoverStatusEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                }
+                const btnToggle = document.getElementById('pane-btn-toggle-human');
+                const btnConc = document.getElementById('pane-btn-conclude');
+                if (btnToggle) btnToggle.style.display = 'none';
+                if (btnConc) btnConc.style.display = 'inline-flex';
+
+                await fetchSolicitudes();
+                syncUnifiedConversations();
             } catch (err) {
                 console.error("Error toggling human mode:", err);
+                showToast('❌ Error activando modo humano: ' + err.message);
             } finally {
                 paneBtnToggleHuman.disabled = false;
             }
         });
     }
 
+    // Concluir Gestión y Reactivar Bot (Botón Verde)
     const paneBtnConclude = document.getElementById('pane-btn-conclude');
     if (paneBtnConclude) {
         paneBtnConclude.addEventListener('click', async () => {
-            if (!activeReplySolicitud) return;
-            const solId = activeReplySolicitud.id;
+            if (!activeConversationPhone && !activeReplySolicitud) return;
             const paneMsgInput = document.getElementById('pane-reply-message-text');
             const text = paneMsgInput ? paneMsgInput.value.trim() : '';
 
             if (confirm("¿Deseas concluir esta gestión y reactivar el bot automático para este cliente?")) {
                 paneBtnConclude.disabled = true;
                 try {
-                    const res = await fetch(`/api/admin/solicitudes/${solId}/concluir`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'x-admin-token': adminToken
-                        },
-                        body: JSON.stringify({
-                            estadoFinal: 'CONFIRMADA',
-                            mensajeCierre: text || null
-                        })
-                    });
+                    const phone = activeConversationPhone || (activeReplySolicitud ? activeReplySolicitud.telefono : '');
+                    const clean = getCleanPhoneKey(phone);
+                    const solId = activeReplySolicitud ? activeReplySolicitud.id : null;
 
-                    const data = await res.json();
-                    if (data.success) {
-                        showToast(data.message || "✅ Gestión concluida y bot reactivado.");
-                        activeReplySolicitud.enAtencionHumana = false;
-                        const handoverStatusEl = document.getElementById('pane-chat-handover-status');
-                        if (handoverStatusEl) {
-                            handoverStatusEl.textContent = '⚪ Bot Activo';
-                            handoverStatusEl.style.background = 'rgba(100, 116, 139, 0.2)';
-                            handoverStatusEl.style.color = '#94a3b8';
-                            handoverStatusEl.style.borderColor = 'rgba(100, 116, 139, 0.3)';
-                        }
-                        const btnToggle = document.getElementById('pane-btn-toggle-human');
-                        const btnConc = document.getElementById('pane-btn-conclude');
-                        if (btnToggle) btnToggle.style.display = 'inline-flex';
-                        if (btnConc) btnConc.style.display = 'none';
-
-                        await fetchSolicitudes();
-                        await fetchWhatsAppChats();
-                        syncUnifiedConversations();
+                    if (solId && !solId.startsWith('chat_')) {
+                        await fetch(`/api/admin/solicitudes/${solId}/concluir`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-admin-token': adminToken
+                            },
+                            body: JSON.stringify({
+                                estadoFinal: 'CONFIRMADA',
+                                mensajeCierre: text || null
+                            })
+                        }).catch(e => console.warn("Error concluir solicitud:", e));
                     }
+
+                    if (activeReplySolicitud) activeReplySolicitud.enAtencionHumana = false;
+
+                    // Reactivar bot para este contacto si estaba silenciado
+                    if (clean) {
+                        const cleanNoPrefix = clean.replace(/^34/, '');
+                        const isSilenced = allSilencedNumbers.some(s => {
+                            const sClean = getCleanPhoneKey(s.telefono);
+                            return s.activo && (sClean === clean || sClean === cleanNoPrefix || (sClean && cleanNoPrefix.length >= 7 && sClean.endsWith(cleanNoPrefix)));
+                        });
+                        if (isSilenced) {
+                            const name = activeReplySolicitud ? (activeReplySolicitud.nombreCliente || '') : '';
+                            await toggleBotStatusForContact(clean, name);
+                        }
+                    }
+
+                    showToast("✅ Gestión concluida y bot reactivado.");
+                    const handoverStatusEl = document.getElementById('pane-chat-handover-status');
+                    if (handoverStatusEl) {
+                        handoverStatusEl.textContent = '⚪ Bot Activo';
+                        handoverStatusEl.style.background = 'rgba(100, 116, 139, 0.2)';
+                        handoverStatusEl.style.color = '#94a3b8';
+                        handoverStatusEl.style.borderColor = 'rgba(100, 116, 139, 0.3)';
+                    }
+                    const btnToggle = document.getElementById('pane-btn-toggle-human');
+                    const btnConc = document.getElementById('pane-btn-conclude');
+                    if (btnToggle) btnToggle.style.display = 'inline-flex';
+                    if (btnConc) btnConc.style.display = 'none';
+
+                    await fetchSolicitudes();
+                    await fetchWhatsAppChats();
+                    syncUnifiedConversations();
                 } catch (err) {
                     console.error("Error concluding management:", err);
+                    showToast('❌ Error al reactivar bot: ' + err.message);
                 } finally {
                     paneBtnConclude.disabled = false;
                 }
