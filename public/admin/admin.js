@@ -4817,32 +4817,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
 
-                        <!-- Menú Flotante Superpuesto de Acciones Rápidas (estilo WhatsApp Web) -->
-                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: ${isDropdownOpen ? 'flex' : 'none'};">
-                            <button class="btn-change-chat-avatar" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
-                                🖼️ Cambiar Imagen
+                        <!-- Menú Flotante Superpuesto de Acciones Rápidas (estilo WhatsApp Web / Móvil) -->
+                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: ${isDropdownOpen ? 'flex' : 'none'}; position: absolute; top: 36px; right: 8px; z-index: 99999; background: #233138; border: 1px solid rgba(134, 150, 160, 0.25); border-radius: 10px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4); min-width: 185px; padding: 6px 0; flex-direction: column; gap: 1px; overflow: hidden;">
+                            <button type="button" class="btn-change-chat-avatar" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #38bdf8; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                🖼️ <span>Cambiar Imagen</span>
                             </button>
-                            <button class="btn-edit-chat-tags" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
-                                🏷️ Etiquetas
+                            <button type="button" class="btn-edit-chat-tags" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #38bdf8; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                🏷️ <span>Etiquetas</span>
                             </button>
-                            <button class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}">
-                                ${isPinned ? '📌 Desfijar' : '📌 Fijar arriba'}
+                            <button type="button" class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                📌 <span>${isPinned ? 'Desfijar' : 'Fijar arriba'}</span>
                             </button>
-                            <button class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="${isPending ? 'leido' : 'pendiente'}">
-                                ${isPending ? '✓ Marcar Leído' : '⏳ Marcar No Leído'}
+                            <button type="button" class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="${isPending ? 'leido' : 'pendiente'}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                ${isPending ? '✓' : '⏳'} <span>${isPending ? 'Marcar Leído' : 'Marcar No Leído'}</span>
                             </button>
-                            <a href="tel:+${cleanPhone}" class="btn-phone-call">
-                                📞 Llamar
+                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-decoration: none; text-align: left; box-sizing: border-box;">
+                                📞 <span>Llamar</span>
                             </a>
-                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa">
-                                📲 WhatsApp
+                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-decoration: none; text-align: left; box-sizing: border-box;">
+                                📲 <span>WhatsApp</span>
                             </a>
                             ${!isGroup ? `
-                            <button class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Activar o desactivar bot para este número">
-                                ${isBotCanceled ? '🔊 Activar Bot' : '🔇 Desactivar Bot'}
+                            <button type="button" class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Activar o desactivar bot para este número" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                ${isBotCanceled ? '🔊' : '🔇'} <span>${isBotCanceled ? 'Activar Bot' : 'Desactivar Bot'}</span>
                             </button>` : ''}
-                            <button class="btn-delete-chat-card" data-phone="${cleanPhone}">
-                                🗑️ Eliminar
+                            <div style="height: 1px; background: rgba(134, 150, 160, 0.18); margin: 3px 0;"></div>
+                            <button type="button" class="btn-delete-chat-card" data-phone="${cleanPhone}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #fca5a5; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                🗑️ <span>Eliminar chat</span>
                             </button>
                         </div>
                     </div>
