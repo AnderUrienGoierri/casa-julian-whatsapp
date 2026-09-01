@@ -4607,7 +4607,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="wa-status-icons">
                                 ${isPinned ? '<span class="wa-pin-icon" title="Conversación fijada arriba">📌</span>' : ''}
-                                ${isPending && unreadCount > 0 ? `<span class="wa-unread-badge">${unreadCount}</span>` : ''}
+                                ${isPending ? `<span class="wa-unread-badge">${unreadCount > 0 ? unreadCount : ''}</span>` : ''}
                                 <div class="wa-item-actions-trigger btn-card-more-actions" data-phone="${cleanPhone}" title="Opciones">⋮</div>
                             </div>
                         </div>

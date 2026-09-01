@@ -2079,6 +2079,14 @@ body.mode-recepcion .inbox-cards-grid {
     justify-content: center;
     line-height: 1;
 }
+/* Badge vacío → punto verde circular (chat marcado No Leído sin mensajes nuevos) */
+.wa-unread-badge:empty {
+    min-width: 12px;
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    border-radius: 50%;
+}
 
 .wa-item-actions-trigger {
     color: #8696a0;
