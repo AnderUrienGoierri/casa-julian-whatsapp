@@ -4801,6 +4801,48 @@ div.inbox-toolbar-header,
     border-color: rgba(148, 163, 184, 0.4);
 }
 
+.wa-tag-pill.tag-menutradicion,
+.wa-tag-pill.tag-ot {
+    background: rgba(244, 114, 182, 0.2) !important;
+    color: #f472b6 !important;
+    border-color: rgba(244, 114, 182, 0.45) !important;
+}
+
+.wa-tag-pill.tag-noot,
+.wa-tag-pill.tag-no_ot {
+    background: rgba(232, 121, 249, 0.2) !important;
+    color: #e879f9 !important;
+    border-color: rgba(232, 121, 249, 0.45) !important;
+}
+
+.wa-tag-pill.tag-modificacion,
+.wa-tag-pill.tag-modif {
+    background: rgba(251, 146, 60, 0.2) !important;
+    color: #fb923c !important;
+    border-color: rgba(251, 146, 60, 0.45) !important;
+}
+
+.wa-tag-pill.tag-cancelacion,
+.wa-tag-pill.tag-cancel {
+    background: rgba(248, 113, 113, 0.2) !important;
+    color: #f87171 !important;
+    border-color: rgba(248, 113, 113, 0.45) !important;
+}
+
+.wa-tag-pill.tag-faq,
+.wa-tag-pill.tag-faqs {
+    background: rgba(45, 212, 191, 0.2) !important;
+    color: #2dd4bf !important;
+    border-color: rgba(45, 212, 191, 0.45) !important;
+}
+
+.wa-tag-pill.tag-otrascuestiones,
+.wa-tag-pill.tag-otras {
+    background: rgba(148, 163, 184, 0.2) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(148, 163, 184, 0.45) !important;
+}
+
 /* Filas en el Gestor de Etiquetas */
 .tag-manager-row-item {
     display: flex;

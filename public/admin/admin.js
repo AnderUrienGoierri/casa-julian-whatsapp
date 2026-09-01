@@ -647,6 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const DEFAULT_SYSTEM_TAGS = [
         { id: 'menu_tradicion', name: 'OT', label: '🎁 OT', emoji: '🎁', color: '#f472b6', bg: 'rgba(244, 114, 182, 0.2)' },
+        { id: 'no_ot', name: 'NO OT', label: '🎫 NO OT', emoji: '🎫', color: '#e879f9', bg: 'rgba(232, 121, 249, 0.2)' },
         { id: 'modificacion', name: 'MODIF', label: '🔄 MODIF', emoji: '🔄', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.2)' },
         { id: 'cancelacion', name: 'CANCEL', label: '❌ CANCEL', emoji: '❌', color: '#f87171', bg: 'rgba(239, 68, 68, 0.2)' },
         { id: 'faq', name: 'FAQs', label: '❓ FAQs', emoji: '❓', color: '#2dd4bf', bg: 'rgba(45, 212, 191, 0.2)' },
@@ -4101,6 +4102,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Combina chats de historial con solicitudes y contactos para tener la lista completa
+    // Combina chats de historial con solicitudes y contactos para tener la lista completa
     function syncUnifiedConversations() {
         const map = new Map();
 
@@ -4115,6 +4117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 categoria: isGroup ? 'taxi' : (c.categoria || 'cliente'),
                 ultimoMensajeFecha: c.ultimoMensajeFecha || null,
                 ultimoTexto: c.ultimoTexto || (isGroup ? '🚕 Grupo Taxi Casa Julián (3 Taxis + Restaurante)' : ''),
+                allTexts: c.allTexts || c.ultimoTexto || '',
                 ultimoEmisor: c.ultimoEmisor || 'cliente',
                 totalInteracciones: c.totalInteracciones || 1,
                 unreadCount: (c.unreadCount !== undefined ? c.unreadCount : 0),
@@ -4136,6 +4139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.solicitudId = sol.id;
                 item.solicitudEstado = sol.estado;
                 item.tipoSolicitud = sol.tipoAccion || sol.categoria;
+                item.allTexts = (item.allTexts ? item.allTexts + ' ___ ' : '') + (sol.tipoAccion || '') + ' ' + (sol.datosDetallados || '');
                 if (sol.nombreCliente && (!item.nombreCliente || item.nombreCliente.startsWith('+'))) {
                     item.nombreCliente = sol.nombreCliente;
                 }
@@ -4149,6 +4153,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     categoria: sol.categoria || 'cliente',
                     ultimoMensajeFecha: sol.created_at || new Date().toISOString(),
                     ultimoTexto: sol.datosDetallados || 'Nueva solicitud',
+                    allTexts: (sol.tipoAccion || '') + ' ' + (sol.datosDetallados || ''),
                     ultimoEmisor: 'cliente',
                     totalInteracciones: Array.isArray(sol.mensajes) ? sol.mensajes.length : 1,
                     solicitudId: sol.id,
@@ -4185,20 +4190,61 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeInboxTopicFilters = new Set();
     let activeInboxTagFilters = new Set();
 
+    // Extrae y acumula todas las etiquetas de las interacciones del cliente con el Chatbot
+    function getChatbotTagsForConversation(c) {
+        if (!c) return [];
+        const combined = `${c.allTexts || ''} ${c.ultimoTexto || ''} ${c.tipoSolicitud || ''} ${c.categoria || ''}`.toLowerCase();
+        const tags = [];
+
+        // 1. OT: Reserva con Tarjeta de Regalo / Menú Tradición
+        if (/tarjeta\s*regalo|tarjeta_regalo|men[uú]\s*tradici[oó]n|menu_tradicion|opari[\s\-]txartel|gift\s*card|bono\s*regalo|reserva\s*men[uú]\s*tradici[oó]n|btn_reserva_con_tarjeta|opt_regalar_menu_tradicion|opt_menu_tradicion/i.test(combined)) {
+            tags.push('OT');
+        }
+
+        // 2. NO OT: Solicitud de reserva SIN tarjeta de regalo / TheFork / "No tengo"
+        if (/no\s*tengo\s*tarjeta|sin\s*tarjeta|no\s*dispongo\s*de\s*tarjeta|reserva\s*online|erreserba\s*online|book\s*a\s*table|casajulian\.eus|btn_reserva_sin_tarjeta|btn_reserva_web|btn_solicitar_reserva|no\s*tengo\s*c[oó]digo|sin\s*c[oó]digo|deseas realizar alguna otra gestión o finalizar la conversación|erreserba egin nahi duzu|do you want to make another reservation|no\s*tengo|ez\s*daukat|i\s*don'?t\s*have/i.test(combined)) {
+            tags.push('NO OT');
+        }
+
+        // 3. MODIF: Modificación de reserva
+        if (/modifi|cambiar\s*hora|cambiar\s*fecha|cambiar\s*personas|cambiar\s*comensales|what\s*modification|aldatu\s*nahi\s*duzu|mod_comensales|mod_dia|mod_hora|opt_modificacion|btn_go_modificacion/i.test(combined)) {
+            tags.push('MODIF');
+        }
+
+        // 4. CANCEL: Cancelación de reserva
+        if (/cancel|anul|cancel\s*request|erreserba\s*bertan\s*behera|no\s*podremos\s*asistir|no\s*podemos\s*ir|opt_cancelacion|btn_go_cancelacion/i.test(combined)) {
+            tags.push('CANCEL');
+        }
+
+        // 5. OTRAS: Consulta abierta
+        if (/consulta\s*abierta|casu[ií]stica|inquiry\s*successfully\s*sent|duda\s*o\s*consulta|necesidad\s*especial|embarazada|mascota|submit\s*request|bidali\s*eskaera|enviar\s*solicitud|opt_consulta_abierta|btn_consulta_enviar/i.test(combined)) {
+            tags.push('OTRAS');
+        }
+
+        // 6. FAQs: Preguntas frecuentes / Otras cuestiones
+        if (/otras\s*cuestiones|preguntas\s*frecuentes|faq|horario|donde\s*aparcar|d[oó]nde\s*aparcar|c[oó]mo\s*llegar|como\s*llegar|ubicaci[oó]n|ubicacion|direcci[oó]n|direccion|ver\s*carta|ikusi\s*karta|view\s*menu|other\s*questions|beste\s*gai\s*batzuk|opt_otras_cuestiones|faq_/i.test(combined)) {
+            tags.push('FAQs');
+        }
+
+        return tags;
+    }
+
     function chatMatchesTag(c, tagId, tagName) {
         const id = (tagId || '').toLowerCase().trim();
         const name = (tagName || '').toLowerCase().trim();
         const chatTags = getChatTags(c.telefono, c).map(t => String(t).toLowerCase().trim());
 
-        // 1. Coincidencia directa por etiquetas asignadas al chat
+        // 1. Coincidencia directa por etiquetas asignadas o acumuladas al chat
         if (chatTags.some(t => {
             if (t === id || t === name) return true;
             if (id === 'menu_tradicion' && (t === 'ot' || t === 'menu_tradicion' || t === 'tradicion')) return true;
+            if (id === 'no_ot' && (t === 'no ot' || t === 'no_ot')) return true;
             if (id === 'modificacion' && (t === 'modif' || t === 'modificacion' || t === 'modificaciones')) return true;
             if (id === 'cancelacion' && (t === 'cancel' || t === 'cancelacion' || t === 'cancelaciones')) return true;
             if (id === 'faq' && (t === 'faqs' || t === 'faq' || t === 'preguntas_frecuentes')) return true;
             if (id === 'otras_cuestiones' && (t === 'otras' || t === 'otras_cuestiones' || t === 'consulta' || t === 'consulta_abierta')) return true;
             if (name === 'ot' && (t === 'ot' || t === 'menu_tradicion')) return true;
+            if (name === 'no ot' && (t === 'no ot' || t === 'no_ot')) return true;
             if (name === 'modif' && (t === 'modif' || t === 'modificacion')) return true;
             if (name === 'cancel' && (t === 'cancel' || t === 'cancelacion')) return true;
             if (name === 'faqs' && (t === 'faqs' || t === 'faq')) return true;
@@ -4208,17 +4254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         }
 
-        // 2. Coincidencia por Temática del Chatbot
-        const topic = getConversationTopic(c);
-        if (topic) {
-            if ((id === 'menu_tradicion' || name === 'ot' || name === 'menu_tradicion') && topic === 'menu_tradicion') return true;
-            if ((id === 'modificacion' || name === 'modif' || name === 'modificacion') && topic === 'modificacion') return true;
-            if ((id === 'cancelacion' || name === 'cancel' || name === 'cancelacion') && topic === 'cancelacion') return true;
-            if ((id === 'faq' || name === 'faqs' || name === 'faq') && topic === 'faq') return true;
-            if ((id === 'otras_cuestiones' || name === 'otras' || name === 'otras_cuestiones') && topic === 'otras_cuestiones') return true;
-        }
-
-        // 3. Coincidencia por Categoría / Grupo
+        // 2. Coincidencia por Categoría / Grupo
         const cat = getConversationCategory(c);
         const cleanPhone = getCleanPhoneKey(c.telefono);
 
@@ -4297,15 +4333,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     tags.push(p);
                 }
             });
-        } else if (conv && Array.isArray(conv.etiquetas) && conv.etiquetas.length > 0) {
+        }
+        
+        if (conv && Array.isArray(conv.etiquetas) && conv.etiquetas.length > 0) {
             tags.push(...conv.etiquetas.map(t => {
                 const low = String(t).toLowerCase();
                 if (low === 'empleado' || low === 'empleados' || low === 'alba') return 'Personal';
                 return t;
             }));
-        } else {
-            const cat = conv ? (conv.categoria || '').toLowerCase() : '';
-            const name = conv ? (conv.nombreCliente || '').toLowerCase() : '';
+        }
+
+        // Acumular etiquetas de interacción con el Chatbot (OT, NO OT, MODIF, CANCEL, OTRAS, FAQs)
+        if (conv) {
+            const botTags = getChatbotTagsForConversation(conv);
+            botTags.forEach(bt => {
+                if (!tags.includes(bt)) tags.push(bt);
+            });
+        }
+
+        if (tags.length === 0 && conv) {
+            const cat = (conv.categoria || '').toLowerCase();
+            const name = (conv.nombreCliente || '').toLowerCase();
             if (cat === 'proveedor' || cat === 'proveedores' || name.includes('entretiempo') || name.includes('ricardo')) {
                 tags.push('Proveedores');
             } else if (cat === 'hoteles' || cat === 'hotel') {
@@ -4315,16 +4363,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (cat === 'taxi' || cat === 'taxis') {
                 tags.push('Taxis');
             }
-        }
-
-        // Inferir etiqueta por temática del chatbot si aplica
-        if (conv) {
-            const topic = getConversationTopic(conv);
-            if (topic === 'menu_tradicion' && !tags.includes('OT')) tags.push('OT');
-            else if (topic === 'modificacion' && !tags.includes('MODIF')) tags.push('MODIF');
-            else if (topic === 'cancelacion' && !tags.includes('CANCEL')) tags.push('CANCEL');
-            else if (topic === 'faq' && !tags.includes('FAQs')) tags.push('FAQs');
-            else if (topic === 'otras_cuestiones' && !tags.includes('OTRAS')) tags.push('OTRAS');
         }
 
         return [...new Set(tags)];
@@ -4718,6 +4756,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const atName = (at.name || '').toLowerCase();
                         if (atId === lowT || atName === lowT) return true;
                         if (atId === 'menu_tradicion' && (lowT === 'ot' || lowT === 'menu_tradicion' || lowT === 'tradicion')) return true;
+                        if (atId === 'no_ot' && (lowT === 'no ot' || lowT === 'no_ot')) return true;
                         if (atId === 'modificacion' && (lowT === 'modif' || lowT === 'modificacion' || lowT === 'modificaciones')) return true;
                         if (atId === 'cancelacion' && (lowT === 'cancel' || lowT === 'cancelacion' || lowT === 'cancelaciones')) return true;
                         if (atId === 'faq' && (lowT === 'faqs' || lowT === 'faq' || lowT === 'preguntas_frecuentes')) return true;
@@ -4738,6 +4777,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         label = 'GRUPO';
                     } else if (lowRaw === 'faq' || lowRaw === 'faqs') {
                         label = 'FAQs';
+                    } else if (lowRaw === 'no ot' || lowRaw === 'no_ot') {
+                        label = 'NO OT';
                     }
                     const defaultColor = (lowRaw === 'grupo' || lowRaw === 'grupos') ? '#94a3b8' : '#c084fc';
                     const defaultBg = (lowRaw === 'grupo' || lowRaw === 'grupos') ? 'rgba(148, 163, 184, 0.18)' : 'rgba(168, 85, 247, 0.2)';

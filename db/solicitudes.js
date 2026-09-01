@@ -566,7 +566,11 @@ async function getAllWhatsAppConversations() {
                     ORDER BY telefono, created_at DESC, id DESC
                 ),
                 counts AS (
-                    SELECT telefono, COUNT(*) as total_interacciones, MAX(created_at) as max_fecha
+                    SELECT 
+                        telefono, 
+                        COUNT(*) as total_interacciones, 
+                        MAX(created_at) as max_fecha,
+                        string_agg(COALESCE(texto, ''), ' ___ ') as all_texts
                     FROM bot_chat_history
                     GROUP BY telefono
                 ),
@@ -593,11 +597,19 @@ async function getAllWhatsAppConversations() {
                         estado as solicitud_estado
                     FROM solicitudes
                     ORDER BY replace(telefono_cliente, '+', ''), created_at DESC
+                ),
+                all_sols_agg AS (
+                    SELECT 
+                        replace(telefono_cliente, '+', '') as tel_clean,
+                        string_agg(COALESCE(tipo_accion, '') || ' ' || COALESCE(datos_detallados, ''), ' ___ ') as all_sol_texts
+                    FROM solicitudes
+                    GROUP BY replace(telefono_cliente, '+', '')
                 )
                 SELECT 
                     lm.telefono,
                     c.max_fecha as ultimo_mensaje_fecha,
                     c.total_interacciones,
+                    c.all_texts,
                     COALESCE(u.unread_count, 0) as unread_count,
                     lm.ultimo_texto,
                     lm.ultimo_emisor,
@@ -608,12 +620,14 @@ async function getAllWhatsAppConversations() {
                     ls.nombre_cliente,
                     ls.solicitud_id,
                     ls.tipo_solicitud,
-                    ls.solicitud_estado
+                    ls.solicitud_estado,
+                    sa.all_sol_texts
                 FROM latest_msgs lm
                 JOIN counts c ON lm.telefono = c.telefono
                 LEFT JOIN unreads u ON lm.telefono = u.telefono
                 LEFT JOIN bot_silenced_numbers sn ON lm.telefono = sn.telefono
                 LEFT JOIN latest_sols ls ON lm.telefono = ls.tel_clean
+                LEFT JOIN all_sols_agg sa ON lm.telefono = sa.tel_clean
                 ORDER BY c.max_fecha DESC`
             );
             if (res.rows && res.rows.length > 0) {
@@ -631,6 +645,7 @@ async function getAllWhatsAppConversations() {
                     const nombreFinal = isGroup ? 'Taxi Casa Julián' : (r.silenced_nombre || r.nombre_cliente || meta.nombreCliente || (r.telefono.startsWith('34') || r.telefono.length > 9 ? `+${r.telefono}` : r.telefono));
                     const categoriaFinal = isGroup ? 'taxi' : (r.silenced_categoria || meta.categoria || 'cliente');
                     const etiquetasFinales = isGroup ? ['TAXIS', 'GRUPO'] : (Array.isArray(meta.etiquetas) ? meta.etiquetas : []);
+                    const fullTexts = `${r.all_texts || ''} ${r.all_sol_texts || ''}`;
 
                     return {
                         telefono: r.telefono,
@@ -638,6 +653,7 @@ async function getAllWhatsAppConversations() {
                         totalInteracciones: parseInt(r.total_interacciones, 10) || 0,
                         unreadCount: parseInt(r.unread_count, 10) || 0,
                         ultimoTexto: r.ultimo_texto || '',
+                        allTexts: fullTexts,
                         ultimoEmisor: r.ultimo_emisor || 'bot',
                         ultimoTipo: r.ultimo_tipo || 'text',
                         nombreCliente: nombreFinal,
@@ -708,6 +724,7 @@ async function getAllWhatsAppConversations() {
                     ultimoMensajeFecha: h.created_at,
                     totalInteracciones: 1,
                     ultimoTexto: h.texto || '',
+                    allTexts: h.texto || '',
                     ultimoEmisor: h.emisor || 'bot',
                     ultimoTipo: h.tipo || 'text',
                     nombreCliente: clientName,
@@ -720,6 +737,7 @@ async function getAllWhatsAppConversations() {
             } else {
                 const item = grouped.get(tel);
                 item.totalInteracciones += 1;
+                item.allTexts = (item.allTexts ? item.allTexts + ' ___ ' : '') + (h.texto || '');
                 if (Array.isArray(meta.etiquetas) && meta.etiquetas.length > 0) {
                     item.etiquetas = meta.etiquetas;
                 }
