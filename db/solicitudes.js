@@ -699,7 +699,7 @@ async function getAllWhatsAppConversations() {
             const tel = h.telefono || '';
             const meta = h.metadata || {};
             const isGroup = tel === 'group_taxi_casa_julian';
-            const clientName = isGroup ? 'Taxi Casa Julián' : (meta.nombreCliente || nameMap.get(tel) || (tel.startsWith('34') || tel.length > 9 ? `+${tel}` : tel) || 'Cliente WhatsApp');
+            const clientName = isGroup ? 'Taxi Casa Julián' : (meta.nombreCliente || nameMap.get(tel) || (tel.startsWith('34') || tel.length > 9 ? `+${tel}` : tel) || (tel ? `+${tel}` : 'Cliente'));
             const category = isGroup ? 'taxi' : (meta.categoria || catMap.get(tel) || 'cliente');
 
             if (!grouped.has(tel)) {
@@ -723,7 +723,7 @@ async function getAllWhatsAppConversations() {
                 if (Array.isArray(meta.etiquetas) && meta.etiquetas.length > 0) {
                     item.etiquetas = meta.etiquetas;
                 }
-                if (meta.nombreCliente && (!item.nombreCliente || item.nombreCliente.startsWith('+') || item.nombreCliente === 'Cliente WhatsApp')) {
+                if (meta.nombreCliente && (!item.nombreCliente || item.nombreCliente.startsWith('+') || item.nombreCliente.toLowerCase().includes('cliente whatsapp'))) {
                     item.nombreCliente = meta.nombreCliente;
                 }
                 if (meta.categoria && meta.categoria !== 'cliente') {

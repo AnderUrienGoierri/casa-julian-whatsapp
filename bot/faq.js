@@ -26,7 +26,7 @@ async function handleFaqSelection(from, faqId, lang, handleRegalarMenuTradicion)
             tipoAccion: `PREGUNTAS FRECUENTES: ${faqTitleText}`,
             telefonoCliente: from,
             datosDetallados: detalleFaq,
-            nombreCliente: `Cliente WhatsApp (+${from})`,
+            nombreCliente: from ? (from.startsWith('34') || from.length > 9 ? `+${from}` : from) : 'Cliente',
             telefonoReserva: from
         });
     } catch (solErr) {

@@ -78,17 +78,85 @@ document.addEventListener('DOMContentLoaded', () => {
     const replyMessageText = document.getElementById('reply-message-text');
     const replyErrorMsg = document.getElementById('reply-error-msg');
 
-    // Helper unificado para obtener el nombre del cliente o su teléfono si no tiene nombre registrado
-    function getClientDisplayName(name, phone) {
-        const cleanPhone = (phone || '').toString().replace(/\D/g, '');
-        const phoneWithPlus = cleanPhone ? `+${cleanPhone}` : '';
-        if (!name || typeof name !== 'string') return phoneWithPlus || 'Cliente';
-        const trimmed = name.trim();
-        const lower = trimmed.toLowerCase();
-        if (!trimmed || lower.startsWith('cliente whatsapp') || lower === 'cliente' || lower === 'contacto' || lower === 'cliente wa') {
-            return phoneWithPlus || 'Cliente';
+    // Helper centralizado para limpiar claves de teléfono
+    function getCleanPhoneKey(phone) {
+        if (!phone) return '';
+        const str = String(phone).trim();
+        if (str.startsWith('group_')) return str;
+        return str.replace(/\D/g, '');
+    }
+
+    // Helper para formatear teléfonos con el prefijo telefónico separado por un espacio (+34 600000000)
+    function formatPhoneWithPrefix(phone) {
+        if (!phone) return '';
+        const str = String(phone).trim();
+        if (str.startsWith('group_')) return str;
+        const clean = str.replace(/\D/g, '');
+        if (!clean) return phone;
+
+        // 1 dígito (+1 USA / Canadá)
+        if (clean.startsWith('1') && clean.length >= 11) {
+            return `+1 ${clean.slice(1)}`;
         }
-        return trimmed;
+        
+        // 3 dígitos (+351 Portugal, +352, +353, +354, +358, +376 Andorra, +502, +503, +504, +505, +506, +507, +591, +593, +595, +598, +971, etc.)
+        const threeDigitPrefixes = ['351', '352', '353', '354', '358', '376', '502', '503', '504', '505', '506', '507', '591', '593', '595', '598', '971'];
+        for (const p of threeDigitPrefixes) {
+            if (clean.startsWith(p) && clean.length > p.length) {
+                return `+${p} ${clean.slice(p.length)}`;
+            }
+        }
+        
+        // 2 dígitos (+34 España, +44 UK, +33 Francia, +49 Alemania, +39 Italia, +41 Suiza, +31, +32, +43, +45, +46, +47, +48, +52, +54, +55, +56, +57, +58, +61, +81, +86, +91, etc.)
+        if (clean.length >= 10) {
+            const prefix2 = clean.slice(0, 2);
+            return `+${prefix2} ${clean.slice(2)}`;
+        }
+        
+        // 9 dígitos (móvil o fijo español sin prefijo 34)
+        if (clean.length === 9) {
+            return `+34 ${clean}`;
+        }
+        
+        return `+${clean}`;
+    }
+
+    // Helper unificado para obtener el nombre del cliente o su teléfono formateado si no tiene nombre registrado
+    function getClientDisplayName(nombre, phone) {
+        const clean = getCleanPhoneKey(phone);
+        
+        // Contactos conocidos del restaurante
+        if (clean === 'group_taxi_casa_julian') return 'Taxi Casa Julián';
+        if (clean === '34670426540') return 'Taxi Iguaran';
+        if (clean === '34670449858') return 'Taxi Tolosa';
+        if (clean === '34636979092') return 'Taxi Lexus';
+        if (clean === '34943671417') return 'Casa Julián Tolosa';
+        if (clean === '34664037707') return 'Ander Informatico';
+        if (clean === '34645747754') return 'Xabi Gorrotxategi';
+        if (clean === '34623476521') return 'Ricardo Entretiempo Studio';
+
+        if (nombre && typeof nombre === 'string') {
+            const trimmed = nombre.trim();
+            const low = trimmed.toLowerCase();
+            const isGeneric = !trimmed ||
+                low.startsWith('cliente whatsapp') ||
+                low.startsWith('cliente wa') ||
+                low.startsWith('contacto whatsapp') ||
+                low === 'cliente' ||
+                low === 'contacto' ||
+                low === 'usuario' ||
+                low === 'cliente casa julián' ||
+                low === 'cliente casa julian' ||
+                low.startsWith('+') ||
+                /^\+?\d[\d\s\-\(\)]+$/.test(trimmed);
+
+            if (!isGeneric) {
+                return trimmed;
+            }
+        }
+        
+        if (!clean) return 'Contacto';
+        return formatPhoneWithPrefix(clean);
     }
 
     // SIMULADOR DOM
@@ -4123,13 +4191,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatTags = getChatTags(c.telefono, c).map(t => String(t).toLowerCase().trim());
 
         // 1. Coincidencia directa por etiquetas asignadas al chat
-        if (chatTags.some(t => t === id || t === name || (name.length > 2 && t.includes(name)) || (t.length > 2 && name.includes(t)))) {
+        if (chatTags.some(t => {
+            if (t === id || t === name) return true;
+            if (id === 'menu_tradicion' && (t === 'ot' || t === 'menu_tradicion' || t === 'tradicion')) return true;
+            if (id === 'modificacion' && (t === 'modif' || t === 'modificacion' || t === 'modificaciones')) return true;
+            if (id === 'cancelacion' && (t === 'cancel' || t === 'cancelacion' || t === 'cancelaciones')) return true;
+            if (id === 'faq' && (t === 'faqs' || t === 'faq' || t === 'preguntas_frecuentes')) return true;
+            if (id === 'otras_cuestiones' && (t === 'otras' || t === 'otras_cuestiones' || t === 'consulta' || t === 'consulta_abierta')) return true;
+            if (name === 'ot' && (t === 'ot' || t === 'menu_tradicion')) return true;
+            if (name === 'modif' && (t === 'modif' || t === 'modificacion')) return true;
+            if (name === 'cancel' && (t === 'cancel' || t === 'cancelacion')) return true;
+            if (name === 'faqs' && (t === 'faqs' || t === 'faq')) return true;
+            if (name === 'otras' && (t === 'otras' || t === 'otras_cuestiones')) return true;
+            return (name.length > 2 && t.includes(name)) || (t.length > 2 && name.includes(t));
+        })) {
             return true;
         }
 
-        // 2. Coincidencia por Temática (SOLO si el chat fue gestionado por bot con solicitud activa explícita)
-        if (c.solicitudId && c.tipoSolicitud) {
-            const topic = getConversationTopic(c);
+        // 2. Coincidencia por Temática del Chatbot
+        const topic = getConversationTopic(c);
+        if (topic) {
             if ((id === 'menu_tradicion' || name === 'ot' || name === 'menu_tradicion') && topic === 'menu_tradicion') return true;
             if ((id === 'modificacion' || name === 'modif' || name === 'modificacion') && topic === 'modificacion') return true;
             if ((id === 'cancelacion' || name === 'cancel' || name === 'cancelacion') && topic === 'cancelacion') return true;
@@ -4235,6 +4316,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 tags.push('Taxis');
             }
         }
+
+        // Inferir etiqueta por temática del chatbot si aplica
+        if (conv) {
+            const topic = getConversationTopic(conv);
+            if (topic === 'menu_tradicion' && !tags.includes('OT')) tags.push('OT');
+            else if (topic === 'modificacion' && !tags.includes('MODIF')) tags.push('MODIF');
+            else if (topic === 'cancelacion' && !tags.includes('CANCEL')) tags.push('CANCEL');
+            else if (topic === 'faq' && !tags.includes('FAQs')) tags.push('FAQs');
+            else if (topic === 'otras_cuestiones' && !tags.includes('OTRAS')) tags.push('OTRAS');
+        }
+
         return [...new Set(tags)];
     }
 
@@ -4292,26 +4384,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getConversationTopic(c) {
+        if (!c) return null;
         const tipo = (c.tipoSolicitud || '').toUpperCase();
+        const cat = (c.categoria || '').toUpperCase();
         const text = (c.ultimoTexto || '').toLowerCase();
         const tags = Array.isArray(c.etiquetas) ? c.etiquetas.map(t => String(t).toLowerCase()) : [];
 
-        if (tipo === 'MENU_TRADICION' || tags.some(t => t.includes('menu') || t.includes('tradici')) || /men[uú]|tradici[oó]n|degustaci|carta|chuleta|txuleta|txuleton/i.test(text)) {
+        // 1. Tarjeta Regalo / Menú Tradición (OT)
+        if (tipo.includes('TRADICION') || tipo.includes('TRADICIÓN') || tipo.includes('REGALO') || tipo.includes('TARJETA') || cat.includes('TRADICION') || cat.includes('REGALO') || tags.some(t => t.includes('ot') || t.includes('menu') || t.includes('tradici') || t.includes('regalo') || t.includes('tarjeta')) || /men[uú]|tradici[oó]n|tarjeta|regalo|degustaci|opari/i.test(text)) {
             return 'menu_tradicion';
         }
-        if (tipo === 'MODIFICACION' || tags.some(t => t.includes('modif')) || /modifi|cambi|hora|personas|ampliar|retras/i.test(text)) {
+
+        // 2. Modificación de Reserva (MODIF)
+        if (tipo.includes('MODIF') || cat.includes('MODIF') || tags.some(t => t.includes('modif')) || /modifi|cambi|ampliar|retras/i.test(text)) {
             return 'modificacion';
         }
-        if (tipo === 'CANCELACION' || tags.some(t => t.includes('cancel')) || /cancel|anul|no podemos ir|no podre/i.test(text)) {
+
+        // 3. Cancelación de Reserva (CANCEL)
+        if (tipo.includes('CANCEL') || cat.includes('CANCEL') || tags.some(t => t.includes('cancel')) || /cancel|anul|no podemos ir|no podre/i.test(text)) {
             return 'cancelacion';
         }
-        if (tipo === 'PREGUNTAS_FRECUENTES' || tipo === 'FAQ' || tags.some(t => t.includes('faq') || t.includes('pregunt')) || /horario|donde|d[oó]nde|ubicaci[oó]n|c[oó]mo llegar|aparc|parking|direccion/i.test(text)) {
+
+        // 4. Preguntas Frecuentes (FAQs - 5. Otras cuestiones)
+        if (tipo.includes('FAQ') || tipo.includes('PREGUNTA') || cat === 'FAQS' || tags.some(t => t.includes('faq')) || /faq|pregunt|horario|donde|d[oó]nde|ubicaci[oó]n|c[oó]mo llegar|aparc|parking|direccion/i.test(text)) {
             return 'faq';
         }
-        if (tipo === 'OTRAS_CUESTIONES' || tipo === 'DUDA' || tags.some(t => t.includes('otra')) || /otra|cuesti|duda|consulta|evento|grupo|alergia|celiac/i.test(text)) {
+
+        // 5. Consulta Abierta (OTRAS - 4. Consulta abierta)
+        if (tipo.includes('CONSULTA') || tipo.includes('CASUIST') || tipo.includes('CASUÍST') || tipo.includes('OTRAS') || tipo.includes('DUDA') || cat.includes('CONSULTA') || tags.some(t => t.includes('otra') || t.includes('consulta')) || /consulta|casu[ií]stica|duda|alergia|celiac/i.test(text)) {
             return 'otras_cuestiones';
         }
-        return 'otras_cuestiones';
+
+        return null;
     }
 
     // ── Renderizar Píldoras de Filtro Dinámicas según el orden de Gestión de Etiquetas ──
@@ -4613,6 +4717,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         const atId = (at.id || '').toLowerCase();
                         const atName = (at.name || '').toLowerCase();
                         if (atId === lowT || atName === lowT) return true;
+                        if (atId === 'menu_tradicion' && (lowT === 'ot' || lowT === 'menu_tradicion' || lowT === 'tradicion')) return true;
+                        if (atId === 'modificacion' && (lowT === 'modif' || lowT === 'modificacion' || lowT === 'modificaciones')) return true;
+                        if (atId === 'cancelacion' && (lowT === 'cancel' || lowT === 'cancelacion' || lowT === 'cancelaciones')) return true;
+                        if (atId === 'faq' && (lowT === 'faqs' || lowT === 'faq' || lowT === 'preguntas_frecuentes')) return true;
+                        if (atId === 'otras_cuestiones' && (lowT === 'otras' || lowT === 'otras_cuestiones' || lowT === 'consulta' || lowT === 'consulta_abierta')) return true;
                         if (atId === 'empleado' && (lowT === 'empleados' || lowT === 'empleado' || lowT === 'personal' || lowT === 'alba')) return true;
                         if (atId === 'proveedor' && (lowT === 'proveedores' || lowT === 'proveedor')) return true;
                         if (atId === 'hoteles' && (lowT === 'hotel' || lowT === 'hoteles')) return true;
@@ -4622,9 +4731,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     const rawLabel = tagObj ? tagObj.name : t;
                     const lowRaw = String(rawLabel).toLowerCase().trim();
-                    const label = (lowRaw === 'empleados' || lowRaw === 'empleado' || lowRaw === 'alba' || lowRaw === 'personal') 
-                        ? 'PERSONAL' 
-                        : (lowRaw === 'grupo' || lowRaw === 'grupos' ? 'GRUPO' : rawLabel.toUpperCase());
+                    let label = rawLabel.toUpperCase();
+                    if (lowRaw === 'empleados' || lowRaw === 'empleado' || lowRaw === 'alba' || lowRaw === 'personal') {
+                        label = 'PERSONAL';
+                    } else if (lowRaw === 'grupo' || lowRaw === 'grupos') {
+                        label = 'GRUPO';
+                    } else if (lowRaw === 'faq' || lowRaw === 'faqs') {
+                        label = 'FAQs';
+                    }
                     const defaultColor = (lowRaw === 'grupo' || lowRaw === 'grupos') ? '#94a3b8' : '#c084fc';
                     const defaultBg = (lowRaw === 'grupo' || lowRaw === 'grupos') ? 'rgba(148, 163, 184, 0.18)' : 'rgba(168, 85, 247, 0.2)';
                     const color = tagObj ? tagObj.color : defaultColor;
@@ -6118,7 +6232,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             if (groupMembersBadge) groupMembersBadge.style.display = 'none';
-            if (phoneEl) phoneEl.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
+            if (phoneEl) phoneEl.textContent = `📞 WhatsApp: ${formatPhoneWithPrefix(cleanPhoneStr)}`;
         }
 
         if (btnCall) {
@@ -6328,7 +6442,7 @@ document.addEventListener('DOMContentLoaded', () => {
         replySolicitudId.value = sol.id || `chat_${cleanPhoneStr}`;
         const clientDisplayName = getClientDisplayName(sol.nombreCliente, cleanPhoneStr);
         replyClientName.textContent = clientDisplayName;
-        replyClientPhone.textContent = `📞 WhatsApp: +${cleanPhoneStr}`;
+        replyClientPhone.textContent = `📞 WhatsApp: ${formatPhoneWithPrefix(cleanPhoneStr)}`;
 
         // Generador de Avatar dinámico con soporte de fotos
         const avatarEl = document.getElementById('reply-modal-avatar');
@@ -6545,7 +6659,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="minimized-name">${clientName}</div>
                                 ${isUnread ? '<span class="minimized-unread-badge">🔴 ¡Nuevo!</span>' : ''}
                             </div>
-                            <div class="minimized-sub">📞 WhatsApp: +${phone}</div>
+                            <div class="minimized-sub">📞 WhatsApp: ${formatPhoneWithPrefix(phone)}</div>
                         </div>
                     </div>
                     <div class="minimized-actions">
@@ -7431,22 +7545,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
      // ── GESTIÓN INTEGRAL DE GRUPOS DE WHATSAPP (CREACIÓN, MIEMBROS E INFORMACIÓN) ──────────
-    function getClientDisplayName(nombre, phone) {
-        if (nombre && typeof nombre === 'string' && nombre.trim() && !nombre.startsWith('+')) {
-            return nombre.trim();
-        }
-        const clean = getCleanPhoneKey(phone);
-        if (!clean) return 'Contacto';
-        if (clean === 'group_taxi_casa_julian') return 'Taxi Casa Julián';
-        if (clean === '34670426540') return 'Taxi Iguaran';
-        if (clean === '34670449858') return 'Taxi Tolosa';
-        if (clean === '34636979092') return 'Taxi Lexus';
-        if (clean === '34943671417') return 'Casa Julián Tolosa';
-        if (clean === '34664037707') return 'Ander Informatico';
-        if (clean === '34645747754') return 'Xabi Gorrotxategi';
-        if (clean === '34623476521') return 'Ricardo Entretiempo Studio';
-        return `+${clean}`;
-    }
 
     function getClientCustomAvatar(phone, name = '') {
         const clean = getCleanPhoneKey(phone);
@@ -7634,7 +7732,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-size: 0.86rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.nombre}</div>
-                        <div style="font-size: 0.76rem; color: #94a3b8;">+${c.telefono} ${tagsHtml ? '• ' + tagsHtml : ''}</div>
+                        <div style="font-size: 0.76rem; color: #94a3b8;">${formatPhoneWithPrefix(c.telefono)} ${tagsHtml ? '• ' + tagsHtml : ''}</div>
                     </div>
                 </label>
             `;
@@ -7857,8 +7955,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${avatarHtml}
                         </div>
                         <div style="min-width: 0; flex: 1;">
-                            <div style="font-size: 0.88rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nombre || `+${cleanTel}`}</div>
-                            <div style="font-size: 0.78rem; color: #94a3b8;">+${cleanTel} ${p.isOfficial ? '• <span style="color:#38bdf8;">Restaurante</span>' : ''}</div>
+                            <div style="font-size: 0.88rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nombre || formatPhoneWithPrefix(cleanTel)}</div>
+                            <div style="font-size: 0.78rem; color: #94a3b8;">${formatPhoneWithPrefix(cleanTel)} ${p.isOfficial ? '• <span style="color:#38bdf8;">Restaurante</span>' : ''}</div>
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 6px;">
@@ -8020,7 +8118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-size: 0.86rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.nombre}</div>
-                        <div style="font-size: 0.76rem; color: #94a3b8;">+${c.telefono}</div>
+                        <div style="font-size: 0.76rem; color: #94a3b8;">${formatPhoneWithPrefix(c.telefono)}</div>
                     </div>
                 </label>
             `;
@@ -8153,7 +8251,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-size: 0.88rem; font-weight: 600; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.nombre}</div>
-                        <div style="font-size: 0.76rem; color: #94a3b8;">+${c.telefono}</div>
+                        <div style="font-size: 0.76rem; color: #94a3b8;">${formatPhoneWithPrefix(c.telefono)}</div>
                     </div>
                     <span style="color: #10b981; font-size: 0.85rem; font-weight: 700;">💬</span>
                 </div>

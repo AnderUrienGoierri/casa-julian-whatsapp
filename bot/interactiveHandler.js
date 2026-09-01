@@ -1682,7 +1682,7 @@ async function handleButtonResponse(from, buttonId) {
                 : ['Consulta abierta'];
 
             const telefonoCliente = from.replace(/\D/g, '');
-            const nombreCliente = `Cliente WhatsApp (${telefonoCliente})`;
+            const nombreCliente = `+${telefonoCliente}`;
             const inquiriesFormatted = consultas.length > 1
                 ? consultas.map((q, idx) => `${idx + 1}. ${q}`).join('\n')
                 : consultas[0];
