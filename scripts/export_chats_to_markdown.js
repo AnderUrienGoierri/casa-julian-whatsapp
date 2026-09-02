@@ -79,26 +79,16 @@ function sanitizeFilename(str) {
 function cleanMarkdownTableCell(text) {
     if (!text) return '-';
     let str = String(text);
-    // Eliminar emojis
     str = str.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '');
-    // Escapar barras verticales
     str = str.replace(/\|/g, '\\|');
-    // Reemplazar saltos de línea por <br>
     str = str.replace(/\r\n|\n/g, '<br>');
-    // Limpiar espacios dobles
     str = str.replace(/\s+/g, ' ').trim();
-    // Reemplazar <br> repetidos
     str = str.replace(/(<br>\s*){3,}/g, '<br><br>');
     return str || '-';
 }
 
-// Extraer etiquetas del chatbot (solo si la fecha es >= 30/08/2026)
+// Extraer etiquetas del chatbot
 function getChatbotTags(allTexts, lastDateStr) {
-    if (!lastDateStr) return [];
-    const d = new Date(lastDateStr);
-    if (isNaN(d.getTime()) || d < new Date('2026-08-30T00:00:00')) {
-        return [];
-    }
     const combined = (allTexts || '').toLowerCase();
     const tags = [];
     if (/tarjeta\s*regalo|tarjeta_regalo|men[uú]\s*tradici[oó]n|menu_tradicion|opari[\s\-]txartel|gift\s*card|bono\s*regalo|reserva\s*men[uú]\s*tradici[oó]n|btn_reserva_con_tarjeta|opt_regalar_menu_tradicion|opt_menu_tradicion/i.test(combined)) {
@@ -113,11 +103,11 @@ function getChatbotTags(allTexts, lastDateStr) {
     if (/cancel|anul|cancel\s*request|erreserba\s*bertan\s*behera|no\s*podremos\s*asistir|no\s*podemos\s*ir|opt_cancelacion|btn_go_cancelacion/i.test(combined)) {
         tags.push('CANCEL');
     }
+    if (/otras\s*cuestiones|preguntas\s*frecuentes|faq|horario|donde\s*aparcar|d[oó]nde\s*aparcar|c[oó]mo\s*llegar|como\s*llegar|ubicaci[oó]n|ubicacion|direcci[oó]n|direccion|ver\s*carta|ikusi\s*karta|view\s*menu|other\s*questions|beste\s*gai\s*batzuk|opt_otras_cuestiones|faq_/i.test(combined)) {
+        tags.push('FAQS');
+    }
     if (/consulta\s*abierta|casu[ií]stica|inquiry\s*successfully\s*sent|duda\s*o\s*consulta|necesidad\s*especial|embarazada|mascota|submit\s*request|bidali\s*eskaera|enviar\s*solicitud|opt_consulta_abierta|btn_consulta_enviar/i.test(combined)) {
         tags.push('OTRAS');
-    }
-    if (/otras\s*cuestiones|preguntas\s*frecuentes|faq|horario|donde\s*aparcar|d[oó]nde\s*aparcar|c[oó]mo\s*llegar|como\s*llegar|ubicaci[oó]n|ubicacion|direcci[oó]n|direccion|ver\s*carta|ikusi\s*karta|view\s*menu|other\s*questions|beste\s*gai\s*batzuk|opt_otras_cuestiones|faq_/i.test(combined)) {
-        tags.push('FAQs');
     }
     return tags;
 }
@@ -166,20 +156,101 @@ function getCategory(cleanPhone, silencedMap, customCategory) {
     return 'cliente';
 }
 
+// Genera el contenido Markdown para un chat
+function buildChatMarkdown(chat, clientMessages) {
+    let md = `# Conversación de WhatsApp: ${chat.displayName}\n\n`;
+    md += `| Metadato | Detalle |\n`;
+    md += `| :--- | :--- |\n`;
+    md += `| **Contacto / Cliente** | ${chat.displayName} |\n`;
+    md += `| **Número de Teléfono** | \`${formatPhoneWithPrefix(chat.telefono)}\` (\`${chat.telefono}\`) |\n`;
+    md += `| **Categoría** | \`${chat.category.toUpperCase()}\` |\n`;
+    md += `| **Etiquetas** | ${chat.tags.length > 0 ? chat.tags.map(t => `\`${t}\``).join(' ') : '*Ninguna*'} |\n`;
+    md += `| **Fijado en Panel** | ${chat.isPinned ? 'Sí' : 'No'} |\n`;
+    md += `| **Total de Mensajes** | ${chat.messagesCount} (Cliente: ${clientMessages.length}, Bot/Recepción: ${chat.messagesCount - clientMessages.length}) |\n`;
+    md += `| **Primer Mensaje** | ${formatMadridDateTime(chat.firstDateStr)} |\n`;
+    md += `| **Último Mensaje** | ${formatMadridDateTime(chat.lastDateStr)} |\n`;
+    md += `| **Carpeta del Día** | \`${chat.dayKey}\` |\n\n`;
+    md += `---\n\n`;
+    
+    md += `## Resumen: Mensajes del Cliente (Sin respuestas del Bot)\n\n`;
+    if (clientMessages.length > 0) {
+        md += `| # | Fecha y Hora | Mensaje Escrito por el Cliente |\n`;
+        md += `| :---: | :--- | :--- |\n`;
+        clientMessages.forEach((cm, cIdx) => {
+            const cTime = formatMadridDateTime(cm.created_at);
+            const cText = cleanMarkdownTableCell(cm.texto);
+            md += `| ${cIdx + 1} | ${cTime} | ${cText} |\n`;
+        });
+        md += `\n`;
+    } else {
+        md += `*No hay mensajes enviados directamente por el cliente (conversación iniciada por recepción o historial archivado).*\n\n`;
+    }
+
+    md += `---\n\n`;
+    md += `## Historial Completo de la Conversación\n\n`;
+    md += `| # | Fecha y Hora | Emisor | Tipo | Mensaje | Opciones / Botones |\n`;
+    md += `| :---: | :--- | :--- | :--- | :--- | :--- |\n`;
+
+    chat.messages.forEach((m, idx) => {
+        const time = formatMadridDateTime(m.created_at);
+        
+        let emisorLabel = 'Cliente';
+        if (m.emisor === 'bot') emisorLabel = 'Bot';
+        else if (['staff', 'humano', 'recepcion', 'admin', 'restaurante'].includes(m.emisor)) {
+            emisorLabel = 'Recepción';
+        }
+
+        let typeLabel = 'Texto';
+        if (m.tipo === 'interactive_list') typeLabel = 'Lista de opciones';
+        else if (m.tipo === 'interactive_buttons') typeLabel = 'Botones interactivos';
+        else if (m.tipo === 'interactive') typeLabel = 'Selección';
+        else if (m.tipo === 'image') typeLabel = 'Imagen';
+        else if (m.tipo === 'audio' || m.tipo === 'ptt') typeLabel = 'Audio';
+        else if (m.tipo === 'document') typeLabel = 'Documento';
+
+        let meta = {};
+        try {
+            meta = typeof m.metadata === 'object' ? (m.metadata || {}) : JSON.parse(m.metadata || '{}');
+        } catch(e) {}
+
+        let optionsText = '-';
+        if (meta.sections && Array.isArray(meta.sections)) {
+            const rows = meta.sections.flatMap(s => s.rows || []);
+            const rowTitles = rows.map(r => (typeof r === 'object' ? (r.title || r.id || '') : r)).filter(Boolean);
+            if (rowTitles.length > 0) {
+                optionsText = rowTitles.map(t => cleanMarkdownTableCell(t)).join('<br>');
+            }
+        } else if (meta.buttons && Array.isArray(meta.buttons)) {
+            const buttonTitles = meta.buttons.map(b => (typeof b === 'object' ? (b.title || b.reply?.title || b.id || '') : b)).filter(Boolean);
+            if (buttonTitles.length > 0) {
+                optionsText = buttonTitles.map(t => cleanMarkdownTableCell(t)).join('<br>');
+            }
+        }
+
+        const cleanMsg = cleanMarkdownTableCell(m.texto);
+        md += `| ${idx + 1} | ${time} | ${emisorLabel} | ${typeLabel} | ${cleanMsg} | ${optionsText} |\n`;
+    });
+
+    md += `\n`;
+    return md;
+}
+
 async function runExport() {
-    console.log("Iniciando exportación simplificada de chats a Markdown con tablas...");
+    console.log("Iniciando exportación organizada de chats_whatsapp y chats_a_responder...");
 
     const rootDir = path.join(__dirname, '..');
-    const targetDirs = [
-        path.join(rootDir, 'chats_whatsapp'),
-        path.join(rootDir, 'chats_whastapp')
-    ];
+    const mainChatsDir = path.join(rootDir, 'chats_whatsapp');
+    const responderDir = path.join(rootDir, 'chats_a_responder');
+    const typoDir = path.join(rootDir, 'chats_whastapp');
 
-    targetDirs.forEach(dir => {
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-    });
+    // 0. Eliminar carpeta con errata si existe
+    if (fs.existsSync(typoDir)) {
+        fs.rmSync(typoDir, { recursive: true, force: true });
+        console.log("Carpeta redundante 'chats_whastapp' eliminada.");
+    }
+
+    if (!fs.existsSync(mainChatsDir)) fs.mkdirSync(mainChatsDir, { recursive: true });
+    if (!fs.existsSync(responderDir)) fs.mkdirSync(responderDir, { recursive: true });
 
     // 1. Cargar metadatos
     const silencedList = await getAllSilencedNumbers();
@@ -230,8 +301,18 @@ async function runExport() {
 
     console.log(`Total de conversaciones activas: ${chatsMap.size}`);
 
-    // 4. Procesar cada chat y clasificar por día del último mensaje
-    const daysMap = new Map();
+    // 4. Procesar y clasificar
+    const daysMap = new Map(); // Para chats_whatsapp: dayKey -> array de chatObj
+    const responderTagsMap = {
+        'OT': new Map(),     // dayKey -> array
+        'NO OT': new Map(),
+        'MODIF': new Map(),
+        'CANCEL': new Map(),
+        'FAQS': new Map(),
+        'OTRAS': new Map()
+    };
+
+    let totalClientChats = 0;
 
     chatsMap.forEach((messages, telefono) => {
         const cleanPhone = telefono.startsWith('group_') ? telefono : telefono.replace(/\D/g, '');
@@ -257,7 +338,9 @@ async function runExport() {
         const displayName = getKnownDisplayName(cleanPhone, silencedMap, rawClientName);
         const category = getCategory(cleanPhone, silencedMap, null);
         const allTexts = messages.map(m => m.texto || '').join(' ___ ');
-        
+        const clientMessages = messages.filter(m => m.emisor === 'cliente');
+        const hasClientText = clientMessages.length > 0;
+
         // Etiquetas
         const customTags = chatTagsMap[cleanPhone] || [];
         const botTags = getChatbotTags(allTexts, lastDateStr);
@@ -279,156 +362,151 @@ async function runExport() {
             firstDateStr,
             lastDateStr,
             dayKey,
-            messages
+            messages,
+            clientMessages,
+            hasClientText
         };
 
-        if (!daysMap.has(dayKey)) {
-            daysMap.set(dayKey, []);
-        }
+        // Guardar para chats_whatsapp (todos los chats agrupados por día)
+        if (!daysMap.has(dayKey)) daysMap.set(dayKey, []);
         daysMap.get(dayKey).push(chatObj);
+
+        // Guardar para chats_a_responder (solo chats con texto de cliente)
+        if (hasClientText) {
+            totalClientChats++;
+            // Determinar etiquetas objetivo
+            const targetTags = [];
+            ['OT', 'NO OT', 'MODIF', 'CANCEL', 'FAQS', 'OTRAS'].forEach(t => {
+                if (combinedTags.includes(t)) targetTags.push(t);
+            });
+            // Si no tiene ninguna de las 6 etiquetas pero tiene texto de cliente, clasificar en OTRAS
+            if (targetTags.length === 0) targetTags.push('OTRAS');
+
+            targetTags.forEach(t => {
+                if (!responderTagsMap[t].has(dayKey)) responderTagsMap[t].set(dayKey, []);
+                responderTagsMap[t].get(dayKey).push(chatObj);
+            });
+        }
     });
 
-    // 5. Ordenar los días cronológicamente descendente
+    console.log(`Total de chats con texto escrito por cliente: ${totalClientChats}`);
+
+    // 5. Generar chats_whatsapp/ (Carpeta única completa por días)
     const sortedDays = Array.from(daysMap.keys()).sort((a, b) => {
         const [d1, m1, y1] = a.split('_').map(Number);
         const [d2, m2, y2] = b.split('_').map(Number);
         return new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1);
     });
 
-    console.log(`Generando archivos en ${sortedDays.length} carpetas diarias...`);
+    for (const dayKey of sortedDays) {
+        const dayDir = path.join(mainChatsDir, dayKey);
+        if (!fs.existsSync(dayDir)) fs.mkdirSync(dayDir, { recursive: true });
 
-    let totalExportedFiles = 0;
+        const chatsInDay = daysMap.get(dayKey);
+        chatsInDay.sort((a, b) => {
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return new Date(b.lastDateStr) - new Date(a.lastDateStr);
+        });
 
-    // Generar carpetas y archivos Markdown
-    for (const targetDir of targetDirs) {
-        for (const dayKey of sortedDays) {
-            const dayDir = path.join(targetDir, dayKey);
-            if (!fs.existsSync(dayDir)) {
-                fs.mkdirSync(dayDir, { recursive: true });
-            }
+        for (const chat of chatsInDay) {
+            const safeName = sanitizeFilename(chat.displayName);
+            const filename = `chat_${chat.telefono}_${safeName}.md`;
+            const filePath = path.join(dayDir, filename);
+            const md = buildChatMarkdown(chat, chat.clientMessages);
+            fs.writeFileSync(filePath, md, 'utf8');
+        }
+    }
 
-            const chatsInDay = daysMap.get(dayKey);
-            chatsInDay.sort((a, b) => {
-                if (a.isPinned && !b.isPinned) return -1;
-                if (!a.isPinned && b.isPinned) return 1;
-                return new Date(b.lastDateStr) - new Date(a.lastDateStr);
-            });
+    // README principal para chats_whatsapp
+    let readmeMain = `# Histórico de Conversaciones de WhatsApp - Casa Julián de Tolosa\n\n`;
+    readmeMain += `Directorio maestro con todas las conversaciones de WhatsApp del restaurante organizadas por el día del último mensaje.\n\n`;
+    readmeMain += `### Resumen General\n`;
+    readmeMain += `- **Total de Días Registrados:** ${sortedDays.length}\n`;
+    readmeMain += `- **Total de Chats Exportados:** ${chatsMap.size}\n`;
+    readmeMain += `- **Total de Mensajes:** ${allMessages.length}\n`;
+    readmeMain += `- **Chats con texto del cliente:** ${totalClientChats}\n\n`;
+    readmeMain += `---\n\n### Índice de Carpetas por Día\n\n| Fecha | Carpeta | Total Chats |\n| :--- | :--- | :---: |\n`;
+    sortedDays.forEach(dayKey => {
+        const list = daysMap.get(dayKey);
+        const [d, m, y] = dayKey.split('_');
+        readmeMain += `| ${d}/${m}/${y} | [\`${dayKey}/\`](./${dayKey}/) | **${list.length}** |\n`;
+    });
+    fs.writeFileSync(path.join(mainChatsDir, 'README.md'), readmeMain, 'utf8');
+
+    // 6. Generar chats_a_responder/ (Organizado por ETIQUETA -> DÍA)
+    console.log("Generando estructura de chats_a_responder clasificada por etiquetas y días...");
+
+    const tagFolders = ['OT', 'NO OT', 'MODIF', 'CANCEL', 'FAQS', 'OTRAS'];
+    const tagDescriptions = {
+        'OT': 'Reserva con Tarjeta de Regalo / Menú Tradición',
+        'NO OT': 'Solicitud de Reserva Online estándar (Sin Tarjeta / Web)',
+        'MODIF': 'Modificación de reservas existentes (Hora, Fecha, Comensales)',
+        'CANCEL': 'Cancelación o anulación de reservas',
+        'FAQS': 'Preguntas Frecuentes (Horarios, Aparcamiento, Carta, etc.)',
+        'OTRAS': 'Consultas Abiertas y Casuísticas Particulares con texto de cliente'
+    };
+
+    let readmeResponder = `# Buzón de Chats a Responder - Casa Julián de Tolosa\n\n`;
+    readmeResponder += `Este directorio agrupa exclusivamente los chats que contienen **mensajes enviados por clientes** clasificados por categoría/etiqueta y organizados en subcarpetas por día para facilitar la atención de solicitudes por parte de recepción.\n\n`;
+    readmeResponder += `### Resumen por Categoría\n\n`;
+    readmeResponder += `| Etiqueta | Descripción | Total Chats |\n`;
+    readmeResponder += `| :--- | :--- | :---: |\n`;
+
+    let totalResponderFiles = 0;
+
+    for (const tag of tagFolders) {
+        const tagDir = path.join(responderDir, tag);
+        if (!fs.existsSync(tagDir)) fs.mkdirSync(tagDir, { recursive: true });
+
+        const daysInTag = responderTagsMap[tag];
+        const sortedTagDays = Array.from(daysInTag.keys()).sort((a, b) => {
+            const [d1, m1, y1] = a.split('_').map(Number);
+            const [d2, m2, y2] = b.split('_').map(Number);
+            return new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1);
+        });
+
+        let totalTagChats = 0;
+
+        for (const dayKey of sortedTagDays) {
+            const dayDir = path.join(tagDir, dayKey);
+            if (!fs.existsSync(dayDir)) fs.mkdirSync(dayDir, { recursive: true });
+
+            const chatsInDay = daysInTag.get(dayKey);
+            totalTagChats += chatsInDay.length;
 
             for (const chat of chatsInDay) {
                 const safeName = sanitizeFilename(chat.displayName);
                 const filename = `chat_${chat.telefono}_${safeName}.md`;
                 const filePath = path.join(dayDir, filename);
-
-                const clientMessages = chat.messages.filter(m => m.emisor === 'cliente');
-
-                // Construir contenido Markdown simplificado
-                let md = `# Conversación de WhatsApp: ${chat.displayName}\n\n`;
-                md += `| Metadato | Detalle |\n`;
-                md += `| :--- | :--- |\n`;
-                md += `| **Contacto / Cliente** | ${chat.displayName} |\n`;
-                md += `| **Número de Teléfono** | \`${formatPhoneWithPrefix(chat.telefono)}\` (\`${chat.telefono}\`) |\n`;
-                md += `| **Categoría** | \`${chat.category.toUpperCase()}\` |\n`;
-                md += `| **Etiquetas** | ${chat.tags.length > 0 ? chat.tags.map(t => `\`${t}\``).join(' ') : '*Ninguna*'} |\n`;
-                md += `| **Fijado en Panel** | ${chat.isPinned ? 'Sí' : 'No'} |\n`;
-                md += `| **Total de Mensajes** | ${chat.messagesCount} (Cliente: ${clientMessages.length}, Bot/Recepción: ${chat.messagesCount - clientMessages.length}) |\n`;
-                md += `| **Primer Mensaje** | ${formatMadridDateTime(chat.firstDateStr)} |\n`;
-                md += `| **Último Mensaje** | ${formatMadridDateTime(chat.lastDateStr)} |\n`;
-                md += `| **Carpeta del Día** | \`${chat.dayKey}\` |\n\n`;
-                md += `---\n\n`;
-                
-                // Resumen exclusivo de lo que ha escrito el cliente (sin respuestas del bot)
-                md += `## Resumen: Mensajes del Cliente (Sin respuestas del Bot)\n\n`;
-                if (clientMessages.length > 0) {
-                    md += `| # | Fecha y Hora | Mensaje Escrito por el Cliente |\n`;
-                    md += `| :---: | :--- | :--- |\n`;
-                    clientMessages.forEach((cm, cIdx) => {
-                        const cTime = formatMadridDateTime(cm.created_at);
-                        const cText = cleanMarkdownTableCell(cm.texto);
-                        md += `| ${cIdx + 1} | ${cTime} | ${cText} |\n`;
-                    });
-                    md += `\n`;
-                } else {
-                    md += `*No hay mensajes enviados directamente por el cliente (conversación iniciada por recepción o historial archivado).*\n\n`;
-                }
-
-                md += `---\n\n`;
-                md += `## Historial Completo de la Conversación\n\n`;
-                md += `| # | Fecha y Hora | Emisor | Tipo | Mensaje | Opciones / Botones |\n`;
-                md += `| :---: | :--- | :--- | :--- | :--- | :--- |\n`;
-
-                chat.messages.forEach((m, idx) => {
-                    const time = formatMadridDateTime(m.created_at);
-                    
-                    let emisorLabel = 'Cliente';
-                    if (m.emisor === 'bot') emisorLabel = 'Bot';
-                    else if (['staff', 'humano', 'recepcion', 'admin', 'restaurante'].includes(m.emisor)) {
-                        emisorLabel = 'Recepción';
-                    }
-
-                    let typeLabel = 'Texto';
-                    if (m.tipo === 'interactive_list') typeLabel = 'Lista de opciones';
-                    else if (m.tipo === 'interactive_buttons') typeLabel = 'Botones interactivos';
-                    else if (m.tipo === 'interactive') typeLabel = 'Selección';
-                    else if (m.tipo === 'image') typeLabel = 'Imagen';
-                    else if (m.tipo === 'audio' || m.tipo === 'ptt') typeLabel = 'Audio';
-                    else if (m.tipo === 'document') typeLabel = 'Documento';
-
-                    let meta = {};
-                    try {
-                        meta = typeof m.metadata === 'object' ? (m.metadata || {}) : JSON.parse(m.metadata || '{}');
-                    } catch(e) {}
-
-                    let optionsText = '-';
-                    if (meta.sections && Array.isArray(meta.sections)) {
-                        const rows = meta.sections.flatMap(s => s.rows || []);
-                        const rowTitles = rows.map(r => (typeof r === 'object' ? (r.title || r.id || '') : r)).filter(Boolean);
-                        if (rowTitles.length > 0) {
-                            optionsText = rowTitles.map(t => cleanMarkdownTableCell(t)).join('<br>');
-                        }
-                    } else if (meta.buttons && Array.isArray(meta.buttons)) {
-                        const buttonTitles = meta.buttons.map(b => (typeof b === 'object' ? (b.title || b.reply?.title || b.id || '') : b)).filter(Boolean);
-                        if (buttonTitles.length > 0) {
-                            optionsText = buttonTitles.map(t => cleanMarkdownTableCell(t)).join('<br>');
-                        }
-                    }
-
-                    const cleanMsg = cleanMarkdownTableCell(m.texto);
-
-                    md += `| ${idx + 1} | ${time} | ${emisorLabel} | ${typeLabel} | ${cleanMsg} | ${optionsText} |\n`;
-                });
-
-                md += `\n`;
-
+                const md = buildChatMarkdown(chat, chat.clientMessages);
                 fs.writeFileSync(filePath, md, 'utf8');
-                totalExportedFiles++;
+                totalResponderFiles++;
             }
         }
 
-        // 6. Generar README.md índice maestro simplificado
-        let readme = `# Histórico de Conversaciones de WhatsApp - Casa Julián de Tolosa\n\n`;
-        readme += `Este directorio contiene todas las conversaciones de WhatsApp del restaurante exportadas y organizadas cronológicamente por el día del último mensaje enviado o recibido en cada chat.\n\n`;
-        readme += `### Resumen General\n`;
-        readme += `- **Total de Días Registrados:** ${sortedDays.length}\n`;
-        readme += `- **Total de Chats Exportados:** ${chatsMap.size}\n`;
-        readme += `- **Total de Mensajes Documentados:** ${allMessages.length}\n`;
-        readme += `- **Zona Horaria de Clasificación:** Europe/Madrid (España)\n\n`;
-        readme += `---\n\n`;
-        readme += `### Índice de Carpetas por Día\n\n`;
-        readme += `| Fecha | Carpeta | Total Chats | Ejemplo de Chats |\n`;
-        readme += `| :--- | :--- | :---: | :--- |\n`;
+        readmeResponder += `| [**\`${tag}/\`**](./${encodeURIComponent(tag)}/) | ${tagDescriptions[tag]} | **${totalTagChats}** |\n`;
 
-        sortedDays.forEach(dayKey => {
-            const list = daysMap.get(dayKey);
-            const sample = list.slice(0, 3).map(c => `\`${c.displayName}\``).join(', ') + (list.length > 3 ? ` *(+${list.length - 3} más)*` : '');
+        // Generar README dentro de cada carpeta de etiqueta
+        let tagReadme = `# Chats Clasificados: ${tag}\n\n`;
+        tagReadme += `**Descripción:** ${tagDescriptions[tag]}\n\n`;
+        tagReadme += `- **Total de Chats:** ${totalTagChats}\n`;
+        tagReadme += `- **Total de Días con actividad:** ${sortedTagDays.length}\n\n`;
+        tagReadme += `### Carpetas por Día\n\n| Fecha | Carpeta | Total Chats |\n| :--- | :--- | :---: |\n`;
+        sortedTagDays.forEach(dayKey => {
+            const list = daysInTag.get(dayKey);
             const [d, m, y] = dayKey.split('_');
-            readme += `| ${d}/${m}/${y} | [\`${dayKey}/\`](./${dayKey}/) | **${list.length}** | ${sample} |\n`;
+            tagReadme += `| ${d}/${m}/${y} | [\`${dayKey}/\`](./${dayKey}/) | **${list.length}** |\n`;
         });
-
-        fs.writeFileSync(path.join(targetDir, 'README.md'), readme, 'utf8');
+        fs.writeFileSync(path.join(tagDir, 'README.md'), tagReadme, 'utf8');
     }
 
-    console.log(`Exportación finalizada con éxito.`);
-    console.log(`Se han generado ${totalExportedFiles / 2} archivos .md simplificados en formato tabla.`);
+    readmeResponder += `\n---\n*Total de copias clasificadas para respuesta rápida: ${totalResponderFiles} archivos en 6 categorías.*\n`;
+    fs.writeFileSync(path.join(responderDir, 'README.md'), readmeResponder, 'utf8');
+
+    console.log(`Exportación completa finalizada.`);
+    console.log(`chats_whatsapp/ -> ${chatsMap.size} chats organizados en ${sortedDays.length} días.`);
+    console.log(`chats_a_responder/ -> ${totalResponderFiles} chats con texto de cliente clasificados en 6 categorías y días.`);
 }
 
 runExport().then(() => process.exit(0)).catch(err => {
