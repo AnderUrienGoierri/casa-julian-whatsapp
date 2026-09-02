@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (clean === '34670449858') return 'Taxi Tolosa';
         if (clean === '34636979092') return 'Taxi Lexus';
         if (clean === '34943671417') return 'Casa Julián Tolosa';
-        if (clean === '34664037707') return 'Ander Informatico';
+        if (clean === '34664037707' || clean === '3466407707') return 'Ander Informatico';
         if (clean === '34645747754') return 'Xabi Gorrotxategi';
         if (clean === '34623476521') return 'Ricardo Entretiempo Studio';
 
@@ -3956,7 +3956,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cleanPhone === 'group_taxi_casa_julian' || lowerName.includes('taxi casa juli')) {
             return '/admin/taxi_img.png';
         }
-        if (cleanPhone === '34664037707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático')) {
+        if (cleanPhone === '34664037707' || cleanPhone === '3466407707' || lowerName.includes('ander informatico') || lowerName.includes('ander informático')) {
             return '/admin/ander_img.png';
         }
         if (cleanPhone === '34943671417' || lowerName.includes('casa julián tolosa') || lowerName.includes('casa julian tolosa')) {

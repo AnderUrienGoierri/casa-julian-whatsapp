@@ -68,12 +68,16 @@ const DEFAULT_INBOX_SETTINGS = {
     ],
     deletedTags: [],
     chatTags: {},
-    pinnedChats: {},
+    pinnedChats: {
+        "34664037707": true,
+        "3466407707": true
+    },
     archivedChats: {},
     deletedChats: {},
     chatAvatars: {
         "group_taxi_casa_julian": "/admin/taxi_img.png",
-        "34664037707": "/admin/ander_img.png"
+        "34664037707": "/admin/ander_img.png",
+        "3466407707": "/admin/ander_img.png"
     },
     manualChatStatus: {},
     customGroups: {
