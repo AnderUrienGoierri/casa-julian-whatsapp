@@ -4736,6 +4736,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const clean = getCleanPhoneKey(p);
             if (clean) serverInboxSettings.deletedChats[clean] = { deletedAt: nowIso };
         });
+
+        if (inboxSyncChannel) {
+            inboxSyncChannel.postMessage({ type: 'DELETED_CHATS_UPDATE', deletedChats: serverInboxSettings.deletedChats });
+        }
+
+        const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+        fetch('/api/admin/inbox-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': currentToken,
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ deletedChats: serverInboxSettings.deletedChats })
+        }).catch(e => console.warn('Error guardando deletedChats en servidor:', e));
     }
 
     function closeActiveChatPane() {

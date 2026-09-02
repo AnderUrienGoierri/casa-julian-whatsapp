@@ -94,14 +94,16 @@ async function getInboxSettings() {
                 `SELECT key_name, value FROM bot_system_settings WHERE key_name = 'inbox_shared_settings' LIMIT 1`
             );
             if (res.rows.length > 0 && res.rows[0].value) {
-                const val = typeof res.rows[0].value === 'string' ? JSON.parse(res.rows[0].value) : res.rows[0].value;
+                const rawVal = typeof res.rows[0].value === 'string' ? JSON.parse(res.rows[0].value) : res.rows[0].value;
+                const val = (rawVal && rawVal.settings && typeof rawVal.settings === 'object') ? { ...rawVal, ...rawVal.settings } : rawVal;
                 settings = {
                     ...DEFAULT_INBOX_SETTINGS,
                     ...val,
-                    chatAvatars: {
-                        ...DEFAULT_INBOX_SETTINGS.chatAvatars,
-                        ...((val && val.chatAvatars) || {})
-                    }
+                    chatAvatars: { ...DEFAULT_INBOX_SETTINGS.chatAvatars, ...((val && val.chatAvatars) || {}) },
+                    archivedChats: { ...DEFAULT_INBOX_SETTINGS.archivedChats, ...((val && val.archivedChats) || {}) },
+                    deletedChats: { ...DEFAULT_INBOX_SETTINGS.deletedChats, ...((val && val.deletedChats) || {}) },
+                    pinnedChats: { ...DEFAULT_INBOX_SETTINGS.pinnedChats, ...((val && val.pinnedChats) || {}) },
+                    manualChatStatus: { ...DEFAULT_INBOX_SETTINGS.manualChatStatus, ...((val && val.manualChatStatus) || {}) }
                 };
                 return settings;
             }
@@ -113,13 +115,16 @@ async function getInboxSettings() {
     // 2. Respaldo en db.json
     const db = loadLocalDb();
     if (db.inboxSharedSettings) {
+        const rawVal = db.inboxSharedSettings;
+        const val = (rawVal && rawVal.settings && typeof rawVal.settings === 'object') ? { ...rawVal, ...rawVal.settings } : rawVal;
         settings = {
             ...DEFAULT_INBOX_SETTINGS,
-            ...db.inboxSharedSettings,
-            chatAvatars: {
-                ...DEFAULT_INBOX_SETTINGS.chatAvatars,
-                ...((db.inboxSharedSettings && db.inboxSharedSettings.chatAvatars) || {})
-            }
+            ...val,
+            chatAvatars: { ...DEFAULT_INBOX_SETTINGS.chatAvatars, ...((val && val.chatAvatars) || {}) },
+            archivedChats: { ...DEFAULT_INBOX_SETTINGS.archivedChats, ...((val && val.archivedChats) || {}) },
+            deletedChats: { ...DEFAULT_INBOX_SETTINGS.deletedChats, ...((val && val.deletedChats) || {}) },
+            pinnedChats: { ...DEFAULT_INBOX_SETTINGS.pinnedChats, ...((val && val.pinnedChats) || {}) },
+            manualChatStatus: { ...DEFAULT_INBOX_SETTINGS.manualChatStatus, ...((val && val.manualChatStatus) || {}) }
         };
     }
 
@@ -131,11 +136,13 @@ async function getInboxSettings() {
  */
 async function saveInboxSettings(patch) {
     const current = await getInboxSettings();
+    const payload = (patch && patch.settings && typeof patch.settings === 'object') ? patch.settings : patch;
     const updated = {
         ...current,
-        ...patch,
+        ...payload,
         updatedAt: getSpainIsoTimestamp()
     };
+    if (updated.settings) delete updated.settings;
 
     // 1. Guardar en PostgreSQL
     if (pool) {
