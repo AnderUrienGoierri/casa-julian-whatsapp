@@ -5271,19 +5271,42 @@ document.addEventListener('DOMContentLoaded', () => {
             if (silenceLabel) silenceLabel.textContent = isBotCanceled ? 'Activar Bot' : 'Desactivar Bot';
         }
 
-        // Posicionar respecto al botón ⋮
+        // Posicionar menú desplegable
         dropdown.style.display = 'flex';
         const rect = triggerEl.getBoundingClientRect();
-        const dropWidth = 190;
-        const dropHeight = dropdown.offsetHeight || 260;
+        const cardEl = triggerEl.closest('.chat-card-item') || triggerEl.closest('.whatsapp-chat-row') || triggerEl;
+        const cardRect = cardEl.getBoundingClientRect();
+        
+        // Resaltar visualmente el chat sobre el que se abrió el menú
+        document.querySelectorAll('.chat-card-item, .whatsapp-chat-row').forEach(c => c.classList.remove('dropdown-active'));
+        cardEl.classList.add('dropdown-active');
 
-        let top = rect.bottom + 4;
-        if (top + dropHeight > window.innerHeight - 10) {
-            top = Math.max(10, rect.top - dropHeight - 4);
+        const isMobile = window.innerWidth <= 768;
+        const dropWidth = isMobile ? Math.min(260, window.innerWidth - 32) : 190;
+        dropdown.style.width = `${dropWidth}px`;
+        const dropHeight = dropdown.offsetHeight || 280;
+
+        let top = 0;
+        let left = 0;
+
+        if (isMobile) {
+            // En pantalla pequeña (móvil): justo por debajo del chat seleccionado y centrado en la pantalla
+            top = cardRect.bottom + 6;
+            if (top + dropHeight > window.innerHeight - 10) {
+                top = Math.max(10, cardRect.top - dropHeight - 6);
+            }
+            left = Math.round((window.innerWidth - dropWidth) / 2);
+            if (left < 10) left = 10;
+        } else {
+            // En pantalla grande: alineado debajo del botón ⋮ y a la derecha de la tarjeta
+            top = rect.bottom + 4;
+            if (top + dropHeight > window.innerHeight - 10) {
+                top = Math.max(10, rect.top - dropHeight - 4);
+            }
+            left = rect.right - dropWidth;
+            if (left < 10) left = 10;
+            if (left + dropWidth > window.innerWidth - 10) left = window.innerWidth - dropWidth - 10;
         }
-        let left = rect.right - dropWidth;
-        if (left < 10) left = 10;
-        if (left + dropWidth > window.innerWidth - 10) left = window.innerWidth - dropWidth - 10;
 
         dropdown.style.top = `${top}px`;
         dropdown.style.left = `${left}px`;
@@ -5292,6 +5315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeGlobalCardDropdown() {
         const dropdown = document.getElementById('global-card-actions-dropdown');
         if (dropdown) dropdown.style.display = 'none';
+        document.querySelectorAll('.chat-card-item, .whatsapp-chat-row').forEach(c => c.classList.remove('dropdown-active'));
         globalDropdownActivePhone = null;
         globalDropdownActiveName = '';
     }
