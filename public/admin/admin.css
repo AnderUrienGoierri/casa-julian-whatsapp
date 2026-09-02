@@ -4921,29 +4921,122 @@ div.inbox-toolbar-header,
     background: rgba(239, 68, 68, 0.2) !important;
 }
 
-/* ── BARRA FLOTANTE SUPERPUESTA DE SELECCIÓN MÚLTIPLE (Sin desplazar la lista) ── */
+/* ── BARRA FLOTANTE DE SELECCIÓN MÚLTIPLE (A la derecha del scroll en PC, en vertical) ── */
 .wa-left-pane {
     position: relative !important;
+    overflow: visible !important;
 }
 
-.chat-multi-select-floating-bar {
-    position: absolute !important;
-    top: 8px !important;
-    left: 8px !important;
-    right: 8px !important;
-    z-index: 100000 !important;
-    background: rgba(17, 27, 33, 0.96) !important;
-    border: 1px solid rgba(16, 185, 129, 0.45) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.85), 0 2px 10px rgba(0, 0, 0, 0.5) !important;
-    padding: 8px 12px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 8px !important;
-    flex-wrap: wrap !important;
-    backdrop-filter: blur(12px) !important;
-    animation: slideDownFloatingBar 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+/* En pantallas de ordenador (>= 900px): Se muestra a la derecha del scroll de la columna de chats, en vertical */
+@media (min-width: 900px) {
+    .chat-multi-select-floating-bar {
+        position: absolute !important;
+        left: calc(100% + 10px) !important;
+        top: 14px !important;
+        right: auto !important;
+        z-index: 999999 !important;
+        background: #111b21 !important;
+        border: 1px solid rgba(16, 185, 129, 0.45) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.85), 0 2px 10px rgba(0, 0, 0, 0.5) !important;
+        padding: 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+        min-width: 175px !important;
+        width: 185px !important;
+        box-sizing: border-box !important;
+        animation: fadeInVerticalBar 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .chat-multi-select-floating-bar .multi-select-info-group {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        padding-bottom: 8px !important;
+        margin-bottom: 2px !important;
+        border-bottom: 1px solid rgba(134, 150, 160, 0.2) !important;
+    }
+
+    .chat-multi-select-floating-bar .multi-select-btn-group {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+
+    .chat-multi-select-floating-bar .multi-action-btn {
+        width: 100% !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        text-align: left !important;
+        box-sizing: border-box !important;
+        transition: all 0.15s ease !important;
+    }
+}
+
+/* En pantallas móviles (< 900px): barra flotante superior horizontal compacta */
+@media (max-width: 899px) {
+    .chat-multi-select-floating-bar {
+        position: absolute !important;
+        top: 8px !important;
+        left: 8px !important;
+        right: 8px !important;
+        z-index: 999999 !important;
+        background: #111b21 !important;
+        border: 1px solid rgba(16, 185, 129, 0.45) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.85) !important;
+        padding: 8px 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        flex-wrap: wrap !important;
+        animation: slideDownFloatingBar 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .chat-multi-select-floating-bar .multi-select-info-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .chat-multi-select-floating-bar .multi-select-btn-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+        flex-wrap: wrap !important;
+    }
+
+    .chat-multi-select-floating-bar .multi-action-btn {
+        padding: 6px 10px !important;
+        border-radius: 6px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+    }
+}
+
+@keyframes fadeInVerticalBar {
+    from {
+        opacity: 0;
+        transform: translateX(-10px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
 }
 
 @keyframes slideDownFloatingBar {
@@ -4957,76 +5050,72 @@ div.inbox-toolbar-header,
     }
 }
 
-.multi-select-info-group {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-}
-
-.multi-select-master-chk {
-    width: 18px !important;
-    height: 18px !important;
+/* Colores y estilos de botones oscuros (Sin fondo blanco) */
+.chat-multi-select-floating-bar .multi-select-master-chk {
+    width: 17px !important;
+    height: 17px !important;
     cursor: pointer !important;
     accent-color: #10b981 !important;
 }
 
-.multi-select-counter-label {
+.chat-multi-select-floating-bar .multi-select-counter-label {
     font-size: 0.85rem !important;
     font-weight: 700 !important;
     color: #10b981 !important;
     white-space: nowrap !important;
 }
 
-.multi-select-btn-group {
-    display: flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-    flex-wrap: wrap !important;
-}
-
-.multi-action-btn {
-    border-radius: 6px !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    font-size: 0.76rem !important;
-    font-weight: 600 !important;
-    padding: 5px 8px !important;
-    transition: all 0.12s ease !important;
-    border: none !important;
-}
-
-.multi-action-btn.btn-archive {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+.chat-multi-select-floating-bar .multi-action-btn.btn-archive {
+    background: #202c33 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
     color: #e9edef !important;
 }
 
-.multi-action-btn.btn-delete {
+.chat-multi-select-floating-bar .multi-action-btn.btn-archive:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.chat-multi-select-floating-bar .multi-action-btn.btn-delete {
     background: rgba(239, 68, 68, 0.18) !important;
-    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    border: 1px solid rgba(239, 68, 68, 0.4) !important;
     color: #fca5a5 !important;
 }
 
-.multi-action-btn.btn-unread {
+.chat-multi-select-floating-bar .multi-action-btn.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.3) !important;
+}
+
+.chat-multi-select-floating-bar .multi-action-btn.btn-unread {
     background: rgba(16, 185, 129, 0.18) !important;
-    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
     color: #34d399 !important;
 }
 
-.multi-action-btn.btn-read {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+.chat-multi-select-floating-bar .multi-action-btn.btn-unread:hover {
+    background: rgba(16, 185, 129, 0.3) !important;
+}
+
+.chat-multi-select-floating-bar .multi-action-btn.btn-read {
+    background: #202c33 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
     color: #e9edef !important;
 }
 
-.multi-action-btn.btn-cancel {
+.chat-multi-select-floating-bar .multi-action-btn.btn-read:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.chat-multi-select-floating-bar .multi-action-btn.btn-cancel {
     background: transparent !important;
     border: none !important;
     color: #94a3b8 !important;
     font-size: 1.1rem !important;
-    padding: 2px 6px !important;
+    cursor: pointer !important;
+    padding: 0 4px !important;
+}
+
+.chat-multi-select-floating-bar .multi-action-btn.btn-cancel:hover {
+    color: #f87171 !important;
 }
 
 .multi-action-btn:hover {
