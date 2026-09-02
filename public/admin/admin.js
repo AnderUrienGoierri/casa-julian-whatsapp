@@ -5308,7 +5308,6 @@ document.addEventListener('DOMContentLoaded', () => {
         container.addEventListener('touchend', cancelPress);
         container.addEventListener('touchcancel', cancelPress);
     }
-    }
 
     // Cerrar menú contextual desplegable de 3 puntitos al hacer clic en cualquier parte fuera de él
     document.addEventListener('click', (e) => {
