@@ -319,7 +319,9 @@ async function runExport() {
                 const filename = `chat_${chat.telefono}_${safeName}.md`;
                 const filePath = path.join(dayDir, filename);
 
-                // Construir contenido Markdown simplificado en dos tablas
+                const clientMessages = chat.messages.filter(m => m.emisor === 'cliente');
+
+                // Construir contenido Markdown simplificado
                 let md = `# Conversación de WhatsApp: ${chat.displayName}\n\n`;
                 md += `| Metadato | Detalle |\n`;
                 md += `| :--- | :--- |\n`;
@@ -328,12 +330,29 @@ async function runExport() {
                 md += `| **Categoría** | \`${chat.category.toUpperCase()}\` |\n`;
                 md += `| **Etiquetas** | ${chat.tags.length > 0 ? chat.tags.map(t => `\`${t}\``).join(' ') : '*Ninguna*'} |\n`;
                 md += `| **Fijado en Panel** | ${chat.isPinned ? 'Sí' : 'No'} |\n`;
-                md += `| **Total de Mensajes** | ${chat.messagesCount} |\n`;
+                md += `| **Total de Mensajes** | ${chat.messagesCount} (Cliente: ${clientMessages.length}, Bot/Recepción: ${chat.messagesCount - clientMessages.length}) |\n`;
                 md += `| **Primer Mensaje** | ${formatMadridDateTime(chat.firstDateStr)} |\n`;
                 md += `| **Último Mensaje** | ${formatMadridDateTime(chat.lastDateStr)} |\n`;
                 md += `| **Carpeta del Día** | \`${chat.dayKey}\` |\n\n`;
                 md += `---\n\n`;
-                md += `## Historial de Mensajes\n\n`;
+                
+                // Resumen exclusivo de lo que ha escrito el cliente (sin respuestas del bot)
+                md += `## Resumen: Mensajes del Cliente (Sin respuestas del Bot)\n\n`;
+                if (clientMessages.length > 0) {
+                    md += `| # | Fecha y Hora | Mensaje Escrito por el Cliente |\n`;
+                    md += `| :---: | :--- | :--- |\n`;
+                    clientMessages.forEach((cm, cIdx) => {
+                        const cTime = formatMadridDateTime(cm.created_at);
+                        const cText = cleanMarkdownTableCell(cm.texto);
+                        md += `| ${cIdx + 1} | ${cTime} | ${cText} |\n`;
+                    });
+                    md += `\n`;
+                } else {
+                    md += `*No hay mensajes enviados directamente por el cliente (conversación iniciada por recepción o historial archivado).*\n\n`;
+                }
+
+                md += `---\n\n`;
+                md += `## Historial Completo de la Conversación\n\n`;
                 md += `| # | Fecha y Hora | Emisor | Tipo | Mensaje | Opciones / Botones |\n`;
                 md += `| :---: | :--- | :--- | :--- | :--- | :--- |\n`;
 
