@@ -3617,19 +3617,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeCardDropdownPhone = null;
 
     function getPinnedChatsMap() {
-        if (serverInboxSettings.pinnedChats && typeof serverInboxSettings.pinnedChats === 'object') {
-            return serverInboxSettings.pinnedChats;
-        }
+        let serverPins = (serverInboxSettings && serverInboxSettings.pinnedChats && typeof serverInboxSettings.pinnedChats === 'object') ? serverInboxSettings.pinnedChats : {};
+        let localPins = {};
         try {
             const saved = localStorage.getItem('casa_julian_pinned_chats');
-            let map = saved ? JSON.parse(saved) : null;
-            if (!map || typeof map !== 'object') {
-                map = {};
-            }
-            return map;
-        } catch (e) {
-            return {};
-        }
+            if (saved) localPins = JSON.parse(saved) || {};
+        } catch (e) {}
+
+        return {
+            "34664037707": true,
+            "3466407707": true,
+            ...localPins,
+            ...serverPins
+        };
     }
 
     function toggleChatPinned(phone) {
@@ -3637,8 +3637,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!clean) return false;
         const map = { ...getPinnedChatsMap() };
         let isNowPinned = false;
-        if (map[clean]) {
-            delete map[clean];
+        if (map[clean] === true) {
+            map[clean] = false;
             isNowPinned = false;
         } else {
             map[clean] = true;
@@ -5112,20 +5112,32 @@ document.addEventListener('DOMContentLoaded', () => {
             summaryEl.textContent = `${filtered.length} de ${total} conversaciones`;
         }
 
-        // Mover chats archivados al fondo
+        // Mover chats fijados con chincheta (📌) al principio y chats archivados al fondo
+        const pinnedMap = getPinnedChatsMap();
         let archMap = {};
         try { archMap = { ...(serverInboxSettings.archivedChats || {}), ...JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}') }; } catch(e) {}
-        if (Object.keys(archMap).length > 0) {
-            filtered.sort((a, b) => {
-                const aKey = getCleanPhoneKey(a.telefono);
-                const bKey = getCleanPhoneKey(b.telefono);
-                const isArchA = !!archMap[aKey];
-                const isArchB = !!archMap[bKey];
-                if (isArchA && !isArchB) return 1;
-                if (!isArchA && isArchB) return -1;
-                return 0;
-            });
-        }
+
+        filtered.sort((a, b) => {
+            const aKey = getCleanPhoneKey(a.telefono);
+            const bKey = getCleanPhoneKey(b.telefono);
+
+            // 1º: Chats fijados con chincheta 📌 al principio
+            const pinA = !!pinnedMap[aKey];
+            const pinB = !!pinnedMap[bKey];
+            if (pinA && !pinB) return -1;
+            if (!pinA && pinB) return 1;
+
+            // 2º: Chats archivados al fondo
+            const isArchA = !!archMap[aKey];
+            const isArchB = !!archMap[bKey];
+            if (isArchA && !isArchB) return 1;
+            if (!isArchA && isArchB) return -1;
+
+            // 3º: Orden de fecha (más reciente primero)
+            const tA = new Date(a.ultimoMensajeFecha || 0).getTime();
+            const tB = new Date(b.ultimoMensajeFecha || 0).getTime();
+            return tB - tA;
+        });
 
         currentFilteredInboxChats = filtered;
 
