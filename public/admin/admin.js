@@ -6445,6 +6445,72 @@ document.addEventListener('DOMContentLoaded', () => {
         lastChatRenderedSig = '';
     }
 
+    // Formateo inteligente de timestamp para burbujas de chat: "HH:mm" si es hoy, "DD/MM/AA HH:mm" si es anterior
+    function formatMessageBubbleTimestamp(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+
+        const nowMadrid = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid' }).format(new Date()));
+        const msgMadrid = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid' }).format(d));
+        
+        const isToday = (
+            nowMadrid.getFullYear() === msgMadrid.getFullYear() &&
+            nowMadrid.getMonth() === msgMadrid.getMonth() &&
+            nowMadrid.getDate() === msgMadrid.getDate()
+        );
+
+        const timeOnly = d.toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            timeZone: 'Europe/Madrid',
+            hour12: false 
+        });
+
+        if (isToday) {
+            return timeOnly;
+        }
+
+        const day = String(msgMadrid.getDate()).padStart(2, '0');
+        const month = String(msgMadrid.getMonth() + 1).padStart(2, '0');
+        const year = String(msgMadrid.getFullYear()).slice(-2);
+
+        return `${day}/${month}/${year} ${timeOnly}`;
+    }
+
+    function getMessageDayKey(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        const msgMadrid = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid' }).format(d));
+        return `${msgMadrid.getFullYear()}-${msgMadrid.getMonth()}-${msgMadrid.getDate()}`;
+    }
+
+    function getMessageDayDividerLabel(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+
+        const nowMadrid = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid' }).format(new Date()));
+        const msgMadrid = new Date(new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Madrid' }).format(d));
+        
+        nowMadrid.setHours(0, 0, 0, 0);
+        msgMadrid.setHours(0, 0, 0, 0);
+
+        const diffDays = Math.round((nowMadrid.getTime() - msgMadrid.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Hoy';
+        if (diffDays === 1) return 'Ayer';
+
+        return d.toLocaleDateString('es-ES', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            timeZone: 'Europe/Madrid'
+        });
+    }
+
     // Helper: Obtener y renderizar historial de mensajes en tiempo real (tanto en modal como en panel de 2 columnas)
     async function fetchAndRenderChatThread(cleanPhoneStr, sol, forceRender = false) {
         const containers = [
@@ -6514,9 +6580,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isNearBottom = (threadContainer.scrollHeight - threadContainer.scrollTop - threadContainer.clientHeight) < 180;
 
                 threadContainer.innerHTML = '';
+                let lastDayKey = '';
                 msgList.forEach(m => {
+                    const dayKey = getMessageDayKey(m.fecha);
+                    if (dayKey && dayKey !== lastDayKey) {
+                        lastDayKey = dayKey;
+                        const dayLabel = getMessageDayDividerLabel(m.fecha);
+                        if (dayLabel) {
+                            const divider = document.createElement('div');
+                            divider.className = 'wa-chat-day-divider';
+                            divider.style.cssText = `
+                                align-self: center;
+                                background: rgba(24, 34, 41, 0.92);
+                                color: #8696a0;
+                                font-size: 0.72rem;
+                                font-weight: 500;
+                                padding: 4px 12px;
+                                border-radius: 8px;
+                                margin: 14px 0 8px 0;
+                                box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                                border: 1px solid rgba(134, 150, 160, 0.15);
+                                text-transform: capitalize;
+                                letter-spacing: 0.2px;
+                            `;
+                            divider.textContent = dayLabel;
+                            threadContainer.appendChild(divider);
+                        }
+                    }
+
                     const isClient = m.emisor === 'cliente';
-                    const timeStr = m.fecha ? new Date(m.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }) : '';
+                    const timeStr = formatMessageBubbleTimestamp(m.fecha);
                     const formattedBody = formatWhatsAppText(m.texto);
                     
                     const bubble = document.createElement('div');
@@ -6838,9 +6931,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 const paneThread = document.getElementById('pane-chat-thread');
                 if (paneThread) {
                     paneThread.innerHTML = '';
+                    let lastDayKey = '';
                     cachedList.forEach(m => {
+                        const dayKey = getMessageDayKey(m.fecha);
+                        if (dayKey && dayKey !== lastDayKey) {
+                            lastDayKey = dayKey;
+                            const dayLabel = getMessageDayDividerLabel(m.fecha);
+                            if (dayLabel) {
+                                const divider = document.createElement('div');
+                                divider.className = 'wa-chat-day-divider';
+                                divider.style.cssText = `
+                                    align-self: center;
+                                    background: rgba(24, 34, 41, 0.92);
+                                    color: #8696a0;
+                                    font-size: 0.72rem;
+                                    font-weight: 500;
+                                    padding: 4px 12px;
+                                    border-radius: 8px;
+                                    margin: 14px 0 8px 0;
+                                    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                                    border: 1px solid rgba(134, 150, 160, 0.15);
+                                    text-transform: capitalize;
+                                    letter-spacing: 0.2px;
+                                `;
+                                divider.textContent = dayLabel;
+                                paneThread.appendChild(divider);
+                            }
+                        }
+
                         const isClient = m.emisor === 'cliente';
-                        const timeStr = m.fecha ? new Date(m.fecha).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }) : '';
+                        const timeStr = formatMessageBubbleTimestamp(m.fecha);
                         const formattedBody = formatWhatsAppText(m.texto);
                         const bubble = document.createElement('div');
                         bubble.style.cssText = `
