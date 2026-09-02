@@ -4924,16 +4924,18 @@ div.inbox-toolbar-header,
 /* ── BARRA FLOTANTE DE SELECCIÓN MÚLTIPLE (Estética compacta idéntica al menú de 3 puntitos) ── */
 .wa-left-pane {
     position: relative !important;
-    overflow: visible !important;
 }
 
 .chat-multi-select-floating-bar {
     position: absolute !important;
+    top: 48px !important;
+    right: 56px !important;
+    left: auto !important;
     z-index: 999999 !important;
     background: #233138 !important;
-    border: 1px solid rgba(134, 150, 160, 0.25) !important;
+    border: 1px solid rgba(134, 150, 160, 0.28) !important;
     border-radius: 10px !important;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.75), 0 2px 10px rgba(0, 0, 0, 0.5) !important;
     padding: 4px 0 !important;
     flex-direction: column !important;
     gap: 1px !important;
@@ -4945,20 +4947,11 @@ div.inbox-toolbar-header,
     animation: fadeInDropdown 0.15s ease-out !important;
 }
 
-/* En pantallas de ordenador (>= 900px): A la derecha del scroll de la columna de chats */
+/* En pantallas de ordenador (>= 900px): Idéntico menú flotante posicionado sin tapar fecha ni etiquetas */
 @media (min-width: 900px) {
     .chat-multi-select-floating-bar {
-        left: calc(100% + 8px) !important;
-        top: 12px !important;
-        right: auto !important;
-    }
-}
-
-/* En pantallas móviles (< 900px): Compacto superpuesto en la esquina superior derecha */
-@media (max-width: 899px) {
-    .chat-multi-select-floating-bar {
-        top: 8px !important;
-        right: 8px !important;
+        top: 52px !important;
+        right: 60px !important;
         left: auto !important;
     }
 }
