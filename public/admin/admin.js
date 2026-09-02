@@ -4247,19 +4247,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // 2b. Excluir chats eliminados por el usuario
+        let deletedMap = {};
+        try { deletedMap = { ...(serverInboxSettings.deletedChats || {}), ...JSON.parse(localStorage.getItem('casa_julian_deleted_chats') || '{}') }; } catch(e) {}
+
         // 3. Ordenar: Primero los chats fijados con chincheta (📌), luego los más recientes
         const pinnedMap = getPinnedChatsMap();
-        allUnifiedConversations = Array.from(map.values()).sort((a, b) => {
-            const keyA = getCleanPhoneKey(a.telefono);
-            const keyB = getCleanPhoneKey(b.telefono);
-            const pinA = !!pinnedMap[keyA];
-            const pinB = !!pinnedMap[keyB];
-            if (pinA && !pinB) return -1;
-            if (!pinA && pinB) return 1;
-            const tA = new Date(a.ultimoMensajeFecha || 0).getTime();
-            const tB = new Date(b.ultimoMensajeFecha || 0).getTime();
-            return tB - tA;
-        });
+        allUnifiedConversations = Array.from(map.values())
+            .filter(c => !deletedMap[getCleanPhoneKey(c.telefono)])
+            .sort((a, b) => {
+                const keyA = getCleanPhoneKey(a.telefono);
+                const keyB = getCleanPhoneKey(b.telefono);
+                const pinA = !!pinnedMap[keyA];
+                const pinB = !!pinnedMap[keyB];
+                if (pinA && !pinB) return -1;
+                if (!pinA && pinB) return 1;
+                const tA = new Date(a.ultimoMensajeFecha || 0).getTime();
+                const tB = new Date(b.ultimoMensajeFecha || 0).getTime();
+                return tB - tA;
+            });
 
         // 4. Pre-indexación en memoria de alta velocidad (O(1) búsqueda y filtrado)
         allUnifiedConversations.forEach(c => {
@@ -4715,6 +4721,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function markChatsAsDeletedLocally(phones) {
+        const arr = Array.isArray(phones) ? phones : [phones];
+        let deletedMap = {};
+        try { deletedMap = JSON.parse(localStorage.getItem('casa_julian_deleted_chats') || '{}'); } catch(e) {}
+        const nowIso = new Date().toISOString();
+        arr.forEach(p => {
+            const clean = getCleanPhoneKey(p);
+            if (clean) deletedMap[clean] = { deletedAt: nowIso };
+        });
+        localStorage.setItem('casa_julian_deleted_chats', JSON.stringify(deletedMap));
+        if (!serverInboxSettings.deletedChats) serverInboxSettings.deletedChats = {};
+        arr.forEach(p => {
+            const clean = getCleanPhoneKey(p);
+            if (clean) serverInboxSettings.deletedChats[clean] = { deletedAt: nowIso };
+        });
+    }
+
+    function closeActiveChatPane() {
+        stopChatPolling();
+        activeConversationPhone = null;
+        activeReplySolicitud = null;
+
+        const activePanel = document.getElementById('wa-active-chat-panel');
+        const emptyState = document.getElementById('wa-empty-state');
+        const webContainer = document.querySelector('.wa-web-container');
+
+        if (activePanel) activePanel.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'flex';
+        if (webContainer) webContainer.classList.remove('mobile-chat-open');
+
+        const container = document.getElementById('inbox-cards-container');
+        if (container) {
+            container.querySelectorAll('.whatsapp-chat-row').forEach(row => {
+                row.classList.remove('is-selected');
+            });
+        }
+    }
+
     function toggleChatCardSelection(phone, cardEl) {
         const clean = getCleanPhoneKey(phone);
         if (!clean) return;
@@ -4812,6 +4856,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const phonesArr = Array.from(selectedChatCardsPhones);
                 if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE los ${phonesArr.length} chats seleccionados? Esta acción no se puede deshacer.`)) return;
                 try {
+                    markChatsAsDeletedLocally(phonesArr);
+                    const tok = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    fetch('/api/admin/inbox-settings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-token': tok, 'Authorization': `Bearer ${tok}` },
+                        body: JSON.stringify({ settings: serverInboxSettings })
+                    }).catch(e => console.warn('Error guardando deletedChats:', e));
+
                     const res = await fetch('/api/admin/chats/bulk-delete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
@@ -5311,6 +5363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!phone) return;
                 if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE todo el historial del chat +${phone}? Esta acción no se puede deshacer.`)) return;
                 try {
+                    markChatsAsDeletedLocally(phone);
                     const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
                     const res = await fetch(`/api/admin/chats/${phone}`, {
                         method: 'DELETE',
@@ -5319,6 +5372,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (data.success) {
                         showToast('🗑️ Conversación eliminada definitivamente.');
+                        if (activeConversationPhone === phone) {
+                            closeActiveChatPane();
+                        }
                         await fetchWhatsAppChats();
                         syncUnifiedConversations();
                         renderInboxCards();
@@ -5979,7 +6035,21 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // Acción: Cerrar Chat (Volver a pantalla vacía)
+        const closeBtn = document.getElementById('pane-action-close-chat');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                paneMoreDropdown.style.display = 'none';
+                closeActiveChatPane();
+            });
+        }
 
+        const backBtn = document.getElementById('wa-back-to-list-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                closeActiveChatPane();
+            });
+        }
 
         // Acción: Eliminar chat
         const deleteBtn = document.getElementById('pane-action-delete');
@@ -5987,24 +6057,22 @@ document.addEventListener('DOMContentLoaded', () => {
             deleteBtn.addEventListener('click', async () => {
                 paneMoreDropdown.style.display = 'none';
                 if (!activeConversationPhone) return;
-                if (!confirm(`⚠️ ¿Eliminar DEFINITIVAMENTE todo el historial del chat +${activeConversationPhone}? Esta acción no se puede deshacer.`)) return;
+                const phoneToDelete = activeConversationPhone;
+                if (!confirm(`⚠️ ¿Eliminar DEFINITIVAMENTE todo el historial del chat +${phoneToDelete}? Esta acción no se puede deshacer.`)) return;
                 try {
+                    markChatsAsDeletedLocally(phoneToDelete);
                     const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-                    const res = await fetch(`/api/admin/chats/${activeConversationPhone}`, {
+                    const res = await fetch(`/api/admin/chats/${phoneToDelete}`, {
                         method: 'DELETE',
                         headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
                     });
                     const data = await res.json();
                     if (data.success) {
                         showToast('🗑️ Conversación eliminada definitivamente.');
-                        // Cerrar panel activo y volver a la lista
-                        const activePanel = document.getElementById('wa-active-chat-panel');
-                        const emptyState = document.getElementById('wa-empty-state');
-                        if (activePanel) activePanel.style.display = 'none';
-                        if (emptyState) emptyState.style.display = 'flex';
-                        activeConversationPhone = '';
-                        activeReplySolicitud = null;
+                        closeActiveChatPane();
                         await fetchWhatsAppChats();
+                        syncUnifiedConversations();
+                        renderInboxCards();
                     } else {
                         alert('Error al eliminar: ' + (data.error || 'Desconocido'));
                     }

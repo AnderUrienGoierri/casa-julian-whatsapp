@@ -507,6 +507,18 @@ async function deleteUserChatHistory(telefono) {
         db.solicitudes = db.solicitudes.filter(s => (s.telefonoCliente || '').replace(/\D/g, '') !== cleanTel);
     }
     saveDb(db);
+
+    // Registrar en deletedChats para evitar recreación de grupos por defecto
+    try {
+        const { getInboxSettings, saveInboxSettings } = require('./inboxSettings');
+        const settings = await getInboxSettings();
+        if (!settings.deletedChats) settings.deletedChats = {};
+        settings.deletedChats[cleanTel] = { deletedAt: getSpainIsoTimestamp() };
+        await saveInboxSettings(settings);
+    } catch(e) {
+        console.warn("⚠️ Error guardando deletedChats en deleteUserChatHistory:", e.message);
+    }
+
     return true;
 }
 
@@ -763,9 +775,11 @@ async function getAllWhatsAppConversations() {
         const { getInboxSettings } = require('./inboxSettings');
         const settings = await getInboxSettings();
         const customGroups = settings.customGroups || {};
+        const deletedChats = settings.deletedChats || {};
         
         Object.values(customGroups).forEach(grp => {
             if (!grp || !grp.id) return;
+            if (deletedChats[grp.id]) return; // Si fue eliminado por el usuario, ignorar
             const existing = resultList.find(c => c.telefono === grp.id);
             if (existing) {
                 existing.isGroup = true;
@@ -777,7 +791,7 @@ async function getAllWhatsAppConversations() {
             } else {
                 resultList.push({
                     telefono: grp.id,
-                    ultimoMensajeFecha: grp.created_at || getSpainIsoTimestamp(),
+                    ultimoMensajeFecha: grp.created_at || '2026-08-20T10:00:00.000Z',
                     totalInteracciones: 1,
                     ultimoTexto: `👥 Grupo: ${grp.nombre} (${(grp.participants || []).length} contactos)`,
                     ultimoEmisor: 'recepcion',
@@ -791,23 +805,12 @@ async function getAllWhatsAppConversations() {
                 });
             }
         });
+
+        // Filtrar chats eliminados de la lista general
+        resultList = resultList.filter(c => !deletedChats[c.telefono]);
+
     } catch (e) {
         console.warn("⚠️ Error cargando grupos en getAllWhatsAppConversations:", e.message);
-        if (!resultList.some(c => c.telefono === 'group_taxi_casa_julian')) {
-            resultList.unshift({
-                telefono: 'group_taxi_casa_julian',
-                ultimoMensajeFecha: getSpainIsoTimestamp(),
-                totalInteracciones: 1,
-                ultimoTexto: '🚕 Grupo Taxi Casa Julián (Taxi Iguaran, Taxi Tolosa, Taxi Lexus)',
-                ultimoEmisor: 'recepcion',
-                ultimoTipo: 'text',
-                nombreCliente: 'Taxi Casa Julián',
-                categoria: 'taxi',
-                etiquetas: ['TAXIS', 'GRUPO'],
-                isGroup: true,
-                participants: TAXI_GROUP_PARTICIPANTS
-            });
-        }
     }
 
     return resultList.sort((a, b) => new Date(b.ultimoMensajeFecha) - new Date(a.ultimoMensajeFecha));

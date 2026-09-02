@@ -69,6 +69,8 @@ const DEFAULT_INBOX_SETTINGS = {
     deletedTags: [],
     chatTags: {},
     pinnedChats: {},
+    archivedChats: {},
+    deletedChats: {},
     chatAvatars: {
         "group_taxi_casa_julian": "/admin/taxi_img.png",
         "34664037707": "/admin/ander_img.png"
