@@ -4938,7 +4938,7 @@ div.inbox-toolbar-header,
     border-radius: 10px !important;
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
     padding: 0 !important;
-    display: flex !important;
+    display: none;
     flex-direction: column !important;
     gap: 0 !important;
     width: 175px !important;
@@ -4949,14 +4949,16 @@ div.inbox-toolbar-header,
     animation: fadeInDropdown 0.15s ease-out !important;
 }
 
+.chat-multi-select-floating-bar.is-active {
+    display: flex !important;
+}
+
 /* En pantallas de ordenador (>= 900px): Posicionado a la derecha fuera de la columna de chats (a la derecha del scroll) */
 @media (min-width: 900px) {
     .chat-multi-select-floating-bar {
         top: 110px !important;
         left: calc(100% + 10px) !important;
         right: auto !important;
-        display: flex !important;
-        flex-direction: column !important;
         width: 175px !important;
     }
 }

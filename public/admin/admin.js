@@ -4682,7 +4682,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (isActive) {
-            floatingBar.style.display = 'flex';
+            floatingBar.classList.add('is-active');
+            floatingBar.style.setProperty('display', 'flex', 'important');
             floatingBar.style.flexDirection = 'column';
             const countText = document.getElementById('chat-multi-select-count-text');
             if (countText) countText.textContent = `${count} ${count === 1 ? 'elegido' : 'elegidos'}`;
@@ -4692,7 +4693,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 chkAll.checked = allVisible.length > 0 && allVisible.every(ph => selectedChatCardsPhones.has(ph));
             }
         } else {
-            floatingBar.style.display = 'none';
+            floatingBar.classList.remove('is-active');
+            floatingBar.style.setProperty('display', 'none', 'important');
         }
     }
 
