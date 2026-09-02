@@ -1334,10 +1334,10 @@ router.get('/system-status', requireAdminAuth, async (req, res) => {
                 uptime: uptimeSeconds,
                 memoryMb: Math.round(memoryUsage.rss / (1024 * 1024)),
                 database: {
-                    type: 'PostgreSQL (Neon Cloud)',
+                    type: 'PostgreSQL (Synology NAS)',
                     connected: dbConnected,
                     latencyMs: dbLatencyMs,
-                    host: process.env.DATABASE_URL ? process.env.DATABASE_URL.split('@')[1]?.split('/')[0] : 'Local'
+                    host: process.env.DATABASE_URL ? process.env.DATABASE_URL.split('@')[1]?.split('/')[0] : '192.168.110.57:54320'
                 },
                 apis: {
                     metaWhatsApp: {
