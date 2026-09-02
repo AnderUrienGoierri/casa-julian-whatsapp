@@ -1975,7 +1975,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!inboxPollingInterval) {
                 inboxPollingInterval = setInterval(() => {
                     loadUnifiedInboxData();
-                }, 1200);
+                }, 5000);
             }
             // No cargar estructura del bot (no necesaria para recepción)
             return;
@@ -2002,7 +2002,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!inboxPollingInterval) {
             inboxPollingInterval = setInterval(() => {
                 loadUnifiedInboxData();
-            }, 1200);
+            }, 5000);
         }
 
         try {
@@ -4148,7 +4148,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Carga unificada y paralela a máxima velocidad para sincronizar todos los datos entre usuarios
-    async function loadUnifiedInboxData() {
+    let lastUnifiedDataSig = '';
+
+    async function loadUnifiedInboxData(force = false) {
         if (!adminToken) return;
         try {
             await Promise.all([
@@ -4157,9 +4159,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchWhatsAppChats(true)
             ]);
             syncUnifiedConversations();
-            renderInboxFilterPills();
-            renderInboxCards();
+
+            const firstConv = allUnifiedConversations[0] || {};
+            const unreadCountTotal = getPendingConversationsCount();
+            const currentDataSig = `${allUnifiedConversations.length}_${firstConv.ultimoMensajeFecha}_${firstConv.telefono}_${firstConv.ultimoTexto}_${unreadCountTotal}`;
+
+            if (force || currentDataSig !== lastUnifiedDataSig) {
+                lastUnifiedDataSig = currentDataSig;
+                renderInboxFilterPills();
+
+                const searchInput = document.getElementById('search-inbox-input');
+                const isUserActive = (document.activeElement === searchInput) || isChatMultiSelectMode || globalDropdownActivePhone;
+                if (!isUserActive || force) {
+                    renderInboxCards(false);
+                }
+            }
+
             renderMinimizedChatsStack();
+            if (typeof updateHeaderAndMenuBadges === 'function') updateHeaderAndMenuBadges();
             try {
                 sessionStorage.setItem(INBOX_CHATS_CACHE_KEY, JSON.stringify(allUnifiedConversations.slice(0, 100)));
             } catch(e) {}
@@ -4837,7 +4854,144 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderInboxCards() {
+    let currentFilteredInboxChats = [];
+    let currentInboxRenderedCount = 50;
+    const INBOX_BATCH_SIZE = 50;
+    let isInboxInfiniteScrollBound = false;
+    let globalDropdownActivePhone = null;
+    let globalDropdownActiveName = '';
+
+    function buildChatCardHtml(c, availableTagsList) {
+        const cleanPhone = getCleanPhoneKey(c.telefono);
+        const isGroup = cleanPhone === 'group_taxi_casa_julian' || c.isGroup;
+        const clientDisplayName = isGroup ? 'Taxi Casa Julián' : getClientDisplayName(c.nombreCliente, cleanPhone);
+        const smartTime = formatSmartDateTime(c.ultimoMensajeFecha);
+        const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
+        const isSelected = activeConversationPhone === cleanPhone;
+        const isBulkSelected = selectedChatCardsPhones.has(cleanPhone);
+        
+        const _manualMap = getManualChatStatusMap();
+        const _mEntry = _manualMap[cleanPhone];
+        const _mVal = _mEntry ? (typeof _mEntry === 'object' ? _mEntry.status : _mEntry) : null;
+        const status = (isSelected && _mVal !== 'pendiente') ? 'leido' : getConversationStatus(c);
+        const isPending = (status === 'pendiente');
+        const unreadCount = isPending ? getConversationUnreadCount(c) : 0;
+        const isPinned = isChatPinned(cleanPhone);
+
+        const outgoingCheckHtml = !isFromClient 
+            ? `<span class="wa-check-double" title="Entregado y Leído">✓✓</span> ` 
+            : '';
+
+        // Generador de Avatar estilo WhatsApp Business
+        let avatarHtml = '';
+        const lowerName = (clientDisplayName || '').toLowerCase();
+        const grpData = (serverInboxSettings.customGroups && serverInboxSettings.customGroups[cleanPhone]) || (c.isGroup ? c : null);
+        const customAvatarUrl = getChatAvatarUrl(cleanPhone, clientDisplayName, c)
+            || (grpData && grpData.avatar && (grpData.avatar.startsWith('/') || grpData.avatar.startsWith('http')) ? grpData.avatar : '');
+
+        if (customAvatarUrl) {
+            const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : (isGroup ? '#10b981' : 'transparent');
+            avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid ${borderClr}; overflow: hidden;" title="${clientDisplayName}"><img src="${customAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>${cleanPhone === 'group_taxi_casa_julian' ? '🚕' : (isGroup ? '👥' : '👤')}</span>'"></div>`;
+        } else if (grpData && grpData.avatar && !grpData.avatar.startsWith('/')) {
+            avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #10b981; overflow: hidden;" title="${clientDisplayName}"><span style="font-size: 1.4rem;">${grpData.avatar}</span></div>`;
+        } else if (lowerName.includes('entretiempo') || lowerName.includes('ricardo')) {
+            avatarHtml = `<div class="wa-avatar-container wa-avatar-ricardo" title="${clientDisplayName}"><span>E</span></div>`;
+        } else if (lowerName.includes('xabi') || lowerName.includes('gorrotxategi')) {
+            avatarHtml = `<div class="wa-avatar-container" style="background: #1e3a8a; color: #93c5fd;" title="${clientDisplayName}"><span>XG</span></div>`;
+        } else if (cleanPhone === '41795958760') {
+            avatarHtml = `<div class="wa-avatar-container" style="background: #065f46; color: #6ee7b7;" title="${clientDisplayName}"><span>+41</span></div>`;
+        } else if (cleanPhone === '923218428609') {
+            avatarHtml = `<div class="wa-avatar-container" style="background: #701a75; color: #f5d0fe;" title="${clientDisplayName}"><span>SA</span></div>`;
+        } else if (clientDisplayName && !clientDisplayName.startsWith('+')) {
+            const words = clientDisplayName.trim().split(/\s+/);
+            const initials = words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].slice(0, 2).toUpperCase();
+            avatarHtml = `<div class="wa-avatar-container" style="background: #2a3942; color: #e9edef;" title="${clientDisplayName}"><span>${initials}</span></div>`;
+        } else {
+            avatarHtml = `<div class="wa-avatar-container" style="background: #202c33; color: #8696a0;" title="${clientDisplayName}"><span style="font-size: 1.2rem;">👤</span></div>`;
+        }
+
+        // Etiquetas WhatsApp Business
+        let tagsHtml = '';
+        const allChatTags = getChatTags(cleanPhone, c);
+        const tags = allChatTags.filter(t => {
+            const low = String(t).toLowerCase().trim();
+            return low !== 'cliente' && low !== 'clientes';
+        });
+
+        if (tags.length > 0) {
+            tagsHtml = `<div class="wa-tags-container">` + tags.map(t => {
+                const lowT = String(t).toLowerCase().trim();
+                const tagObj = availableTagsList.find(at => {
+                    const atId = (at.id || '').toLowerCase();
+                    const atName = (at.name || '').toLowerCase();
+                    if (atId === lowT || atName === lowT) return true;
+                    if (atId === 'menu_tradicion' && (lowT === 'ot' || lowT === 'menu_tradicion' || lowT === 'tradicion')) return true;
+                    if (atId === 'no_ot' && (lowT === 'no ot' || lowT === 'no_ot')) return true;
+                    if (atId === 'modificacion' && (lowT === 'modif' || lowT === 'modificacion' || lowT === 'modificaciones')) return true;
+                    if (atId === 'cancelacion' && (lowT === 'cancel' || lowT === 'cancelacion' || lowT === 'cancelaciones')) return true;
+                    if (atId === 'faq' && (lowT === 'faqs' || lowT === 'faq' || lowT === 'preguntas_frecuentes')) return true;
+                    if (atId === 'otras_cuestiones' && (lowT === 'otras' || lowT === 'otras_cuestiones' || lowT === 'consulta' || lowT === 'consulta_abierta')) return true;
+                    if (atId === 'empleado' && (lowT === 'empleados' || lowT === 'empleado' || lowT === 'personal' || lowT === 'alba')) return true;
+                    if (atId === 'proveedor' && (lowT === 'proveedores' || lowT === 'proveedor')) return true;
+                    if (atId === 'hoteles' && (lowT === 'hotel' || lowT === 'hoteles')) return true;
+                    if (atId === 'taxi' && (lowT === 'taxis' || lowT === 'taxi')) return true;
+                    if (atId === 'grupo' && (lowT === 'grupo' || lowT === 'grupos')) return true;
+                    return false;
+                });
+                const rawLabel = tagObj ? tagObj.name : t;
+                const lowRaw = String(rawLabel).toLowerCase().trim();
+                let label = rawLabel.toUpperCase();
+                if (lowRaw === 'empleados' || lowRaw === 'empleado' || lowRaw === 'alba' || lowRaw === 'personal') {
+                    label = 'PERSONAL';
+                } else if (lowRaw === 'grupo' || lowRaw === 'grupos') {
+                    label = 'GRUPO';
+                } else if (lowRaw === 'faq' || lowRaw === 'faqs') {
+                    label = 'FAQs';
+                } else if (lowRaw === 'no ot' || lowRaw === 'no_ot') {
+                    label = 'NO OT';
+                }
+                const defaultColor = (lowRaw === 'grupo' || lowRaw === 'grupos') ? '#94a3b8' : '#c084fc';
+                const defaultBg = (lowRaw === 'grupo' || lowRaw === 'grupos') ? 'rgba(148, 163, 184, 0.18)' : 'rgba(168, 85, 247, 0.2)';
+                const color = tagObj ? tagObj.color : defaultColor;
+                const bg = tagObj ? tagObj.bg : defaultBg;
+                const tagClass = `tag-${(tagObj ? tagObj.id : t).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+                return `<span class="wa-tag-pill ${tagClass}" style="color: ${color}; background: ${bg}; border-color: ${color}66;">${label}</span>`;
+            }).join('') + `</div>`;
+        }
+
+        const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
+
+        return `
+            <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''} ${isSelected ? 'is-selected' : ''} ${isBulkSelected ? 'is-bulk-selected' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
+                <div class="wa-chat-select-box">
+                    <input type="checkbox" class="wa-chat-select-chk" data-phone="${cleanPhone}" ${isBulkSelected ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+                </div>
+                ${avatarHtml}
+                <div class="wa-chat-content">
+                    <div class="wa-row-top">
+                        <span class="wa-contact-name" title="${clientDisplayName}">${clientDisplayName}</span>
+                        <span class="wa-chat-time ${isPending ? 'wa-time-unread' : ''}">${smartTime}</span>
+                    </div>
+                    <div class="wa-row-bottom">
+                        <div class="wa-snippet-and-tags">
+                            <div class="wa-snippet-line">
+                                ${outgoingCheckHtml}
+                                <span class="wa-snippet-text">${formatWhatsAppText(previewText)}</span>
+                            </div>
+                            ${tagsHtml}
+                        </div>
+                        <div class="wa-status-icons">
+                            ${isPinned ? `<span class="wa-pin-icon btn-click-pin-icon" data-phone="${cleanPhone}" title="Desfijar conversación" style="cursor: pointer; padding: 2px 4px; border-radius: 4px; user-select: none;">📌</span>` : ''}
+                            ${isPending ? `<span class="wa-unread-badge">${unreadCount > 0 ? unreadCount : ''}</span>` : ''}
+                            <div class="wa-item-actions-trigger btn-card-more-actions" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Opciones">⋮</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderInboxCards(resetPagination = true) {
         const container = document.getElementById('inbox-cards-container');
         const summaryEl = document.getElementById('inbox-filter-summary');
         if (!container) return;
@@ -4852,7 +5006,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filtered = filtered.filter(c => activeInboxStatusFilters.has(getConversationStatus(c)));
         }
 
-        // 2. Filtrar por Etiquetas Múltiples (según las etiquetas seleccionadas en las píldoras superiores)
+        // 2. Filtrar por Etiquetas Múltiples
         if (activeInboxTagFilters.size > 0) {
             const availableTagsList = typeof getAllAvailableSilencedTags === 'function' ? getAllAvailableSilencedTags() : [];
             filtered = filtered.filter(c => {
@@ -4865,7 +5019,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // 3. Filtrar por Categoría / Temática residual si existiese
+        // 3. Filtrar por Categoría / Temática
         if (activeInboxCatFilters.size > 0) {
             filtered = filtered.filter(c => {
                 const cat = getConversationCategory(c);
@@ -4891,46 +5045,22 @@ document.addEventListener('DOMContentLoaded', () => {
             summaryEl.textContent = `${filtered.length} de ${total} conversaciones`;
         }
 
-        // Mover chats archivados al fondo (salvo que haya llegado un nuevo mensaje después de archivarlos)
+        // Mover chats archivados al fondo
         let archMap = {};
         try { archMap = { ...(serverInboxSettings.archivedChats || {}), ...JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}') }; } catch(e) {}
         if (Object.keys(archMap).length > 0) {
             filtered.sort((a, b) => {
                 const aKey = getCleanPhoneKey(a.telefono);
                 const bKey = getCleanPhoneKey(b.telefono);
-                const archA = archMap[aKey];
-                const archB = archMap[bKey];
-                // Auto-desarchivar si llegó un mensaje nuevo después de archivar
-                if (archA) {
-                    const archTime = new Date(archA.archivedAt).getTime();
-                    const msgTime = a.ultimoMensajeFecha ? new Date(a.ultimoMensajeFecha).getTime() : 0;
-                    if (!isNaN(archTime) && !isNaN(msgTime) && msgTime > archTime + 5000) {
-                        delete archMap[aKey];
-                        // Limpiar del localStorage y serverInboxSettings
-                        const saved = JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}');
-                        delete saved[aKey];
-                        localStorage.setItem('casa_julian_archived_chats', JSON.stringify(saved));
-                        if (serverInboxSettings.archivedChats) delete serverInboxSettings.archivedChats[aKey];
-                    }
-                }
-                if (archB) {
-                    const archTime = new Date(archB.archivedAt).getTime();
-                    const msgTime = b.ultimoMensajeFecha ? new Date(b.ultimoMensajeFecha).getTime() : 0;
-                    if (!isNaN(archTime) && !isNaN(msgTime) && msgTime > archTime + 5000) {
-                        delete archMap[bKey];
-                        const saved = JSON.parse(localStorage.getItem('casa_julian_archived_chats') || '{}');
-                        delete saved[bKey];
-                        localStorage.setItem('casa_julian_archived_chats', JSON.stringify(saved));
-                        if (serverInboxSettings.archivedChats) delete serverInboxSettings.archivedChats[bKey];
-                    }
-                }
                 const isArchA = !!archMap[aKey];
                 const isArchB = !!archMap[bKey];
-                if (isArchA && !isArchB) return 1;  // A al fondo
-                if (!isArchA && isArchB) return -1; // B al fondo
-                return 0; // Mantener orden relativo
+                if (isArchA && !isArchB) return 1;
+                if (!isArchA && isArchB) return -1;
+                return 0;
             });
         }
+
+        currentFilteredInboxChats = filtered;
 
         if (filtered.length === 0) {
             container.innerHTML = `
@@ -4943,184 +5073,263 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (resetPagination) {
+            currentInboxRenderedCount = INBOX_BATCH_SIZE;
+        }
+
         const availableTagsList = typeof getAllAvailableSilencedTags === 'function' ? getAllAvailableSilencedTags() : [];
-        const cardsHtml = [];
+        const batchToRender = filtered.slice(0, currentInboxRenderedCount);
+        container.innerHTML = batchToRender.map(c => buildChatCardHtml(c, availableTagsList)).join('');
 
-        filtered.forEach(c => {
-            const cleanPhone = getCleanPhoneKey(c.telefono);
-            const isGroup = cleanPhone === 'group_taxi_casa_julian' || c.isGroup;
-            const clientDisplayName = isGroup ? 'Taxi Casa Julián' : getClientDisplayName(c.nombreCliente, cleanPhone);
-            const smartTime = formatSmartDateTime(c.ultimoMensajeFecha);
-            const isFromClient = c.ultimoEmisor === 'cliente' || c.ultimoEmisor === 'user';
-            const isSelected = activeConversationPhone === cleanPhone;
-            const isBulkSelected = selectedChatCardsPhones.has(cleanPhone);
-            // Si el chat está abierto Y NO está marcado manualmente como pendiente → leído
-            const _manualMap = getManualChatStatusMap();
-            const _mEntry = _manualMap[cleanPhone];
-            const _mVal = _mEntry ? (typeof _mEntry === 'object' ? _mEntry.status : _mEntry) : null;
-            const status = (isSelected && _mVal !== 'pendiente') ? 'leido' : getConversationStatus(c);
-            const isPending = (status === 'pendiente');
-            const unreadCount = isPending ? getConversationUnreadCount(c) : 0;
-            const isPinned = isChatPinned(cleanPhone);
-            const isDropdownOpen = (activeCardDropdownPhone === cleanPhone);
-
-            const silencedContact = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers))
-                ? allSilencedNumbers.find(s => getCleanPhoneKey(s.telefono) === cleanPhone)
-                : null;
-            const isBotCanceled = silencedContact ? !!silencedContact.activo : false;
-
-            const outgoingCheckHtml = !isFromClient 
-                ? `<span class="wa-check-double" title="Entregado y Leído">✓✓</span> ` 
-                : '';
-
-            // Generador de Avatar estilo WhatsApp Business con soporte de fotos personalizadas, grupos y WhatsApp
-            let avatarHtml = '';
-            const lowerName = (clientDisplayName || '').toLowerCase();
-            const grpData = (serverInboxSettings.customGroups && serverInboxSettings.customGroups[cleanPhone]) || (c.isGroup ? c : null);
-            const customAvatarUrl = getChatAvatarUrl(cleanPhone, clientDisplayName, c)
-                || (grpData && grpData.avatar && (grpData.avatar.startsWith('/') || grpData.avatar.startsWith('http')) ? grpData.avatar : '');
-
-            if (customAvatarUrl) {
-                const borderClr = cleanPhone === 'group_taxi_casa_julian' ? '#f59e0b' : (isGroup ? '#10b981' : 'transparent');
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid ${borderClr}; overflow: hidden;" title="${clientDisplayName}"><img src="${customAvatarUrl}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.outerHTML='<span style=\\'font-size:1.4rem\\'>${cleanPhone === 'group_taxi_casa_julian' ? '🚕' : (isGroup ? '👥' : '👤')}</span>'"></div>`;
-            } else if (grpData && grpData.avatar && !grpData.avatar.startsWith('/')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e293b; border: 2px solid #10b981; overflow: hidden;" title="${clientDisplayName}"><span style="font-size: 1.4rem;">${grpData.avatar}</span></div>`;
-            } else if (lowerName.includes('entretiempo') || lowerName.includes('ricardo')) {
-                avatarHtml = `<div class="wa-avatar-container wa-avatar-ricardo" title="${clientDisplayName}"><span>E</span></div>`;
-            } else if (lowerName.includes('xabi') || lowerName.includes('gorrotxategi')) {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #1e3a8a; color: #93c5fd;" title="${clientDisplayName}"><span>XG</span></div>`;
-            } else if (cleanPhone === '41795958760') {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #065f46; color: #6ee7b7;" title="${clientDisplayName}"><span>+41</span></div>`;
-            } else if (cleanPhone === '923218428609') {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #701a75; color: #f5d0fe;" title="${clientDisplayName}"><span>SA</span></div>`;
-            } else if (clientDisplayName && !clientDisplayName.startsWith('+')) {
-                const words = clientDisplayName.trim().split(/\s+/);
-                const initials = words.length > 1 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].slice(0, 2).toUpperCase();
-                avatarHtml = `<div class="wa-avatar-container" style="background: #2a3942; color: #e9edef;" title="${clientDisplayName}"><span>${initials}</span></div>`;
-            } else {
-                avatarHtml = `<div class="wa-avatar-container" style="background: #202c33; color: #8696a0;" title="${clientDisplayName}"><span style="font-size: 1.2rem;">👤</span></div>`;
-            }
-
-            // Etiquetas WhatsApp Business (Píldoras de colores visibles bajo el mensaje - se oculta CLIENTES)
-            let tagsHtml = '';
-            const allChatTags = getChatTags(cleanPhone, c);
-            const tags = allChatTags.filter(t => {
-                const low = String(t).toLowerCase().trim();
-                return low !== 'cliente' && low !== 'clientes';
-            });
-
-            if (tags.length > 0) {
-                tagsHtml = `<div class="wa-tags-container">` + tags.map(t => {
-                    const lowT = String(t).toLowerCase().trim();
-                    const tagObj = availableTagsList.find(at => {
-                        const atId = (at.id || '').toLowerCase();
-                        const atName = (at.name || '').toLowerCase();
-                        if (atId === lowT || atName === lowT) return true;
-                        if (atId === 'menu_tradicion' && (lowT === 'ot' || lowT === 'menu_tradicion' || lowT === 'tradicion')) return true;
-                        if (atId === 'no_ot' && (lowT === 'no ot' || lowT === 'no_ot')) return true;
-                        if (atId === 'modificacion' && (lowT === 'modif' || lowT === 'modificacion' || lowT === 'modificaciones')) return true;
-                        if (atId === 'cancelacion' && (lowT === 'cancel' || lowT === 'cancelacion' || lowT === 'cancelaciones')) return true;
-                        if (atId === 'faq' && (lowT === 'faqs' || lowT === 'faq' || lowT === 'preguntas_frecuentes')) return true;
-                        if (atId === 'otras_cuestiones' && (lowT === 'otras' || lowT === 'otras_cuestiones' || lowT === 'consulta' || lowT === 'consulta_abierta')) return true;
-                        if (atId === 'empleado' && (lowT === 'empleados' || lowT === 'empleado' || lowT === 'personal' || lowT === 'alba')) return true;
-                        if (atId === 'proveedor' && (lowT === 'proveedores' || lowT === 'proveedor')) return true;
-                        if (atId === 'hoteles' && (lowT === 'hotel' || lowT === 'hoteles')) return true;
-                        if (atId === 'taxi' && (lowT === 'taxis' || lowT === 'taxi')) return true;
-                        if (atId === 'grupo' && (lowT === 'grupo' || lowT === 'grupos')) return true;
-                        return false;
-                    });
-                    const rawLabel = tagObj ? tagObj.name : t;
-                    const lowRaw = String(rawLabel).toLowerCase().trim();
-                    let label = rawLabel.toUpperCase();
-                    if (lowRaw === 'empleados' || lowRaw === 'empleado' || lowRaw === 'alba' || lowRaw === 'personal') {
-                        label = 'PERSONAL';
-                    } else if (lowRaw === 'grupo' || lowRaw === 'grupos') {
-                        label = 'GRUPO';
-                    } else if (lowRaw === 'faq' || lowRaw === 'faqs') {
-                        label = 'FAQs';
-                    } else if (lowRaw === 'no ot' || lowRaw === 'no_ot') {
-                        label = 'NO OT';
+        // Scroll infinito ultra-eficiente
+        if (!isInboxInfiniteScrollBound) {
+            isInboxInfiniteScrollBound = true;
+            let scrollRaf = null;
+            container.addEventListener('scroll', () => {
+                if (scrollRaf) return;
+                scrollRaf = requestAnimationFrame(() => {
+                    scrollRaf = null;
+                    if (container.scrollTop + container.clientHeight >= container.scrollHeight - 350) {
+                        appendNextInboxBatch();
                     }
-                    const defaultColor = (lowRaw === 'grupo' || lowRaw === 'grupos') ? '#94a3b8' : '#c084fc';
-                    const defaultBg = (lowRaw === 'grupo' || lowRaw === 'grupos') ? 'rgba(148, 163, 184, 0.18)' : 'rgba(168, 85, 247, 0.2)';
-                    const color = tagObj ? tagObj.color : defaultColor;
-                    const bg = tagObj ? tagObj.bg : defaultBg;
-                    const tagClass = `tag-${(tagObj ? tagObj.id : t).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-                    return `<span class="wa-tag-pill ${tagClass}" style="color: ${color}; background: ${bg}; border-color: ${color}66;">${label}</span>`;
-                }).join('') + `</div>`;
-            }
+                });
+            }, { passive: true });
+        }
 
-            const previewText = (c.ultimoTexto || '').replace(/[\r\n]+/g, ' ').substring(0, 110) + ((c.ultimoTexto || '').length > 110 ? '...' : '');
-
-            cardsHtml.push(`
-                <div class="whatsapp-chat-row chat-card-item ${isPending ? 'is-unread' : ''} ${isPinned ? 'is-pinned' : ''} ${isSelected ? 'is-selected' : ''} ${isBulkSelected ? 'is-bulk-selected' : ''} ${isDropdownOpen ? 'dropdown-active' : ''}" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}">
-                    <div class="wa-chat-select-box">
-                        <input type="checkbox" class="wa-chat-select-chk" data-phone="${cleanPhone}" ${isBulkSelected ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
-                    </div>
-                    ${avatarHtml}
-                    <div class="wa-chat-content">
-                        <div class="wa-row-top">
-                            <span class="wa-contact-name" title="${clientDisplayName}">${clientDisplayName}</span>
-                            <span class="wa-chat-time ${isPending ? 'wa-time-unread' : ''}">${smartTime}</span>
-                        </div>
-                        <div class="wa-row-bottom">
-                            <div class="wa-snippet-and-tags">
-                                <div class="wa-snippet-line">
-                                    ${outgoingCheckHtml}
-                                    <span class="wa-snippet-text">${formatWhatsAppText(previewText)}</span>
-                                </div>
-                                ${tagsHtml}
-                            </div>
-                            <div class="wa-status-icons">
-                                ${isPinned ? `<span class="wa-pin-icon btn-click-pin-icon" data-phone="${cleanPhone}" title="Desfijar conversación" style="cursor: pointer; padding: 2px 4px; border-radius: 4px; user-select: none;">📌</span>` : ''}
-                                ${isPending ? `<span class="wa-unread-badge">${unreadCount > 0 ? unreadCount : ''}</span>` : ''}
-                                <div class="wa-item-actions-trigger btn-card-more-actions" data-phone="${cleanPhone}" title="Opciones">⋮</div>
-                            </div>
-                        </div>
-
-                        <!-- Menú Flotante Superpuesto de Acciones Rápidas (estilo WhatsApp Web / Móvil) -->
-                        <div class="card-actions-dropdown-menu" id="dropdown-actions-${cleanPhone}" style="display: ${isDropdownOpen ? 'flex' : 'none'}; position: absolute; top: 36px; right: 8px; z-index: 99999; background: #233138; border: 1px solid rgba(134, 150, 160, 0.25); border-radius: 10px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4); min-width: 185px; padding: 6px 0; flex-direction: column; gap: 1px; overflow: hidden;">
-                            <button type="button" class="btn-change-chat-avatar" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #38bdf8; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
-                                🖼️ <span>Cambiar Imagen</span>
-                            </button>
-                            <button type="button" class="btn-edit-chat-tags" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #38bdf8; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
-                                🏷️ <span>Etiquetas</span>
-                            </button>
-                            <button type="button" class="btn-pin-chat-card ${isPinned ? 'active' : ''}" data-phone="${cleanPhone}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
-                                📌 <span>${isPinned ? 'Desfijar' : 'Fijar arriba'}</span>
-                            </button>
-                            <button type="button" class="btn-toggle-read-status" data-phone="${cleanPhone}" data-target-status="${isPending ? 'leido' : 'pendiente'}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
-                                ${isPending ? '✓' : '⏳'} <span>${isPending ? 'Marcar Leído' : 'Marcar No Leído'}</span>
-                            </button>
-                            <a href="tel:+${cleanPhone}" class="btn-phone-call" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-decoration: none; text-align: left; box-sizing: border-box;">
-                                📞 <span>Llamar</span>
-                            </a>
-                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="btn-open-wa" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-decoration: none; text-align: left; box-sizing: border-box;">
-                                📲 <span>WhatsApp</span>
-                            </a>
-                            ${!isGroup ? `
-                            <button type="button" class="btn-silence-chat-card" data-phone="${cleanPhone}" data-name="${encodeURIComponent(clientDisplayName)}" title="Activar o desactivar bot para este número" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
-                                ${isBotCanceled ? '🔊' : '🔇'} <span>${isBotCanceled ? 'Activar Bot' : 'Desactivar Bot'}</span>
-                            </button>` : ''}
-                            <div style="height: 1px; background: rgba(134, 150, 160, 0.18); margin: 3px 0;"></div>
-                            <button type="button" class="btn-delete-chat-card" data-phone="${cleanPhone}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #fca5a5; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
-                                🗑️ <span>Eliminar chat</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `);
-        });
-
-        // Insertar únicamente las tarjetas (la barra de selección flota superpuesta sin mover los chats)
-        container.innerHTML = cardsHtml.join('');
-
-        // Sincronizar barra flotante de selección múltiple
         initFloatingSelectionToolbarEvents();
         updateFloatingSelectionToolbar();
-
-        // Inicializar delegación centralizada de eventos (solo se enlaza 1 vez, máxima velocidad y fluidez instantánea)
         initInboxCardsEventDelegation();
+        initGlobalCardActionsDropdownEvents();
+    }
+
+    function appendNextInboxBatch() {
+        const container = document.getElementById('inbox-cards-container');
+        if (!container || currentInboxRenderedCount >= currentFilteredInboxChats.length) return;
+
+        const nextBatch = currentFilteredInboxChats.slice(currentInboxRenderedCount, currentInboxRenderedCount + INBOX_BATCH_SIZE);
+        if (nextBatch.length === 0) return;
+
+        currentInboxRenderedCount += nextBatch.length;
+        const availableTagsList = typeof getAllAvailableSilencedTags === 'function' ? getAllAvailableSilencedTags() : [];
+        const nextHtml = nextBatch.map(c => buildChatCardHtml(c, availableTagsList)).join('');
+        container.insertAdjacentHTML('beforeend', nextHtml);
+    }
+
+    // ── MENÚ GLOBAL FLOTANTE DE ACCIONES RÁPIDAS (0ms LATENCIA) ──────────────────
+    function openGlobalCardDropdown(phone, name, triggerEl) {
+        const dropdown = document.getElementById('global-card-actions-dropdown');
+        if (!dropdown || !phone) return;
+
+        if (globalDropdownActivePhone === phone && dropdown.style.display === 'flex') {
+            closeGlobalCardDropdown();
+            return;
+        }
+
+        globalDropdownActivePhone = phone;
+        globalDropdownActiveName = name || phone;
+
+        const conv = allUnifiedConversations.find(c => getCleanPhoneKey(c.telefono) === phone) || {};
+        const isPinned = isChatPinned(phone);
+        const manualMap = getManualChatStatusMap();
+        const currentStatus = manualMap[phone] ? (typeof manualMap[phone] === 'object' ? manualMap[phone].status : manualMap[phone]) : getConversationStatus(conv);
+        const isPending = (currentStatus === 'pendiente');
+
+        const silencedContact = (typeof allSilencedNumbers !== 'undefined' && Array.isArray(allSilencedNumbers))
+            ? allSilencedNumbers.find(s => getCleanPhoneKey(s.telefono) === phone)
+            : null;
+        const isBotCanceled = silencedContact ? !!silencedContact.activo : false;
+        const isGroup = phone.startsWith('group_') || conv.isGroup;
+
+        // Actualizar botones y textos
+        const pinLabel = document.getElementById('global-pin-label');
+        if (pinLabel) pinLabel.textContent = isPinned ? 'Desfijar' : 'Fijar arriba';
+
+        const readIcon = document.getElementById('global-read-icon');
+        const readLabel = document.getElementById('global-read-label');
+        if (readIcon) readIcon.textContent = isPending ? '✓' : '⏳';
+        if (readLabel) readLabel.textContent = isPending ? 'Marcar Leído' : 'Marcar No Leído';
+
+        const btnCall = document.getElementById('global-btn-phone-call');
+        if (btnCall) {
+            btnCall.style.display = isGroup ? 'none' : 'flex';
+            btnCall.href = `tel:+${phone}`;
+        }
+
+        const btnWa = document.getElementById('global-btn-open-wa');
+        if (btnWa) {
+            btnWa.style.display = isGroup ? 'none' : 'flex';
+            btnWa.href = `https://wa.me/${phone}`;
+        }
+
+        const btnSilence = document.getElementById('global-btn-silence-chat-card');
+        const silenceIcon = document.getElementById('global-silence-icon');
+        const silenceLabel = document.getElementById('global-silence-label');
+        if (btnSilence) {
+            btnSilence.style.display = isGroup ? 'none' : 'flex';
+            if (silenceIcon) silenceIcon.textContent = isBotCanceled ? '🔊' : '🔇';
+            if (silenceLabel) silenceLabel.textContent = isBotCanceled ? 'Activar Bot' : 'Desactivar Bot';
+        }
+
+        // Posicionar respecto al botón ⋮
+        dropdown.style.display = 'flex';
+        const rect = triggerEl.getBoundingClientRect();
+        const dropWidth = 190;
+        const dropHeight = dropdown.offsetHeight || 260;
+
+        let top = rect.bottom + 4;
+        if (top + dropHeight > window.innerHeight - 10) {
+            top = Math.max(10, rect.top - dropHeight - 4);
+        }
+        let left = rect.right - dropWidth;
+        if (left < 10) left = 10;
+        if (left + dropWidth > window.innerWidth - 10) left = window.innerWidth - dropWidth - 10;
+
+        dropdown.style.top = `${top}px`;
+        dropdown.style.left = `${left}px`;
+    }
+
+    function closeGlobalCardDropdown() {
+        const dropdown = document.getElementById('global-card-actions-dropdown');
+        if (dropdown) dropdown.style.display = 'none';
+        globalDropdownActivePhone = null;
+        globalDropdownActiveName = '';
+    }
+
+    let isGlobalDropdownEventsBound = false;
+
+    function initGlobalCardActionsDropdownEvents() {
+        if (isGlobalDropdownEventsBound) return;
+        isGlobalDropdownEventsBound = true;
+
+        const dropdown = document.getElementById('global-card-actions-dropdown');
+        if (!dropdown) return;
+
+        // Cerrar al hacer clic fuera o al hacer scroll
+        document.addEventListener('click', (e) => {
+            if (dropdown && dropdown.style.display === 'flex') {
+                if (!dropdown.contains(e.target) && !e.target.closest('.btn-card-more-actions')) {
+                    closeGlobalCardDropdown();
+                }
+            }
+        });
+
+        window.addEventListener('scroll', () => {
+            if (dropdown && dropdown.style.display === 'flex') closeGlobalCardDropdown();
+        }, { passive: true });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeGlobalCardDropdown();
+        });
+
+        // Hover en opciones
+        dropdown.querySelectorAll('.global-dropdown-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', () => { btn.style.background = 'rgba(255,255,255,0.08)'; });
+            btn.addEventListener('mouseleave', () => { btn.style.background = 'transparent'; });
+        });
+
+        // 1. Cambiar Avatar
+        const btnAvatar = document.getElementById('global-btn-change-chat-avatar');
+        if (btnAvatar) {
+            btnAvatar.addEventListener('click', () => {
+                const phone = globalDropdownActivePhone;
+                const name = globalDropdownActiveName;
+                closeGlobalCardDropdown();
+                if (phone) openChatAvatarModal(phone, name);
+            });
+        }
+
+        // 2. Editar Etiquetas
+        const btnTags = document.getElementById('global-btn-edit-chat-tags');
+        if (btnTags) {
+            btnTags.addEventListener('click', () => {
+                const phone = globalDropdownActivePhone;
+                const name = globalDropdownActiveName;
+                closeGlobalCardDropdown();
+                if (phone) openChatTagsModal(phone, name);
+            });
+        }
+
+        // 3. Fijar / Desfijar
+        const btnPin = document.getElementById('global-btn-pin-chat-card');
+        if (btnPin) {
+            btnPin.addEventListener('click', () => {
+                const phone = globalDropdownActivePhone;
+                closeGlobalCardDropdown();
+                if (!phone) return;
+                const isNowPinned = toggleChatPinned(phone);
+                showToast(isNowPinned ? '📌 Conversación fijada arriba' : 'Conversación desfijada');
+                syncUnifiedConversations();
+                renderInboxCards();
+            });
+        }
+
+        // 4. Marcar Leído / No Leído
+        const btnToggleRead = document.getElementById('global-btn-toggle-read-status');
+        if (btnToggleRead) {
+            btnToggleRead.addEventListener('click', () => {
+                const phone = globalDropdownActivePhone;
+                closeGlobalCardDropdown();
+                if (!phone) return;
+                const manualMap = getManualChatStatusMap();
+                const conv = allUnifiedConversations.find(c => getCleanPhoneKey(c.telefono) === phone) || {};
+                const currentStatus = manualMap[phone] ? (typeof manualMap[phone] === 'object' ? manualMap[phone].status : manualMap[phone]) : getConversationStatus(conv);
+                const targetStatus = (currentStatus === 'pendiente') ? 'leido' : 'pendiente';
+
+                setManualChatStatus(phone, targetStatus);
+                if (conv && conv.solicitudId) {
+                    const newSolStatus = targetStatus === 'leido' ? 'RESUELTA' : 'PENDIENTE';
+                    fetch(`/api/admin/solicitudes/${conv.solicitudId}/estado`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+                        body: JSON.stringify({ estado: newSolStatus })
+                    }).catch(() => {});
+                    conv.solicitudEstado = newSolStatus;
+                }
+                showToast(targetStatus === 'leido' ? '✅ Chat marcado como Leído' : '⏳ Chat marcado como No Leído');
+                syncUnifiedConversations();
+                renderInboxCards(false);
+            });
+        }
+
+        // 5. Silenciar Bot
+        const btnSilence = document.getElementById('global-btn-silence-chat-card');
+        if (btnSilence) {
+            btnSilence.addEventListener('click', async () => {
+                const phone = globalDropdownActivePhone;
+                const name = globalDropdownActiveName;
+                closeGlobalCardDropdown();
+                if (phone) await toggleBotStatusForContact(phone, name);
+            });
+        }
+
+        // 6. Eliminar Chat
+        const btnDelete = document.getElementById('global-btn-delete-chat-card');
+        if (btnDelete) {
+            btnDelete.addEventListener('click', async () => {
+                const phone = globalDropdownActivePhone;
+                closeGlobalCardDropdown();
+                if (!phone) return;
+                if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE todo el historial del chat +${phone}? Esta acción no se puede deshacer.`)) return;
+                try {
+                    const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
+                    const res = await fetch(`/api/admin/chats/${phone}`, {
+                        method: 'DELETE',
+                        headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('🗑️ Conversación eliminada definitivamente.');
+                        await fetchWhatsAppChats();
+                        syncUnifiedConversations();
+                        renderInboxCards();
+                    } else {
+                        alert('Error al eliminar conversación: ' + (data.error || 'Desconocido'));
+                    }
+                } catch (err) {
+                    alert('Error al eliminar conversación: ' + err.message);
+                }
+            });
+        }
     }
 
     let isInboxDelegationBound = false;
@@ -5155,127 +5364,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // 3. Botón 3 puntitos ⋮ (Menú contextual)
+            // 3. Botón 3 puntitos ⋮ (Menú contextual global rápido)
             const moreBtn = e.target.closest('.btn-card-more-actions');
             if (moreBtn) {
                 e.stopPropagation();
                 e.preventDefault();
                 const phone = moreBtn.getAttribute('data-phone');
-                activeCardDropdownPhone = (activeCardDropdownPhone === phone) ? null : phone;
-                document.querySelectorAll('.card-actions-dropdown-menu').forEach(m => {
-                    const isTarget = m.id === `dropdown-actions-${phone}`;
-                    m.style.display = (isTarget && activeCardDropdownPhone === phone) ? 'flex' : 'none';
-                });
-                document.querySelectorAll('.whatsapp-chat-row').forEach(r => {
-                    const rPhone = r.getAttribute('data-phone');
-                    r.classList.toggle('dropdown-active', rPhone === activeCardDropdownPhone);
-                });
+                const name = decodeURIComponent(moreBtn.getAttribute('data-name') || '');
+                openGlobalCardDropdown(phone, name, moreBtn);
                 return;
             }
 
-            // 4. Cambiar avatar
-            const avatarBtn = e.target.closest('.btn-change-chat-avatar');
-            if (avatarBtn) {
-                e.stopPropagation();
-                activeCardDropdownPhone = null;
-                const phone = avatarBtn.getAttribute('data-phone');
-                const name = decodeURIComponent(avatarBtn.getAttribute('data-name') || 'Chat');
-                openChatAvatarModal(phone, name);
-                return;
-            }
-
-            // 5. Editar etiquetas
-            const tagsBtn = e.target.closest('.btn-edit-chat-tags');
-            if (tagsBtn) {
-                e.stopPropagation();
-                activeCardDropdownPhone = null;
-                const phone = tagsBtn.getAttribute('data-phone');
-                const name = decodeURIComponent(tagsBtn.getAttribute('data-name') || 'Cliente');
-                openChatTagsModal(phone, name);
-                return;
-            }
-
-            // 6. Fijar / Desfijar desde dropdown
-            const pinBtn = e.target.closest('.btn-pin-chat-card');
-            if (pinBtn) {
-                e.stopPropagation();
-                const phone = pinBtn.getAttribute('data-phone');
-                const isNowPinned = toggleChatPinned(phone);
-                activeCardDropdownPhone = null;
-                showToast(isNowPinned ? '📌 Conversación fijada arriba' : 'Conversación desfijada');
-                syncUnifiedConversations();
-                renderInboxCards();
-                return;
-            }
-
-            // 7. Alternar estado Leído / No Leído
-            const readBtn = e.target.closest('.btn-toggle-read-status');
-            if (readBtn) {
-                e.stopPropagation();
-                const phone = readBtn.getAttribute('data-phone');
-                const targetStatus = readBtn.getAttribute('data-target-status');
-                setManualChatStatus(phone, targetStatus);
-                activeCardDropdownPhone = null;
-                const conv = allUnifiedConversations.find(c => c.telefono === phone);
-                if (conv && conv.solicitudId) {
-                    const newSolStatus = targetStatus === 'leido' ? 'RESUELTA' : 'PENDIENTE';
-                    fetch(`/api/admin/solicitudes/${conv.solicitudId}/estado`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
-                        body: JSON.stringify({ estado: newSolStatus })
-                    }).catch(() => {});
-                    conv.solicitudEstado = newSolStatus;
-                }
-                showToast(targetStatus === 'leido' ? '✅ Chat marcado como Leído' : '⏳ Chat marcado como No Leído');
-                syncUnifiedConversations();
-                renderInboxCards();
-                return;
-            }
-
-            // 8. Silenciar bot para este contacto
-            const silenceBtn = e.target.closest('.btn-silence-chat-card');
-            if (silenceBtn) {
-                e.stopPropagation();
-                e.preventDefault();
-                const phone = silenceBtn.getAttribute('data-phone');
-                const name = decodeURIComponent(silenceBtn.getAttribute('data-name') || '');
-                activeCardDropdownPhone = null;
-                await toggleBotStatusForContact(phone, name);
-                return;
-            }
-
-            // 9. Eliminar chat
-            const deleteBtn = e.target.closest('.btn-delete-chat-card');
-            if (deleteBtn) {
-                e.stopPropagation();
-                activeCardDropdownPhone = null;
-                const phone = deleteBtn.getAttribute('data-phone');
-                if (!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE todo el historial del chat +${phone}? Esta acción no se puede deshacer.`)) return;
-                try {
-                    const currentToken = adminToken || localStorage.getItem('casa_julian_admin_token') || '';
-                    const res = await fetch(`/api/admin/chats/${phone}`, {
-                        method: 'DELETE',
-                        headers: { 'x-admin-token': currentToken, 'Authorization': `Bearer ${currentToken}` }
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        showToast('🗑️ Conversación eliminada definitivamente.');
-                        await fetchWhatsAppChats();
-                        syncUnifiedConversations();
-                        renderInboxCards();
-                    } else {
-                        alert('Error al eliminar conversación: ' + (data.error || 'Desconocido'));
-                    }
-                } catch (err) {
-                    alert('Error al eliminar conversación: ' + err.message);
-                }
-                return;
-            }
-
-            // 10. Clic en fila de chat para abrir conversación
+            // 4. Clic en fila de chat para abrir conversación
             const card = e.target.closest('.chat-card-item');
             if (card) {
-                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.card-actions-dropdown-menu') || e.target.closest('.btn-click-pin-icon') || e.target.closest('.wa-chat-select-chk')) return;
+                if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.wa-item-actions-trigger') || e.target.closest('.btn-click-pin-icon') || e.target.closest('.wa-chat-select-chk')) return;
                 const phone = card.getAttribute('data-phone');
                 const name = decodeURIComponent(card.getAttribute('data-name') || 'Cliente');
                 if (isChatMultiSelectMode) {
@@ -6638,14 +6741,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         await fetchAndRenderChatThread(cleanPhoneStr, sol, true);
 
-        // Polling en tiempo real para el panel de mensajes cada 1.5s
+        // Polling en tiempo real para el panel de mensajes cada 3.5s
         activePaneChatPollInterval = setInterval(() => {
             if (activeConversationPhone === cleanPhoneStr) {
                 fetchAndRenderChatThread(cleanPhoneStr, activeReplySolicitud, false);
             } else {
                 stopChatPolling();
             }
-        }, 1500);
+        }, 3500);
     }
 
     // Abrir Modal de Chat Unificado e Interactivo con Resumen de Solicitud
@@ -6823,14 +6926,14 @@ document.addEventListener('DOMContentLoaded', () => {
         lastChatRenderedSig = '';
         await fetchAndRenderChatThread(cleanPhoneStr, sol, true);
 
-        // Iniciar polling en tiempo real cada 1.5s
+        // Iniciar polling en tiempo real cada 3.5s
         activeReplyChatPollInterval = setInterval(() => {
             if (replyModal.style.display !== 'none' && currentChatPhone) {
                 fetchAndRenderChatThread(currentChatPhone, activeReplySolicitud, false);
             } else {
                 stopChatPolling();
             }
-        }, 1500);
+        }, 3500);
 
         replyMessageText.value = prefilledText || '';
         replyErrorMsg.style.display = 'none';

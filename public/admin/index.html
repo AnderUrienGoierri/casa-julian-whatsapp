@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260902-V509-FIX-FLOATING-SELECTION-HIDDEN-UNTIL-SELECTED">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260902-V511-INSTANT-PERFORMANCE">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -339,6 +339,35 @@
                                         ✅ <span class="action-btn-text">Leído</span>
                                     </button>
                                 </div>
+                            </div>
+
+                            <!-- Menú Flotante Global Único de Acciones Rápidas para Tarjetas de Chat (0ms instantáneo) -->
+                            <div id="global-card-actions-dropdown" class="card-actions-dropdown-menu" style="display: none; position: fixed; z-index: 9999999; background: #233138; border: 1px solid rgba(134, 150, 160, 0.25); border-radius: 10px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.4); min-width: 185px; padding: 6px 0; flex-direction: column; gap: 1px; overflow: hidden;">
+                                <button type="button" id="global-btn-change-chat-avatar" class="global-dropdown-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #38bdf8; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                    🖼️ <span>Cambiar Imagen</span>
+                                </button>
+                                <button type="button" id="global-btn-edit-chat-tags" class="global-dropdown-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #38bdf8; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                    🏷️ <span>Etiquetas</span>
+                                </button>
+                                <button type="button" id="global-btn-pin-chat-card" class="global-dropdown-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                    📌 <span id="global-pin-label">Fijar arriba</span>
+                                </button>
+                                <button type="button" id="global-btn-toggle-read-status" class="global-dropdown-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                    <span id="global-read-icon">⏳</span> <span id="global-read-label">Marcar No Leído</span>
+                                </button>
+                                <a href="#" id="global-btn-phone-call" class="global-dropdown-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-decoration: none; text-align: left; box-sizing: border-box;">
+                                    📞 <span>Llamar</span>
+                                </a>
+                                <a href="#" id="global-btn-open-wa" target="_blank" class="global-dropdown-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-decoration: none; text-align: left; box-sizing: border-box;">
+                                    📲 <span>WhatsApp</span>
+                                </a>
+                                <button type="button" id="global-btn-silence-chat-card" class="global-dropdown-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #e9edef; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                    <span id="global-silence-icon">🔇</span> <span id="global-silence-label">Desactivar Bot</span>
+                                </button>
+                                <div style="height: 1px; background: rgba(134, 150, 160, 0.18); margin: 3px 0;"></div>
+                                <button type="button" id="global-btn-delete-chat-card" class="global-dropdown-btn" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 16px; background: transparent; border: none; color: #fca5a5; font-size: 0.83rem; font-weight: 500; cursor: pointer; text-align: left; box-sizing: border-box;">
+                                    🗑️ <span>Eliminar chat</span>
+                                </button>
                             </div>
 
                             <!-- Lista de Conversaciones de WhatsApp Business -->
@@ -1232,6 +1261,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260902-V509-FIX-FLOATING-SELECTION-HIDDEN-UNTIL-SELECTED"></script>
+    <script src="/admin/admin.js?v=20260902-V511-INSTANT-PERFORMANCE"></script>
 </body>
 </html>
