@@ -75,6 +75,23 @@ function sanitizeFilename(str) {
         .substring(0, 100);
 }
 
+// Limpiar emojis y escapar caracteres especiales de tablas Markdown
+function cleanMarkdownTableCell(text) {
+    if (!text) return '-';
+    let str = String(text);
+    // Eliminar emojis
+    str = str.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '');
+    // Escapar barras verticales
+    str = str.replace(/\|/g, '\\|');
+    // Reemplazar saltos de línea por <br>
+    str = str.replace(/\r\n|\n/g, '<br>');
+    // Limpiar espacios dobles
+    str = str.replace(/\s+/g, ' ').trim();
+    // Reemplazar <br> repetidos
+    str = str.replace(/(<br>\s*){3,}/g, '<br><br>');
+    return str || '-';
+}
+
 // Extraer etiquetas del chatbot (solo si la fecha es >= 30/08/2026)
 function getChatbotTags(allTexts, lastDateStr) {
     if (!lastDateStr) return [];
@@ -107,22 +124,22 @@ function getChatbotTags(allTexts, lastDateStr) {
 
 // Obtener nombre display conocido
 function getKnownDisplayName(cleanPhone, silencedMap, rawName) {
-    if (cleanPhone === 'group_taxi_casa_julian') return 'Taxi Casa Julián';
+    if (cleanPhone === 'group_taxi_casa_julian') return 'Taxi Casa Julian';
     if (cleanPhone === '34670426540') return 'Taxi Iguaran';
     if (cleanPhone === '34670449858') return 'Taxi Tolosa';
     if (cleanPhone === '34636979092') return 'Taxi Lexus';
-    if (cleanPhone === '34943671417') return 'Casa Julián Tolosa';
+    if (cleanPhone === '34943671417') return 'Casa Julian Tolosa';
     if (cleanPhone === '34664037707' || cleanPhone === '3466407707') return 'Ander Informatico';
     if (cleanPhone === '34645747754') return 'Xabi Gorrotxategi';
     if (cleanPhone === '34623476521') return 'Ricardo Entretiempo Studio';
 
     if (silencedMap && silencedMap.has(cleanPhone)) {
         const s = silencedMap.get(cleanPhone);
-        if (s.nombre) return s.nombre;
+        if (s.nombre) return s.nombre.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
     }
 
     if (rawName && typeof rawName === 'string') {
-        const trimmed = rawName.trim();
+        const trimmed = rawName.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '').trim();
         const low = trimmed.toLowerCase();
         if (trimmed && !low.startsWith('cliente wa') && !low.startsWith('cliente ') && low !== 'cliente' && low !== 'usuario' && !low.startsWith('+')) {
             return trimmed;
@@ -150,7 +167,7 @@ function getCategory(cleanPhone, silencedMap, customCategory) {
 }
 
 async function runExport() {
-    console.log("🚀 Iniciando exportación de chats a Markdown clasificados por fecha...");
+    console.log("Iniciando exportación simplificada de chats a Markdown con tablas...");
 
     const rootDir = path.join(__dirname, '..');
     const targetDirs = [
@@ -196,14 +213,14 @@ async function runExport() {
         }
     }
 
-    console.log(`📊 Total de mensajes cargados: ${allMessages.length}`);
+    console.log(`Total de mensajes cargados: ${allMessages.length}`);
 
     // 3. Agrupar mensajes por teléfono
     const chatsMap = new Map();
     allMessages.forEach(msg => {
         const tel = String(msg.telefono || '').trim();
         if (!tel) return;
-        if (deletedChats[tel]) return; // Ignorar eliminados
+        if (deletedChats[tel]) return;
 
         if (!chatsMap.has(tel)) {
             chatsMap.set(tel, []);
@@ -211,10 +228,10 @@ async function runExport() {
         chatsMap.get(tel).push(msg);
     });
 
-    console.log(`💬 Total de conversaciones activas: ${chatsMap.size}`);
+    console.log(`Total de conversaciones activas: ${chatsMap.size}`);
 
     // 4. Procesar cada chat y clasificar por día del último mensaje
-    const daysMap = new Map(); // dayKey -> array de objetos chat
+    const daysMap = new Map();
 
     chatsMap.forEach((messages, telefono) => {
         const cleanPhone = telefono.startsWith('group_') ? telefono : telefono.replace(/\D/g, '');
@@ -271,14 +288,14 @@ async function runExport() {
         daysMap.get(dayKey).push(chatObj);
     });
 
-    // 5. Ordenar los días cronológicamente descendente (más recientes primero)
+    // 5. Ordenar los días cronológicamente descendente
     const sortedDays = Array.from(daysMap.keys()).sort((a, b) => {
         const [d1, m1, y1] = a.split('_').map(Number);
         const [d2, m2, y2] = b.split('_').map(Number);
         return new Date(y2, m2 - 1, d2) - new Date(y1, m1 - 1, d1);
     });
 
-    console.log(`📁 Creando carpetas para ${sortedDays.length} días...`);
+    console.log(`Generando archivos en ${sortedDays.length} carpetas diarias...`);
 
     let totalExportedFiles = 0;
 
@@ -291,7 +308,6 @@ async function runExport() {
             }
 
             const chatsInDay = daysMap.get(dayKey);
-            // Ordenar dentro del día: fijados primero, luego más reciente
             chatsInDay.sort((a, b) => {
                 if (a.isPinned && !b.isPinned) return -1;
                 if (!a.isPinned && b.isPinned) return 1;
@@ -303,96 +319,100 @@ async function runExport() {
                 const filename = `chat_${chat.telefono}_${safeName}.md`;
                 const filePath = path.join(dayDir, filename);
 
-                // Construir contenido Markdown
+                // Construir contenido Markdown simplificado en dos tablas
                 let md = `# Conversación de WhatsApp: ${chat.displayName}\n\n`;
                 md += `| Metadato | Detalle |\n`;
                 md += `| :--- | :--- |\n`;
-                md += `| **Contacto / Cliente** | **${chat.displayName}** |\n`;
+                md += `| **Contacto / Cliente** | ${chat.displayName} |\n`;
                 md += `| **Número de Teléfono** | \`${formatPhoneWithPrefix(chat.telefono)}\` (\`${chat.telefono}\`) |\n`;
                 md += `| **Categoría** | \`${chat.category.toUpperCase()}\` |\n`;
                 md += `| **Etiquetas** | ${chat.tags.length > 0 ? chat.tags.map(t => `\`${t}\``).join(' ') : '*Ninguna*'} |\n`;
-                md += `| **Fijado en Panel** | ${chat.isPinned ? '📌 Sí' : 'No'} |\n`;
-                md += `| **Total de Mensajes** | **${chat.messagesCount}** |\n`;
+                md += `| **Fijado en Panel** | ${chat.isPinned ? 'Sí' : 'No'} |\n`;
+                md += `| **Total de Mensajes** | ${chat.messagesCount} |\n`;
                 md += `| **Primer Mensaje** | ${formatMadridDateTime(chat.firstDateStr)} |\n`;
                 md += `| **Último Mensaje** | ${formatMadridDateTime(chat.lastDateStr)} |\n`;
                 md += `| **Carpeta del Día** | \`${chat.dayKey}\` |\n\n`;
                 md += `---\n\n`;
-                md += `## 📜 Historial Completo de Mensajes\n\n`;
+                md += `## Historial de Mensajes\n\n`;
+                md += `| # | Fecha y Hora | Emisor | Tipo | Mensaje | Opciones / Botones |\n`;
+                md += `| :---: | :--- | :--- | :--- | :--- | :--- |\n`;
 
                 chat.messages.forEach((m, idx) => {
                     const time = formatMadridDateTime(m.created_at);
-                    let emisorLabel = '👤 Cliente';
-                    if (m.emisor === 'bot') emisorLabel = '🤖 Chatbot';
+                    
+                    let emisorLabel = 'Cliente';
+                    if (m.emisor === 'bot') emisorLabel = 'Bot';
                     else if (['staff', 'humano', 'recepcion', 'admin', 'restaurante'].includes(m.emisor)) {
-                        emisorLabel = '🏢 Recepción / Staff';
+                        emisorLabel = 'Recepción';
                     }
+
+                    let typeLabel = 'Texto';
+                    if (m.tipo === 'interactive_list') typeLabel = 'Lista de opciones';
+                    else if (m.tipo === 'interactive_buttons') typeLabel = 'Botones interactivos';
+                    else if (m.tipo === 'interactive') typeLabel = 'Selección';
+                    else if (m.tipo === 'image') typeLabel = 'Imagen';
+                    else if (m.tipo === 'audio' || m.tipo === 'ptt') typeLabel = 'Audio';
+                    else if (m.tipo === 'document') typeLabel = 'Documento';
 
                     let meta = {};
                     try {
                         meta = typeof m.metadata === 'object' ? (m.metadata || {}) : JSON.parse(m.metadata || '{}');
                     } catch(e) {}
 
-                    let typeLabel = '';
-                    if (m.tipo === 'interactive_list') typeLabel = ' *(Lista de opciones)*';
-                    else if (m.tipo === 'interactive_buttons') typeLabel = ' *(Botones interactivos)*';
-                    else if (m.tipo === 'interactive') typeLabel = ' *(Opción seleccionada)*';
-                    else if (m.tipo === 'image') typeLabel = ' *(Imagen)*';
-
-                    const cleanText = (m.texto || '').replace(/\r\n/g, '\n');
-
-                    md += `### ${idx + 1}. ${emisorLabel}${typeLabel} \`[${time}]\`\n`;
-                    md += `> ${cleanText.split('\n').join('\n> ')}\n\n`;
-
-                    // Si hay opciones en metadata, documentarlas
+                    let optionsText = '-';
                     if (meta.sections && Array.isArray(meta.sections)) {
                         const rows = meta.sections.flatMap(s => s.rows || []);
-                        if (rows.length > 0) {
-                            const rowTitles = rows.map(r => (typeof r === 'object' ? (r.title || r.id || '') : r)).filter(Boolean);
-                            if (rowTitles.length > 0) {
-                                md += `*Opciones mostradas:* ${rowTitles.map(t => `\`${t}\``).join(' • ')}\n\n`;
-                            }
+                        const rowTitles = rows.map(r => (typeof r === 'object' ? (r.title || r.id || '') : r)).filter(Boolean);
+                        if (rowTitles.length > 0) {
+                            optionsText = rowTitles.map(t => cleanMarkdownTableCell(t)).join('<br>');
                         }
                     } else if (meta.buttons && Array.isArray(meta.buttons)) {
                         const buttonTitles = meta.buttons.map(b => (typeof b === 'object' ? (b.title || b.reply?.title || b.id || '') : b)).filter(Boolean);
                         if (buttonTitles.length > 0) {
-                            md += `*Botones mostrados:* ${buttonTitles.map(t => `\`${t}\``).join(' • ')}\n\n`;
+                            optionsText = buttonTitles.map(t => cleanMarkdownTableCell(t)).join('<br>');
                         }
                     }
+
+                    const cleanMsg = cleanMarkdownTableCell(m.texto);
+
+                    md += `| ${idx + 1} | ${time} | ${emisorLabel} | ${typeLabel} | ${cleanMsg} | ${optionsText} |\n`;
                 });
+
+                md += `\n`;
 
                 fs.writeFileSync(filePath, md, 'utf8');
                 totalExportedFiles++;
             }
         }
 
-        // 6. Generar README.md índice maestro
-        let readme = `# 📂 Histórico de Conversaciones de WhatsApp - Casa Julián de Tolosa\n\n`;
-        readme += `Este directorio contiene todas las conversaciones de WhatsApp del restaurante exportadas y organizadas cronológicamente por el día del **último mensaje enviado o recibido** en cada chat.\n\n`;
-        readme += `### 📊 Resumen General\n`;
+        // 6. Generar README.md índice maestro simplificado
+        let readme = `# Histórico de Conversaciones de WhatsApp - Casa Julián de Tolosa\n\n`;
+        readme += `Este directorio contiene todas las conversaciones de WhatsApp del restaurante exportadas y organizadas cronológicamente por el día del último mensaje enviado o recibido en cada chat.\n\n`;
+        readme += `### Resumen General\n`;
         readme += `- **Total de Días Registrados:** ${sortedDays.length}\n`;
         readme += `- **Total de Chats Exportados:** ${chatsMap.size}\n`;
         readme += `- **Total de Mensajes Documentados:** ${allMessages.length}\n`;
         readme += `- **Zona Horaria de Clasificación:** Europe/Madrid (España)\n\n`;
         readme += `---\n\n`;
-        readme += `### 📅 Índice de Carpetas por Día\n\n`;
+        readme += `### Índice de Carpetas por Día\n\n`;
         readme += `| Fecha | Carpeta | Total Chats | Ejemplo de Chats |\n`;
-        readme += `| :--- | :--- | :--- | :--- |\n`;
+        readme += `| :--- | :--- | :---: | :--- |\n`;
 
         sortedDays.forEach(dayKey => {
             const list = daysMap.get(dayKey);
             const sample = list.slice(0, 3).map(c => `\`${c.displayName}\``).join(', ') + (list.length > 3 ? ` *(+${list.length - 3} más)*` : '');
             const [d, m, y] = dayKey.split('_');
-            readme += `| ${d}/${m}/${y} | [📁 \`${dayKey}/\`](./${dayKey}/) | **${list.length}** | ${sample} |\n`;
+            readme += `| ${d}/${m}/${y} | [\`${dayKey}/\`](./${dayKey}/) | **${list.length}** | ${sample} |\n`;
         });
 
         fs.writeFileSync(path.join(targetDir, 'README.md'), readme, 'utf8');
     }
 
-    console.log(`✅ Exportación finalizada con éxito!`);
-    console.log(`📂 Se han generado ${totalExportedFiles / 2} archivos .md clasificados en ${sortedDays.length} carpetas diarias.`);
+    console.log(`Exportación finalizada con éxito.`);
+    console.log(`Se han generado ${totalExportedFiles / 2} archivos .md simplificados en formato tabla.`);
 }
 
 runExport().then(() => process.exit(0)).catch(err => {
-    console.error("❌ Error en runExport:", err);
+    console.error("Error en runExport:", err);
     process.exit(1);
 });
