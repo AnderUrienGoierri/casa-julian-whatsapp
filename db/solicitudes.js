@@ -447,6 +447,17 @@ async function logUserChatHistory(telefono, { emisor, tipo = 'text', texto = '',
         db.bot_chat_history = db.bot_chat_history.slice(-40000);
     }
     saveDb(db);
+
+    // Si el chat estaba en deletedChats, des-eliminarlo automáticamente al entrar un nuevo mensaje
+    try {
+        const { getInboxSettings, saveInboxSettings } = require('./inboxSettings');
+        const settings = await getInboxSettings();
+        if (settings.deletedChats && (settings.deletedChats[cleanTel] || settings.deletedChats[telefono])) {
+            delete settings.deletedChats[cleanTel];
+            delete settings.deletedChats[telefono];
+            await saveInboxSettings(settings);
+        }
+    } catch(e) {}
 }
 
 /**
@@ -806,8 +817,18 @@ async function getAllWhatsAppConversations() {
             }
         });
 
-        // Filtrar chats eliminados de la lista general
-        resultList = resultList.filter(c => !deletedChats[c.telefono]);
+        // Filtrar chats eliminados de la lista general (reactivar si hay mensajes nuevos posteriores)
+        resultList = resultList.filter(c => {
+            const clean = c.telefono.startsWith('group_') ? c.telefono : c.telefono.replace(/\D/g, '');
+            const delInfo = deletedChats[c.telefono] || deletedChats[clean];
+            if (!delInfo) return true;
+            if (delInfo.deletedAt && c.ultimoMensajeFecha) {
+                if (new Date(c.ultimoMensajeFecha).getTime() > new Date(delInfo.deletedAt).getTime()) {
+                    return true;
+                }
+            }
+            return false;
+        });
 
     } catch (e) {
         console.warn("⚠️ Error cargando grupos en getAllWhatsAppConversations:", e.message);

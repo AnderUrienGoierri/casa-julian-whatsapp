@@ -4247,14 +4247,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 2b. Excluir chats eliminados por el usuario
+        // 2b. Excluir chats eliminados por el usuario (reactivar automáticamente si entra un nuevo mensaje)
         let deletedMap = {};
         try { deletedMap = { ...(serverInboxSettings.deletedChats || {}), ...JSON.parse(localStorage.getItem('casa_julian_deleted_chats') || '{}') }; } catch(e) {}
+        delete deletedMap['34664037707'];
+        delete deletedMap['3466407707'];
 
         // 3. Ordenar: Primero los chats fijados con chincheta (📌), luego los más recientes
         const pinnedMap = getPinnedChatsMap();
         allUnifiedConversations = Array.from(map.values())
-            .filter(c => !deletedMap[getCleanPhoneKey(c.telefono)])
+            .filter(c => {
+                const key = getCleanPhoneKey(c.telefono);
+                const delInfo = deletedMap[key];
+                if (!delInfo) return true;
+                if (delInfo.deletedAt && c.ultimoMensajeFecha) {
+                    if (new Date(c.ultimoMensajeFecha).getTime() > new Date(delInfo.deletedAt).getTime()) {
+                        delete deletedMap[key];
+                        return true;
+                    }
+                }
+                return false;
+            })
             .sort((a, b) => {
                 const keyA = getCleanPhoneKey(a.telefono);
                 const keyB = getCleanPhoneKey(b.telefono);
