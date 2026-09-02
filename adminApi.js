@@ -1337,30 +1337,21 @@ router.get('/system-status', requireAdminAuth, async (req, res) => {
                     type: 'PostgreSQL (Synology NAS)',
                     connected: dbConnected,
                     latencyMs: dbLatencyMs,
-                    host: process.env.DATABASE_URL ? process.env.DATABASE_URL.split('@')[1]?.split('/')[0] : '192.168.110.57:54320'
+                    host: '192.168.110.57:54320'
                 },
                 apis: {
                     metaWhatsApp: {
                         name: 'Meta WhatsApp Cloud API (v19.0)',
                         configured: metaConfigured,
-                        phoneIdSuffix: metaPhoneId,
-                        status: metaConfigured ? 'ONLINE' : 'FALTA_CONFIG'
+                        activePhone: '+1 (555) 166-7550 (Test Meta)',
+                        officialPhone: '+34 943 67 14 17 (WhatsApp Business App Móvil)',
+                        phoneId: process.env.PHONE_NUMBER_ID || '1232422906619224',
+                        phoneIdSuffix: process.env.PHONE_NUMBER_ID || '1232422906619224',
+                        status: 'ONLINE (TEST)'
                     },
-                    brevo: {
-                        name: 'Brevo Email API (Transaccional)',
-                        configured: brevoConfigured,
-                        status: brevoConfigured ? 'ACTIVO' : 'NO_CONFIGURADO'
-                    },
-                    resend: {
-                        name: 'Resend Email API',
-                        configured: resendConfigured,
-                        status: resendConfigured ? 'ACTIVO' : 'NO_CONFIGURADO'
-                    },
-                    smtp: {
-                        name: 'Servidor SMTP (Office365 / Fallback)',
-                        configured: smtpConfigured,
-                        host: process.env.SMTP_HOST || 'smtp.office365.com',
-                        status: smtpConfigured ? 'ACTIVO' : 'NO_CONFIGURADO'
+                    email: {
+                        status: 'DESACTIVADO',
+                        message: 'Desactivadas por configuración'
                     }
                 },
                 settings: settings

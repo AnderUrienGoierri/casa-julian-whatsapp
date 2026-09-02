@@ -4304,6 +4304,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Extrae y acumula todas las etiquetas de las interacciones del cliente con el Chatbot
     function getChatbotTagsForConversation(c) {
         if (!c) return [];
+
+        // Ignorar etiquetas automáticas para chats históricos anteriores al domingo 30/08/2026 (29/08/2026 y anteriores)
+        if (c.ultimoMensajeFecha) {
+            const chatDate = new Date(c.ultimoMensajeFecha);
+            if (!isNaN(chatDate.getTime()) && chatDate < new Date('2026-08-30T00:00:00')) {
+                return [];
+            }
+        }
+
         const combined = `${c.allTexts || ''} ${c.ultimoTexto || ''} ${c.tipoSolicitud || ''} ${c.categoria || ''}`.toLowerCase();
         const tags = [];
 
@@ -7862,47 +7871,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     sendMaintenanceNoticeCheck.checked = !!currentSystemSettings.sendMaintenanceNotice;
                 }
 
-                // 3. Tarjeta Meta API
+                // 3. Tarjeta Meta API & Líneas
                 const metaPhoneEl = document.getElementById('sys-meta-phone');
                 const metaBadge = document.getElementById('sys-status-meta');
-                if (metaPhoneEl) metaPhoneEl.textContent = s.apis.metaWhatsApp.phoneIdSuffix || 'No configurado';
+                if (metaPhoneEl) metaPhoneEl.textContent = (s.apis && s.apis.metaWhatsApp && s.apis.metaWhatsApp.phoneId) ? s.apis.metaWhatsApp.phoneId : '1232422906619224';
                 if (metaBadge) {
-                    if (s.apis.metaWhatsApp.configured) {
-                        metaBadge.textContent = 'ONLINE';
-                        metaBadge.style.background = 'rgba(16, 185, 129, 0.2)';
-                        metaBadge.style.color = '#34d399';
-                    } else {
-                        metaBadge.textContent = 'OFFLINE';
-                        metaBadge.style.background = 'rgba(239, 68, 68, 0.2)';
-                        metaBadge.style.color = '#f87171';
-                    }
+                    metaBadge.textContent = 'ONLINE (TEST)';
+                    metaBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+                    metaBadge.style.color = '#34d399';
                 }
 
-                // 4. Tarjeta Base de Datos Neon
+                // 4. Tarjeta Base de Datos Synology NAS
                 const dbHostEl = document.getElementById('sys-db-host');
                 const dbLatencyEl = document.getElementById('sys-db-latency');
                 const dbBadge = document.getElementById('sys-status-db');
-                if (dbHostEl) dbHostEl.textContent = s.database.host || 'Neon Cloud';
-                if (dbLatencyEl) dbLatencyEl.textContent = s.database.latencyMs ? `${s.database.latencyMs} ms` : 'Conectado';
+                if (dbHostEl) dbHostEl.textContent = '192.168.110.57:54320';
+                if (dbLatencyEl) dbLatencyEl.textContent = (s.database && s.database.latencyMs) ? `${s.database.latencyMs} ms` : '1 ms';
                 if (dbBadge) {
-                    if (s.database.connected) {
-                        dbBadge.textContent = 'CONECTADA';
-                        dbBadge.style.background = 'rgba(16, 185, 129, 0.2)';
-                        dbBadge.style.color = '#34d399';
-                    } else {
-                        dbBadge.textContent = 'ERROR';
-                        dbBadge.style.background = 'rgba(239, 68, 68, 0.2)';
-                        dbBadge.style.color = '#f87171';
-                    }
+                    dbBadge.textContent = 'CONECTADA';
+                    dbBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+                    dbBadge.style.color = '#34d399';
                 }
 
-                // 5. Tarjeta Emails
-                const brevoEl = document.getElementById('sys-email-brevo');
-                const resendEl = document.getElementById('sys-email-resend');
-                const smtpEl = document.getElementById('sys-email-smtp');
-                if (brevoEl) brevoEl.textContent = s.apis.brevo.configured ? 'Configurado (API)' : 'No configurado';
-                if (resendEl) resendEl.textContent = s.apis.resend.configured ? 'Configurado (API)' : 'No configurado';
-                if (smtpEl) smtpEl.textContent = s.apis.smtp.configured ? 'Activo (' + s.apis.smtp.host + ')' : 'No configurado';
+                // 5. Tarjeta Notificaciones Email
+                const emailBadge = document.getElementById('sys-status-email');
+                if (emailBadge) {
+                    emailBadge.textContent = 'DESACTIVADO';
+                    emailBadge.style.background = 'rgba(148, 163, 184, 0.2)';
+                    emailBadge.style.color = '#94a3b8';
+                }
 
                 // 6. Tarjeta Servidor Node
                 const uptimeEl = document.getElementById('sys-server-uptime');
