@@ -184,13 +184,17 @@ async function setChatStatus(phone, status) {
     if (!cleanPhone) return null;
     const settings = await getInboxSettings();
     const manualChatStatus = { ...(settings.manualChatStatus || {}) };
+    const nowIso = new Date().toISOString();
 
     if (typeof status === 'object' && status !== null) {
-        manualChatStatus[cleanPhone] = status;
+        manualChatStatus[cleanPhone] = {
+            ...status,
+            updatedAt: status.updatedAt || nowIso
+        };
     } else {
         manualChatStatus[cleanPhone] = status === 'leido' 
-            ? { status: 'leido', readAt: new Date().toISOString() } 
-            : { status: 'pendiente', readAt: null };
+            ? { status: 'leido', readAt: nowIso, updatedAt: nowIso } 
+            : { status: 'pendiente', readAt: null, updatedAt: nowIso };
     }
     
     await saveInboxSettings({ manualChatStatus });
