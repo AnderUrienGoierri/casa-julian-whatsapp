@@ -4924,6 +4924,7 @@ div.inbox-toolbar-header,
 /* ── BARRA FLOTANTE DE SELECCIÓN MÚLTIPLE (Estética compacta idéntica a imagen 2) ── */
 .wa-left-pane {
     position: relative !important;
+    overflow: visible !important;
 }
 
 .chat-multi-select-floating-bar {
@@ -4948,12 +4949,12 @@ div.inbox-toolbar-header,
     animation: fadeInDropdown 0.15s ease-out !important;
 }
 
-/* En pantallas de ordenador (>= 900px): Idéntico menú flotante posicionado a la derecha de la lista */
+/* En pantallas de ordenador (>= 900px): Posicionado a la derecha fuera de la columna de chats (a la derecha del scroll) */
 @media (min-width: 900px) {
     .chat-multi-select-floating-bar {
         top: 110px !important;
-        right: 12px !important;
-        left: auto !important;
+        left: calc(100% + 10px) !important;
+        right: auto !important;
         display: flex !important;
         flex-direction: column !important;
         width: 175px !important;
