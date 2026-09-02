@@ -4589,6 +4589,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isActive) {
             floatingBar.style.display = 'flex';
+            const headerContainer = document.querySelector('.whatsapp-business-header-container');
+            if (headerContainer) {
+                const headerH = headerContainer.offsetHeight;
+                if (headerH > 0) {
+                    floatingBar.style.top = `${headerH + 4}px`;
+                }
+            }
             const countText = document.getElementById('chat-multi-select-count-text');
             if (countText) countText.textContent = `${count} ${count === 1 ? 'elegido' : 'elegidos'}`;
             const chkAll = document.getElementById('chat-multi-select-all');

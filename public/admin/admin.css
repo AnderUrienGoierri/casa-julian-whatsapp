@@ -4928,8 +4928,8 @@ div.inbox-toolbar-header,
 
 .chat-multi-select-floating-bar {
     position: absolute !important;
-    top: 48px !important;
-    right: 56px !important;
+    top: 118px !important;
+    right: 16px !important;
     left: auto !important;
     z-index: 999999 !important;
     background: #233138 !important;
@@ -4947,11 +4947,11 @@ div.inbox-toolbar-header,
     animation: fadeInDropdown 0.15s ease-out !important;
 }
 
-/* En pantallas de ordenador (>= 900px): Idéntico menú flotante posicionado sin tapar fecha ni etiquetas */
+/* En pantallas de ordenador (>= 900px): Idéntico menú flotante posicionado a la derecha de la lista */
 @media (min-width: 900px) {
     .chat-multi-select-floating-bar {
-        top: 52px !important;
-        right: 60px !important;
+        top: 118px !important;
+        right: 16px !important;
         left: auto !important;
     }
 }
