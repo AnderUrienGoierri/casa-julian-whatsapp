@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración & Editor Visual - Casa Julián Chatbot</title>
     <link rel="icon" type="image/jpeg" href="/admin/casa_julian_logo_CJ.jpeg">
-    <link rel="stylesheet" href="/admin/admin.css?v=20260902-V501-VERTICAL-DESKTOP-MULTISELECT-DARK">
+    <link rel="stylesheet" href="/admin/admin.css?v=20260902-V502-COMPACT-DROPDOWN-MULTISELECT-DARK">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -316,26 +316,26 @@
                                 </div>
                             </div>
 
-                            <!-- Barra Flotante Superpuesta de Selección Múltiple (Sin desplazar la lista) -->
-                            <div id="chat-multi-select-floating-bar" class="chat-multi-select-floating-bar" style="display: none; background: #111b21; border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.85); padding: 10px; z-index: 100000;">
-                                <div class="multi-select-info-group" style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; border-bottom: 1px solid rgba(134, 150, 160, 0.2); padding-bottom: 8px; margin-bottom: 8px;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" id="chat-multi-select-all" class="multi-select-master-chk" style="width: 17px; height: 17px; cursor: pointer; accent-color: #10b981;">
-                                        <span id="chat-multi-select-count-text" class="multi-select-counter-label" style="font-size: 0.85rem; font-weight: 700; color: #10b981;">0 seleccionados</span>
+                            <!-- Barra Flotante Superpuesta de Selección Múltiple (Estética compacta 3 puntitos) -->
+                            <div id="chat-multi-select-floating-bar" class="chat-multi-select-floating-bar" style="display: none; background: #233138; border: 1px solid rgba(134, 150, 160, 0.25); border-radius: 10px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4); padding: 4px 0; z-index: 999999; min-width: 155px; max-width: 175px; overflow: hidden;">
+                                <div class="multi-select-info-group" style="display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; border-bottom: 1px solid rgba(134, 150, 160, 0.18); padding: 5px 12px; box-sizing: border-box; margin-bottom: 2px;">
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <input type="checkbox" id="chat-multi-select-all" class="multi-select-master-chk" style="width: 15px; height: 15px; cursor: pointer; accent-color: #10b981;">
+                                        <span id="chat-multi-select-count-text" class="multi-select-counter-label" style="font-size: 0.78rem; font-weight: 700; color: #10b981;">0 elegidos</span>
                                     </div>
-                                    <button type="button" id="btn-multi-cancel" class="multi-action-btn btn-cancel" title="Cancelar selección múltiple" style="background: transparent; border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer; padding: 0 4px; line-height: 1;">✕</button>
+                                    <button type="button" id="btn-multi-cancel" class="multi-action-btn btn-cancel" title="Cancelar selección múltiple" style="background: transparent; border: none; color: #8696a0; font-size: 1rem; cursor: pointer; padding: 0 2px; line-height: 1;">✕</button>
                                 </div>
-                                <div class="multi-select-btn-group">
-                                    <button type="button" id="btn-multi-archive-chats" class="multi-action-btn btn-archive" title="Mover al fondo de la lista" style="background: #202c33; border: 1px solid rgba(255,255,255,0.12); color: #e9edef; font-size: 0.82rem; font-weight: 600; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; box-sizing: border-box;">
+                                <div class="multi-select-btn-group" style="display: flex; flex-direction: column; gap: 1px; width: 100%;">
+                                    <button type="button" id="btn-multi-archive-chats" class="multi-action-btn btn-archive" title="Mover al fondo de la lista" style="background: transparent; border: none; color: #e9edef; font-size: 0.80rem; font-weight: 500; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; box-sizing: border-box;">
                                         📦 <span class="action-btn-text">Archivar</span>
                                     </button>
-                                    <button type="button" id="btn-multi-delete-chats" class="multi-action-btn btn-delete" title="Eliminar chats seleccionados" style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; font-size: 0.82rem; font-weight: 600; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; box-sizing: border-box;">
+                                    <button type="button" id="btn-multi-delete-chats" class="multi-action-btn btn-delete" title="Eliminar chats seleccionados" style="background: transparent; border: none; color: #fca5a5; font-size: 0.80rem; font-weight: 500; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; box-sizing: border-box;">
                                         🗑️ <span class="action-btn-text">Eliminar</span>
                                     </button>
-                                    <button type="button" id="btn-multi-mark-unread" class="multi-action-btn btn-unread" title="Marcar seleccionados como No Leído" style="background: rgba(16, 185, 129, 0.18); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.82rem; font-weight: 600; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; box-sizing: border-box;">
+                                    <button type="button" id="btn-multi-mark-unread" class="multi-action-btn btn-unread" title="Marcar seleccionados como No Leído" style="background: transparent; border: none; color: #34d399; font-size: 0.80rem; font-weight: 500; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; box-sizing: border-box;">
                                         🔴 <span class="action-btn-text">No Leído</span>
                                     </button>
-                                    <button type="button" id="btn-multi-mark-read" class="multi-action-btn btn-read" title="Marcar seleccionados como Leído" style="background: #202c33; border: 1px solid rgba(255,255,255,0.12); color: #e9edef; font-size: 0.82rem; font-weight: 600; padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; box-sizing: border-box;">
+                                    <button type="button" id="btn-multi-mark-read" class="multi-action-btn btn-read" title="Marcar seleccionados como Leído" style="background: transparent; border: none; color: #e9edef; font-size: 0.80rem; font-weight: 500; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; box-sizing: border-box;">
                                         ✅ <span class="action-btn-text">Leído</span>
                                     </button>
                                 </div>
@@ -1232,6 +1232,6 @@
         </div>
     </div>
 
-    <script src="/admin/admin.js?v=20260902-V501-VERTICAL-DESKTOP-MULTISELECT-DARK"></script>
+    <script src="/admin/admin.js?v=20260902-V502-COMPACT-DROPDOWN-MULTISELECT-DARK"></script>
 </body>
 </html>

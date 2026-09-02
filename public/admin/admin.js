@@ -4578,8 +4578,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const floatingBar = document.getElementById('chat-multi-select-floating-bar');
         if (!floatingBar) return;
         const container = document.getElementById('inbox-cards-container');
-        const isActive = isChatMultiSelectMode && selectedChatCardsPhones.size > 0;
+        const count = selectedChatCardsPhones.size;
+        const isActive = count > 0;
         
+        isChatMultiSelectMode = isActive;
+
         if (container) {
             container.classList.toggle('multi-select-mode', isActive);
         }
@@ -4587,7 +4590,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isActive) {
             floatingBar.style.display = 'flex';
             const countText = document.getElementById('chat-multi-select-count-text');
-            if (countText) countText.textContent = `${selectedChatCardsPhones.size} seleccionados`;
+            if (countText) countText.textContent = `${count} ${count === 1 ? 'elegido' : 'elegidos'}`;
             const chkAll = document.getElementById('chat-multi-select-all');
             if (chkAll) {
                 const allVisible = Array.from(document.querySelectorAll('.chat-card-item')).map(el => el.getAttribute('data-phone')).filter(Boolean);
