@@ -276,36 +276,53 @@ if (process.env.DATABASE_URL) {
             console.error("⚠️ Error seeding silenced numbers:", seedErr.message);
         }
 
-        // Auto-migración de historial de chats si la tabla bot_chat_history está vacía
+        // Auto-sincronización y poblamiento completo de historial de chats en PostgreSQL desde db.json
         try {
-            const countCheck = await pool.query('SELECT count(*) as total FROM bot_chat_history');
-            if (parseInt(countCheck.rows[0].total, 10) === 0 && fs.existsSync(DB_PATH)) {
-                console.log("📦 Auto-poblando bot_chat_history en PostgreSQL desde db.json...");
+            if (fs.existsSync(DB_PATH)) {
                 const dbJson = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
                 const historyList = dbJson.bot_chat_history || [];
-                const client = await pool.connect();
-                try {
-                    await client.query('BEGIN');
-                    for (const item of historyList) {
-                        const tel = (item.telefono || '').toString().trim();
-                        if (!tel) continue;
-                        const emisor = (item.emisor || 'cliente').toString().trim();
-                        const tipo = (item.tipo || 'text').toString().trim();
-                        const texto = (item.texto || '').toString();
-                        const metaStr = typeof item.metadata === 'object' && item.metadata !== null ? JSON.stringify(item.metadata) : (item.metadata || '{}');
-                        const createdAt = item.created_at || new Date().toISOString();
-                        await client.query(
-                            `INSERT INTO bot_chat_history (telefono, emisor, tipo, texto, metadata, created_at) VALUES ($1, $2, $3, $4, $5, $6)`,
-                            [tel, emisor, tipo, texto, metaStr, createdAt]
-                        );
+                if (historyList.length > 0) {
+                    const client = await pool.connect();
+                    try {
+                        const existingRes = await client.query('SELECT telefono, created_at FROM bot_chat_history');
+                        const existingSet = new Set(existingRes.rows.map(r => `${r.telefono}_${r.created_at ? new Date(r.created_at).getTime() : ''}`));
+                        
+                        const toInsert = [];
+                        for (const item of historyList) {
+                            const tel = (item.telefono || '').toString().trim();
+                            if (!tel) continue;
+                            const timeKey = item.created_at ? new Date(item.created_at).getTime() : '';
+                            const key = `${tel}_${timeKey}`;
+                            if (!existingSet.has(key)) {
+                                existingSet.add(key);
+                                toInsert.push(item);
+                            }
+                        }
+
+                        if (toInsert.length > 0) {
+                            console.log(`📦 Sincronizando ${toInsert.length} mensajes históricos de chats en PostgreSQL...`);
+                            await client.query('BEGIN');
+                            for (const item of toInsert) {
+                                const tel = (item.telefono || '').toString().trim();
+                                const emisor = (item.emisor || 'cliente').toString().trim();
+                                const tipo = (item.tipo || 'text').toString().trim();
+                                const texto = (item.texto || '').toString();
+                                const metaStr = typeof item.metadata === 'object' && item.metadata !== null ? JSON.stringify(item.metadata) : (item.metadata || '{}');
+                                const createdAt = item.created_at || new Date().toISOString();
+                                await client.query(
+                                    `INSERT INTO bot_chat_history (telefono, emisor, tipo, texto, metadata, created_at) VALUES ($1, $2, $3, $4, $5, $6)`,
+                                    [tel, emisor, tipo, texto, metaStr, createdAt]
+                                );
+                            }
+                            await client.query('COMMIT');
+                            console.log(`✅ [Chat History] ${toInsert.length} nuevos mensajes históricos sincronizados en PostgreSQL.`);
+                        }
+                    } catch (txErr) {
+                        await client.query('ROLLBACK');
+                        console.error("⚠️ Error sincronizando chat history a Postgres:", txErr.message);
+                    } finally {
+                        client.release();
                     }
-                    await client.query('COMMIT');
-                    console.log(`✅ [Chat History] ${historyList.length} mensajes migrados a PostgreSQL.`);
-                } catch (txErr) {
-                    await client.query('ROLLBACK');
-                    console.error("⚠️ Error migrando chat history a Postgres:", txErr.message);
-                } finally {
-                    client.release();
                 }
             }
         } catch (histErr) {
